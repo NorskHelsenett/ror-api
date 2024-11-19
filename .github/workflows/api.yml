@@ -156,35 +156,35 @@ jobs:
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
-  # publish-helm:
-  #   runs-on: ubuntu-latest
-  #   needs: 
-  #     - bump-version
-  #     - build-container-image
-  #   env:
-  #     ROR_VERSION: ${{ needs.bump-version.outputs.ror_version }}
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v4
+  publish-helm:
+    runs-on: ubuntu-latest
+    needs: 
+      - bump-version
+      - build-container-image
+    env:
+      ROR_VERSION: ${{ needs.bump-version.outputs.ror_version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  #     - name: Install helm
-  #       uses: azure/setup-helm@v1
-  #       with:
-  #         version: v3.15.0
+      - name: Install helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.15.0
       
-  #     - name: install-yq
-  #       run: |
-  #         wget https://github.com/mikefarah/yq/releases/download/${VERSION}/${BINARY}.tar.gz -O - | tar xz && mv ${BINARY} yq && chmod +x yq
-  #       env:
-  #         VERSION: v4.44.5
-  #         BINARY: yq_linux_amd64
+      - name: install-yq
+        run: |
+          wget https://github.com/mikefarah/yq/releases/download/${VERSION}/${BINARY}.tar.gz -O - | tar xz && mv ${BINARY} yq && chmod +x yq
+        env:
+          VERSION: v4.44.5
+          BINARY: yq_linux_amd64
       
-  #     - name: Build helm chart
-  #       run: |
-  #         ./yq e -i '.version = strenv(ROR_VERSION),.appVersion = strenv(ROR_VERSION)' charts/ror-cluster-agent-v1/Chart.yaml
-  #         ./yq e -i '.image.tag = strenv(ROR_VERSION)' charts/ror-cluster-agent-v1/values.yaml
-  #         ./yq e -i '.image.repository = "ncr.sky.nhn.no/ror/cluster-agent"' charts/ror-cluster-agent-v1/values.yaml
-  #         helm package charts/ror-cluster-agent-v1
-  #         echo  ${{ secrets.GITHUB_TOKEN }} | helm registry login -u ${{ github.actor }} ${{ env.REGISTRY }} --password-stdin
-  #         helm push ror-cluster-agent-${ROR_VERSION}.tgz oci://${{ env.REGISTRY }}/norskhelsenett/helm/
+      - name: Build helm chart
+        run: |
+          ./yq e -i '.version = strenv(ROR_VERSION),.appVersion = strenv(ROR_VERSION)' charts/ror-api/Chart.yaml
+          ./yq e -i '.image.tag = strenv(ROR_VERSION)' charts/ror-api/values.yaml
+          ./yq e -i '.image.repository = "ghcr.io/norskhelsenett/ror-api"' charts/ror-api/values.yaml
+          helm package charts/ror-api
+          echo  ${{ secrets.GITHUB_TOKEN }} | helm registry login -u ${{ github.actor }} ${{ env.REGISTRY }} --password-stdin
+          helm push ror-api-${ROR_VERSION}.tgz oci://${{ env.REGISTRY }}/norskhelsenett/helm/
 
