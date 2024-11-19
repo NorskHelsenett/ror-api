@@ -1,10 +1,10 @@
-# NHN-ROR-API
+# ROR-API
 
 Webapi made with Golang and Gin webapi framework
 
 # Prerequisites
 
-- Golang 1.20.x https://go.dev
+- Golang 1.23.x https://go.dev
 
 # Get started
 
