@@ -55,12 +55,16 @@ spec:
             httpGet:
               path: /health
               port: health
-            initialDelaySeconds: 15
+          startupProbe:
+            httpGet:
+              path: /health
+              port: health
+            failureThreshold: 15
+            periodSeconds: 2
           readinessProbe:
             httpGet:
               path: /health
               port: health
-            initialDelaySeconds: 5
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
