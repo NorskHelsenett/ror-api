@@ -20,7 +20,7 @@ data:
   ENABLE_TRACING: {{.Values.api.config.tracing.enabled | quote}}
   HTTP_TIMEOUT: {{.Values.api.http.timeout | quote}}
   LDAP_CERT_FOLDER: "/ldap-certs"
-  TANZU_AUTH_BASE_URL: {{ default "http://ror-ms-tanzu-auth.nhn-ror.svc:8080" .Values.api.tanzuAuthBaseUrl | quote }}
+  TANZU_AUTH_BASE_URL: {{ default "http://ror-ms-tanzu-auth.nhn-ror.svc:8080" .Values.api.config.tanzu.tanzuAuthBaseUrl | quote }}
   CONTAINER_REG_PREFIX: "ncr.sky.nhn.no/"
   CONTAINER_REG_IMAGE_PATH: "github.com/NorskHelsenett/ror/"
   CONTAINER_REG_HELM_PATH: "nhn-helm/"

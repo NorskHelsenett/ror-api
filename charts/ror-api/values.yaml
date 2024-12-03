@@ -4,8 +4,6 @@
 enabled: true
 api:
   fqdn: api.ror.sky.test.nhn.no
-  tanzuAuthBaseUrl: "http://nhn-ror-ms-tanzu-auth.nhn-ror.svc:8080"
-
   http:
     timeout: 15s
     mode: "release"
@@ -19,6 +17,8 @@ api:
       clientId: "ror.sky.test.nhn.no"
     tracing:
       enabled: true
+    tanzu:
+      tanzuAuthBaseUrl: "http://nhn-ror-ms-tanzu-auth.nhn-ror.svc:8080"
 replicaCount: 3
 image:
   repository: ghcr.io/norskhelsenett/ror-api
