@@ -5,7 +5,7 @@ metadata:
 data:
   GIN_MODE: {{.Values.api.http.mode | quote}}
   ALLOW_ORIGINS: {{.Values.api.config.allowOrigins | quote}}
-  USE_CORS: {{.Values.api.config.useCors }}
+  USE_CORS: {{.Values.api.config.useCors | quote }}
   RABBITMQ_HOST: "rabbitmq-ror.nhn-ror.svc"
   MONGODB_HOST: "ror-mongodb.nhn-ror.svc"
   VAULT_HOST: "ror-vault-active.nhn-ror.svc"
