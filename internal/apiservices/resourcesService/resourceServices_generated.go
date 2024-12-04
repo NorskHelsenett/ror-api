@@ -827,6 +827,54 @@ func GetVirtualMachineByUid(ctx context.Context, ownerref apiresourcecontracts.R
 
 }
 
+// Functions to get Endpoints by uid,ownerref
+// The function is intended for use by internal functions
+func GetEndpointsByUid(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerReference, uid string) (apiresourcecontracts.ResourceEndpoints, error) {
+	if uid == "" {
+		return apiresourcecontracts.ResourceEndpoints{}, errors.New("uid is empty")
+	}
+	query := apiresourcecontracts.ResourceQuery{
+		Owner:      ownerref,
+		Kind:       "Endpoints",
+		ApiVersion: "v1",
+		Internal:   true,
+		Uid:        uid,
+	}
+
+	resource, err := GetResource[apiresourcecontracts.ResourceEndpoints](ctx, query)
+	if err != nil {
+		rlog.Errorc(ctx, "could not get resource", err)
+		return apiresourcecontracts.ResourceEndpoints{}, errors.New("could not get resource")
+	}
+
+	return resource, nil
+
+}
+
+// Functions to get Networkpolicies by uid,ownerref
+// The function is intended for use by internal functions
+func GetNetworkPolicyByUid(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerReference, uid string) (apiresourcecontracts.ResourceNetworkPolicy, error) {
+	if uid == "" {
+		return apiresourcecontracts.ResourceNetworkPolicy{}, errors.New("uid is empty")
+	}
+	query := apiresourcecontracts.ResourceQuery{
+		Owner:      ownerref,
+		Kind:       "NetworkPolicy",
+		ApiVersion: "networking.k8s.io/v1",
+		Internal:   true,
+		Uid:        uid,
+	}
+
+	resource, err := GetResource[apiresourcecontracts.ResourceNetworkPolicy](ctx, query)
+	if err != nil {
+		rlog.Errorc(ctx, "could not get resource", err)
+		return apiresourcecontracts.ResourceNetworkPolicy{}, errors.New("could not get resource")
+	}
+
+	return resource, nil
+
+}
+
 // Functions to get Namespaces by ownerref
 // The function is intended for use by internal functions
 func GetNamespaces(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerReference) (apiresourcecontracts.ResourceListNamespaces, error) {
@@ -1439,6 +1487,42 @@ func GetVirtualmachines(ctx context.Context, ownerref apiresourcecontracts.Resou
 	return resources, nil
 }
 
+// Functions to get Endpoints by ownerref
+// The function is intended for use by internal functions
+func GetEndpoints(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerReference) (apiresourcecontracts.ResourceListEndpoints, error) {
+	var resources apiresourcecontracts.ResourceListEndpoints
+	query := apiresourcecontracts.ResourceQuery{
+		Owner:      ownerref,
+		Kind:       "Endpoints",
+		ApiVersion: "v1",
+	}
+	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceEndpoints](ctx, query)
+	resources.Owner = ownerref
+	resources.Endpoints = resourceset
+	if err != nil {
+		return resources, errors.New("could not fetch resource Endpoints")
+	}
+	return resources, nil
+}
+
+// Functions to get Networkpolicies by ownerref
+// The function is intended for use by internal functions
+func GetNetworkpolicies(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerReference) (apiresourcecontracts.ResourceListNetworkpolicies, error) {
+	var resources apiresourcecontracts.ResourceListNetworkpolicies
+	query := apiresourcecontracts.ResourceQuery{
+		Owner:      ownerref,
+		Kind:       "NetworkPolicy",
+		ApiVersion: "networking.k8s.io/v1",
+	}
+	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceNetworkPolicy](ctx, query)
+	resources.Owner = ownerref
+	resources.Networkpolicies = resourceset
+	if err != nil {
+		return resources, errors.New("could not fetch resource NetworkPolicy")
+	}
+	return resources, nil
+}
+
 // Function to creates a resource by the 'apiresourcecontracts.ResourceUpdateModel'
 func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontracts.ResourceUpdateModel) error {
 	var err error
@@ -1843,6 +1927,30 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVirtualMachine]](resourceUpdate)
 		resource = filterInVirtualMachine(resource)
 		err = resourcesmongodbrepo.CreateResourceVirtualMachine(resource, ctx)
+		if err == nil {
+			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
+			if err != nil {
+				rlog.Errorc(ctx, "could not send to message bus", err)
+			}
+		}
+	}
+
+	if resourceUpdate.ApiVersion == "v1" && resourceUpdate.Kind == "Endpoints" {
+		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceEndpoints]](resourceUpdate)
+		resource = filterInEndpoints(resource)
+		err = resourcesmongodbrepo.CreateResourceEndpoints(resource, ctx)
+		if err == nil {
+			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
+			if err != nil {
+				rlog.Errorc(ctx, "could not send to message bus", err)
+			}
+		}
+	}
+
+	if resourceUpdate.ApiVersion == "networking.k8s.io/v1" && resourceUpdate.Kind == "NetworkPolicy" {
+		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceNetworkPolicy]](resourceUpdate)
+		resource = filterInNetworkPolicy(resource)
+		err = resourcesmongodbrepo.CreateResourceNetworkPolicy(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -2264,6 +2372,30 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVirtualMachine]](resourceUpdate)
 		resource = filterInVirtualMachine(resource)
 		err = resourcesmongodbrepo.UpdateResourceVirtualMachine(resource, ctx)
+		if err == nil {
+			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
+			if err != nil {
+				rlog.Errorc(ctx, "could not send to message bus", err)
+			}
+		}
+	}
+
+	if resourceUpdate.ApiVersion == "v1" && resourceUpdate.Kind == "Endpoints" {
+		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceEndpoints]](resourceUpdate)
+		resource = filterInEndpoints(resource)
+		err = resourcesmongodbrepo.UpdateResourceEndpoints(resource, ctx)
+		if err == nil {
+			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
+			if err != nil {
+				rlog.Errorc(ctx, "could not send to message bus", err)
+			}
+		}
+	}
+
+	if resourceUpdate.ApiVersion == "networking.k8s.io/v1" && resourceUpdate.Kind == "NetworkPolicy" {
+		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceNetworkPolicy]](resourceUpdate)
+		resource = filterInNetworkPolicy(resource)
+		err = resourcesmongodbrepo.UpdateResourceNetworkPolicy(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
