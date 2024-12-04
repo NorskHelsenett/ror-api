@@ -12,8 +12,8 @@ github.com/AzureAD/microsoft-authentication-library-for-go v1.2.2 h1:XHOnouVk1mx
 github.com/AzureAD/microsoft-authentication-library-for-go v1.2.2/go.mod h1:wP83P5OoQ5p6ip3ScPr0BAq0BvuPAvacpEuSzyouqAI=
 github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
-github.com/NorskHelsenett/ror v1.0.0-rc3 h1:e3HpQXsBzvKedhZsvnbppdN7nRrvzrHC4n/uq3nPGBI=
-github.com/NorskHelsenett/ror v1.0.0-rc3/go.mod h1:ZSwJQfB/GbgtWR1XgJQ9ka8/8MOU4bEajHIEEWKJ4MY=
+github.com/NorskHelsenett/ror v1.0.0-rc4 h1:lHQq7sv+yritdW4hCAnzl0nmES6P0OaHS5GnP0aJgiw=
+github.com/NorskHelsenett/ror v1.0.0-rc4/go.mod h1:ZSwJQfB/GbgtWR1XgJQ9ka8/8MOU4bEajHIEEWKJ4MY=
 github.com/PuerkitoBio/purell v1.1.1/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbtSwDGJws/X0=
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
