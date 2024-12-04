@@ -6,7 +6,7 @@ package resourcesservice
 import (
 	"context"
 	"errors"
-	"github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/resourcesmongodbrepo"
+	"github.com/NorskHelsenett/ror/internal/mongodbrepo/repositories/resourcesmongodbrepo"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 )
@@ -43,8 +43,8 @@ func Get{{.Kind}}ByUid(ctx context.Context, ownerref apiresourcecontracts.Resour
 {{ range .}}
 // Functions to get {{.PluralCapitalized}} by ownerref
 // The function is intended for use by internal functions
-func Get{{.PluralCapitalized}}(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerReference) (apiresourcecontracts.Resource{{.PluralCapitalized}}, error) {
-	var resources apiresourcecontracts.Resource{{.PluralCapitalized}}
+func Get{{.PluralCapitalized}}(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerReference) (apiresourcecontracts.ResourceList{{.PluralCapitalized}}, error) {
+	var resources apiresourcecontracts.ResourceList{{.PluralCapitalized}}
 	query := apiresourcecontracts.ResourceQuery{
 		Owner:      ownerref,
 		Kind:       "{{.Kind}}",
