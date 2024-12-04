@@ -168,8 +168,8 @@ func DeleteResource(ctx context.Context, resource *rorresources.Resource) error 
 		err := fmt.Errorf("403: No access to uid %s", resource.GetUID())
 		return err
 	}
-	cache := GetResourceCache()
-	cache.Remove(ctx, resource.GetUID())
+	//cache := GetResourceCache()
+	//cache.Remove(ctx, resource.GetUID())
 	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
 	return databaseHelpers.Del(ctx, resource)
 }
