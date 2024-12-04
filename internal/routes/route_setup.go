@@ -4,31 +4,31 @@ import (
 	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/auth"
-	ctrlAcl "github.com/NorskHelsenett/ror-api/internal/controllers/acl"
-	ctrlApikeys "github.com/NorskHelsenett/ror-api/internal/controllers/apikeys"
-	ctrlAuditlogs "github.com/NorskHelsenett/ror-api/internal/controllers/auditlogs"
-	ctrlClusters "github.com/NorskHelsenett/ror-api/internal/controllers/clusters"
-	ctrlDatacenters "github.com/NorskHelsenett/ror-api/internal/controllers/datacenters"
-	ctrlDesiredVersion "github.com/NorskHelsenett/ror-api/internal/controllers/desired_version"
-	ctrlHealth "github.com/NorskHelsenett/ror-api/internal/controllers/health"
+	"github.com/NorskHelsenett/ror-api/internal/controllers/aclcontroller"
+	"github.com/NorskHelsenett/ror-api/internal/controllers/apikeyscontroller"
+	"github.com/NorskHelsenett/ror-api/internal/controllers/auditlogscontroller"
+	"github.com/NorskHelsenett/ror-api/internal/controllers/clusterscontroller"
+	"github.com/NorskHelsenett/ror-api/internal/controllers/datacenterscontroller"
+	"github.com/NorskHelsenett/ror-api/internal/controllers/desiredversioncontroller"
+	healthcontroller "github.com/NorskHelsenett/ror-api/internal/controllers/healthcontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/infocontroller"
 	ctrlM2mConfiguration "github.com/NorskHelsenett/ror-api/internal/controllers/m2m/configurationcontroller"
-	ctrlM2mEaster "github.com/NorskHelsenett/ror-api/internal/controllers/m2m/easter"
-	ctrlMetrics "github.com/NorskHelsenett/ror-api/internal/controllers/metrics"
-	"github.com/NorskHelsenett/ror-api/internal/controllers/notinuse"
-	ctrlOperatorConfigs "github.com/NorskHelsenett/ror-api/internal/controllers/operatorconfigs"
-	ctrlOrder "github.com/NorskHelsenett/ror-api/internal/controllers/order"
-	ctrlPrices "github.com/NorskHelsenett/ror-api/internal/controllers/prices"
-	ctrlProjects "github.com/NorskHelsenett/ror-api/internal/controllers/projects"
-	ctrlProviders "github.com/NorskHelsenett/ror-api/internal/controllers/providers"
+	ctrlM2mEaster "github.com/NorskHelsenett/ror-api/internal/controllers/m2m/eastercontroller"
+	ctrlMetrics "github.com/NorskHelsenett/ror-api/internal/controllers/metricscontroller"
+	"github.com/NorskHelsenett/ror-api/internal/controllers/notinusecontroller"
+	ctrlOperatorConfigs "github.com/NorskHelsenett/ror-api/internal/controllers/operatorconfigscontroller"
+	ctrlOrder "github.com/NorskHelsenett/ror-api/internal/controllers/ordercontroller"
+	ctrlPrices "github.com/NorskHelsenett/ror-api/internal/controllers/pricescontroller"
+	ctrlProjects "github.com/NorskHelsenett/ror-api/internal/controllers/projectscontroller"
+	ctrlProviders "github.com/NorskHelsenett/ror-api/internal/controllers/providerscontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/resourcescontroller"
-	ctrlRulesets "github.com/NorskHelsenett/ror-api/internal/controllers/rulesetsController"
-	ctrlTasks "github.com/NorskHelsenett/ror-api/internal/controllers/tasks"
-	ctrlUsers "github.com/NorskHelsenett/ror-api/internal/controllers/users"
+	ctrlRulesets "github.com/NorskHelsenett/ror-api/internal/controllers/rulesetscontroller"
+	ctrlTasks "github.com/NorskHelsenett/ror-api/internal/controllers/taskscontroller"
+	ctrlUsers "github.com/NorskHelsenett/ror-api/internal/controllers/userscontroller"
 	v2resourcescontroller "github.com/NorskHelsenett/ror-api/internal/controllers/v2/resourcescontroller"
-	ctrlWorkspaces "github.com/NorskHelsenett/ror-api/internal/controllers/workspaces"
+	ctrlWorkspaces "github.com/NorskHelsenett/ror-api/internal/controllers/workspacescontroller"
 
-	"github.com/NorskHelsenett/ror-api/internal/controllers/v2/handlerv2self"
+	"github.com/NorskHelsenett/ror-api/internal/controllers/v2/handlerv2selfcontroller"
 	"github.com/NorskHelsenett/ror-api/internal/models"
 	"github.com/NorskHelsenett/ror-api/internal/webserver/middlewares"
 	"github.com/NorskHelsenett/ror-api/internal/webserver/sse"
@@ -67,12 +67,12 @@ func SetupRoutes(router *gin.Engine) {
 			logintimeoutduration := 60 * time.Second
 			clusterloginRoute.Use(middlewares.TimeoutMiddleware(logintimeoutduration))
 			clusterloginRoute.Use(auth.AuthenticationMiddleware)
-			clusterloginRoute.POST("/:clusterid/login", ctrlClusters.GetKubeconfig())
+			clusterloginRoute.POST("/:clusterid/login", clusterscontroller.GetKubeconfig())
 		}
 
 		v1.Use(middlewares.TimeoutMiddleware(timeoutduration))
 		// allow anonymous, for self registrering of agents
-		v1.POST("/clusters/register", ctrlApikeys.CreateForAgent())
+		v1.POST("/clusters/register", apikeyscontroller.CreateForAgent())
 		infoRoute := v1.Group("/info")
 		{
 			infoRoute.GET("/version", infocontroller.GetVersion())
@@ -81,83 +81,83 @@ func SetupRoutes(router *gin.Engine) {
 		{
 			// Move along Nothing to see here
 			m2mRoute.GET("/", ctrlM2mEaster.RegisterM2m())
-			m2mRoute.POST("/heartbeat", notinuse.NotInUse())
+			m2mRoute.POST("/heartbeat", notinusecontroller.NotInUse())
 			// Allow anonymous POST requests
 		}
 
 		v1.Use(auth.AuthenticationMiddleware)
 		aclRoute := v1.Group("/acl")
 		{
-			aclRoute.POST("", ctrlAcl.Create())
-			aclRoute.PUT("/:id", ctrlAcl.Update())
-			aclRoute.DELETE("/:id", ctrlAcl.Delete())
-			aclRoute.GET("/:id", ctrlAcl.GetById())
+			aclRoute.POST("", aclcontroller.Create())
+			aclRoute.PUT("/:id", aclcontroller.Update())
+			aclRoute.DELETE("/:id", aclcontroller.Delete())
+			aclRoute.GET("/:id", aclcontroller.GetById())
 
-			aclRoute.HEAD("/:scope/:subject/:access", ctrlAcl.CheckAcl())
+			aclRoute.HEAD("/:scope/:subject/:access", aclcontroller.CheckAcl())
 
-			aclRoute.HEAD("/access/:scope/:subject/:access", ctrlAcl.CheckAcl())
-			//			aclRoute.GET("/access/:scope/:subject/", ctrlAcl.CheckAcl()) // /api/acl/cluster/sdi-ror-dev-32342
-			//			aclRoute.GET("/access/:scope/", ctrlAcl.CheckAcl())          // /api/acl/cluster
-			aclRoute.POST("/filter", ctrlAcl.GetByFilter())
-			aclRoute.GET("/migrate", ctrlAcl.MigrateAcls())
-			aclRoute.GET("/scopes", ctrlAcl.GetScopes())
+			aclRoute.HEAD("/access/:scope/:subject/:access", aclcontroller.CheckAcl())
+			//			aclRoute.GET("/access/:scope/:subject/", aclcontroller.CheckAcl()) // /api/acl/cluster/sdi-ror-dev-32342
+			//			aclRoute.GET("/access/:scope/", aclcontroller.CheckAcl())          // /api/acl/cluster
+			aclRoute.POST("/filter", aclcontroller.GetByFilter())
+			aclRoute.GET("/migrate", aclcontroller.MigrateAcls())
+			aclRoute.GET("/scopes", aclcontroller.GetScopes())
 		}
 
 		apikeysRoute := v1.Group("apikeys")
 		{
-			apikeysRoute.POST("/filter", ctrlApikeys.GetByFilter())
-			apikeysRoute.DELETE("/:id", ctrlApikeys.Delete())
-			apikeysRoute.POST("", ctrlApikeys.CreateApikey())
+			apikeysRoute.POST("/filter", apikeyscontroller.GetByFilter())
+			apikeysRoute.DELETE("/:id", apikeyscontroller.Delete())
+			apikeysRoute.POST("", apikeyscontroller.CreateApikey())
 		}
 
 		auditlogsRoute := v1.Group("auditlogs")
 		{
-			auditlogsRoute.GET("/:id", ctrlAuditlogs.GetById())
-			auditlogsRoute.POST("/filter", ctrlAuditlogs.GetByFilter())
-			auditlogsRoute.GET("/metadata", ctrlAuditlogs.GetMetadata())
+			auditlogsRoute.GET("/:id", auditlogscontroller.GetById())
+			auditlogsRoute.POST("/filter", auditlogscontroller.GetByFilter())
+			auditlogsRoute.GET("/metadata", auditlogscontroller.GetMetadata())
 		}
 
 		clusterRoute := v1.Group("cluster")
 		{
-			clusterRoute.GET("/:clusterid", ctrlClusters.ClusterGetById())
-			clusterRoute.GET("/:clusterid/exists", ctrlClusters.ClusterExistsById())
-			clusterRoute.POST("/:clusterid/heartbeat", ctrlClusters.RegisterHeartbeat())
-			clusterRoute.PATCH("/:clusterid/metadata", ctrlClusters.UpdateMetadata())
-			clusterRoute.POST("/heartbeat", ctrlClusters.RegisterHeartbeat())
+			clusterRoute.GET("/:clusterid", clusterscontroller.ClusterGetById())
+			clusterRoute.GET("/:clusterid/exists", clusterscontroller.ClusterExistsById())
+			clusterRoute.POST("/:clusterid/heartbeat", clusterscontroller.RegisterHeartbeat())
+			clusterRoute.PATCH("/:clusterid/metadata", clusterscontroller.UpdateMetadata())
+			clusterRoute.POST("/heartbeat", clusterscontroller.RegisterHeartbeat())
 		}
 
 		clustersRoute := v1.Group("clusters")
 		{
-			clustersRoute.GET("/:clusterid", ctrlClusters.ClusterGetById())
-			clustersRoute.GET("/:clusterid/exists", ctrlClusters.ClusterExistsById())
-			clustersRoute.PATCH("/:clusterid/metadata", ctrlClusters.UpdateMetadata())
+			clustersRoute.GET("/:clusterid", clusterscontroller.ClusterGetById())
+			clustersRoute.GET("/:clusterid/exists", clusterscontroller.ClusterExistsById())
+			clustersRoute.PATCH("/:clusterid/metadata", clusterscontroller.UpdateMetadata())
 
-			clustersRoute.GET("/:clusterid/views/policyreports", ctrlClusters.PolicyreportsView())
-			clustersRoute.GET("/:clusterid/views/vulnerabilityreports", ctrlClusters.VulnerabilityReportsView())
-			clustersRoute.GET("/:clusterid/views/compliancereports", ctrlClusters.ComplianceReports())
-			clustersRoute.GET("/:clusterid/views/ingresses", ctrlClusters.DummyView())
-			clustersRoute.GET("/:clusterid/views/nodes", ctrlClusters.DummyView())
-			clustersRoute.GET("/:clusterid/views/applications", ctrlClusters.DummyView())
+			clustersRoute.GET("/:clusterid/views/policyreports", clusterscontroller.PolicyreportsView())
+			clustersRoute.GET("/:clusterid/views/vulnerabilityreports", clusterscontroller.VulnerabilityReportsView())
+			clustersRoute.GET("/:clusterid/views/compliancereports", clusterscontroller.ComplianceReports())
+			clustersRoute.GET("/:clusterid/views/ingresses", clusterscontroller.DummyView())
+			clustersRoute.GET("/:clusterid/views/nodes", clusterscontroller.DummyView())
+			clustersRoute.GET("/:clusterid/views/applications", clusterscontroller.DummyView())
 			clustersRoute.GET("/:clusterid/configs/:name", ctrlM2mConfiguration.GetTaskConfiguration())
 
-			clustersRoute.GET("/views/policyreports", ctrlClusters.PolicyreportSummaryView())
-			clustersRoute.GET("/views/vulnerabilityreports/byid/:cveid", ctrlClusters.VulnerabilityReportsViewById())
-			clustersRoute.GET("/views/vulnerabilityreports/byid", ctrlClusters.GlobalVulnerabilityReportsViewById())
-			clustersRoute.GET("/views/vulnerabilityreports", ctrlClusters.VulnerabilityReportsGlobal())
-			clustersRoute.GET("/views/compliancereports", ctrlClusters.ComplianceReportsGlobal())
-			clustersRoute.POST("/filter", ctrlClusters.ClusterByFilter())
-			clustersRoute.POST("/heartbeat", ctrlClusters.RegisterHeartbeat())
-			clustersRoute.GET("/metadata", ctrlClusters.GetMetadata())
+			clustersRoute.GET("/views/policyreports", clusterscontroller.PolicyreportSummaryView())
+			clustersRoute.GET("/views/vulnerabilityreports/byid/:cveid", clusterscontroller.VulnerabilityReportsViewById())
+			clustersRoute.GET("/views/vulnerabilityreports/byid", clusterscontroller.GlobalVulnerabilityReportsViewById())
+			clustersRoute.GET("/views/vulnerabilityreports", clusterscontroller.VulnerabilityReportsGlobal())
+			clustersRoute.GET("/views/compliancereports", clusterscontroller.ComplianceReportsGlobal())
+			clustersRoute.POST("/filter", clusterscontroller.ClusterByFilter())
+			clustersRoute.POST("/heartbeat", clusterscontroller.RegisterHeartbeat())
+			clustersRoute.GET("/metadata", clusterscontroller.GetMetadata())
 
-			clustersRoute.GET("/views/errorlist", ctrlClusters.DummyView())
-			clustersRoute.GET("/views/clusterlist", ctrlClusters.DummyView())
+			clustersRoute.GET("/views/errorlist", clusterscontroller.DummyView())
+			clustersRoute.GET("/views/clusterlist", clusterscontroller.DummyView())
 
-			clustersRoute.GET("/self", ctrlClusters.GetSelf())
+			clustersRoute.GET("/self", clusterscontroller.GetSelf())
 
-			clustersRoute.POST("/workspace/:workspaceName/filter", ctrlClusters.ClusterGetByWorkspace())
-			clustersRoute.GET("/controlplanesMetadata", ctrlClusters.GetControlPlanesMetadata())
+			clustersRoute.POST("/workspace/:workspaceName/filter", clusterscontroller.ClusterGetByWorkspace())
+			clustersRoute.GET("/controlplanesMetadata", clusterscontroller.GetControlPlanesMetadata())
 
-			clustersRoute.POST("", ctrlClusters.CreateCluster())
+			clustersRoute.POST("", clusterscontroller.CreateCluster())
 		}
 
 		configsRoute := v1.Group("configs")
@@ -167,20 +167,20 @@ func SetupRoutes(router *gin.Engine) {
 
 		datacentersRoute := v1.Group("datacenters")
 		{
-			datacentersRoute.GET("", ctrlDatacenters.GetAll())
-			datacentersRoute.GET("/:datacenterName", ctrlDatacenters.GetByName())
-			datacentersRoute.GET("/id/:id", ctrlDatacenters.GetById())
-			datacentersRoute.POST("", ctrlDatacenters.Create())
-			datacentersRoute.PUT("/:datacenterId", ctrlDatacenters.Update())
+			datacentersRoute.GET("", datacenterscontroller.GetAll())
+			datacentersRoute.GET("/:datacenterName", datacenterscontroller.GetByName())
+			datacentersRoute.GET("/id/:id", datacenterscontroller.GetById())
+			datacentersRoute.POST("", datacenterscontroller.Create())
+			datacentersRoute.PUT("/:datacenterId", datacenterscontroller.Update())
 		}
 
 		desiredVersionsRoute := v1.Group("/desired_versions")
 		{
-			desiredVersionsRoute.GET("", ctrlDesiredVersion.GetAll())
-			desiredVersionsRoute.GET("/:key", ctrlDesiredVersion.GetByKey())
-			desiredVersionsRoute.POST("", ctrlDesiredVersion.Create())
-			desiredVersionsRoute.PUT("/:key", ctrlDesiredVersion.Update())
-			desiredVersionsRoute.DELETE("/:key", ctrlDesiredVersion.Delete())
+			desiredVersionsRoute.GET("", desiredversioncontroller.GetAll())
+			desiredVersionsRoute.GET("/:key", desiredversioncontroller.GetByKey())
+			desiredVersionsRoute.POST("", desiredversioncontroller.Create())
+			desiredVersionsRoute.PUT("/:key", desiredversioncontroller.Update())
+			desiredVersionsRoute.DELETE("/:key", desiredversioncontroller.Delete())
 		}
 
 		ordersRoute := v1.Group("orders")
@@ -315,11 +315,11 @@ func SetupRoutes(router *gin.Engine) {
 	v2.Use(middlewares.TimeoutMiddleware(timeoutduration))
 	v2.Use(auth.AuthenticationMiddleware)
 	selfv2Route := v2.Group("self")
-	selfv2Route.GET("", handlerv2self.GetSelf())
-	selfv2Route.POST("/apikeys", handlerv2self.CreateOrRenewApikey())
-	selfv2Route.DELETE("/apikeys/:id", handlerv2self.DeleteApiKey())
+	selfv2Route.GET("", handlerv2selfcontroller.GetSelf())
+	selfv2Route.POST("/apikeys", handlerv2selfcontroller.CreateOrRenewApikey())
+	selfv2Route.DELETE("/apikeys/:id", handlerv2selfcontroller.DeleteApiKey())
 
-	router.GET("/health", ctrlHealth.GetHealthStatus())
+	router.GET("/health", healthcontroller.GetHealthStatus())
 	router.GET("/metrics", gin.WrapH(promhttp.HandlerFor(prometheus.DefaultGatherer, promhttp.HandlerOpts{EnableOpenMetrics: true})))
 
 	docs.SwaggerInfo.BasePath = "/"

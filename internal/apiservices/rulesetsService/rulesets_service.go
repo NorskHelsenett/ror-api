@@ -8,7 +8,7 @@ import (
 	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
 	"github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/rulesetsRepo"
 
-	aclmodels "github.com/NorskHelsenett/ror/pkg/models/acl"
+	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/messages"

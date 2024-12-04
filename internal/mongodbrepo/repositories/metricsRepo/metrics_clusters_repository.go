@@ -15,7 +15,7 @@ import (
 
 	aclrepo "github.com/NorskHelsenett/ror-api/internal/acl/repositories"
 
-	aclmodels "github.com/NorskHelsenett/ror/pkg/models/acl"
+	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"go.mongodb.org/mongo-driver/bson"
 )

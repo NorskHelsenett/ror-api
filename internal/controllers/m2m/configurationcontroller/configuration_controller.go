@@ -14,7 +14,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
-	aclmodels "github.com/NorskHelsenett/ror/pkg/models/acl"
+	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/models/providers"
 
 	"strings"

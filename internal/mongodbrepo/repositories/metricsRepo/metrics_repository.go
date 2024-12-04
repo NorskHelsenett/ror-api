@@ -9,7 +9,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/helpers/mapping"
 	mongoHelper "github.com/NorskHelsenett/ror-api/internal/helpers/mongoHelper"
 
-	aclmodels "github.com/NorskHelsenett/ror/pkg/models/acl"
+	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 

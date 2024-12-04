@@ -22,7 +22,7 @@ import (
 	aclrepo "github.com/NorskHelsenett/ror-api/internal/acl/repositories"
 	workspacesRepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/workspacesRepo"
 
-	aclmodels "github.com/NorskHelsenett/ror/pkg/models/acl"
+	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/otel"

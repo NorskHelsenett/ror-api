@@ -17,7 +17,7 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
-	aclmodels "github.com/NorskHelsenett/ror/pkg/models/acl"
+	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
