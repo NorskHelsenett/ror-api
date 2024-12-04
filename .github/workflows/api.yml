@@ -57,7 +57,7 @@ jobs:
         echo $ROR_VERSION
         go get ./...
         mkdir -p dist/isbuilt
-        CGO_ENABLED=0 go build -o dist/api -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/ror-api/internal/apiconfig.version=$ROR_VERSION -X github.com/NorskHelsenett/ror-api/internal/apiconfig.commit=$CI_COMMIT_SHORT_SHA" cmd/api/main.go
+        CGO_ENABLED=0 go build -o dist/api -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Version=$ROR_VERSION -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Commit=$CI_COMMIT_SHORT_SHA" cmd/api/main.go
         touch dist/isbuilt/api
       env:
         ROR_VERSION: ${{ needs.bump-version.outputs.ror_version }}
