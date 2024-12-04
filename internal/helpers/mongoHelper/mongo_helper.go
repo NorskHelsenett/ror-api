@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
+	"github.com/NorskHelsenett/ror/pkg/rlog"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -172,18 +173,18 @@ func PrettyprintBSON(pipeline []primitive.M) {
 	for _, doc := range pipeline {
 		bsonDoc, err := bson.Marshal(doc)
 		if err != nil {
-			fmt.Println(err)
+			rlog.Error("error marshalling bson", err)
 		}
 		var prettyDoc bson.M
 		err = bson.Unmarshal(bsonDoc, &prettyDoc)
 		if err != nil {
-			fmt.Println(err)
+			rlog.Error("error unmarshalling bson", err)
 		}
 		prettyDocs = append(prettyDocs, prettyDoc)
 	}
 	prettyJSON, err := json.MarshalIndent(prettyDocs, "", "  ")
 	if err != nil {
-		fmt.Println(err)
+		rlog.Error("error marshalling json", err)
 	}
 
 	fmt.Println(string(prettyJSON))

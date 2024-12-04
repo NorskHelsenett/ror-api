@@ -88,8 +88,8 @@ func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) r
 			},
 		}
 	}
-	cache := GetResourceCache()
-	cache.Set(ctx, resource)
+	//cache := GetResourceCache()
+	//cache.Set(ctx, resource)
 
 	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
 	err = databaseHelpers.Set(ctx, resource)
@@ -107,7 +107,7 @@ func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) r
 
 	sendToMessageBus(ctx, resource, resource.RorMeta.Action)
 
-	//rlog.Info("Resource created", rlog.Any("resource", resource.GetAPIVersion()), rlog.Any("kind", resource.GetKind()), rlog.Any("name", resource.GetName()))
+	//rlog.Debug("Resource created", rlog.Any("resource", resource.GetAPIVersion()), rlog.Any("kind", resource.GetKind()), rlog.Any("name", resource.GetName()))
 	return rorresources.ResourceUpdateResults{
 		Results: map[string]rorresources.ResourceUpdateResult{
 			resource.GetUID(): {

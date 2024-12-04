@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -78,22 +77,17 @@ func main() {
 	}
 
 	if viper.GetBool(configconsts.ENABLE_TRACING) {
-		rlog.Infoc(ctx, "Connecting to open-telemetry")
+
 		go func() {
 			trace.ConnectTracer(done, viper.GetString(configconsts.TRACER_ID), viper.GetString(configconsts.OPENTELEMETRY_COLLECTOR_ENDPOINT))
-			sig := <-sigs
-			_, _ = fmt.Println()
-			_, _ = fmt.Println(sig)
+			<-sigs
 			done <- struct{}{}
 		}()
 	}
 
 	go func() {
-		rlog.Infoc(ctx, "Initializing http server")
 		webserver.InitHttpServer()
-		sig := <-sigs
-		_, _ = fmt.Println()
-		_, _ = fmt.Println(sig)
+		<-sigs
 		done <- struct{}{}
 	}()
 
@@ -107,5 +101,5 @@ func main() {
 	apirabbitmqhandler.StartListening()
 
 	<-done
-	_, _ = fmt.Println("Ror-API finishing")
+	rlog.Infoc(ctx, "Ror-API shutting down")
 }

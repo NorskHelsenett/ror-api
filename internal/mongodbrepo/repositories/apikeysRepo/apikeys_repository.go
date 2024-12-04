@@ -60,7 +60,7 @@ func GetOwnByName(ctx context.Context, name string) (*apicontracts.ApiKey, error
 	var results = make([]apicontracts.ApiKey, 0)
 	mongoctx, cancel := context.WithTimeout(ctx, 4*time.Second)
 	defer cancel()
-	mongoHelper.PrettyprintBSON(aggregationPipeline)
+	//mongoHelper.PrettyprintBSON(aggregationPipeline)
 	err := mongodb.Aggregate(mongoctx, collectionName, aggregationPipeline, &results)
 	if err != nil {
 		return nil, fmt.Errorf("error finding apikeys: %v", err)

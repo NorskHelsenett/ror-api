@@ -23,8 +23,7 @@ import (
 func InitHttpServer() {
 	useCors := viper.GetBool(configconsts.GIN_USE_CORS)
 	allowOrigins := viper.GetString(configconsts.GIN_ALLOW_ORIGINS)
-	_, _ = fmt.Printf("using cors: %t", useCors)
-	_, _ = fmt.Printf("allowing origins: %s", allowOrigins)
+	rlog.Info("Starting web server", rlog.Any("useCors", useCors), rlog.Any("allowedOrigins", allowOrigins))
 
 	router := gin.New()
 	if viper.GetBool(configconsts.PROFILER_ENABLED) {
