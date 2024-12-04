@@ -37,8 +37,8 @@ import (
 //	@description	ROR-API, need any help? Go to channel #drift-sdi-devops in norskhelsenett.slack.com slack workspace
 //	@BasePath		/
 
-//	@contact.name	Privat Sky
-//	@contact.url	http://ror.sky.nhn.no
+//	@contact.name	ROR
+//	@contact.url	https://github.com/NorskHelsenett/ror
 
 //	@securityDefinitions.apikey	AccessToken
 //	@in							header
@@ -54,8 +54,8 @@ func main() {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	done := make(chan struct{})
 
-	rlog.Infoc(ctx, "ROR by NHN Api startup ")
-	rlog.Infof("Version: %s", viper.GetString(configconsts.VERSION))
+	rlog.Infoc(ctx, "ROR Api startup ")
+	rlog.Infof("Version: %s (%s)", apiconfig.Version, apiconfig.Commit)
 
 	_, _ = maxprocs.Set(maxprocs.Logger(rlog.Infof))
 

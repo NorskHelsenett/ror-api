@@ -102,7 +102,7 @@ func GetTracingStatus(ctx context.Context) responses.HealthStatusCode {
 //	@BasePath	/
 //	@Summary	Health status
 //	@Schemes
-//	@Description	Get health status for NHN-ROR-API
+//	@Description	Get health status for ROR-API
 //	@Tags			health status
 //	@Accept			application/json
 //	@Produce		application/json
