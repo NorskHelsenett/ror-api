@@ -121,27 +121,27 @@ func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) r
 func GetResourceByUID(ctx context.Context, uid string) *rorresources.ResourceSet {
 	var returnrs *rorresources.ResourceSet
 	start := time.Now()
-	cache := GetResourceCache()
-	resource := cache.Get(ctx, uid)
-	if resource != nil {
-		returnrs = rorresources.NewResourceSet()
-		returnrs.Resources = append(returnrs.Resources, resource)
-		rlog.Debug("Resource found in cache", rlog.String("uid", uid), rlog.Any("duration", time.Since(start)))
-	} else {
-		databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
-		var err error
-		returnrs, err = databaseHelpers.Get(ctx, rorresources.NewResourceQuery().WithUID(uid))
-		if err != nil {
-			rlog.Error("Could not get resource by uid", err, rlog.String("uid", uid), rlog.Any("error", err))
-			return nil
-		}
-		if returnrs == nil {
-			return nil
-		}
-		cache.Set(ctx, returnrs.Resources[0])
-
-		rlog.Debug("Resource found in database", rlog.String("uid", uid), rlog.Any("duration", time.Since(start)))
+	//cache := GetResourceCache()
+	//resource := cache.Get(ctx, uid)
+	// if resource != nil {
+	// 	returnrs = rorresources.NewResourceSet()
+	// 	returnrs.Resources = append(returnrs.Resources, resource)
+	// 	rlog.Debug("Resource found in cache", rlog.String("uid", uid), rlog.Any("duration", time.Since(start)))
+	// } else {
+	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
+	var err error
+	returnrs, err = databaseHelpers.Get(ctx, rorresources.NewResourceQuery().WithUID(uid))
+	if err != nil {
+		rlog.Error("Could not get resource by uid", err, rlog.String("uid", uid), rlog.Any("error", err))
+		return nil
 	}
+	if returnrs == nil {
+		return nil
+	}
+	//cache.Set(ctx, returnrs.Resources[0])
+
+	rlog.Debug("Resource found in database", rlog.String("uid", uid), rlog.Any("duration", time.Since(start)))
+	// }
 
 	// Access check
 	// Scope: input.Owner.Scope
@@ -247,4 +247,14 @@ func sendToMessageBus(ctx context.Context, resource *rorresources.Resource, acti
 			map[string]interface{}{"apiVersion": payload.ApiVersion, "kind": payload.Kind})
 	}
 	return nil
+}
+
+func ResourceGetHashlist(ctx context.Context, owner rortypes.RorResourceOwnerReference) (apiresourcecontracts.HashList, error) {
+	query := rorresources.ResourceQuery{
+		OwnerRefs: []rortypes.RorResourceOwnerReference{owner},
+		Limit:     -1,
+	}
+
+	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
+	return databaseHelpers.GetHashlistByQuery(ctx, &query)
 }

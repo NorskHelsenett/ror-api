@@ -3,6 +3,7 @@ package resourcesv2service
 import (
 	"context"
 
+	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 	"go.mongodb.org/mongo-driver/bson"
@@ -14,6 +15,7 @@ type ResourceDBProvider interface {
 	Set(ctx context.Context, resource *rorresources.Resource) error
 	Get(ctx context.Context, rorResourceQuery *rorresources.ResourceQuery) (*rorresources.ResourceSet, error)
 	Del(ctx context.Context, resource *rorresources.Resource) error
+	GetHashlistByQuery(ctx context.Context, rorResourceQuery *rorresources.ResourceQuery) (apiresourcecontracts.HashList, error)
 }
 
 // Mongodb implementation of ResourceDBProvider
@@ -61,4 +63,25 @@ func (r *ResourceMongoDB) Del(ctx context.Context, resource *rorresources.Resour
 		return err
 	}
 	return nil
+}
+
+func (r *ResourceMongoDB) GetHashlistByQuery(ctx context.Context, rorResourceQuery *rorresources.ResourceQuery) (apiresourcecontracts.HashList, error) {
+	hashList := apiresourcecontracts.HashList{}
+	query := r.db.GenerateAggregateQuery(rorResourceQuery)
+
+	project := bson.M{}
+	project["hash"] = "$rormeta.hash"
+	project["uid"] = "$metadata.uid"
+	query = append(query, bson.M{"$project": project})
+
+	//mongodb.NewMongodbQuery(query).PrettyPrint()
+	mongodb.NewMongodbQuery(query).MongoshPrint("resourcev2")
+
+	hashItems := []apiresourcecontracts.HashItem{}
+	err := r.db.Aggregate(ctx, "resourcesv2", query, &hashItems)
+	if err != nil {
+		return hashList, err
+	}
+	hashList.Items = hashItems
+	return hashList, nil
 }

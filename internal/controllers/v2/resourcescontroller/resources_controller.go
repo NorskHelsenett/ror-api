@@ -4,17 +4,16 @@ package resourcescontroller
 import (
 	"net/http"
 
-	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
 	"github.com/NorskHelsenett/ror-api/internal/customvalidators"
 	"github.com/NorskHelsenett/ror-api/internal/responses"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 
-	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
+	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -118,23 +117,23 @@ func GetResourceHashList() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
-		resourceOwner := apiresourcecontracts.ResourceOwnerReference{
+
+		resourceOwner := rortypes.RorResourceOwnerReference{
 			Scope:   aclmodels.Acl2Scope(c.Query("ownerScope")),
-			Subject: c.Query("ownerSubject"),
+			Subject: aclmodels.Acl2Subject(c.Query("ownerSubject")),
 		}
 
 		// Access check
 		// Scope: c.Query("ownerScope")
 		// Subject: c.Query("ownerSubject")
 		// Access: update
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(resourceOwner.Scope, resourceOwner.Subject)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
+		accessObject := aclservice.CheckAccessByRorOwnerref(ctx, resourceOwner)
 		if !accessObject.Update {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
 
-		hashList, err := resourcesservice.ResourceGetHashlist(ctx, resourceOwner)
+		hashList, err := resourcesv2service.ResourceGetHashlist(ctx, resourceOwner)
 		if err != nil {
 			rlog.Error("Error getting resource hash list:", err)
 			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
