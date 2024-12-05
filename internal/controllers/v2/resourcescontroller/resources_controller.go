@@ -140,11 +140,6 @@ func GetResourceHashList() gin.HandlerFunc {
 			return
 		}
 
-		if len(hashList.Items) == 0 {
-			c.JSON(http.StatusNotFound, nil)
-			return
-		}
-
 		c.JSON(http.StatusOK, hashList)
 	}
 }
