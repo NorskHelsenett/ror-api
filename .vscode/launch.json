@@ -1,0 +1,43 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug ROR-Api",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/api/main.go",
+            "env": {
+                "USE_CORS": "true",
+                "LOG_LEVEL": "debug",
+                "GIN_MODE": "debug",
+                "ALLOW_ORIGINS": "https://ror.sky.test.nhn.no;http://localhost:11000;http://127.0.0.1:11000",
+                "HTTP_PORT": "10000",
+                "VAULT_URL": "http://localhost:8200",
+                "MONGODB_PORT": "27017",
+                "OPENTELEMETRY_COLLECTOR_ENDPOINT": "localhost:4317",
+                "DEVELOPMENT": "true",
+                "ENABLE_TRACING": "false",
+                "PROFILER_ENABLED": "false",
+                "TANZU_AUTH_BASE_URL": "http://localhost:18082",
+                "CONTAINER_REG_PREFIX": "docker.io/",
+                "CONTAINER_REG_IMAGE_PATH": "nhnsdi/",
+                "CONTAINER_REG_HELM_PATH": "nhnhelm/",
+                "LOCAL_KUBERNETES_ROR_BASE_URL": "http://host.docker.internal:10000",
+                "HEALTHCHECK_ENDPOINT": "localhost:9999"
+            }
+        },
+        {
+            "name": "Debug ROR-Api tests",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/api/",
+            "args": ["-v", "./test/...", "-cover"],
+            "showLog": true
+        }
+    ]
+}
