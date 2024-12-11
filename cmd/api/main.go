@@ -48,7 +48,7 @@ import (
 //	@name						X-API-KEY
 
 func main() {
-	// rebuild: 2
+	// rebuild: 3
 	ctx := context.Background()
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
