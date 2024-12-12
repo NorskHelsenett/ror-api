@@ -21,7 +21,6 @@ env:
 jobs:
   bump-version:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
     outputs:
       ror_version: ${{ steps.set_version.outputs.ror_version }}
     steps:
