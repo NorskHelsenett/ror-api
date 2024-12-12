@@ -1,29 +1,36 @@
 # ROR-API
 
-Webapi made with Golang and Gin webapi framework
+WebAPI made with Golang and Gin WebAPI framework
 
 # Prerequisites
 
-- Golang 1.23.x https://go.dev
+- Golang 1.23.x
+- ROR core: https://github.com/NorskHelsenett/ror
 
 # Get started
 
-Bash commands is from `<repo root>/src/backend/ror-api/`
+Bash commands is from `<repo root>`
 
-Download dependencies:
+## Download dependencies:
 
 ```bash
 go get ./...
 ```
 
-Start webapi
+## Start WebAPI
+
+### Visual Studio Code
+
+1. Open the repository in Visual Studio Code
+2. Go to Debugging
+3. On "Run and debug" select "Debug ROR-Api" or "Debug ROR-Api tests"
+
+### Terminal
 
 ```bash
 go run main.go
 ```
 
-Or
-Start the `Debug ROR-Api` debugger config from VS Code
 
 # Generate swagger docs:
 
