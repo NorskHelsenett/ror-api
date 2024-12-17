@@ -495,6 +495,27 @@ func GetControlPlanesMetadata() gin.HandlerFunc {
 			return
 		}
 
+		result = append(result, apicontracts.ClusterControlPlaneMetadata{
+			ClusterId:   "t-nhn-001-test",
+			ClusterName: "t-nhn-001",
+			Environment: "dev",
+			ProjectName: nil,
+			ControlPlaneEndpoint: apicontracts.ClusterControlPlaneMetadataIp{
+				IpV4: "10.204.132.1",
+				IpV6: nil,
+			},
+			ControlPlaneEndpointPort: 6443,
+			Egress: apicontracts.ClusterControlPlaneMetadataIp{
+				IpV4: "10.204.132.1",
+				IpV6: nil,
+			},
+			Datacenter: apicontracts.ClusterControlPlaneMetadataDatacenter{
+				Name:        "Containerplatformv2",
+				Provider:    "talos",
+				ApiEndpoint: "10.204.132.1",
+			},
+		})
+
 		c.JSON(http.StatusOK, result)
 	}
 }
