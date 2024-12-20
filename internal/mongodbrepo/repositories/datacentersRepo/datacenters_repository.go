@@ -9,6 +9,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/mongodbrepo/mongoTypes"
 
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
+	"github.com/NorskHelsenett/ror/pkg/models/providers"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -142,6 +143,29 @@ func FindByName(ctx context.Context, name string) (*apicontracts.Datacenter, err
 	db := mongodb.GetMongoDb()
 	var datacenterResult mongoTypes.MongoDatacenter
 	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{"name": name}).Decode(&datacenterResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+		msg := "could not find datacenter"
+		rlog.Error(msg, err)
+		return nil, errors.New(msg)
+	}
+
+	if datacenterResult.Name == "" {
+		return nil, nil
+	}
+
+	var mapped apicontracts.Datacenter
+	err := mapping.Map(datacenterResult, &mapped)
+	if err != nil {
+		return nil, nil
+	}
+	rlog.Debug("", rlog.Any("mapped", mapped))
+
+	return &mapped, nil
+}
+
+func FindByNameProvider(ctx context.Context, name string, provider providers.ProviderType) (*apicontracts.Datacenter, error) {
+	db := mongodb.GetMongoDb()
+	var datacenterResult mongoTypes.MongoDatacenter
+	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{"name": name, "provider": provider.String()}).Decode(&datacenterResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		msg := "could not find datacenter"
 		rlog.Error(msg, err)
 		return nil, errors.New(msg)

@@ -3,7 +3,7 @@ module github.com/NorskHelsenett/ror-api
 go 1.23.1
 
 require (
-	github.com/NorskHelsenett/ror v1.0.0-rc7
+	github.com/NorskHelsenett/ror v1.0.0-rc8
 	github.com/blang/semver/v4 v4.0.0
 	github.com/coreos/go-oidc/v3 v3.11.0
 	github.com/dotse/go-health v0.2.5
@@ -83,7 +83,6 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.9 // indirect
-	github.com/knz/go-libedit v1.10.1 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/magiconair/properties v1.8.9 // indirect

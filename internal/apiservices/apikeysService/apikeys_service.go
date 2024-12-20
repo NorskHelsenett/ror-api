@@ -265,10 +265,7 @@ func CreateForAgent(ctx context.Context, input *apicontracts.AgentApiKeyModel) (
 		if input.Provider == providers.ProviderTypeK3d || input.Provider == providers.ProviderTypeKind {
 			input.DatacenterName = fmt.Sprintf("local-%s", input.Provider)
 		}
-		if input.Provider == providers.ProviderTypeTalos && viper.GetBool(configconsts.DEVELOPMENT) {
-			input.DatacenterName = fmt.Sprintf("local-%s", input.Provider)
-		}
-		datacenter, err = datacenterRepo.FindByName(mongoctx, input.DatacenterName)
+		datacenter, err = datacenterRepo.FindByNameProvider(mongoctx, input.DatacenterName, input.Provider)
 		if err != nil || datacenter == nil {
 			return "could not find datacenter", err
 		}
