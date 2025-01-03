@@ -77,8 +77,8 @@ func GetForDatacenters(ctx context.Context) (*apicontracts.MetricList, error) {
 	return metrics, nil
 }
 
-func GetForDatacenterName(ctx context.Context, datacenterName string) (*apicontracts.MetricItem, error) {
-	metrics, err := metricsrepo.GetForDatacenterName(ctx, datacenterName)
+func GetForDatacenterId(ctx context.Context, datacenterName string) (*apicontracts.MetricItem, error) {
+	metrics, err := metricsrepo.GetForDatacenterId(ctx, datacenterName)
 	if err != nil {
 		return nil, errors.New("could not get metrics for datacenters")
 	}
@@ -95,8 +95,8 @@ func GetForWorkspaces(ctx context.Context, filter *apicontracts.Filter) (*apicon
 	return metrics, nil
 }
 
-func GetForWorkspacesByDatacenter(ctx context.Context, filter *apicontracts.Filter, datacenterName string) (*apicontracts.PaginatedResult[apicontracts.Metric], error) {
-	metrics, err := metricsrepo.GetForWorkspacesByDatacenter(ctx, filter, datacenterName)
+func GetForWorkspacesByDatacenterId(ctx context.Context, filter *apicontracts.Filter, datacenterId string) (*apicontracts.PaginatedResult[apicontracts.Metric], error) {
+	metrics, err := metricsrepo.GetForWorkspacesByDatacenterId(ctx, filter, datacenterId)
 	if err != nil {
 		return nil, errors.New("could not get metrics for datacenters")
 	}
@@ -104,8 +104,8 @@ func GetForWorkspacesByDatacenter(ctx context.Context, filter *apicontracts.Filt
 	return metrics, nil
 }
 
-func GetForWorkspaceName(ctx context.Context, workspaceName string) (*apicontracts.MetricItem, error) {
-	metrics, err := metricsrepo.GetForWorkspaceName(ctx, workspaceName)
+func GetForWorkspaceId(ctx context.Context, workspaceId string) (*apicontracts.MetricItem, error) {
+	metrics, err := metricsrepo.GetForWorkspaceId(ctx, workspaceId)
 	if err != nil {
 		return nil, errors.New("could not get metrics for workspace")
 	}
@@ -122,8 +122,8 @@ func GetForClusters(ctx context.Context) (*apicontracts.MetricList, error) {
 	return metrics, nil
 }
 
-func GetForClustersByWorkspace(ctx context.Context, workspaceName string) (*apicontracts.MetricList, error) {
-	metrics, err := metricsrepo.GetForClustersByWorkspace(ctx, workspaceName)
+func GetForClustersByWorkspaceId(ctx context.Context, workspaceId string) (*apicontracts.MetricList, error) {
+	metrics, err := metricsrepo.GetForClustersByWorkspaceId(ctx, workspaceId)
 	if err != nil {
 		return nil, errors.New("could not get metrics for clusters")
 	}

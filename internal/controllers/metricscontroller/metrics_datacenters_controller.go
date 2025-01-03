@@ -69,16 +69,16 @@ func GetForDatacenters() gin.HandlerFunc {
 //	@Router			/v1/metrics/datacenter/{datacenterName}	[get]
 //	@Param			datacenterName							path	string	true	"datacenterName"
 //	@Security		ApiKey || AccessToken
-func GetByDatacenterName() gin.HandlerFunc {
+func GetByDatacenterId() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
-		datacenterName := c.Param("datacenterName")
+		datacenterId := c.Param("datacenterId")
 		defer cancel()
 
 		// importing apicontracts for swagger
 		var _ apicontracts.MetricItem
 
-		metrics, err := metricsservice.GetForDatacenterName(ctx, datacenterName)
+		metrics, err := metricsservice.GetForDatacenterId(ctx, datacenterId)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, rorerror.RorError{
 				Status:  http.StatusInternalServerError,

@@ -88,8 +88,8 @@ func FindByName(ctx context.Context, clusterName string) (*apicontracts.Cluster,
 	return result, nil
 }
 
-func GetByWorkspace(ctx context.Context, filter *apicontracts.Filter, workspaceName string) (*apicontracts.PaginatedResult[apicontracts.Cluster], error) {
-	result, err := clustersRepo.GetByWorkspace(ctx, filter, workspaceName)
+func GetByWorkspaceId(ctx context.Context, filter *apicontracts.Filter, workspaceId string) (*apicontracts.PaginatedResult[apicontracts.Cluster], error) {
+	result, err := clustersRepo.GetByWorkspaceId(ctx, filter, workspaceId)
 	if err != nil {
 		return nil, errors.New("could not get clusters")
 	}
@@ -247,8 +247,8 @@ func FindMachineClass(ctx context.Context, cluster *apicontracts.Cluster) {
 	}
 
 	//reading from the db in an optimal way
-	defer func(results *mongo.Cursor, ctx context.Context) {
-		_ = results.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(results, ctx)
 	if results.RemainingBatchLength() == 0 {
 		rlog.Errorc(ctx, "", fmt.Errorf("no prices"))

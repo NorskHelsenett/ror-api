@@ -11,6 +11,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
 	aclrepo "github.com/NorskHelsenett/ror-api/internal/acl/repositories"
@@ -64,14 +65,19 @@ func GetForClusters(ctx context.Context) (*apicontracts.MetricList, error) {
 		response.Items = append(response.Items, item)
 	}
 
-	defer func(results *mongo.Cursor, ctx context.Context) {
-		_ = results.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(results, ctx)
 
 	return &response, nil
 }
 
-func GetForClustersByWorkspace(ctx context.Context, workspaceName string) (*apicontracts.MetricList, error) {
+func GetForClustersByWorkspaceId(ctx context.Context, workspaceId string) (*apicontracts.MetricList, error) {
+	wId, err := primitive.ObjectIDFromHex(workspaceId)
+	if err != nil {
+		return nil, errors.New("could not fetch metrics for clusters by workspace")
+	}
+
 	db := mongodb.GetMongoDb()
 	groupQuery := getGroupBaseQuery()
 	groupQuery["_id"] = "$clusterid"
@@ -96,7 +102,7 @@ func GetForClustersByWorkspace(ctx context.Context, workspaceName string) (*apic
 				},
 			},
 		},
-		{"$match": bson.M{"workspace.name": workspaceName}},
+		{"$match": bson.M{"workspace._id": wId}},
 		{"$group": groupQuery},
 		{"$sort": bson.M{"id": 1}},
 	}
@@ -132,8 +138,8 @@ func GetForClustersByWorkspace(ctx context.Context, workspaceName string) (*apic
 		response.Items = append(response.Items, item)
 	}
 
-	defer func(results *mongo.Cursor, ctx context.Context) {
-		_ = results.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(results, ctx)
 
 	return &response, nil
@@ -179,8 +185,8 @@ func GetForClusterid(ctx context.Context, clusterId string) (*apicontracts.Metri
 	response.Id = fmt.Sprint(data["_id"])
 	response.Metrics = metric
 
-	defer func(results *mongo.Cursor, ctx context.Context) {
-		_ = results.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(results, ctx)
 
 	return &response, nil
@@ -265,8 +271,8 @@ func ForClustersByProperty(ctx context.Context, property string) (*apicontracts.
 		})
 	}
 
-	defer func(results *mongo.Cursor, ctx context.Context) {
-		_ = results.Close(ctx)
+	defer func(cursor *mongo.Cursor, databasectx context.Context) {
+		_ = cursor.Close(databasectx)
 	}(results, ctx)
 
 	result := apicontracts.MetricsCustom{

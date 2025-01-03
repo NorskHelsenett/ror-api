@@ -77,8 +77,8 @@ func GetTotal(ctx context.Context) (*apicontracts.MetricsTotal, error) {
 		DatacenterCount:  0,
 	}
 
-	defer func(resultsTotal *mongo.Cursor, ctx context.Context) {
-		_ = resultsTotal.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(resultsTotal, ctx)
 
 	return &total, nil
@@ -127,8 +127,8 @@ func GetTotalByUser(ctx context.Context) (*apicontracts.MetricsTotal, error) {
 		DatacenterCount:  0,
 	}
 
-	defer func(resultsFiltered *mongo.Cursor, ctx context.Context) {
-		_ = resultsFiltered.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(resultsFiltered, ctx)
 
 	return &totalByUser, nil
@@ -137,7 +137,8 @@ func GetTotalByUser(ctx context.Context) (*apicontracts.MetricsTotal, error) {
 func GetForDatacenters(ctx context.Context) (*apicontracts.MetricList, error) {
 	db := mongodb.GetMongoDb()
 	groupQuery := getGroupBaseQuery()
-	groupQuery["_id"] = "$workspace.datacenter.name"
+	groupQuery["_id"] = bson.M{"$toString": "$workspace.datacenter._id"}
+	groupQuery["_name"] = bson.M{"$first": "$workspace.datacenter.name"}
 
 	accessLists := aclrepo.GetACL2ByIdentityQuery(ctx, aclmodels.AclV2QueryAccessScope{Scope: aclmodels.Acl2ScopeCluster})
 	accessQuery := mongoHelper.CreateClusterACLFilter(accessLists)
@@ -211,17 +212,23 @@ func GetForDatacenters(ctx context.Context) (*apicontracts.MetricList, error) {
 		response.Items = append(response.Items, item)
 	}
 
-	defer func(results *mongo.Cursor, ctx context.Context) {
-		_ = results.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(results, ctx)
 
 	return &response, nil
 }
 
-func GetForDatacenterName(ctx context.Context, datacenterName string) (*apicontracts.MetricItem, error) {
+func GetForDatacenterId(ctx context.Context, datacenterId string) (*apicontracts.MetricItem, error) {
+	dcId, err := primitive.ObjectIDFromHex(datacenterId)
+	if err != nil {
+		return nil, errors.New("could not fetch metrics for datacenterid")
+	}
 	db := mongodb.GetMongoDb()
 	groupQuery := getGroupBaseQuery()
-	groupQuery["_id"] = "$workspace.datacenter.name"
+	groupQuery["_id"] = bson.M{"$toString": "$workspace.datacenter._id"}
+	groupQuery["_name"] = bson.M{"$first": "$workspace.datacenter.name"}
+
 	accessLists := aclrepo.GetACL2ByIdentityQuery(ctx, aclmodels.AclV2QueryAccessScope{Scope: aclmodels.Acl2ScopeCluster})
 	accessQuery := mongoHelper.CreateClusterACLFilter(accessLists)
 	queryCount := []bson.M{
@@ -258,7 +265,7 @@ func GetForDatacenterName(ctx context.Context, datacenterName string) (*apicontr
 				},
 			},
 		},
-		{"$match": bson.M{"workspace.datacenter.name": datacenterName}},
+		{"$match": bson.M{"workspace.datacenter._id": dcId}},
 		{"$group": groupQuery},
 		{"$sort": bson.M{"id": 1}},
 	}
@@ -286,10 +293,11 @@ func GetForDatacenterName(ctx context.Context, datacenterName string) (*apicontr
 	data := acc[0]
 	metrics := GetMetricFromPrimitivM(data)
 	response.Id = fmt.Sprint(data["_id"])
+	response.Name = fmt.Sprint(data["_name"])
 	response.Metrics = metrics
 
-	defer func(results *mongo.Cursor, ctx context.Context) {
-		_ = results.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(results, ctx)
 
 	return &response, nil
@@ -308,8 +316,8 @@ func GetForWorkspaces(ctx context.Context, filter *apicontracts.Filter) (*apicon
 	}
 
 	groupQuery := getGroupBaseQuery()
-	groupQuery["_id"] = "$workspace.name"
-	groupQuery["datacenter"] = bson.M{"$first": "$workspace.datacenter.name"}
+	groupQuery["_id"] = bson.M{"$toString": "$workspace._id"}
+	groupQuery["_name"] = bson.M{"$first": "$workspace.name"}
 	accessLists := aclrepo.GetACL2ByIdentityQuery(ctx, aclmodels.AclV2QueryAccessScope{Scope: aclmodels.Acl2ScopeCluster})
 	accessQuery := mongoHelper.CreateClusterACLFilter(accessLists)
 
@@ -389,14 +397,15 @@ func GetForWorkspaces(ctx context.Context, filter *apicontracts.Filter) (*apicon
 		data := agg[i]
 		metric := GetMetricItemFromPrimitivM(data)
 		metric.Id = fmt.Sprint(data["_id"])
+		metric.Name = fmt.Sprint(data["_name"])
 		metrics = append(metrics, metric)
 	}
 
-	defer func(totalQueryCountCursor *mongo.Cursor, ctx context.Context) {
-		_ = totalQueryCountCursor.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(totalQueryCountCursor, ctx)
-	defer func(results *mongo.Cursor, ctx context.Context) {
-		_ = results.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(results, ctx)
 
 	paginatedResult := apicontracts.PaginatedResult[apicontracts.Metric]{}
@@ -408,7 +417,11 @@ func GetForWorkspaces(ctx context.Context, filter *apicontracts.Filter) (*apicon
 	return &paginatedResult, nil
 }
 
-func GetForWorkspacesByDatacenter(ctx context.Context, filter *apicontracts.Filter, datacenterName string) (*apicontracts.PaginatedResult[apicontracts.Metric], error) {
+func GetForWorkspacesByDatacenterId(ctx context.Context, filter *apicontracts.Filter, datacenterId string) (*apicontracts.PaginatedResult[apicontracts.Metric], error) {
+	dcId, err := primitive.ObjectIDFromHex(datacenterId)
+	if err != nil {
+		return nil, errors.New("could not fetch metrics for workspaces by datacenter")
+	}
 	db := mongodb.GetMongoDb()
 	bsonSort := bson.M{}
 	for i := 0; i < len(filter.Sort); i++ {
@@ -420,7 +433,8 @@ func GetForWorkspacesByDatacenter(ctx context.Context, filter *apicontracts.Filt
 	}
 
 	groupQuery := getGroupBaseQuery()
-	groupQuery["_id"] = "$workspace.name"
+	groupQuery["_id"] = bson.M{"$toString": "$workspace._id"}
+	groupQuery["_name"] = bson.M{"$first": "$workspace.name"}
 
 	accessLists := aclrepo.GetACL2ByIdentityQuery(ctx, aclmodels.AclV2QueryAccessScope{Scope: aclmodels.Acl2ScopeCluster})
 	accessQuery := mongoHelper.CreateClusterACLFilter(accessLists)
@@ -459,7 +473,7 @@ func GetForWorkspacesByDatacenter(ctx context.Context, filter *apicontracts.Filt
 				},
 			},
 		},
-		{"$match": bson.M{"workspace.datacenter.name": datacenterName}},
+		{"$match": bson.M{"workspace.datacenter._id": dcId}},
 		{"$group": groupQuery},
 		{"$sort": bsonSort},
 		{"$skip": filter.Skip},
@@ -467,7 +481,7 @@ func GetForWorkspacesByDatacenter(ctx context.Context, filter *apicontracts.Filt
 	}
 
 	totalQuery := []bson.M{
-		{"$match": bson.M{"workspace.datacenter.name": datacenterName}},
+		{"$match": bson.M{"workspace.datacenter._id": dcId}},
 		{"$group": groupQuery},
 	}
 
@@ -504,14 +518,15 @@ func GetForWorkspacesByDatacenter(ctx context.Context, filter *apicontracts.Filt
 		data := agg[i]
 		metric := GetMetricItemFromPrimitivM(data)
 		metric.Id = fmt.Sprint(data["_id"])
+		metric.Name = fmt.Sprint(data["_name"])
 		metrics = append(metrics, metric)
 	}
 
-	defer func(totalQueryCountCursor *mongo.Cursor, ctx context.Context) {
-		_ = totalQueryCountCursor.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(totalQueryCountCursor, ctx)
-	defer func(results *mongo.Cursor, ctx context.Context) {
-		_ = results.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(results, ctx)
 
 	paginatedResult := apicontracts.PaginatedResult[apicontracts.Metric]{}
@@ -523,10 +538,15 @@ func GetForWorkspacesByDatacenter(ctx context.Context, filter *apicontracts.Filt
 	return &paginatedResult, nil
 }
 
-func GetForWorkspaceName(ctx context.Context, workspaceName string) (*apicontracts.MetricItem, error) {
+func GetForWorkspaceId(ctx context.Context, workspaceName string) (*apicontracts.MetricItem, error) {
+	wId, err := primitive.ObjectIDFromHex(workspaceName)
+	if err != nil {
+		return nil, errors.New("could not fetch metrics for workspace")
+	}
 	db := mongodb.GetMongoDb()
 	groupQuery := getGroupBaseQuery()
-	groupQuery["_id"] = "$workspace.name"
+	groupQuery["_id"] = bson.M{"$toString": "$workspace._id"}
+	groupQuery["_name"] = bson.M{"$first": "$workspace.name"}
 
 	accessLists := aclrepo.GetACL2ByIdentityQuery(ctx, aclmodels.AclV2QueryAccessScope{Scope: aclmodels.Acl2ScopeCluster})
 	accessQuery := mongoHelper.CreateClusterACLFilter(accessLists)
@@ -548,7 +568,7 @@ func GetForWorkspaceName(ctx context.Context, workspaceName string) (*apicontrac
 				},
 			},
 		},
-		{"$match": bson.M{"workspace.name": workspaceName}},
+		{"$match": bson.M{"workspace._id": wId}},
 		{"$group": groupQuery},
 		{"$sort": bson.M{"id": 1}},
 	}
@@ -576,10 +596,11 @@ func GetForWorkspaceName(ctx context.Context, workspaceName string) (*apicontrac
 	data := acc[0]
 	metric := GetMetricFromPrimitivM(data)
 	response.Id = fmt.Sprint(data["_id"])
+	response.Name = fmt.Sprint(data["_name"])
 	response.Metrics = metric
 
-	defer func(results *mongo.Cursor, ctx context.Context) {
-		_ = results.Close(ctx)
+	defer func(metricsCursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = metricsCursor.Close(databaseCtx)
 	}(results, ctx)
 
 	return &response, nil

@@ -64,18 +64,18 @@ func GetForClusters() gin.HandlerFunc {
 //	@Failure		403												{string}	Forbidden
 //	@Failure		401												{string}	Unauthorized
 //	@Failure		500												{string}	Failure	message
-//	@Param			workspaceName									path		string	true	"workspaceName"
-//	@Router			/v1/metrics/clusters/workspace/{workspaceName}	[get]
+//	@Param			workspaceId										path		string	true	"workspaceId"
+//	@Router			/v1/metrics/clusters/workspace/{workspaceId}	[get]
 //	@Security		ApiKey || AccessToken
-func GetForClustersByWorkspace() gin.HandlerFunc {
+func GetForClustersByWorkspaceId() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
-		workspaceName := c.Param("workspaceName")
+		workspaceId := c.Param("workspaceId")
 		defer cancel()
 
 		// importing apicontracts for swagger
 		var _ apicontracts.Datacenter
-		results, err := metricsservice.GetForClustersByWorkspace(ctx, workspaceName)
+		results, err := metricsservice.GetForClustersByWorkspaceId(ctx, workspaceId)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, rorerror.RorError{
 				Status:  http.StatusInternalServerError,

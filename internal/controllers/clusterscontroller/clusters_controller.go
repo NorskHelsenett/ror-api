@@ -192,7 +192,7 @@ func ClusterByFilter() gin.HandlerFunc {
 	}
 }
 
-// Get a []apicontracts.Cluster by a workspaceName .
+// Get a []apicontracts.Cluster by a workspaceId
 // Will only provide clusters the identity is authorized to view
 //
 //	@Summary	Get clusters by workspace
@@ -205,14 +205,14 @@ func ClusterByFilter() gin.HandlerFunc {
 //	@Failure		403												{string}	Forbidden
 //	@Failure		401												{string}	Unauthorized
 //	@Failure		500												{string}	Failure	message
-//	@Router			/v1/clusters/workspace/{workspaceName}/filter	[get]
+//	@Router			/v1/clusters/workspace/{workspaceId}/filter	[get]
 //	@Param			filter											body	apicontracts.Filter	true	"Filter"
-//	@Param			workspaceName									path	string				true	"workspaceName"
+//	@Param			workspaceId									path	string				true	"workspaceId"
 //	@Security		ApiKey || AccessToken
-func ClusterGetByWorkspace() gin.HandlerFunc {
+func ClusterGetByWorkspaceId() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
-		workspaceName := c.Param("workspaceName")
+		workspaceId := c.Param("workspaceId")
 		var filter apicontracts.Filter
 		defer cancel()
 
@@ -249,7 +249,7 @@ func ClusterGetByWorkspace() gin.HandlerFunc {
 		// importing apicontracts for swagger
 		var _ apicontracts.PaginatedResult[apicontracts.Cluster]
 
-		result, err := clustersservice.GetByWorkspace(ctx, &filter, workspaceName)
+		result, err := clustersservice.GetByWorkspaceId(ctx, &filter, workspaceId)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, rorerror.RorError{
 				Status:  http.StatusInternalServerError,

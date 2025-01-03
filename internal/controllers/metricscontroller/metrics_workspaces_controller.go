@@ -115,14 +115,14 @@ func GetForWorkspaces() gin.HandlerFunc {
 //	@Failure		403															{string}	Forbidden
 //	@Failure		401															{string}	Unauthorized
 //	@Failure		500															{string}	Failure	message
-//	@Param			datacenterName												path		string	true	"datacenterName"
-//	@Router			/v1/metrics/workspaces/datacenter/{datacenterName}/filter	[post]
+//	@Param			datacenterId												path		string	true	"datacenterId"
+//	@Router			/v1/metrics/workspaces/datacenter/{datacenterId}/filter	[post]
 //	@Param			filter														body	apicontracts.Filter	true	"Filter"
 //	@Security		ApiKey || AccessToken
-func GetForWorkspacesByDatacenter() gin.HandlerFunc {
+func GetForWorkspacesByDatacenterId() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
-		datacenterName := c.Param("datacenterName")
+		datacenterId := c.Param("datacenterId")
 		var filter apicontracts.Filter
 		defer cancel()
 
@@ -155,7 +155,7 @@ func GetForWorkspacesByDatacenter() gin.HandlerFunc {
 			}
 		}
 
-		result, err := metricsservice.GetForWorkspacesByDatacenter(ctx, &filter, datacenterName)
+		result, err := metricsservice.GetForWorkspacesByDatacenterId(ctx, &filter, datacenterId)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, rorerror.RorError{
 				Status:  http.StatusNotFound,
@@ -186,16 +186,16 @@ func GetForWorkspacesByDatacenter() gin.HandlerFunc {
 //	@Failure		403										{string}	Forbidden
 //	@Failure		401										{string}	Unauthorized
 //	@Failure		500										{string}	Failure	message
-//	@Router			/v1/metrics/workspace/{workspaceName}	[get]
-//	@Param			workspaceName							path	string	true	"workspaceName"
+//	@Router			/v1/metrics/workspace/{workspaceId}	[get]
+//	@Param			workspaceId							path	string	true	"workspaceId"
 //	@Security		ApiKey || AccessToken
-func GetByWorkspaceName() gin.HandlerFunc {
+func GetByWorkspaceId() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
-		workspaceName := c.Param("workspaceName")
+		workspaceId := c.Param("workspaceId")
 		defer cancel()
 
-		metrics, err := metricsservice.GetForWorkspaceName(ctx, workspaceName)
+		metrics, err := metricsservice.GetForWorkspaceId(ctx, workspaceId)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, rorerror.RorError{
 				Status:  http.StatusInternalServerError,
