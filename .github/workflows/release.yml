@@ -168,11 +168,11 @@ jobs:
           BINARY: yq_linux_amd64
       - name: Build helm chart
         run: |
-          ./yq e -i '.version = strenv(ROR_VERSION),.appVersion = strenv(ROR_VERSION)' charts/${{ env.APP }}/Chart.yaml
-          ./yq e -i '.image.tag = strenv(ROR_VERSION)' charts/${{ env.APP }}/values.yaml
-          ./yq e -i '.image.repository = "ghcr.io/norskhelsenett/${{ env.APP }}"' charts/${{ env.APP }}/values.yaml
+          export HELM_VERSION=${ROR_VERSION#v*}
+          ./yq e -i '.version = strenv(HELM_VERSION),.appVersion = strenv(ROR_VERSION)' charts/${{ env.APP }}/Chart.yaml
+          ./yq e -i '.image.tag = strenv(ROR_VERSION),.image.repository = "ghcr.io/norskhelsenett/${{ env.APP }}"' charts/${{ env.APP }}/values.yaml
           helm package charts/${{ env.APP }}
           echo  ${{ secrets.GITHUB_TOKEN }} | helm registry login -u ${{ github.actor }} ${{ env.REGISTRY }} --password-stdin
-          helm push ${{ env.APP }}-${ROR_VERSION}.tgz oci://${{ env.REGISTRY }}/norskhelsenett/helm/
+          helm push ${{ env.APP }}-${HELM_VERSION}.tgz oci://${{ env.REGISTRY }}/norskhelsenett/helm/
         env:
           ROR_VERSION: ${{ needs.setenv.outputs.rorversion }}
