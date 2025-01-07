@@ -10,10 +10,9 @@ env:
   # github.repository as <account>/<repo>
   # test
   IMAGE_NAME: norskhelsenett/ror-api
-  GH_TOKEN: ${{ secrets.VARTOKEN }}
-
 jobs:
   build-app:
+    if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -27,15 +26,6 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: "1.23"
-      - name: Cache Go modules
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
       - name: Build Swagger
         run: |
           go install github.com/swaggo/swag/cmd/swag@latest
@@ -57,7 +47,7 @@ jobs:
 
   build-container-image:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref_type == 'tag'
     needs:
       - build-app
     permissions:
@@ -143,7 +133,7 @@ jobs:
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
   publish-helm:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref_type == 'tag'
     needs:
       - build-container-image
     steps:
