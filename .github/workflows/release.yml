@@ -31,6 +31,7 @@ jobs:
         run: |
           go get ./...
           mkdir -p dist/isbuilt
+          echo "Building ror api $ROR_VERSION ($sha_short)"
           CGO_ENABLED=0 go build -o dist/api -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Version=$ROR_VERSION -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Commit=$sha_short" cmd/api/main.go
           touch dist/isbuilt/api
       - name: Archive binary
@@ -155,6 +156,7 @@ jobs:
           BINARY: yq_linux_amd64
       - name: Build helm chart
         run: |
+          echo "Building ror api $ROR_VERSION ($sha_short)"
           ./yq e -i '.version = strenv(ROR_VERSION),.appVersion = strenv(ROR_VERSION)' charts/ror-api/Chart.yaml
           ./yq e -i '.image.tag = strenv(ROR_VERSION)' charts/ror-api/values.yaml
           ./yq e -i '.image.repository = "ghcr.io/norskhelsenett/ror-api"' charts/ror-api/values.yaml
