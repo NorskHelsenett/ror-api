@@ -7,18 +7,18 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: norskhelsenett/ror-api
+  ROR_VERSION: ${GITHUB_REF#refs/*/}
+  SHA_SHORT: $(git rev-parse --short HEAD)
 jobs:
   build-app:
     if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Set env
+      - name: Check env
         run: |
-          export ROR_VERSION=${GITHUB_REF#refs/*/}
-          export sha_short=$(git rev-parse --short HEAD)
-          echo "Building ror api $ROR_VERSION ($sha_short)"
-
+          echo "Building ror api ${{ env.ROR_VERSION}} (${{env.SHA_SHORT}})"
+        
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
@@ -31,8 +31,8 @@ jobs:
         run: |
           go get ./...
           mkdir -p dist/isbuilt
-          echo "Building ror api $ROR_VERSION ($sha_short)"
-          CGO_ENABLED=0 go build -o dist/api -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Version=$ROR_VERSION -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Commit=$sha_short" cmd/api/main.go
+          echo "Building ror api ${{ env.ROR_VERSION}} (${{ env.SHA_SHORT}})"
+          CGO_ENABLED=0 go build -o dist/api -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Version=${{ env.ROR_VERSION}} -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Commit=${{ env.SHA_SHORT}}" cmd/api/main.go
           touch dist/isbuilt/api
       - name: Archive binary
         uses: actions/upload-artifact@v4
@@ -59,11 +59,9 @@ jobs:
 
       - name: Download binary build artifacts
         uses: actions/download-artifact@v4
-      - name: Set env
+      - name: Check env
         run: |
-          export ROR_VERSION=${GITHUB_REF#refs/*/}
-          export sha_short=$(git rev-parse --short HEAD)
-          echo "Building container ror-api $ROR_VERSION ($sha_short)"
+          echo "Building container ror-api ${{ env.ROR_VERSION}} (${{ env.SHA_SHORT}})"
       - name: Move artifacts
         run: |
           mv binary-build dist
@@ -137,11 +135,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Set env
+      - name: Check env
         run: |
-          export ROR_VERSION=${GITHUB_REF#refs/*/}
-          export sha_short=$(git rev-parse --short HEAD)
-          echo "Building helm chart for ror-api $ROR_VERSION ($sha_short)"
+          echo "Building helm chart for ror-api ${{ env.ROR_VERSION}} (${{ env.SHA_SHORT}})"
 
       - name: Install helm
         uses: azure/setup-helm@v1
@@ -156,7 +152,7 @@ jobs:
           BINARY: yq_linux_amd64
       - name: Build helm chart
         run: |
-          echo "Building ror api $ROR_VERSION ($sha_short)"
+          echo "Building ror api ${{ env.ROR_VERSION}} (${{ env.SHA_SHORT}})"
           ./yq e -i '.version = strenv(ROR_VERSION),.appVersion = strenv(ROR_VERSION)' charts/ror-api/Chart.yaml
           ./yq e -i '.image.tag = strenv(ROR_VERSION)' charts/ror-api/values.yaml
           ./yq e -i '.image.repository = "ghcr.io/norskhelsenett/ror-api"' charts/ror-api/values.yaml
