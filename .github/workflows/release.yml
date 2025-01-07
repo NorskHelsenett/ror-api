@@ -3,7 +3,7 @@ name: Release API
 on:
   push:
     tags: ["v[0-9]+", "v[0-9]+.[0-9]+", "v[0-9]+.[0-9]+.[0-9]+", "v[0-9]+.[0-9]+.[0-9]+-*"]
-    
+
 env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
@@ -13,26 +13,12 @@ env:
   GH_TOKEN: ${{ secrets.VARTOKEN }}
 
 jobs:
-  bump-version:
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    outputs:
-      ror_version: ${{ steps.set_version.outputs.ror_version }}
-    steps:
-      - uses: actions/checkout@v4
-      - id: set_version
-        run: |
-          PREV_VERSION=$(gh variable get V1VERSION)
-          ROR_VERSION=$(echo $PREV_VERSION | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
-          echo "ror_version=$ROR_VERSION" >> "$GITHUB_OUTPUT"
-          gh variable set V1VERSION --body $ROR_VERSION
-          echo "version bumped from $PREV_VERSION to $ROR_VERSION"
   build-app:
     runs-on: ubuntu-latest
-    needs: bump-version
     steps:
       - uses: actions/checkout@v3
-
+      - name: Set env
+        run: echo "ROR_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
@@ -46,6 +32,10 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
+      - name: Build Swagger
+        run: |
+          go install github.com/swaggo/swag/cmd/swag@latest
+          swag init -g cmd/api/main.go --parseDependency --output cmd/api/docs
       - name: Build
         run: |
           echo $ROR_VERSION
@@ -54,9 +44,6 @@ jobs:
           mkdir -p dist/isbuilt
           CGO_ENABLED=0 go build -o dist/api -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Version=$ROR_VERSION -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Commit=$sha_short" cmd/api/main.go
           touch dist/isbuilt/api
-        env:
-          ROR_VERSION: ${{ needs.bump-version.outputs.ror_version }}
-
       - name: Archive binary
         uses: actions/upload-artifact@v4
         with:
@@ -68,11 +55,9 @@ jobs:
 
   build-container-image:
     runs-on: ubuntu-latest
-    #if: ${{ ! startsWith(github.ref, 'refs/tags/') }}
     if: github.ref == 'refs/heads/main'
     needs:
       - build-app
-      - bump-version
     permissions:
       contents: read
       packages: write
@@ -84,7 +69,8 @@ jobs:
 
       - name: Download binary build artifacts
         uses: actions/download-artifact@v4
-
+      - name: Set env
+        run: echo "ROR_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
       - name: Move artifacts
         run: |
           mv binary-build dist
@@ -122,8 +108,6 @@ jobs:
           tags: |
             type=raw,value=latest
             type=raw,value=${{ env.ROR_VERSION }}
-        env:
-          ROR_VERSION: ${{ needs.bump-version.outputs.ror_version }}
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
@@ -156,10 +140,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     needs:
-      - bump-version
       - build-container-image
-    env:
-      ROR_VERSION: ${{ needs.bump-version.outputs.ror_version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -175,6 +156,9 @@ jobs:
         env:
           VERSION: v4.44.5
           BINARY: yq_linux_amd64
+
+      - name: Set env
+        run: echo "ROR_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
 
       - name: Build helm chart
         run: |
