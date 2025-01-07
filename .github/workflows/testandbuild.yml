@@ -4,6 +4,9 @@ on:
   pull_request:
     branches:
       - main
+env:
+  APP: ror-api
+  APP_PATH: cmd/api
 jobs:
   build-app:
     runs-on: ubuntu-latest
@@ -20,13 +23,16 @@ jobs:
           go get -t ./...
           go vet ./...
           go test -v ./...
-
+      - name: Build Swagger
+        run: |
+          go install github.com/swaggo/swag/cmd/swag@latest
+          swag init -g main.go --parseDependency --output internal/docs -d ${{ env.APP_PATH }}
       - name: Build
         run: |
           echo building...
           export sha_short=$(git rev-parse --short HEAD)
           go get ./...
           mkdir -p dist/isbuilt
-          CGO_ENABLED=0 go build -o dist/api -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Version=$ROR_VERSION -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Commit=$sha_short" cmd/api/main.go
+          CGO_ENABLED=0 go build -o dist/${{ env.APP }} -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Version=$ROR_VERSION -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Commit=$sha_short" ${{ env.APP_PATH }}/main.go
         env:
           ROR_VERSION: v0.0.1-build
