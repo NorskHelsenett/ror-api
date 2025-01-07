@@ -8,9 +8,12 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: norskhelsenett/ror-api
   APP: ror-api
+  APP_PATH: cmd/api
 
 jobs:
   setenv:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     outputs:
       rorversion: ${{ steps.env.outputs.ROR_VERSION }}
@@ -24,6 +27,8 @@ jobs:
   build-app:
     if: github.ref_type == 'tag'
     needs: setenv
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -33,25 +38,24 @@ jobs:
           go-version: "1.23"
       - name: Start build
         run: |
-          echo "Building ror-api"
+          echo "Building ${{ env.APP }} ${{ needs.setenv.outputs.rorversion}} (${{ needs.setenv.outputs.shortsha}})"
       - name: Build Swagger
         run: |
           go install github.com/swaggo/swag/cmd/swag@latest
-          swag init -g main.go --parseDependency --output internal/docs -d cmd/api
+          swag init -g main.go --parseDependency --output internal/docs -d ${{ env.APP_PATH }}
       - name: Build
         run: |
           go get ./...
           mkdir -p dist/isbuilt
-          echo "Building ror api ${{ needs.setenv.outputs.rorversion}} (${{ needs.setenv.outputs.shortsha}})"
-          CGO_ENABLED=0 go build -o dist/api -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Version=${{ needs.setenv.outputs.rorversion}} -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Commit=${{ needs.setenv.outputs.shortsha}}" cmd/api/main.go
-          touch dist/isbuilt/api
+          CGO_ENABLED=0 go build -o dist/${{ env.APP }} -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/${{ env.APP }}/internal/apiconfig.Version=${{ needs.setenv.outputs.rorversion}} -X github.com/NorskHelsenett/${{ env.APP }}/internal/apiconfig.Commit=${{ needs.setenv.outputs.shortsha}}" ${{ env.APP_PATH }}/main.go
+          touch dist/isbuilt/${{ env.APP }}
       - name: Archive binary
         uses: actions/upload-artifact@v4
         with:
           name: binary-build
           path: |
-            dist/api
-            dist/isbuilt/api
+            dist/${{ env.APP }}
+            dist/isbuilt/${{ env.APP }}
           retention-days: 1
 
   build-container-image:
@@ -73,7 +77,7 @@ jobs:
         uses: actions/download-artifact@v4
       - name: Check env
         run: |
-          echo "Building container ror-api ${{ needs.setenv.outputs.rorversion}} (${{ needs.setenv.outputs.shortsha}})"
+          echo "Building container ${{ env.APP }} ${{ needs.setenv.outputs.rorversion}} (${{ needs.setenv.outputs.shortsha}})"
       - name: Move artifacts
         run: |
           mv binary-build dist
@@ -150,7 +154,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Check env
         run: |
-          echo "Building helm chart for ror-api ${{ needs.setenv.outputs.rorversion }} (${{ needs.setenv.outputs.shortsha}})"
+          echo "Building helm chart for ${{ env.APP }} ${{ needs.setenv.outputs.rorversion }} (${{ needs.setenv.outputs.shortsha}})"
       - name: Install helm
         uses: azure/setup-helm@v1
         with:
@@ -163,11 +167,11 @@ jobs:
           BINARY: yq_linux_amd64
       - name: Build helm chart
         run: |
-          ./yq e -i '.version = strenv(ROR_VERSION),.appVersion = strenv(ROR_VERSION)' charts/ror-api/Chart.yaml
-          ./yq e -i '.image.tag = strenv(ROR_VERSION)' charts/ror-api/values.yaml
-          ./yq e -i '.image.repository = "ghcr.io/norskhelsenett/ror-api"' charts/ror-api/values.yaml
-          helm package charts/ror-api
+          ./yq e -i '.version = strenv(ROR_VERSION),.appVersion = strenv(ROR_VERSION)' charts/${{ env.APP }}/Chart.yaml
+          ./yq e -i '.image.tag = strenv(ROR_VERSION)' charts/${{ env.APP }}/values.yaml
+          ./yq e -i '.image.repository = "ghcr.io/norskhelsenett/${{ env.APP }}"' charts/${{ env.APP }}/values.yaml
+          helm package charts/${{ env.APP }}
           echo  ${{ secrets.GITHUB_TOKEN }} | helm registry login -u ${{ github.actor }} ${{ env.REGISTRY }} --password-stdin
-          helm push ror-api-${ROR_VERSION}.tgz oci://${{ env.REGISTRY }}/norskhelsenett/helm/
+          helm push ${{ env.APP }}-${ROR_VERSION}.tgz oci://${{ env.REGISTRY }}/norskhelsenett/helm/
         env:
           ROR_VERSION: ${{ needs.setenv.outputs.rorversion }}
