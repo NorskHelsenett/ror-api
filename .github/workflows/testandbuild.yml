@@ -1,0 +1,41 @@
+name: Test and build API
+
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  build-app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.23"
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Test
+        run: |
+          echo testing...
+          export sha_short=$(git rev-parse --short HEAD)
+          go get -t ./...
+          go vet ./...
+          go test -v ./...
+
+      - name: Build
+        run: |
+          echo building...
+          export sha_short=$(git rev-parse --short HEAD)
+          go get ./...
+          mkdir -p dist/isbuilt
+          CGO_ENABLED=0 go build -o dist/api -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Version=$ROR_VERSION -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Commit=$sha_short" cmd/api/main.go
+        env:
+          ROR_VERSION: v0.0.1-build

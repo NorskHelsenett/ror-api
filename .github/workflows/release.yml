@@ -1,15 +1,9 @@
-name: Build API
+name: Release API
 
 on:
   push:
-    branches:
-      - main
-    # Publish semver tags as releases.
-    #tags: [ 'v*.*.*' ]
-  pull_request:
-    branches:
-      - main
-
+    tags: ["v[0-9]+", "v[0-9]+.[0-9]+", "v[0-9]+.[0-9]+.[0-9]+", "v[0-9]+.[0-9]+.[0-9]+-*"]
+    
 env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
@@ -21,6 +15,7 @@ env:
 jobs:
   bump-version:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     outputs:
       ror_version: ${{ steps.set_version.outputs.ror_version }}
     steps:
