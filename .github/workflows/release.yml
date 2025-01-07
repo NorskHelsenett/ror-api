@@ -18,7 +18,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set env
-        run: echo "ROR_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+        run: |
+          echo "ROR_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+          export sha_short=$(git rev-parse --short HEAD)
+          echo "Building ror api $ROR_VERSION ($sha_short)"
+
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
@@ -35,11 +39,9 @@ jobs:
       - name: Build Swagger
         run: |
           go install github.com/swaggo/swag/cmd/swag@latest
-          swag init -g cmd/api/main.go --parseDependency --output cmd/api/docs
+          swag init -g main.go --parseDependency --output internal/docs -d cmd/api
       - name: Build
         run: |
-          echo $ROR_VERSION
-          export sha_short=$(git rev-parse --short HEAD)
           go get ./...
           mkdir -p dist/isbuilt
           CGO_ENABLED=0 go build -o dist/api -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Version=$ROR_VERSION -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Commit=$sha_short" cmd/api/main.go
