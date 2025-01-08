@@ -54,12 +54,12 @@ func main() {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	done := make(chan struct{})
 
+	apiconfig.InitViper()
+
 	rlog.Infoc(ctx, "ROR Api startup ")
-	rlog.Infof("Version: %s (%s)", apiconfig.Version, apiconfig.Commit)
+	rlog.Infof("API-version: %s (%s) Library-version: %s", apiconfig.RorVersion.Version, apiconfig.RorVersion.Commit, apiconfig.RorVersion.GetLibVer())
 
 	_, _ = maxprocs.Set(maxprocs.Logger(rlog.Infof))
-
-	apiconfig.InitViper()
 
 	apiconnections.InitConnections()
 

@@ -18,6 +18,7 @@ jobs:
     outputs:
       rorversion: ${{ steps.env.outputs.ROR_VERSION }}
       shortsha: ${{ steps.env.outputs.SHA_SHORT }}
+      libver: ${{ steps.env.outputs.LIB_VER }}
     steps:
       - uses: actions/checkout@v3
       - id: env
@@ -25,6 +26,7 @@ jobs:
         run: |
           echo "ROR_VERSION=${GITHUB_REF#refs/*/}" >> "$GITHUB_OUTPUT"
           echo "SHA_SHORT=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          echo "LIB_VER=$(cat go.mod | grep "github.com/NorskHelsenett/ror " | cut -d' ' -f2")" >> "$GITHUB_OUTPUT"
   build-app:
     if: github.ref_type == 'tag'
     needs: setenv
@@ -48,7 +50,7 @@ jobs:
         run: |
           go get ./...
           mkdir -p dist/isbuilt
-          CGO_ENABLED=0 go build -o dist/${{ env.APP }} -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/${{ env.APP }}/internal/apiconfig.Version=${{ needs.setenv.outputs.rorversion}} -X github.com/NorskHelsenett/${{ env.APP }}/internal/apiconfig.Commit=${{ needs.setenv.outputs.shortsha}}" ${{ env.APP_PATH }}/main.go
+          CGO_ENABLED=0 go build -o dist/${{ env.APP }} -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/ror/pkg/config/rorversion.Version=${{ needs.setenv.outputs.rorversion}} -X github.com/NorskHelsenett/ror/pkg/config/rorversion.Commit=${{ needs.setenv.outputs.shortsha}} -X github.com/NorskHelsenett/ror/pkg/config/rorversion.LibVer=${{ needs.setenv.outputs.libver}}" ${{ env.APP_PATH }}/main.go
           touch dist/isbuilt/${{ env.APP }}
       - name: Archive binary
         uses: actions/upload-artifact@v4

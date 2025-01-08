@@ -12,8 +12,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-var Version string = "0.1.0"
-var Commit string = "FFFFFFF"
+var defaultVersion string = "0.0.1-develop"
+var defaultCommit string = "FFFFFFF"
 
 var RorVersion rorversion.RorVersion
 
@@ -22,8 +22,11 @@ func InitViper() {
 
 	viper.AutomaticEnv()
 
-	viper.SetDefault(configconsts.VERSION, Version)
-	viper.SetDefault(configconsts.COMMIT, Commit)
+	viper.SetDefault(configconsts.VERSION, defaultVersion)
+	viper.SetDefault(configconsts.COMMIT, defaultCommit)
+
+	RorVersion = rorversion.NewRorVersion(viper.GetString(configconsts.VERSION), viper.GetString(configconsts.COMMIT))
+
 	viper.SetDefault(configconsts.API_KEY_SALT, "")
 	viper.SetDefault(configconsts.ROLE, "ror-api")
 
@@ -66,5 +69,5 @@ func InitViper() {
 }
 
 func GetRorVersion() rorversion.RorVersion {
-	return rorversion.NewRorVersion(viper.GetString(configconsts.VERSION), viper.GetString(configconsts.COMMIT))
+	return RorVersion
 }

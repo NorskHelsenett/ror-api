@@ -31,8 +31,9 @@ jobs:
         run: |
           echo building...
           export sha_short=$(git rev-parse --short HEAD)
+          export LIB_VER=$(cat go.mod | grep "github.com/NorskHelsenett/ror " | cut -d' ' -f2)
           go get ./...
           mkdir -p dist/isbuilt
-          CGO_ENABLED=0 go build -o dist/${{ env.APP }} -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Version=$ROR_VERSION -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Commit=$sha_short" ${{ env.APP_PATH }}/main.go
+          CGO_ENABLED=0 go build -o dist/${{ env.APP }} -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/ror/pkg/config/rorversion.Version=$ROR_VERSION -X github.com/NorskHelsenett/ror/pkg/config/rorversion.Commit=$sha_short -X github.com/NorskHelsenett/ror/pkg/config/rorversion.LibVer=$LIB_VER" ${{ env.APP_PATH }}/main.go
         env:
           ROR_VERSION: v0.0.1-build
