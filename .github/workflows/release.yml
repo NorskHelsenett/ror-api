@@ -1,83 +1,72 @@
-name: Build API
+name: Release API
 
 on:
   push:
-    branches:
-      - main
-    # Publish semver tags as releases.
-    #tags: [ 'v*.*.*' ]
-  pull_request:
-    branches:
-      - main
+    tags: ["v[0-9]+", "v[0-9]+.[0-9]+", "v[0-9]+.[0-9]+.[0-9]+", "v[0-9]+.[0-9]+.[0-9]+-*"]
 
 env:
-  # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
-  # test
   IMAGE_NAME: norskhelsenett/ror-api
-  GH_TOKEN: ${{ secrets.VARTOKEN }}
+  APP: ror-api
+  APP_PATH: cmd/api
 
 jobs:
-  bump-version:
+  setenv:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     outputs:
-      ror_version: ${{ steps.set_version.outputs.ror_version }}
-    steps:
-      - uses: actions/checkout@v4
-      - id: set_version
-        run: |
-          PREV_VERSION=$(gh variable get V1VERSION)
-          ROR_VERSION=$(echo $PREV_VERSION | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
-          echo "ror_version=$ROR_VERSION" >> "$GITHUB_OUTPUT"
-          gh variable set V1VERSION --body $ROR_VERSION
-          echo "version bumped from $PREV_VERSION to $ROR_VERSION"
-  build-app:
-    runs-on: ubuntu-latest
-    needs: bump-version
+      rorversion: ${{ steps.env.outputs.ROR_VERSION }}
+      shortsha: ${{ steps.env.outputs.SHA_SHORT }}
+      libver: ${{ steps.env.outputs.LIB_VER }}
     steps:
       - uses: actions/checkout@v3
-
+      - id: env
+        name: Set env
+        run: |
+          echo "ROR_VERSION=${GITHUB_REF#refs/*/}" >> "$GITHUB_OUTPUT"
+          echo "SHA_SHORT=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          echo "LIB_VER=$(cat go.mod | grep "github.com/NorskHelsenett/ror " | cut -d' ' -f2")" >> "$GITHUB_OUTPUT"
+  build-app:
+    if: github.ref_type == 'tag'
+    needs: setenv
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version: "1.23"
-      - name: Cache Go modules
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
+      - name: Start build
+        run: |
+          echo "Building ${{ env.APP }} ${{ needs.setenv.outputs.rorversion}} (${{ needs.setenv.outputs.shortsha}})"
+      - name: Build Swagger
+        run: |
+          go install github.com/swaggo/swag/cmd/swag@latest
+          swag init -g main.go --parseDependency --output internal/docs -d ${{ env.APP_PATH }}
       - name: Build
         run: |
-          echo $ROR_VERSION
-          export sha_short=$(git rev-parse --short HEAD)
           go get ./...
           mkdir -p dist/isbuilt
-          CGO_ENABLED=0 go build -o dist/api -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Version=$ROR_VERSION -X github.com/NorskHelsenett/ror-api/internal/apiconfig.Commit=$sha_short" cmd/api/main.go
-          touch dist/isbuilt/api
-        env:
-          ROR_VERSION: ${{ needs.bump-version.outputs.ror_version }}
-
+          CGO_ENABLED=0 go build -o dist/${{ env.APP }} -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/ror/pkg/config/rorversion.Version=${{ needs.setenv.outputs.rorversion}} -X github.com/NorskHelsenett/ror/pkg/config/rorversion.Commit=${{ needs.setenv.outputs.shortsha}} -X github.com/NorskHelsenett/ror/pkg/config/rorversion.LibVer=${{ needs.setenv.outputs.libver}}" ${{ env.APP_PATH }}/main.go
+          touch dist/isbuilt/${{ env.APP }}
       - name: Archive binary
         uses: actions/upload-artifact@v4
         with:
           name: binary-build
           path: |
-            dist/api
-            dist/isbuilt/api
+            dist/${{ env.APP }}
+            dist/isbuilt/${{ env.APP }}
           retention-days: 1
 
   build-container-image:
     runs-on: ubuntu-latest
-    #if: ${{ ! startsWith(github.ref, 'refs/tags/') }}
-    if: github.ref == 'refs/heads/main'
+    if: github.ref_type == 'tag'
     needs:
       - build-app
-      - bump-version
+      - setenv
     permissions:
       contents: read
       packages: write
@@ -89,11 +78,13 @@ jobs:
 
       - name: Download binary build artifacts
         uses: actions/download-artifact@v4
-
+      - name: Check env
+        run: |
+          echo "Building container ${{ env.APP }} ${{ needs.setenv.outputs.rorversion}} (${{ needs.setenv.outputs.shortsha}})"
       - name: Move artifacts
         run: |
           mv binary-build dist
-          chmod +x dist/api
+          chmod +x dist/${{ env.APP }}
 
       - name: Install cosign
         if: github.event_name != 'pull_request'
@@ -126,9 +117,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest
-            type=raw,value=${{ env.ROR_VERSION }}
-        env:
-          ROR_VERSION: ${{ needs.bump-version.outputs.ror_version }}
+            type=raw,value=${{ needs.setenv.outputs.rorversion }}
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
@@ -159,33 +148,33 @@ jobs:
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
   publish-helm:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref_type == 'tag'
     needs:
-      - bump-version
       - build-container-image
-    env:
-      ROR_VERSION: ${{ needs.bump-version.outputs.ror_version }}
+      - setenv
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
+      - name: Check env
+        run: |
+          echo "Building helm chart for ${{ env.APP }} ${{ needs.setenv.outputs.rorversion }} (${{ needs.setenv.outputs.shortsha}})"
       - name: Install helm
         uses: azure/setup-helm@v1
         with:
           version: v3.15.0
-
       - name: install-yq
         run: |
           wget https://github.com/mikefarah/yq/releases/download/${VERSION}/${BINARY}.tar.gz -O - | tar xz && mv ${BINARY} yq && chmod +x yq
         env:
           VERSION: v4.44.5
           BINARY: yq_linux_amd64
-
       - name: Build helm chart
         run: |
-          ./yq e -i '.version = strenv(ROR_VERSION),.appVersion = strenv(ROR_VERSION)' charts/ror-api/Chart.yaml
-          ./yq e -i '.image.tag = strenv(ROR_VERSION)' charts/ror-api/values.yaml
-          ./yq e -i '.image.repository = "ghcr.io/norskhelsenett/ror-api"' charts/ror-api/values.yaml
-          helm package charts/ror-api
+          export HELM_VERSION=${ROR_VERSION#v*}
+          ./yq e -i '.version = strenv(HELM_VERSION),.appVersion = strenv(ROR_VERSION)' charts/${{ env.APP }}/Chart.yaml
+          ./yq e -i '.image.tag = strenv(ROR_VERSION),.image.repository = "ghcr.io/norskhelsenett/${{ env.APP }}"' charts/${{ env.APP }}/values.yaml
+          helm package charts/${{ env.APP }}
           echo  ${{ secrets.GITHUB_TOKEN }} | helm registry login -u ${{ github.actor }} ${{ env.REGISTRY }} --password-stdin
-          helm push ror-api-${ROR_VERSION}.tgz oci://${{ env.REGISTRY }}/norskhelsenett/helm/
+          helm push ${{ env.APP }}-${HELM_VERSION}.tgz oci://${{ env.REGISTRY }}/norskhelsenett/helm/
+        env:
+          ROR_VERSION: ${{ needs.setenv.outputs.rorversion }}

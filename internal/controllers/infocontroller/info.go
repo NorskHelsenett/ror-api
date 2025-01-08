@@ -4,10 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror-api/internal/apiconfig"
 
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 )
 
 type Version struct {
@@ -29,9 +28,7 @@ type Version struct {
 //	@Router			/v1/info/version	[get]
 func GetVersion() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		res := Version{
-			Version: viper.GetString(configconsts.VERSION),
-		}
+		res := apiconfig.RorVersion
 		output, err := json.Marshal(res)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, "500: Could not marshal json")
