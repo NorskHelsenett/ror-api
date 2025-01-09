@@ -112,6 +112,11 @@ func GetTotalCount(ctx context.Context) (int64, error) {
 
 func GetByName(ctx context.Context, workspaceName string) (*apicontracts.Workspace, error) {
 	db := mongodb.GetMongoDb()
+
+	if workspaceName == "" {
+		return nil, errors.New("workspace name is empty")
+	}
+
 	workspacesQuery := []bson.M{
 		{
 			"$match": bson.M{
@@ -220,6 +225,10 @@ func GetByName(ctx context.Context, workspaceName string) (*apicontracts.Workspa
 func FindByName(ctx context.Context, name string) (*apicontracts.Workspace, error) {
 	db := mongodb.GetMongoDb()
 	var wsResult mongoTypes.MongoWorkspace
+
+	if name == "" {
+		return nil, errors.New("name parameter is empty")
+	}
 	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{"name": name}).Decode(&wsResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		msg := "could not find workspace"
 		rlog.Error(msg, err)
