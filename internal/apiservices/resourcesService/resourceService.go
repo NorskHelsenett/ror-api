@@ -11,6 +11,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/resourcesmongodbrepo"
 
 	"github.com/NorskHelsenett/ror/pkg/messagebuscontracts"
+	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 
@@ -105,7 +106,7 @@ func ResourceDeleteService(ctx context.Context, resourceUpdate apiresourcecontra
 }
 
 // returns the list of hashes owned by the ownerref
-func ResourceGetHashlist(ctx context.Context, owner apiresourcecontracts.ResourceOwnerReference) (apiresourcecontracts.HashList, error) {
+func ResourceGetHashlist(ctx context.Context, owner rortypes.RorResourceOwnerReference) (apiresourcecontracts.HashList, error) {
 	return resourcesmongodbrepo.GetHashList(ctx, owner)
 }
 

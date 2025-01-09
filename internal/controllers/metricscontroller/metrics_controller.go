@@ -8,8 +8,9 @@ import (
 	metricsservice "github.com/NorskHelsenett/ror-api/internal/apiservices/metricsService"
 	"github.com/NorskHelsenett/ror-api/internal/responses"
 
-	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
@@ -131,11 +132,13 @@ func RegisterResourceMetricsReport() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": validationErr.Error()}})
 			return
 		}
-		ownerref := apiresourcecontracts.ResourceOwnerReference{
-			Scope:   input.Owner.Scope,
-			Subject: string(input.Owner.Subject),
+
+		resourceOwner := rortypes.RorResourceOwnerReference{
+			Scope:   aclmodels.Acl2Scope(input.Owner.Scope),
+			Subject: aclmodels.Acl2Subject(input.Owner.Subject),
 		}
-		accessObject := aclservice.CheckAccessByOwnerref(ctx, ownerref)
+
+		accessObject := aclservice.CheckAccessByRorOwnerref(ctx, resourceOwner)
 		if !accessObject.Update {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return

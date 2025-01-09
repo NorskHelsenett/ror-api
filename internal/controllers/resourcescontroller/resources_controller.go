@@ -10,10 +10,9 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/responses"
 
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
+	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
-
-	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -54,9 +53,9 @@ func ExistsResources() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		resourceOwner := apiresourcecontracts.ResourceOwnerReference{
+		resourceOwner := rortypes.RorResourceOwnerReference{
 			Scope:   aclmodels.Acl2Scope(c.Query("ownerScope")),
-			Subject: c.Query("ownerSubject"),
+			Subject: aclmodels.Acl2Subject(c.Query("ownerSubject")),
 		}
 
 		if c.Param("uid") == "" {
@@ -68,8 +67,7 @@ func ExistsResources() gin.HandlerFunc {
 		// Scope: c.Query("ownerScope")
 		// Subject: c.Query("ownerSubject")
 		// Access: update
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(resourceOwner.Scope, resourceOwner.Subject)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
+		accessObject := aclservice.CheckAccessByRorOwnerref(ctx, resourceOwner)
 		if !accessObject.Update {
 			c.JSON(http.StatusForbidden, "")
 			return
@@ -106,17 +104,17 @@ func GetResourceHashList() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
-		resourceOwner := apiresourcecontracts.ResourceOwnerReference{
+
+		resourceOwner := rortypes.RorResourceOwnerReference{
 			Scope:   aclmodels.Acl2Scope(c.Query("ownerScope")),
-			Subject: c.Query("ownerSubject"),
+			Subject: aclmodels.Acl2Subject(c.Query("ownerSubject")),
 		}
 
 		// Access check
 		// Scope: c.Query("ownerScope")
 		// Subject: c.Query("ownerSubject")
 		// Access: update
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(resourceOwner.Scope, resourceOwner.Subject)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
+		accessObject := aclservice.CheckAccessByRorOwnerref(ctx, resourceOwner)
 		if !accessObject.Update {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return

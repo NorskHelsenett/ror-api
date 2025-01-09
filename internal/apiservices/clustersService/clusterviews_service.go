@@ -9,12 +9,13 @@ import (
 	viewsrepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/viewsRepo"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
+	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
 )
 
-func GetViewPolicyreport(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerReference) (viewsmodels.PolicyreportView, error) {
+func GetViewPolicyreport(ctx context.Context, ownerref rortypes.RorResourceOwnerReference) (viewsmodels.PolicyreportView, error) {
 	var policyReportsView viewsmodels.PolicyreportView
 
-	policyreports, _ := resourcesservice.GetPolicyreports(ctx, ownerref)
+	policyreports, _ := resourcesservice.GetPolicyreports(ctx, apiresourcecontracts.ResourceOwnerReference{Scope: ownerref.Scope, Subject: string(ownerref.Subject)})
 	err := policyReportsView.ImportData(policyreports)
 	if err != nil {
 		return policyReportsView, err
@@ -22,10 +23,10 @@ func GetViewPolicyreport(ctx context.Context, ownerref apiresourcecontracts.Reso
 	return policyReportsView, nil
 }
 
-func GetViewVulnerabilityReports(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerReference) (viewsmodels.VulnerabilityReportsView, error) {
+func GetViewVulnerabilityReports(ctx context.Context, ownerref rortypes.RorResourceOwnerReference) (viewsmodels.VulnerabilityReportsView, error) {
 	var vulnerabilityReportsView viewsmodels.VulnerabilityReportsView
 
-	vulnerabilityreports, _ := resourcesservice.GetVulnerabilityreports(ctx, ownerref)
+	vulnerabilityreports, _ := resourcesservice.GetVulnerabilityreports(ctx, apiresourcecontracts.ResourceOwnerReference{Scope: ownerref.Scope, Subject: string(ownerref.Subject)})
 	err := vulnerabilityReportsView.ImportData(vulnerabilityreports)
 	if err != nil {
 		return vulnerabilityReportsView, err

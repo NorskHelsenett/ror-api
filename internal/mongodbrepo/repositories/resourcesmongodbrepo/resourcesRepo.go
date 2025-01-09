@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
+	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
 
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
 
@@ -139,14 +140,17 @@ func DeleteResourceByUid(resourceUpdate apiresourcecontracts.ResourceUpdateModel
 }
 
 // GetHashList return list of registerd hashes by ownerref
-func GetHashList(ctx context.Context, owner apiresourcecontracts.ResourceOwnerReference) (apiresourcecontracts.HashList, error) {
+func GetHashList(ctx context.Context, owner rortypes.RorResourceOwnerReference) (apiresourcecontracts.HashList, error) {
 	var hashList apiresourcecontracts.HashList
+	if ok, err := owner.Validate(); !ok {
+		return hashList, err
+	}
 	db := mongodb.GetMongoDb()
 	query := []bson.M{
 		{
 			"$match": bson.M{
 				"owner.scope":   string(owner.Scope),
-				"owner.subject": owner.Subject,
+				"owner.subject": string(owner.Subject),
 			},
 		},
 		{

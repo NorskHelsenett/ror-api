@@ -10,11 +10,11 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
+	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -71,22 +71,22 @@ func PolicyreportsView() gin.HandlerFunc {
 
 		clusterid := c.Param("clusterid")
 		if clusterid == "" {
-			c.JSON(http.StatusBadRequest, "")
+			c.JSON(http.StatusBadRequest, "Clusterid is empty")
 			return
 		}
 
-		ownerref := apiresourcecontracts.ResourceOwnerReference{
+		resourceOwner := rortypes.RorResourceOwnerReference{
 			Scope:   aclmodels.Acl2ScopeCluster,
-			Subject: clusterid,
+			Subject: aclmodels.Acl2Subject(clusterid),
 		}
 
-		accessObject := aclservice.CheckAccessByOwnerref(ctx, ownerref)
+		accessObject := aclservice.CheckAccessByRorOwnerref(ctx, resourceOwner)
 		if !accessObject.Read {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
 
-		policyreport, err := clustersservice.GetViewPolicyreport(ctx, ownerref)
+		policyreport, err := clustersservice.GetViewPolicyreport(ctx, resourceOwner)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
 			return
@@ -224,18 +224,18 @@ func VulnerabilityReportsView() gin.HandlerFunc {
 			return
 		}
 
-		ownerref := apiresourcecontracts.ResourceOwnerReference{
+		resourceOwner := rortypes.RorResourceOwnerReference{
 			Scope:   aclmodels.Acl2ScopeCluster,
-			Subject: clusterid,
+			Subject: aclmodels.Acl2Subject(clusterid),
 		}
 
-		accessObject := aclservice.CheckAccessByOwnerref(ctx, ownerref)
+		accessObject := aclservice.CheckAccessByRorOwnerref(ctx, resourceOwner)
 		if !accessObject.Read {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
 
-		vulnerabilityreports, err := clustersservice.GetViewVulnerabilityReports(ctx, ownerref)
+		vulnerabilityreports, err := clustersservice.GetViewVulnerabilityReports(ctx, resourceOwner)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
 			return
@@ -405,12 +405,12 @@ func ComplianceReports() gin.HandlerFunc {
 			return
 		}
 
-		ownerref := apiresourcecontracts.ResourceOwnerReference{
+		resourceOwner := rortypes.RorResourceOwnerReference{
 			Scope:   aclmodels.Acl2ScopeCluster,
-			Subject: clusterId,
+			Subject: aclmodels.Acl2Subject(clusterId),
 		}
 
-		accessObject := aclservice.CheckAccessByOwnerref(ctx, ownerref)
+		accessObject := aclservice.CheckAccessByRorOwnerref(ctx, resourceOwner)
 		if !accessObject.Read {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
