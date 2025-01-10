@@ -37,7 +37,7 @@ func main() {
 
 	// Resource services - api
 	//   - cmd/api/services/resourcesService/resourceServices_generated.go
-	templateFile("internal/services/resourcesService/resourceServices_generated.go.tmpl", rordefs.Resourcedefs)
+	templateFile("internal/apiservices/resourcesService/resourceServices_generated.go.tmpl", rordefs.Resourcedefs)
 
 	// Internal - models
 	//   - internal/models/rorResources/extractResource.go
