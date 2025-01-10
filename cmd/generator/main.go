@@ -119,6 +119,7 @@ func templateToFile(filepath string, templatePath string, data any) {
 	if err != nil {
 		_, _ = fmt.Println("go formater failed with err: ", err.Error())
 		fmt.Println(err)
+		os.Exit(1)
 	}
 	fmt.Println("Generated file: ", filepath)
 }
