@@ -16,6 +16,9 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: "1.23"
+      - name: run generator 
+        run: |
+          go run cmd/generator/main.go
       - name: Test
         run: |
           echo testing...
