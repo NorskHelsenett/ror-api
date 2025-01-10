@@ -5,8 +5,8 @@
 //	go run build/generator/main.go
 //
 // The package updates the files:
-//   - cmd/api/controllers/resourcescontroller/resources_controller_read_generated.go
-//   - cmd/api/services/resourcesService/resourceServices_generated.go
+//   - internal/controllers/resourcescontroller/resources_controller_read_generated.go
+//   - internal/apiservices/resourcesService/resourceServices_generated.go
 //   - internal/models/rorResources/extractResource.go
 //   - internal/mongodbrepo/repositories/resourcesmongodbrepo/resourcesinsertupdate_generated.go
 //
@@ -32,18 +32,18 @@ import (
 func main() {
 
 	// Resource controller - api
-	//   - cmd/api/controllers/resourcescontroller/resources_controller_read_generated.go
+	//   - internal/controllers/resourcescontroller/resources_controller_read_generated.go
 	templateFile("internal/controllers/resourcescontroller/resources_controller_read_generated.go.tmpl", rordefs.Resourcedefs)
 
 	// Resource services - api
-	//   - cmd/api/services/resourcesService/resourceServices_generated.go
+	//   - internal/apiservices/resourcesService/resourceServices_generated.go
 	templateFile("internal/apiservices/resourcesService/resourceServices_generated.go.tmpl", rordefs.Resourcedefs)
 
 	// Internal - models
 	//   - internal/models/rorResources/extractResource.go
 	templateFile("internal/models/rorResources/extractResource.go.tmpl", rordefs.Resourcedefs)
 
-	// Resource - mongorepo
+	// Internal - mongorepo
 	//   - internal/mongodbrepo/repositories/resourcesmongodbrepo/resourcesinsertupdate_generated.go
 	templateFile("internal/mongodbrepo/repositories/resourcesmongodbrepo/resourcesinsertupdate_generated.go.tmpl", rordefs.Resourcedefs)
 }
