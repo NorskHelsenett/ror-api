@@ -107,8 +107,8 @@ func GetByClusterId(ctx context.Context, clusterId string) (*apicontracts.Cluste
 	if err != nil {
 		return nil, errors.New("could not get cluster")
 	}
-	defer func(results *mongo.Cursor, ctx context.Context) {
-		_ = results.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(results, ctx)
 
 	if results.RemainingBatchLength() == 0 {
@@ -120,8 +120,8 @@ func GetByClusterId(ctx context.Context, clusterId string) (*apicontracts.Cluste
 		return nil, errors.New("could not get error")
 	}
 
-	defer func(results *mongo.Cursor, ctx context.Context) {
-		_ = results.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(results, ctx)
 
 	if len(clusters) > 1 {
@@ -246,11 +246,11 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 	_, span5 := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "Read data from db")
 	defer span5.End()
 
-	defer func(results *mongo.Cursor, ctx context.Context) {
-		_ = results.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(results, ctx)
-	defer func(totalCountResult *mongo.Cursor, ctx context.Context) {
-		_ = totalCountResult.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(totalCountResult, ctx)
 
 	if results.RemainingBatchLength() == 0 {
@@ -329,8 +329,8 @@ func GetMetadata(ctx context.Context) (map[string][]string, error) {
 		metadataSlice = append(metadataSlice, metadata)
 	}
 
-	defer func(cursor *mongo.Cursor, ctx context.Context) {
-		_ = cursor.Close(ctx)
+	defer func(c *mongo.Cursor, databaseCtx context.Context) {
+		_ = c.Close(databaseCtx)
 	}(cursor, ctx)
 	if len(metadataSlice) > 0 {
 		return metadataSlice[0], nil
@@ -339,9 +339,13 @@ func GetMetadata(ctx context.Context) (map[string][]string, error) {
 	return nil, errors.New("missing metadata")
 }
 
-func GetByWorkspace(ctx context.Context,
+func GetByWorkspaceId(ctx context.Context,
 	filter *apicontracts.Filter,
-	workspaceName string) (*apicontracts.PaginatedResult[apicontracts.Cluster], error) {
+	workspaceId string) (*apicontracts.PaginatedResult[apicontracts.Cluster], error) {
+	wId, err := primitive.ObjectIDFromHex(workspaceId)
+	if err != nil {
+		return nil, errors.New("could not get cluster by workspace")
+	}
 	db := mongodb.GetMongoDb()
 	bsonSort := bson.M{}
 	for i := 0; i < len(filter.Sort); i++ {
@@ -383,7 +387,7 @@ func GetByWorkspace(ctx context.Context,
 				},
 			},
 		},
-		{"$match": bson.M{"workspace.name": workspaceName}},
+		{"$match": bson.M{"workspace._id": wId}},
 	}
 	query = []bson.M{
 		accessQuery,
@@ -405,7 +409,7 @@ func GetByWorkspace(ctx context.Context,
 				},
 			},
 		},
-		{"$match": bson.M{"workspace.name": workspaceName}},
+		{"$match": bson.M{"workspace._id": wId}},
 		{"$sort": bsonSort},
 		{"$skip": filter.Skip},
 		{"$limit": filter.Limit},
@@ -426,8 +430,8 @@ func GetByWorkspace(ctx context.Context,
 	clusters := make([]apicontracts.Cluster, 0)
 
 	//reading from the db in an optimal way
-	defer func(results *mongo.Cursor, ctx context.Context) {
-		_ = results.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(results, ctx)
 	if results.RemainingBatchLength() == 0 {
 		return nil, nil
@@ -442,11 +446,11 @@ func GetByWorkspace(ctx context.Context,
 		clusters = append(clusters, cluster)
 	}
 
-	defer func(results *mongo.Cursor, ctx context.Context) {
-		_ = results.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(results, ctx)
-	defer func(countResult *mongo.Cursor, ctx context.Context) {
-		_ = countResult.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(countResult, ctx)
 
 	paginatedResult := apicontracts.PaginatedResult[apicontracts.Cluster]{}
@@ -532,8 +536,8 @@ func GetClusterIdByProjectId(ctx context.Context, projectId string) ([]*apicontr
 	if err != nil {
 		return nil, errors.New("could not get cluster")
 	}
-	defer func(results *mongo.Cursor, ctx context.Context) {
-		_ = results.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(results, ctx)
 
 	if results.RemainingBatchLength() == 0 {
@@ -545,8 +549,8 @@ func GetClusterIdByProjectId(ctx context.Context, projectId string) ([]*apicontr
 		return nil, errors.New("could not get error")
 	}
 
-	defer func(results *mongo.Cursor, ctx context.Context) {
-		_ = results.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(results, ctx)
 
 	return clusters, nil
@@ -783,8 +787,8 @@ func GetControlPlaneMetadata(ctx context.Context) ([]apicontracts.ClusterControl
 	if err != nil {
 		return nil, errors.New("could not get cluster control plane metadata")
 	}
-	defer func(results *mongo.Cursor, ctx context.Context) {
-		_ = results.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(results, ctx)
 
 	if results.RemainingBatchLength() == 0 {
@@ -796,8 +800,8 @@ func GetControlPlaneMetadata(ctx context.Context) ([]apicontracts.ClusterControl
 		return nil, errors.New("could not get error")
 	}
 
-	defer func(results *mongo.Cursor, ctx context.Context) {
-		_ = results.Close(ctx)
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
 	}(results, ctx)
 
 	return metadata, nil

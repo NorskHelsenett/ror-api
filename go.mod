@@ -3,13 +3,13 @@ module github.com/NorskHelsenett/ror-api
 go 1.23.1
 
 require (
-	github.com/NorskHelsenett/ror v1.0.1
+	github.com/NorskHelsenett/ror v1.0.2
 	github.com/blang/semver/v4 v4.0.0
 	github.com/coreos/go-oidc/v3 v3.12.0
 	github.com/dotse/go-health v0.2.6
 	github.com/evanphx/json-patch/v5 v5.9.0
 	github.com/gin-contrib/cors v1.7.3
-	github.com/gin-contrib/gzip v1.1.0
+	github.com/gin-contrib/gzip v1.2.0
 	github.com/gin-contrib/pprof v1.5.2
 	github.com/gin-contrib/timeout v1.0.2
 	github.com/gin-gonic/gin v1.10.0

@@ -154,7 +154,7 @@ func SetupRoutes(router *gin.Engine) {
 
 			clustersRoute.GET("/self", clusterscontroller.GetSelf())
 
-			clustersRoute.POST("/workspace/:workspaceName/filter", clusterscontroller.ClusterGetByWorkspace())
+			clustersRoute.POST("/workspace/:workspaceId/filter", clusterscontroller.ClusterGetByWorkspaceId())
 			clustersRoute.GET("/controlplanesMetadata", clusterscontroller.GetControlPlanesMetadata())
 
 			clustersRoute.POST("", clusterscontroller.CreateCluster())
@@ -198,19 +198,19 @@ func SetupRoutes(router *gin.Engine) {
 			metricsRoute.POST("", ctrlMetrics.RegisterResourceMetricsReport())
 
 			metricsRoute.GET("/datacenters", ctrlMetrics.GetForDatacenters())
-			metricsRoute.GET("/datacenter/:datacenterName", ctrlMetrics.GetByDatacenterName())
+			metricsRoute.GET("/datacenter/:datacenterId", ctrlMetrics.GetByDatacenterId())
 
 			metricsRoute.GET("/clusters", ctrlMetrics.GetForClusters())
-			metricsRoute.GET("/clusters/workspace/:workspaceName", ctrlMetrics.GetForClustersByWorkspace())
+			metricsRoute.GET("/clusters/workspace/:workspaceId", ctrlMetrics.GetForClustersByWorkspaceId())
 			metricsRoute.GET("/cluster/:clusterId", ctrlMetrics.GetByClusterId())
 
 			metricsRoute.GET("/custom/cluster/:property", ctrlMetrics.MetricsForClustersByProperty())
 
 			metricsRoute.GET("/total", ctrlMetrics.GetTotal())
 
-			metricsRoute.GET("/workspace/:workspaceName", ctrlMetrics.GetByWorkspaceName())
+			metricsRoute.GET("/workspace/:workspaceId", ctrlMetrics.GetByWorkspaceId())
 			metricsRoute.POST("/workspaces/filter", ctrlMetrics.GetForWorkspaces())
-			metricsRoute.POST("/workspaces/datacenter/:datacenterName/filter", ctrlMetrics.GetForWorkspacesByDatacenter())
+			metricsRoute.POST("/workspaces/datacenter/:datacenterId/filter", ctrlMetrics.GetForWorkspacesByDatacenterId())
 		}
 
 		operatorconfigRoute := v1.Group("operatorconfigs")
