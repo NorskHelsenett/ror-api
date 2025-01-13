@@ -42,6 +42,9 @@ jobs:
       - name: Start build
         run: |
           echo "Building ${{ env.APP }} ${{ needs.setenv.outputs.rorversion}} (${{ needs.setenv.outputs.shortsha}})"
+      - name: run generator 
+        run: |
+          go run cmd/generator/main.go
       - name: Build Swagger
         run: |
           go install github.com/swaggo/swag/cmd/swag@latest

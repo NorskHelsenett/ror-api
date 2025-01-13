@@ -4,9 +4,9 @@
 package resourcescontroller
 
 import (
-	"github.com/NorskHelsenett/ror-api/internal/responses"
-	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
+	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
+	"github.com/NorskHelsenett/ror-api/internal/responses"
 	"net/http"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"

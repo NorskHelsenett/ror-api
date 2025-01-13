@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/NorskHelsenett/ror-api/internal/apiconfig"
 	"github.com/NorskHelsenett/ror-api/internal/routes"
 
 	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
@@ -39,6 +40,7 @@ func InitHttpServer() {
 
 	router.Use(rlog.LogMiddleware())
 	router.Use(metric.MetricMiddleware("/metrics"))
+	router.Use(headersMiddleware())
 
 	if useCors {
 		corsConfig := cors.DefaultConfig()
@@ -56,5 +58,13 @@ func InitHttpServer() {
 		rlog.Fatal("router failing", router.Run())
 	} else {
 		rlog.Fatal("router failing", router.Run(fmt.Sprintf("localhost:%s", viper.GetString(configconsts.HTTP_PORT))))
+	}
+}
+
+func headersMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Header("x-ror-version", apiconfig.RorVersion.GetVersion())
+		c.Header("x-ror-libver", apiconfig.RorVersion.GetLibVer())
+		c.Next()
 	}
 }
