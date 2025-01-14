@@ -3,6 +3,7 @@ package routes
 import (
 	"time"
 
+	"github.com/NorskHelsenett/ror-api/internal/apiconfig"
 	"github.com/NorskHelsenett/ror-api/internal/auth"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/aclcontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/apikeyscontroller"
@@ -323,6 +324,7 @@ func SetupRoutes(router *gin.Engine) {
 	router.GET("/metrics", gin.WrapH(promhttp.HandlerFor(prometheus.DefaultGatherer, promhttp.HandlerOpts{EnableOpenMetrics: true})))
 
 	docs.SwaggerInfo.BasePath = "/"
+	docs.SwaggerInfo.Version = apiconfig.RorVersion.GetVersion()
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	v2.Use(auth.AuthenticationMiddleware)

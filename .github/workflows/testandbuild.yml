@@ -29,7 +29,7 @@ jobs:
       - name: Build Swagger
         run: |
           go install github.com/swaggo/swag/cmd/swag@latest
-          swag init -g main.go --parseDependency --output internal/docs -d ${{ env.APP_PATH }}
+          swag init -g cmd/api/main.go --parseDependency --output internal/docs --parseInternal
       - name: Build
         run: |
           echo building...
