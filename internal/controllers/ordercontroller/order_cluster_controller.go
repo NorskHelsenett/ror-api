@@ -115,7 +115,7 @@ func OrderCluster() gin.HandlerFunc {
 //	@Failure		403					{object}	rorerror.RorError
 //	@Failure		401					{object}	rorerror.RorError
 //	@Failure		500					{object}	rorerror.RorError
-//	@Router			/v1/orders/cluster	[post]
+//	@Router			/v1/orders/cluster	[delete]
 //	@Param			filter				body	apiresourcecontracts.ResourceClusterOrderSpec	true	"Filter"
 //	@Security		ApiKey || AccessToken
 func DeleteCluster() gin.HandlerFunc {
@@ -226,7 +226,7 @@ func GetOrders() gin.HandlerFunc {
 //	@Tags			orders
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200					{object}	apiresourcecontracts.ResourceClusterorders
+//	@Success		200					{object}	apiresourcecontracts.ResourceListClusterorders
 //	@Failure		403					{object}	rorerror.RorError
 //	@Failure		401					{object}	rorerror.RorError
 //	@Failure		500					{object}	rorerror.RorError
