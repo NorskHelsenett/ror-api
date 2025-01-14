@@ -15,7 +15,7 @@ data:
   STARTUP_SLEEP_TIME: "0"
   LOG_LEVEL: {{.Values.api.config.logLevel | quote}}
   OIDC_PROVIDER: {{.Values.api.config.oidc.provider | quote}}
-  OIDC_CLIENTID: {{.Values.api.config.oidc.clientId | quote}}
+  OIDC_CLIENT_ID: {{.Values.api.config.oidc.clientId | quote}}
   OPENTELEMETRY_COLLECTOR_ENDPOINT: "ror-opentelemetry-collector.nhn-ror.svc:4317"
   ENABLE_TRACING: {{.Values.api.config.tracing.enabled | quote}}
   HTTP_TIMEOUT: {{.Values.api.http.timeout | quote}}

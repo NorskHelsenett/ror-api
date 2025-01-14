@@ -47,7 +47,6 @@ jobs:
           go run cmd/generator/main.go
       - name: Build Swagger
         run: |
-        
           go get ./...
           go install github.com/swaggo/swag/cmd/swag@latest
           swag init -g cmd/api/main.go --parseDependency --output internal/docs --parseInternal
