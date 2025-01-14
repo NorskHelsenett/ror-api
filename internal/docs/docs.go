@@ -10,8 +10,8 @@ const docTemplate = `{
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
         "contact": {
-            "name": "Privat Sky",
-            "url": "http://ror.sky.nhn.no"
+            "name": "ROR",
+            "url": "https://github.com/NorskHelsenett/ror"
         },
         "version": "{{.Version}}"
     },
@@ -20,7 +20,7 @@ const docTemplate = `{
     "paths": {
         "/health": {
             "get": {
-                "description": "Get health status for NHN-ROR-API",
+                "description": "Get health status for ROR-API",
                 "consumes": [
                     "application/json"
                 ],
@@ -993,7 +993,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/ror_internal_models_viewsmodels.ComplianceReport"
+                                "$ref": "#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReport"
                             }
                         }
                     },
@@ -1292,7 +1292,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/ror_internal_models_viewsmodels.ComplianceReport"
+                                "$ref": "#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReport"
                             }
                         }
                     },
@@ -1389,7 +1389,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/ror_internal_models_viewsmodels.VulnerabilityReportsView"
+                                "$ref": "#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.VulnerabilityReportsView"
                             }
                         }
                     },
@@ -1514,7 +1514,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/clusters/workspace/{workspaceName}/filter": {
+        "/v1/clusters/workspace/{workspaceId}/filter": {
             "get": {
                 "security": [
                     {
@@ -1545,8 +1545,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "workspaceName",
-                        "name": "workspaceName",
+                        "description": "workspaceId",
+                        "name": "workspaceId",
                         "in": "path",
                         "required": true
                     }
@@ -2987,7 +2987,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/metrics/clusters/workspace/{workspaceName}": {
+        "/v1/metrics/clusters/workspace/{workspaceId}": {
             "get": {
                 "security": [
                     {
@@ -3009,8 +3009,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "workspaceName",
-                        "name": "workspaceName",
+                        "description": "workspaceId",
+                        "name": "workspaceId",
                         "in": "path",
                         "required": true
                     }
@@ -3249,7 +3249,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/metrics/workspace/{workspaceName}": {
+        "/v1/metrics/workspace/{workspaceId}": {
             "get": {
                 "security": [
                     {
@@ -3271,8 +3271,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "workspaceName",
-                        "name": "workspaceName",
+                        "description": "workspaceId",
+                        "name": "workspaceId",
                         "in": "path",
                         "required": true
                     }
@@ -3305,7 +3305,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/metrics/workspaces/datacenter/{datacenterName}/filter": {
+        "/v1/metrics/workspaces/datacenter/{datacenterId}/filter": {
             "post": {
                 "security": [
                     {
@@ -3327,8 +3327,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "datacenterName",
-                        "name": "datacenterName",
+                        "description": "datacenterId",
+                        "name": "datacenterId",
                         "in": "path",
                         "required": true
                     },
@@ -3784,6 +3784,62 @@ const docTemplate = `{
                 "tags": [
                     "orders"
                 ],
+                "summary": "Order a kubernetes cluster",
+                "parameters": [
+                    {
+                        "description": "Filter",
+                        "name": "filter",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/apiresourcecontracts.ResourceClusterOrderSpec"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apicontracts.PaginatedResult-apicontracts_Cluster"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.RorError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.RorError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.RorError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Order a kubernetes cluster",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "orders"
+                ],
                 "summary": "Order deletion a kubernetes cluster",
                 "parameters": [
                     {
@@ -3847,7 +3903,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/apiresourcecontracts.ResourceClusterorders"
+                            "$ref": "#/definitions/apiresourcecontracts.ResourceListClusterorders"
                         }
                     },
                     "401": {
@@ -4693,7 +4749,8 @@ const docTemplate = `{
                             "ror",
                             "cluster",
                             "project",
-                            "datacenter"
+                            "datacenter",
+                            "virtualmachine"
                         ],
                         "type": "string",
                         "description": "The kind of the owner, currently only support 'Cluster'",
@@ -4780,7 +4837,8 @@ const docTemplate = `{
                             "ror",
                             "cluster",
                             "project",
-                            "datacenter"
+                            "datacenter",
+                            "virtualmachine"
                         ],
                         "type": "string",
                         "description": "The kind of the owner, currently only support 'Cluster'",
@@ -4923,7 +4981,8 @@ const docTemplate = `{
                             "ror",
                             "cluster",
                             "project",
-                            "datacenter"
+                            "datacenter",
+                            "virtualmachine"
                         ],
                         "type": "string",
                         "description": "The kind of the owner, currently only support 'Cluster'",
@@ -5113,7 +5172,8 @@ const docTemplate = `{
                             "ror",
                             "cluster",
                             "project",
-                            "datacenter"
+                            "datacenter",
+                            "virtualmachine"
                         ],
                         "type": "string",
                         "description": "The kind of the owner, currently only support 'Cluster'",
@@ -6316,7 +6376,8 @@ const docTemplate = `{
                             "ror",
                             "cluster",
                             "project",
-                            "datacenter"
+                            "datacenter",
+                            "virtualmachine"
                         ],
                         "type": "string",
                         "description": "The kind of the owner, currently only support 'Cluster'",
@@ -6403,7 +6464,8 @@ const docTemplate = `{
                             "ror",
                             "cluster",
                             "project",
-                            "datacenter"
+                            "datacenter",
+                            "virtualmachine"
                         ],
                         "type": "string",
                         "description": "The kind of the owner, currently only support 'Cluster'",
@@ -6488,7 +6550,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ror_internal_rorresources.ResourceSet"
+                            "$ref": "#/definitions/rorresources.ResourceSet"
                         }
                     }
                 ],
@@ -6546,7 +6608,8 @@ const docTemplate = `{
                             "ror",
                             "cluster",
                             "project",
-                            "datacenter"
+                            "datacenter",
+                            "virtualmachine"
                         ],
                         "type": "string",
                         "description": "The kind of the owner, currently only support 'Cluster'",
@@ -6736,7 +6799,8 @@ const docTemplate = `{
                             "ror",
                             "cluster",
                             "project",
-                            "datacenter"
+                            "datacenter",
+                            "virtualmachine"
                         ],
                         "type": "string",
                         "description": "The kind of the owner, currently only support 'Cluster'",
@@ -6954,7 +7018,8 @@ const docTemplate = `{
                 "ror",
                 "cluster",
                 "project",
-                "datacenter"
+                "datacenter",
+                "virtualmachine"
             ],
             "x-enum-comments": {
                 "Acl2ScopeRor": "ROR",
@@ -6965,7 +7030,8 @@ const docTemplate = `{
                 "Acl2ScopeRor",
                 "Acl2ScopeCluster",
                 "Acl2ScopeProject",
-                "Acl2ScopeDatacenter"
+                "Acl2ScopeDatacenter",
+                "Acl2ScopeVirtualMachine"
             ]
         },
         "aclmodels.AclV2ListItem": {
@@ -6989,7 +7055,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "group": {
-                    "description": "The group wich the acces is granted",
+                    "description": "The group which the acces is granted",
                     "type": "string",
                     "minLength": 1
                 },
@@ -7001,7 +7067,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "kubernetes": {
-                    "description": "v2 access model for kubernetes",
+                    "description": "Accessv2   []map[AccessType]bool    ` + "`" + `json:\"accessv2\" validate:\"\"` + "`" + `                      // v2 access model for ror api",
                     "allOf": [
                         {
                             "$ref": "#/definitions/aclmodels.AclV2ListItemKubernetes"
@@ -7310,6 +7376,9 @@ const docTemplate = `{
                 "clusterName": {
                     "type": "string"
                 },
+                "environment": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -7345,7 +7414,8 @@ const docTemplate = `{
                     "$ref": "#/definitions/apicontracts.CriticalityLevel"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 1
                 },
                 "project": {
                     "$ref": "#/definitions/apicontracts.Project"
@@ -7750,6 +7820,9 @@ const docTemplate = `{
                 "memoryPercentage": {
                     "type": "integer"
                 },
+                "name": {
+                    "type": "string"
+                },
                 "nodeCount": {
                     "type": "integer"
                 },
@@ -7772,6 +7845,9 @@ const docTemplate = `{
                 },
                 "metrics": {
                     "$ref": "#/definitions/apicontracts.Metrics"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         },
@@ -8623,10 +8699,10 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "auth": {
-                    "$ref": "#/definitions/github_com_NorskHelsenett_ror_pkg_models_identity.AuthInfo"
+                    "$ref": "#/definitions/identitymodels.AuthInfo"
                 },
                 "type": {
-                    "$ref": "#/definitions/github_com_NorskHelsenett_ror_pkg_models_identity.IdentityType"
+                    "$ref": "#/definitions/identitymodels.IdentityType"
                 },
                 "user": {
                     "$ref": "#/definitions/apicontractsv2self.SelfUser"
@@ -8908,20 +8984,6 @@ const docTemplate = `{
                 "ResourceClusterOrderStatusPhaseFailed"
             ]
         },
-        "apiresourcecontracts.ResourceClusterorders": {
-            "type": "object",
-            "properties": {
-                "clusterorders": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/apiresourcecontracts.ResourceClusterOrder"
-                    }
-                },
-                "owner": {
-                    "$ref": "#/definitions/apiresourcecontracts.ResourceOwnerReference"
-                }
-            }
-        },
         "apiresourcecontracts.ResourceKubernetesClusterStatusCondition": {
             "type": "object",
             "properties": {
@@ -8939,6 +9001,20 @@ const docTemplate = `{
                 },
                 "type": {
                     "type": "string"
+                }
+            }
+        },
+        "apiresourcecontracts.ResourceListClusterorders": {
+            "type": "object",
+            "properties": {
+                "clusterorders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/apiresourcecontracts.ResourceClusterOrder"
+                    }
+                },
+                "owner": {
+                    "$ref": "#/definitions/apiresourcecontracts.ResourceOwnerReference"
                 }
             }
         },
@@ -9094,7 +9170,7 @@ const docTemplate = `{
                 "cpu": {
                     "type": "string"
                 },
-                "ephemeral-storage": {
+                "ephemeralStorage": {
                     "type": "string"
                 },
                 "memory": {
@@ -9201,8 +9277,22 @@ const docTemplate = `{
                 "resource": {},
                 "uid": {
                     "type": "string"
+                },
+                "version": {
+                    "$ref": "#/definitions/apiresourcecontracts.ResourceVersion"
                 }
             }
+        },
+        "apiresourcecontracts.ResourceVersion": {
+            "type": "string",
+            "enum": [
+                "v1",
+                "v2"
+            ],
+            "x-enum-varnames": [
+                "ResourceVersionV1",
+                "ResourceVersionV2"
+            ]
         },
         "apiresourcecontracts.ResourceVulnerabilityReportReportVulnerability": {
             "type": "object",
@@ -9250,11 +9340,220 @@ const docTemplate = `{
                 "SensitivityLevelCritical"
             ]
         },
-        "github_com_NorskHelsenett_ror_pkg_models_identity.AuthInfo": {
+        "github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReport": {
+            "type": "object",
+            "properties": {
+                "clusterid": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReportMetadata"
+                },
+                "reports": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReportReport"
+                    }
+                },
+                "summary": {
+                    "$ref": "#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReportSummary"
+                }
+            }
+        },
+        "github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReportMetadata": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReportReport": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "severity": {
+                    "$ref": "#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReportSeverity"
+                },
+                "totalfail": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReportSeverity": {
+            "type": "string",
+            "enum": [
+                "CRITICAL",
+                "HIGH",
+                "MEDIUM",
+                "LOW",
+                "UNKOWN"
+            ],
+            "x-enum-varnames": [
+                "CRITICAL",
+                "HIGH",
+                "MEDIUM",
+                "LOW",
+                "UNKNOWN"
+            ]
+        },
+        "github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReportSummary": {
+            "type": "object",
+            "properties": {
+                "failcount": {
+                    "type": "integer"
+                },
+                "passcount": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.VulnerabilityReportsArtifact": {
+            "type": "object",
+            "properties": {
+                "repository": {
+                    "type": "string"
+                },
+                "tag": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.VulnerabilityReportsScanner": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "vendor": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.VulnerabilityReportsView": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "type": "string"
+                },
+                "criticalCount": {
+                    "type": "integer"
+                },
+                "environment": {
+                    "type": "string"
+                },
+                "highCount": {
+                    "type": "integer"
+                },
+                "lowCount": {
+                    "type": "integer"
+                },
+                "mediumCount": {
+                    "type": "integer"
+                },
+                "namespaces": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.VulnerabilityReportsViewNamespace"
+                    }
+                },
+                "project": {
+                    "$ref": "#/definitions/apicontracts.Project"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.VulnerabilityReportsViewNamespace": {
+            "type": "object",
+            "properties": {
+                "criticalCount": {
+                    "type": "integer"
+                },
+                "highCount": {
+                    "type": "integer"
+                },
+                "lowCount": {
+                    "type": "integer"
+                },
+                "mediumCount": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "reports": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.VulnerabilityReportsViewReport"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.VulnerabilityReportsViewReport": {
+            "type": "object",
+            "properties": {
+                "artifact": {
+                    "$ref": "#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.VulnerabilityReportsArtifact"
+                },
+                "criticalCount": {
+                    "type": "integer"
+                },
+                "highCount": {
+                    "type": "integer"
+                },
+                "lowCount": {
+                    "type": "integer"
+                },
+                "mediumCount": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "owner_ref": {
+                    "$ref": "#/definitions/apiresourcecontracts.ResourceMetadataOwnerReference"
+                },
+                "scanner": {
+                    "$ref": "#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.VulnerabilityReportsScanner"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "uid": {
+                    "type": "string"
+                },
+                "updateTimestamp": {
+                    "type": "string"
+                },
+                "vulnerabilities": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/apiresourcecontracts.ResourceVulnerabilityReportReportVulnerability"
+                    }
+                }
+            }
+        },
+        "identitymodels.AuthInfo": {
             "type": "object",
             "properties": {
                 "authProvider": {
-                    "$ref": "#/definitions/github_com_NorskHelsenett_ror_pkg_models_identity.IdentityProvider"
+                    "$ref": "#/definitions/identitymodels.IdentityProvider"
                 },
                 "authProviderId": {
                     "type": "string"
@@ -9264,7 +9563,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_NorskHelsenett_ror_pkg_models_identity.IdentityProvider": {
+        "identitymodels.IdentityProvider": {
             "type": "string",
             "enum": [
                 "OIDC",
@@ -9275,7 +9574,7 @@ const docTemplate = `{
                 "IdentityProviderApiKey"
             ]
         },
-        "github_com_NorskHelsenett_ror_pkg_models_identity.IdentityType": {
+        "identitymodels.IdentityType": {
             "type": "string",
             "enum": [
                 "User",
@@ -9491,335 +9790,170 @@ const docTemplate = `{
                 "tanzu",
                 "aks",
                 "k3d",
-                "kind"
+                "kind",
+                "gke",
+                "talos"
             ],
             "x-enum-varnames": [
                 "ProviderTypeUnknown",
                 "ProviderTypeTanzu",
                 "ProviderTypeAks",
                 "ProviderTypeK3d",
-                "ProviderTypeKind"
+                "ProviderTypeKind",
+                "ProviderTypeGke",
+                "ProviderTypeTalos"
             ]
         },
-        "ror_internal_models_viewsmodels.ComplianceReport": {
+        "rorerror.RorError": {
             "type": "object",
             "properties": {
-                "clusterid": {
+                "message": {
                     "type": "string"
                 },
-                "metadata": {
-                    "$ref": "#/definitions/ror_internal_models_viewsmodels.ComplianceReportMetadata"
-                },
-                "reports": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/ror_internal_models_viewsmodels.ComplianceReportReport"
-                    }
-                },
-                "summary": {
-                    "$ref": "#/definitions/ror_internal_models_viewsmodels.ComplianceReportSummary"
-                }
-            }
-        },
-        "ror_internal_models_viewsmodels.ComplianceReportMetadata": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "ror_internal_models_viewsmodels.ComplianceReportReport": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "severity": {
-                    "$ref": "#/definitions/ror_internal_models_viewsmodels.ComplianceReportSeverity"
-                },
-                "totalfail": {
+                "status": {
                     "type": "integer"
                 }
             }
         },
-        "ror_internal_models_viewsmodels.ComplianceReportSeverity": {
-            "type": "string",
-            "enum": [
-                "CRITICAL",
-                "HIGH",
-                "MEDIUM",
-                "LOW",
-                "UNKOWN"
-            ],
-            "x-enum-varnames": [
-                "CRITICAL",
-                "HIGH",
-                "MEDIUM",
-                "LOW",
-                "UNKNOWN"
-            ]
-        },
-        "ror_internal_models_viewsmodels.ComplianceReportSummary": {
+        "rorresources.Resource": {
             "type": "object",
             "properties": {
-                "failcount": {
-                    "type": "integer"
-                },
-                "passcount": {
-                    "type": "integer"
-                }
-            }
-        },
-        "ror_internal_models_viewsmodels.VulnerabilityReportsArtifact": {
-            "type": "object",
-            "properties": {
-                "repository": {
-                    "type": "string"
-                },
-                "tag": {
-                    "type": "string"
-                }
-            }
-        },
-        "ror_internal_models_viewsmodels.VulnerabilityReportsScanner": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "vendor": {
-                    "type": "string"
-                },
-                "version": {
-                    "type": "string"
-                }
-            }
-        },
-        "ror_internal_models_viewsmodels.VulnerabilityReportsView": {
-            "type": "object",
-            "properties": {
-                "clusterId": {
-                    "type": "string"
-                },
-                "criticalCount": {
-                    "type": "integer"
-                },
-                "environment": {
-                    "type": "string"
-                },
-                "highCount": {
-                    "type": "integer"
-                },
-                "lowCount": {
-                    "type": "integer"
-                },
-                "mediumCount": {
-                    "type": "integer"
-                },
-                "namespaces": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/ror_internal_models_viewsmodels.VulnerabilityReportsViewNamespace"
-                    }
-                },
-                "project": {
-                    "$ref": "#/definitions/apicontracts.Project"
-                },
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
-        "ror_internal_models_viewsmodels.VulnerabilityReportsViewNamespace": {
-            "type": "object",
-            "properties": {
-                "criticalCount": {
-                    "type": "integer"
-                },
-                "highCount": {
-                    "type": "integer"
-                },
-                "lowCount": {
-                    "type": "integer"
-                },
-                "mediumCount": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "reports": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/ror_internal_models_viewsmodels.VulnerabilityReportsViewReport"
-                    }
-                },
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
-        "ror_internal_models_viewsmodels.VulnerabilityReportsViewReport": {
-            "type": "object",
-            "properties": {
-                "artifact": {
-                    "$ref": "#/definitions/ror_internal_models_viewsmodels.VulnerabilityReportsArtifact"
-                },
-                "criticalCount": {
-                    "type": "integer"
-                },
-                "highCount": {
-                    "type": "integer"
-                },
-                "lowCount": {
-                    "type": "integer"
-                },
-                "mediumCount": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "owner_ref": {
-                    "$ref": "#/definitions/apiresourcecontracts.ResourceMetadataOwnerReference"
-                },
-                "scanner": {
-                    "$ref": "#/definitions/ror_internal_models_viewsmodels.VulnerabilityReportsScanner"
-                },
-                "total": {
-                    "type": "integer"
-                },
-                "uid": {
-                    "type": "string"
-                },
-                "updateTimestamp": {
-                    "type": "string"
-                },
-                "vulnerabilities": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/apiresourcecontracts.ResourceVulnerabilityReportReportVulnerability"
-                    }
-                }
-            }
-        },
-        "ror_internal_rorresources.Resource": {
-            "type": "object",
-            "properties": {
-                "api_version": {
+                "apiVersion": {
+                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
                     "type": "string"
                 },
                 "application": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceApplication"
+                    "$ref": "#/definitions/rortypes.ResourceApplication"
                 },
                 "appproject": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceAppProject"
+                    "$ref": "#/definitions/rortypes.ResourceAppProject"
                 },
                 "certificate": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceCertificate"
+                    "$ref": "#/definitions/rortypes.ResourceCertificate"
                 },
                 "clustercompliancereport": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceClusterComplianceReport"
+                    "$ref": "#/definitions/rortypes.ResourceClusterComplianceReport"
                 },
                 "clusterorder": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceClusterOrder"
+                    "$ref": "#/definitions/rortypes.ResourceClusterOrder"
+                },
+                "clustervulnerabilityreport": {
+                    "$ref": "#/definitions/rortypes.ResourceClusterVulnerabilityReport"
                 },
                 "configauditreport": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceConfigAuditReport"
+                    "$ref": "#/definitions/rortypes.ResourceConfigAuditReport"
                 },
                 "configuration": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceConfiguration"
+                    "$ref": "#/definitions/rortypes.ResourceConfiguration"
                 },
                 "daemonset": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceDaemonSet"
+                    "$ref": "#/definitions/rortypes.ResourceDaemonSet"
                 },
                 "deployment": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceDeployment"
+                    "$ref": "#/definitions/rortypes.ResourceDeployment"
+                },
+                "endpoints": {
+                    "$ref": "#/definitions/rortypes.ResourceEndpoints"
                 },
                 "exposedsecretreport": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceExposedSecretReport"
+                    "$ref": "#/definitions/rortypes.ResourceExposedSecretReport"
                 },
                 "ingress": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceIngress"
+                    "$ref": "#/definitions/rortypes.ResourceIngress"
                 },
                 "ingressclass": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceIngressClass"
+                    "$ref": "#/definitions/rortypes.ResourceIngressClass"
                 },
                 "kind": {
+                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
                     "type": "string"
                 },
                 "kubernetescluster": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesCluster"
+                    "$ref": "#/definitions/rortypes.ResourceKubernetesCluster"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/v1.ObjectMeta"
                 },
                 "namespace": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceNamespace"
+                    "$ref": "#/definitions/rortypes.ResourceNamespace"
+                },
+                "networkpolicy": {
+                    "$ref": "#/definitions/rortypes.ResourceNetworkPolicy"
                 },
                 "node": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceNode"
+                    "$ref": "#/definitions/rortypes.ResourceNode"
                 },
                 "persistentvolumeclaim": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourcePersistentVolumeClaim"
+                    "$ref": "#/definitions/rortypes.ResourcePersistentVolumeClaim"
                 },
                 "pod": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourcePod"
+                    "$ref": "#/definitions/rortypes.ResourcePod"
                 },
                 "policyreport": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourcePolicyReport"
+                    "$ref": "#/definitions/rortypes.ResourcePolicyReport"
                 },
                 "project": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceProject"
+                    "$ref": "#/definitions/rortypes.ResourceProject"
                 },
                 "rbacassessmentreport": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRbacAssessmentReport"
+                    "$ref": "#/definitions/rortypes.ResourceRbacAssessmentReport"
                 },
                 "replicaset": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceReplicaSet"
+                    "$ref": "#/definitions/rortypes.ResourceReplicaSet"
+                },
+                "rormeta": {
+                    "$ref": "#/definitions/rortypes.ResourceRorMeta"
+                },
+                "route": {
+                    "$ref": "#/definitions/rortypes.ResourceRoute"
                 },
                 "service": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceService"
+                    "$ref": "#/definitions/rortypes.ResourceService"
+                },
+                "slackmessage": {
+                    "$ref": "#/definitions/rortypes.ResourceSlackMessage"
                 },
                 "statefulset": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceStatefulSet"
+                    "$ref": "#/definitions/rortypes.ResourceStatefulSet"
                 },
                 "storageclass": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceStorageClass"
+                    "$ref": "#/definitions/rortypes.ResourceStorageClass"
                 },
                 "tanzukubernetescluster": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesCluster"
+                    "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesCluster"
                 },
                 "tanzukubernetesrelease": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesRelease"
+                    "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesRelease"
+                },
+                "virtualmachine": {
+                    "$ref": "#/definitions/rortypes.ResourceVirtualMachine"
                 },
                 "virtualmachineclass": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceVirtualMachineClass"
+                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineClass"
                 },
                 "virtualmachineclassbinding": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceVirtualMachineClassBinding"
+                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineClassBinding"
+                },
+                "vulnerabilityevent": {
+                    "$ref": "#/definitions/rortypes.ResourceVulnerabilityEvent"
                 },
                 "vulnerabilityreport": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceVulnerabilityReport"
+                    "$ref": "#/definitions/rortypes.ResourceVulnerabilityReport"
                 }
             }
         },
-        "ror_internal_rorresources.ResourceSet": {
+        "rorresources.ResourceSet": {
             "type": "object",
             "properties": {
                 "resources": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources.Resource"
+                        "$ref": "#/definitions/rorresources.Resource"
                     }
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.AquaReportScanner": {
+        "rortypes.AquaReportScanner": {
             "type": "object",
             "properties": {
                 "name": {
@@ -9833,7 +9967,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.AquaReportSummary": {
+        "rortypes.AquaReportSummary": {
             "type": "object",
             "properties": {
                 "criticalCount": {
@@ -9853,7 +9987,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.CriticalityLevel": {
+        "rortypes.CriticalityLevel": {
             "type": "integer",
             "enum": [
                 0,
@@ -9870,7 +10004,7 @@ const docTemplate = `{
                 "CriticalityLevelHighlyShielded"
             ]
         },
-        "ror_internal_rorresources_rortypes.EnvironmentType": {
+        "rortypes.EnvironmentType": {
             "type": "integer",
             "enum": [
                 0,
@@ -9887,7 +10021,7 @@ const docTemplate = `{
                 "EnvironmentProduction"
             ]
         },
-        "ror_internal_rorresources_rortypes.ProviderType": {
+        "rortypes.ProviderType": {
             "type": "string",
             "enum": [
                 "",
@@ -9902,7 +10036,7 @@ const docTemplate = `{
                 "ProviderTypeK3d"
             ]
         },
-        "ror_internal_rorresources_rortypes.ResourceAction": {
+        "rortypes.ResourceAction": {
             "type": "string",
             "enum": [
                 "Add",
@@ -9915,29 +10049,15 @@ const docTemplate = `{
                 "K8sActionUpdate"
             ]
         },
-        "ror_internal_rorresources_rortypes.ResourceAppProject": {
+        "rortypes.ResourceAppProject": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
-                },
                 "spec": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceAppProjectSpec"
+                    "$ref": "#/definitions/rortypes.ResourceAppProjectSpec"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceAppProjectSpec": {
+        "rortypes.ResourceAppProjectSpec": {
             "type": "object",
             "properties": {
                 "description": {
@@ -9946,7 +10066,7 @@ const docTemplate = `{
                 "destinations": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationSpecDestination"
+                        "$ref": "#/definitions/rortypes.ResourceApplicationSpecDestination"
                     }
                 },
                 "sourceRepos": {
@@ -9957,49 +10077,35 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceApplication": {
+        "rortypes.ResourceApplication": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
-                },
                 "spec": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationSpec"
+                    "$ref": "#/definitions/rortypes.ResourceApplicationSpec"
                 },
                 "status": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationStatus"
+                    "$ref": "#/definitions/rortypes.ResourceApplicationStatus"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceApplicationSpec": {
+        "rortypes.ResourceApplicationSpec": {
             "type": "object",
             "properties": {
                 "destination": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationSpecDestination"
+                    "$ref": "#/definitions/rortypes.ResourceApplicationSpecDestination"
                 },
                 "project": {
                     "type": "string"
                 },
                 "source": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationSpecSource"
+                    "$ref": "#/definitions/rortypes.ResourceApplicationSpecSource"
                 },
                 "syncPolicy": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationSpecSyncpolicy"
+                    "$ref": "#/definitions/rortypes.ResourceApplicationSpecSyncpolicy"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceApplicationSpecDestination": {
+        "rortypes.ResourceApplicationSpecDestination": {
             "type": "object",
             "properties": {
                 "name": {
@@ -10013,7 +10119,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceApplicationSpecSource": {
+        "rortypes.ResourceApplicationSpecSource": {
             "type": "object",
             "properties": {
                 "chart": {
@@ -10030,14 +10136,14 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceApplicationSpecSyncpolicy": {
+        "rortypes.ResourceApplicationSpecSyncpolicy": {
             "type": "object",
             "properties": {
                 "automated": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationSpecSyncpolicyAutomated"
+                    "$ref": "#/definitions/rortypes.ResourceApplicationSpecSyncpolicyAutomated"
                 },
                 "retry": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationSpecSyncpolicyRetry"
+                    "$ref": "#/definitions/rortypes.ResourceApplicationSpecSyncpolicyRetry"
                 },
                 "syncOptions": {
                     "type": "array",
@@ -10047,7 +10153,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceApplicationSpecSyncpolicyAutomated": {
+        "rortypes.ResourceApplicationSpecSyncpolicyAutomated": {
             "type": "object",
             "properties": {
                 "allowEmpty": {
@@ -10061,18 +10167,18 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceApplicationSpecSyncpolicyRetry": {
+        "rortypes.ResourceApplicationSpecSyncpolicyRetry": {
             "type": "object",
             "properties": {
                 "backoff": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationSpecSyncpolicyRetryBackoff"
+                    "$ref": "#/definitions/rortypes.ResourceApplicationSpecSyncpolicyRetryBackoff"
                 },
                 "limit": {
                     "type": "integer"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceApplicationSpecSyncpolicyRetryBackoff": {
+        "rortypes.ResourceApplicationSpecSyncpolicyRetryBackoff": {
             "type": "object",
             "properties": {
                 "duration": {
@@ -10086,14 +10192,14 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceApplicationStatus": {
+        "rortypes.ResourceApplicationStatus": {
             "type": "object",
             "properties": {
                 "health": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationStatusHealth"
+                    "$ref": "#/definitions/rortypes.ResourceApplicationStatusHealth"
                 },
                 "operationState": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationStatusOperationstate"
+                    "$ref": "#/definitions/rortypes.ResourceApplicationStatusOperationstate"
                 },
                 "reconciledAt": {
                     "type": "string"
@@ -10102,11 +10208,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "sync": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationStatusSync"
+                    "$ref": "#/definitions/rortypes.ResourceApplicationStatusSync"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceApplicationStatusHealth": {
+        "rortypes.ResourceApplicationStatusHealth": {
             "type": "object",
             "properties": {
                 "message": {
@@ -10117,7 +10223,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceApplicationStatusOperationstate": {
+        "rortypes.ResourceApplicationStatusOperationstate": {
             "type": "object",
             "properties": {
                 "finishedAt": {
@@ -10137,7 +10243,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceApplicationStatusSync": {
+        "rortypes.ResourceApplicationStatusSync": {
             "type": "object",
             "properties": {
                 "revision": {
@@ -10148,32 +10254,18 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceCertificate": {
+        "rortypes.ResourceCertificate": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
-                },
                 "spec": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceCertificateSpec"
+                    "$ref": "#/definitions/rortypes.ResourceCertificateSpec"
                 },
                 "status": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceCertificateStatus"
+                    "$ref": "#/definitions/rortypes.ResourceCertificateStatus"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceCertificateSpec": {
+        "rortypes.ResourceCertificateSpec": {
             "type": "object",
             "properties": {
                 "dnsNames": {
@@ -10183,7 +10275,7 @@ const docTemplate = `{
                     }
                 },
                 "issuerRef": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceCertificateSpecIssuerref"
+                    "$ref": "#/definitions/rortypes.ResourceCertificateSpecIssuerref"
                 },
                 "secretName": {
                     "type": "string"
@@ -10196,7 +10288,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceCertificateSpecIssuerref": {
+        "rortypes.ResourceCertificateSpecIssuerref": {
             "type": "object",
             "properties": {
                 "group": {
@@ -10210,13 +10302,13 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceCertificateStatus": {
+        "rortypes.ResourceCertificateStatus": {
             "type": "object",
             "properties": {
                 "conditions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceCertificateStatusCondition"
+                        "$ref": "#/definitions/rortypes.ResourceCertificateStatusCondition"
                     }
                 },
                 "notAfter": {
@@ -10230,7 +10322,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceCertificateStatusCondition": {
+        "rortypes.ResourceCertificateStatusCondition": {
             "type": "object",
             "properties": {
                 "lastTransitionTime": {
@@ -10253,51 +10345,21 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceClusterComplianceReport": {
-            "type": "object",
-            "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
-                }
-            }
+        "rortypes.ResourceClusterComplianceReport": {
+            "type": "object"
         },
-        "ror_internal_rorresources_rortypes.ResourceClusterOrder": {
+        "rortypes.ResourceClusterOrder": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
-                },
                 "spec": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceClusterOrderSpec"
+                    "$ref": "#/definitions/rortypes.ResourceClusterOrderSpec"
                 },
                 "status": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceClusterOrderStatus"
+                    "$ref": "#/definitions/rortypes.ResourceClusterOrderStatus"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceClusterOrderSpec": {
+        "rortypes.ResourceClusterOrderSpec": {
             "type": "object",
             "required": [
                 "clusterName",
@@ -10320,7 +10382,7 @@ const docTemplate = `{
                     "minimum": 1,
                     "allOf": [
                         {
-                            "$ref": "#/definitions/ror_internal_rorresources_rortypes.CriticalityLevel"
+                            "$ref": "#/definitions/rortypes.CriticalityLevel"
                         }
                     ]
                 },
@@ -10329,7 +10391,7 @@ const docTemplate = `{
                     "minimum": 1,
                     "allOf": [
                         {
-                            "$ref": "#/definitions/ror_internal_rorresources_rortypes.EnvironmentType"
+                            "$ref": "#/definitions/rortypes.EnvironmentType"
                         }
                     ]
                 },
@@ -10340,7 +10402,7 @@ const docTemplate = `{
                     "type": "array",
                     "minItems": 1,
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceClusterOrderSpecNodePool"
+                        "$ref": "#/definitions/rortypes.ResourceClusterOrderSpecNodePool"
                     }
                 },
                 "orderBy": {
@@ -10359,7 +10421,7 @@ const docTemplate = `{
                     "minLength": 1,
                     "allOf": [
                         {
-                            "$ref": "#/definitions/ror_internal_rorresources_rortypes.ProviderType"
+                            "$ref": "#/definitions/rortypes.ProviderType"
                         }
                     ]
                 },
@@ -10372,7 +10434,7 @@ const docTemplate = `{
                     "minimum": 1,
                     "allOf": [
                         {
-                            "$ref": "#/definitions/ror_internal_rorresources_rortypes.SensitivityLevel"
+                            "$ref": "#/definitions/rortypes.SensitivityLevel"
                         }
                     ]
                 },
@@ -10384,7 +10446,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceClusterOrderSpecNodePool": {
+        "rortypes.ResourceClusterOrderSpecNodePool": {
             "type": "object",
             "required": [
                 "count",
@@ -10406,13 +10468,13 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceClusterOrderStatus": {
+        "rortypes.ResourceClusterOrderStatus": {
             "type": "object",
             "properties": {
                 "conditions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterStatusCondition"
+                        "$ref": "#/definitions/rortypes.ResourceKubernetesClusterStatusCondition"
                     }
                 },
                 "createdTime": {
@@ -10432,51 +10494,141 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceConfigAuditReport": {
+        "rortypes.ResourceClusterVulnerabilityReport": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
                 "report": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceVulnerabilityReportReport"
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/rortypes.ResourceClusterVulnerabilityReportReport"
+                    }
                 },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
+                "summary": {
+                    "$ref": "#/definitions/rortypes.ResourceClusterVulnerabilityReportSummary"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceConfiguration": {
+        "rortypes.ResourceClusterVulnerabilityReportReport": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
+                "firstObserved": {
                     "type": "string"
                 },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
+                "lastObserved": {
                     "type": "string"
                 },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
+                "owners": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceClusterVulnerabilityReportReportOwner"
+                    }
                 },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
+                "primaryLink": {
+                    "type": "string"
                 },
-                "spec": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceConfigurationSpec"
+                "score": {
+                    "type": "number"
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/rortypes.ResourceClusterVulnerabilityReportReportStatus"
+                },
+                "title": {
+                    "type": "string"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceConfigurationSpec": {
+        "rortypes.ResourceClusterVulnerabilityReportReportOwner": {
+            "type": "object",
+            "properties": {
+                "digest": {
+                    "type": "string"
+                },
+                "fixedVersion": {
+                    "type": "string"
+                },
+                "installedVersion": {
+                    "type": "string"
+                },
+                "namespace": {
+                    "type": "string"
+                },
+                "ownerReferences": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.OwnerReference"
+                    }
+                },
+                "repository": {
+                    "type": "string"
+                },
+                "resource": {
+                    "type": "string"
+                },
+                "tag": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceClusterVulnerabilityReportReportStatus": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "reason": {
+                    "$ref": "#/definitions/rortypes.VulnerabilityDismissalReason"
+                },
+                "riskAssessment": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/rortypes.VulnerabilityStatus"
+                },
+                "until": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceClusterVulnerabilityReportSummary": {
+            "type": "object",
+            "properties": {
+                "critical": {
+                    "type": "integer"
+                },
+                "high": {
+                    "type": "integer"
+                },
+                "low": {
+                    "type": "integer"
+                },
+                "medium": {
+                    "type": "integer"
+                },
+                "unknown": {
+                    "type": "integer"
+                }
+            }
+        },
+        "rortypes.ResourceConfigAuditReport": {
+            "type": "object",
+            "properties": {
+                "report": {
+                    "$ref": "#/definitions/rortypes.ResourceVulnerabilityReportReport"
+                }
+            }
+        },
+        "rortypes.ResourceConfiguration": {
+            "type": "object",
+            "properties": {
+                "spec": {
+                    "$ref": "#/definitions/rortypes.ResourceConfigurationSpec"
+                }
+            }
+        },
+        "rortypes.ResourceConfigurationSpec": {
             "type": "object",
             "properties": {
                 "b64enc": {
@@ -10490,29 +10642,15 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceDaemonSet": {
+        "rortypes.ResourceDaemonSet": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
-                },
                 "status": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceDaemonSetStatus"
+                    "$ref": "#/definitions/rortypes.ResourceDaemonSetStatus"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceDaemonSetStatus": {
+        "rortypes.ResourceDaemonSetStatus": {
             "type": "object",
             "properties": {
                 "currentNumberScheduled": {
@@ -10538,29 +10676,15 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceDeployment": {
+        "rortypes.ResourceDeployment": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
-                },
                 "status": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceDeploymentStatus"
+                    "$ref": "#/definitions/rortypes.ResourceDeploymentStatus"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceDeploymentStatus": {
+        "rortypes.ResourceDeploymentStatus": {
             "type": "object",
             "properties": {
                 "availableReplicas": {
@@ -10577,87 +10701,182 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceExposedSecretReport": {
+        "rortypes.ResourceEndpointSpecSubsets": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
+                "addresses": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceEndpointSpecSubsetsAddresses"
+                    }
                 },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
+                "notReadyAddresses": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceEndpointSpecSubsetsNotReadyAddresses"
+                    }
                 },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "report": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceVulnerabilityReportReport"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
+                "ports": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceEndpointSpecSubsetsPorts"
+                    }
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceIngress": {
+        "rortypes.ResourceEndpointSpecSubsetsAddresses": {
+            "type": "object",
+            "properties": {
+                "hostname": {
+                    "type": "string"
+                },
+                "ip": {
+                    "type": "string"
+                },
+                "nodeName": {
+                    "type": "string"
+                },
+                "targetRef": {
+                    "$ref": "#/definitions/rortypes.ResourceEndpointSpecSubsetsAddressesTargetRef"
+                }
+            }
+        },
+        "rortypes.ResourceEndpointSpecSubsetsAddressesTargetRef": {
             "type": "object",
             "properties": {
                 "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
+                    "type": "string"
+                },
+                "fieldPath": {
                     "type": "string"
                 },
                 "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
                     "type": "string"
                 },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
+                "name": {
+                    "type": "string"
                 },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
+                "namespace": {
+                    "type": "string"
                 },
+                "resourceVersion": {
+                    "type": "string"
+                },
+                "uid": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceEndpointSpecSubsetsNotReadyAddresses": {
+            "type": "object",
+            "properties": {
+                "hostname": {
+                    "type": "string"
+                },
+                "ip": {
+                    "type": "string"
+                },
+                "nodeName": {
+                    "type": "string"
+                },
+                "targetRef": {
+                    "$ref": "#/definitions/rortypes.ResourceEndpointSpecSubsetsNotReadyAddressesTargetRef"
+                }
+            }
+        },
+        "rortypes.ResourceEndpointSpecSubsetsNotReadyAddressesTargetRef": {
+            "type": "object",
+            "properties": {
+                "apiVersion": {
+                    "type": "string"
+                },
+                "fieldPath": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "namespace": {
+                    "type": "string"
+                },
+                "resourceVersion": {
+                    "type": "string"
+                },
+                "uid": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceEndpointSpecSubsetsPorts": {
+            "type": "object",
+            "properties": {
+                "appProtocol": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "integer"
+                },
+                "protocol": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceEndpoints": {
+            "type": "object",
+            "properties": {
+                "subsets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceEndpointSpecSubsets"
+                    }
+                }
+            }
+        },
+        "rortypes.ResourceExposedSecretReport": {
+            "type": "object",
+            "properties": {
+                "report": {
+                    "$ref": "#/definitions/rortypes.ResourceVulnerabilityReportReport"
+                }
+            }
+        },
+        "rortypes.ResourceIngress": {
+            "type": "object",
+            "properties": {
                 "spec": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceIngressSpec"
+                    "$ref": "#/definitions/rortypes.ResourceIngressSpec"
                 },
                 "status": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceIngressStatus"
+                    "$ref": "#/definitions/rortypes.ResourceIngressStatus"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceIngressClass": {
+        "rortypes.ResourceIngressClass": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
-                },
                 "spec": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceIngressClassSpec"
+                    "$ref": "#/definitions/rortypes.ResourceIngressClassSpec"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceIngressClassSpec": {
+        "rortypes.ResourceIngressClassSpec": {
             "type": "object",
             "properties": {
                 "controller": {
                     "type": "string"
                 },
                 "parameters": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceIngressClassSpecParameters"
+                    "$ref": "#/definitions/rortypes.ResourceIngressClassSpecParameters"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceIngressClassSpecParameters": {
+        "rortypes.ResourceIngressClassSpecParameters": {
             "type": "object",
             "properties": {
                 "apiGroup": {
@@ -10677,11 +10896,11 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceIngressSpec": {
+        "rortypes.ResourceIngressSpec": {
             "type": "object",
             "properties": {
                 "defaultBackend": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceIngressSpecRulesHttpPathsBackend"
+                    "$ref": "#/definitions/rortypes.ResourceIngressSpecRulesHttpPathsBackend"
                 },
                 "ingressClassName": {
                     "type": "string"
@@ -10689,18 +10908,18 @@ const docTemplate = `{
                 "rules": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceIngressSpecRules"
+                        "$ref": "#/definitions/rortypes.ResourceIngressSpecRules"
                     }
                 },
                 "tls": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceIngressSpecTls"
+                        "$ref": "#/definitions/rortypes.ResourceIngressSpecTls"
                     }
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceIngressSpecBackendResource": {
+        "rortypes.ResourceIngressSpecBackendResource": {
             "type": "object",
             "properties": {
                 "apiGroup": {
@@ -10714,18 +10933,18 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceIngressSpecBackendService": {
+        "rortypes.ResourceIngressSpecBackendService": {
             "type": "object",
             "properties": {
                 "name": {
                     "type": "string"
                 },
                 "port": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceIngressSpecBackendServicePort"
+                    "$ref": "#/definitions/rortypes.ResourceIngressSpecBackendServicePort"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceIngressSpecBackendServicePort": {
+        "rortypes.ResourceIngressSpecBackendServicePort": {
             "type": "object",
             "properties": {
                 "name": {
@@ -10736,33 +10955,33 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceIngressSpecRules": {
+        "rortypes.ResourceIngressSpecRules": {
             "type": "object",
             "properties": {
                 "apiGroup": {
                     "type": "string"
                 },
                 "http": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceIngressSpecRulesHttp"
+                    "$ref": "#/definitions/rortypes.ResourceIngressSpecRulesHttp"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceIngressSpecRulesHttp": {
+        "rortypes.ResourceIngressSpecRulesHttp": {
             "type": "object",
             "properties": {
                 "paths": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceIngressSpecRulesHttpPaths"
+                        "$ref": "#/definitions/rortypes.ResourceIngressSpecRulesHttpPaths"
                     }
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceIngressSpecRulesHttpPaths": {
+        "rortypes.ResourceIngressSpecRulesHttpPaths": {
             "type": "object",
             "properties": {
                 "backend": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceIngressSpecRulesHttpPathsBackend"
+                    "$ref": "#/definitions/rortypes.ResourceIngressSpecRulesHttpPathsBackend"
                 },
                 "path": {
                     "type": "string"
@@ -10772,18 +10991,18 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceIngressSpecRulesHttpPathsBackend": {
+        "rortypes.ResourceIngressSpecRulesHttpPathsBackend": {
             "type": "object",
             "properties": {
                 "resource": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceIngressSpecBackendResource"
+                    "$ref": "#/definitions/rortypes.ResourceIngressSpecBackendResource"
                 },
                 "service": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceIngressSpecBackendService"
+                    "$ref": "#/definitions/rortypes.ResourceIngressSpecBackendService"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceIngressSpecTls": {
+        "rortypes.ResourceIngressSpecTls": {
             "type": "object",
             "properties": {
                 "hosts": {
@@ -10797,26 +11016,26 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceIngressStatus": {
+        "rortypes.ResourceIngressStatus": {
             "type": "object",
             "properties": {
                 "loadBalancer": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceIngressStatusLoadBalancer"
+                    "$ref": "#/definitions/rortypes.ResourceIngressStatusLoadBalancer"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceIngressStatusLoadBalancer": {
+        "rortypes.ResourceIngressStatusLoadBalancer": {
             "type": "object",
             "properties": {
                 "ingress": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceIngressStatusLoadBalancerIngress"
+                        "$ref": "#/definitions/rortypes.ResourceIngressStatusLoadBalancerIngress"
                     }
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceIngressStatusLoadBalancerIngress": {
+        "rortypes.ResourceIngressStatusLoadBalancerIngress": {
             "type": "object",
             "properties": {
                 "hostname": {
@@ -10827,32 +11046,18 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceKubernetesCluster": {
+        "rortypes.ResourceKubernetesCluster": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
-                },
                 "spec": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpec"
+                    "$ref": "#/definitions/rortypes.ResourceKubernetesClusterSpec"
                 },
                 "status": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterStatus"
+                    "$ref": "#/definitions/rortypes.ResourceKubernetesClusterStatus"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpec": {
+        "rortypes.ResourceKubernetesClusterSpec": {
             "type": "object",
             "properties": {
                 "clusterId": {
@@ -10870,7 +11075,7 @@ const docTemplate = `{
                 "endpoints": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecEndpoint"
+                        "$ref": "#/definitions/rortypes.ResourceKubernetesClusterSpecEndpoint"
                     }
                 },
                 "environment": {
@@ -10883,17 +11088,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "providerSpec": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecProviderSpec"
+                    "$ref": "#/definitions/rortypes.ResourceKubernetesClusterSpecProviderSpec"
                 },
                 "toolingConfig": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecToolingConfig"
+                    "$ref": "#/definitions/rortypes.ResourceKubernetesClusterSpecToolingConfig"
                 },
                 "topology": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecTopology"
+                    "$ref": "#/definitions/rortypes.ResourceKubernetesClusterSpecTopology"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecEndpoint": {
+        "rortypes.ResourceKubernetesClusterSpecEndpoint": {
             "type": "object",
             "properties": {
                 "address": {
@@ -10904,18 +11109,18 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecProviderSpec": {
+        "rortypes.ResourceKubernetesClusterSpecProviderSpec": {
             "type": "object",
             "properties": {
                 "azureSpec": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecProviderSpecAzureSpec"
+                    "$ref": "#/definitions/rortypes.ResourceKubernetesClusterSpecProviderSpecAzureSpec"
                 },
                 "tanzuSpec": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecProviderSpecTanzuSpec"
+                    "$ref": "#/definitions/rortypes.ResourceKubernetesClusterSpecProviderSpecTanzuSpec"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecProviderSpecAzureSpec": {
+        "rortypes.ResourceKubernetesClusterSpecProviderSpecAzureSpec": {
             "type": "object",
             "properties": {
                 "resourceGroup": {
@@ -10926,7 +11131,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecProviderSpecTanzuSpec": {
+        "rortypes.ResourceKubernetesClusterSpecProviderSpecTanzuSpec": {
             "type": "object",
             "properties": {
                 "namespace": {
@@ -10937,7 +11142,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecToolingConfig": {
+        "rortypes.ResourceKubernetesClusterSpecToolingConfig": {
             "type": "object",
             "properties": {
                 "splunkIndex": {
@@ -10945,21 +11150,21 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecTopology": {
+        "rortypes.ResourceKubernetesClusterSpecTopology": {
             "type": "object",
             "properties": {
                 "controlPlane": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecTopologyControlPlane"
+                    "$ref": "#/definitions/rortypes.ResourceKubernetesClusterSpecTopologyControlPlane"
                 },
                 "workers": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecTopologyWorkers"
+                        "$ref": "#/definitions/rortypes.ResourceKubernetesClusterSpecTopologyWorkers"
                     }
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecTopologyControlPlane": {
+        "rortypes.ResourceKubernetesClusterSpecTopologyControlPlane": {
             "type": "object",
             "properties": {
                 "machineClass": {
@@ -10973,7 +11178,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecTopologyWorkers": {
+        "rortypes.ResourceKubernetesClusterSpecTopologyWorkers": {
             "type": "object",
             "properties": {
                 "machineClass": {
@@ -10990,13 +11195,13 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceKubernetesClusterStatus": {
+        "rortypes.ResourceKubernetesClusterStatus": {
             "type": "object",
             "properties": {
                 "conditions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterStatusCondition"
+                        "$ref": "#/definitions/rortypes.ResourceKubernetesClusterStatusCondition"
                     }
                 },
                 "createdTime": {
@@ -11023,7 +11228,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceKubernetesClusterStatusCondition": {
+        "rortypes.ResourceKubernetesClusterStatusCondition": {
             "type": "object",
             "properties": {
                 "lastTransitionTime": {
@@ -11043,51 +11248,213 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceNamespace": {
-            "type": "object",
-            "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
-                }
-            }
+        "rortypes.ResourceNamespace": {
+            "type": "object"
         },
-        "ror_internal_rorresources_rortypes.ResourceNode": {
+        "rortypes.ResourceNetworkPolicy": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
-                },
                 "spec": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceNodeSpec"
+                    "$ref": "#/definitions/rortypes.ResourceNetworkPolicySpec"
                 },
                 "status": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceNodeStatus"
+                    "$ref": "#/definitions/rortypes.ResourceNetworkPolicyStatus"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceNodeSpec": {
+        "rortypes.ResourceNetworkPolicyCondition": {
+            "type": "object",
+            "properties": {
+                "lastTransitionTime": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "observedGeneration": {
+                    "type": "integer"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceNetworkPolicyEgressRule": {
+            "type": "object",
+            "properties": {
+                "ports": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceNetworkPolicyPort"
+                    }
+                },
+                "to": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceNetworkPolicyPeer"
+                    }
+                }
+            }
+        },
+        "rortypes.ResourceNetworkPolicyIngressRule": {
+            "type": "object",
+            "properties": {
+                "from": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceNetworkPolicyPeer"
+                    }
+                },
+                "ports": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceNetworkPolicyPort"
+                    }
+                }
+            }
+        },
+        "rortypes.ResourceNetworkPolicyIpBlock": {
+            "type": "object",
+            "properties": {
+                "cidr": {
+                    "type": "string"
+                },
+                "except": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "rortypes.ResourceNetworkPolicyPeer": {
+            "type": "object",
+            "properties": {
+                "ipBlock": {
+                    "$ref": "#/definitions/rortypes.ResourceNetworkPolicyIpBlock"
+                },
+                "namespaceSelector": {
+                    "$ref": "#/definitions/rortypes.ResourceNetworkPolicySelector"
+                },
+                "podSelector": {
+                    "$ref": "#/definitions/rortypes.ResourceNetworkPolicySelector"
+                }
+            }
+        },
+        "rortypes.ResourceNetworkPolicyPodSelector": {
+            "type": "object",
+            "properties": {
+                "matchLabels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "rortypes.ResourceNetworkPolicyPort": {
+            "type": "object",
+            "properties": {
+                "endPort": {
+                    "type": "integer"
+                },
+                "port": {
+                    "$ref": "#/definitions/intstr.IntOrString"
+                },
+                "protocol": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceNetworkPolicySelector": {
+            "type": "object",
+            "properties": {
+                "matchExpressions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceNetworkPolicySelectorExpression"
+                    }
+                },
+                "matchLabels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "rortypes.ResourceNetworkPolicySelectorExpression": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "operator": {
+                    "type": "string"
+                },
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "rortypes.ResourceNetworkPolicySpec": {
+            "type": "object",
+            "properties": {
+                "egress": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceNetworkPolicyEgressRule"
+                    }
+                },
+                "ingress": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceNetworkPolicyIngressRule"
+                    }
+                },
+                "podSelector": {
+                    "$ref": "#/definitions/rortypes.ResourceNetworkPolicyPodSelector"
+                },
+                "policyTypes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "rortypes.ResourceNetworkPolicyStatus": {
+            "type": "object",
+            "properties": {
+                "conditions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceNetworkPolicyCondition"
+                    }
+                }
+            }
+        },
+        "rortypes.ResourceNode": {
+            "type": "object",
+            "properties": {
+                "spec": {
+                    "$ref": "#/definitions/rortypes.ResourceNodeSpec"
+                },
+                "status": {
+                    "$ref": "#/definitions/rortypes.ResourceNodeStatus"
+                }
+            }
+        },
+        "rortypes.ResourceNodeSpec": {
             "type": "object",
             "properties": {
                 "podCIDR": {
@@ -11105,12 +11472,12 @@ const docTemplate = `{
                 "taints": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceNodeSpecTaints"
+                        "$ref": "#/definitions/rortypes.ResourceNodeSpecTaints"
                     }
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceNodeSpecTaints": {
+        "rortypes.ResourceNodeSpecTaints": {
             "type": "object",
             "properties": {
                 "effect": {
@@ -11121,30 +11488,30 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceNodeStatus": {
+        "rortypes.ResourceNodeStatus": {
             "type": "object",
             "properties": {
                 "addresses": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceNodeStatusAddresses"
+                        "$ref": "#/definitions/rortypes.ResourceNodeStatusAddresses"
                     }
                 },
                 "capacity": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceNodeStatusCapacity"
+                    "$ref": "#/definitions/rortypes.ResourceNodeStatusCapacity"
                 },
                 "conditions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceNodeStatusConditions"
+                        "$ref": "#/definitions/rortypes.ResourceNodeStatusConditions"
                     }
                 },
                 "nodeInfo": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceNodeStatusNodeinfo"
+                    "$ref": "#/definitions/rortypes.ResourceNodeStatusNodeinfo"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceNodeStatusAddresses": {
+        "rortypes.ResourceNodeStatusAddresses": {
             "type": "object",
             "properties": {
                 "address": {
@@ -11155,13 +11522,13 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceNodeStatusCapacity": {
+        "rortypes.ResourceNodeStatusCapacity": {
             "type": "object",
             "properties": {
                 "cpu": {
                     "type": "string"
                 },
-                "ephemeral-storage": {
+                "ephemeralStorage": {
                     "type": "string"
                 },
                 "memory": {
@@ -11172,7 +11539,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceNodeStatusConditions": {
+        "rortypes.ResourceNodeStatusConditions": {
             "type": "object",
             "properties": {
                 "lastHeartbeatTime": {
@@ -11195,7 +11562,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceNodeStatusNodeinfo": {
+        "rortypes.ResourceNodeStatusNodeinfo": {
             "type": "object",
             "properties": {
                 "architecture": {
@@ -11230,32 +11597,18 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourcePersistentVolumeClaim": {
+        "rortypes.ResourcePersistentVolumeClaim": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
-                },
                 "spec": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourcePersistentVolumeClaimSpec"
+                    "$ref": "#/definitions/rortypes.ResourcePersistentVolumeClaimSpec"
                 },
                 "status": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourcePersistentVolumeClaimStatus"
+                    "$ref": "#/definitions/rortypes.ResourcePersistentVolumeClaimStatus"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourcePersistentVolumeClaimSpec": {
+        "rortypes.ResourcePersistentVolumeClaimSpec": {
             "type": "object",
             "properties": {
                 "accessModes": {
@@ -11265,7 +11618,7 @@ const docTemplate = `{
                     }
                 },
                 "resources": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourcePersistentVolumeClaimSpecResources"
+                    "$ref": "#/definitions/rortypes.ResourcePersistentVolumeClaimSpecResources"
                 },
                 "storageClassName": {
                     "type": "string"
@@ -11278,7 +11631,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourcePersistentVolumeClaimSpecResources": {
+        "rortypes.ResourcePersistentVolumeClaimSpecResources": {
             "type": "object",
             "properties": {
                 "limits": {
@@ -11295,7 +11648,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourcePersistentVolumeClaimStatus": {
+        "rortypes.ResourcePersistentVolumeClaimStatus": {
             "type": "object",
             "properties": {
                 "accessModes": {
@@ -11315,38 +11668,24 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourcePod": {
+        "rortypes.ResourcePod": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
-                },
                 "spec": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourcePodSpec"
+                    "$ref": "#/definitions/rortypes.ResourcePodSpec"
                 },
                 "status": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourcePodStatus"
+                    "$ref": "#/definitions/rortypes.ResourcePodStatus"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourcePodSpec": {
+        "rortypes.ResourcePodSpec": {
             "type": "object",
             "properties": {
                 "containers": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourcePodSpecContainers"
+                        "$ref": "#/definitions/rortypes.ResourcePodSpecContainers"
                     }
                 },
                 "nodeName": {
@@ -11357,7 +11696,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourcePodSpecContainers": {
+        "rortypes.ResourcePodSpecContainers": {
             "type": "object",
             "properties": {
                 "image": {
@@ -11369,12 +11708,12 @@ const docTemplate = `{
                 "ports": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourcePodSpecContainersPorts"
+                        "$ref": "#/definitions/rortypes.ResourcePodSpecContainersPorts"
                     }
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourcePodSpecContainersPorts": {
+        "rortypes.ResourcePodSpecContainersPorts": {
             "type": "object",
             "properties": {
                 "containerPort": {
@@ -11388,7 +11727,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourcePodStatus": {
+        "rortypes.ResourcePodStatus": {
             "type": "object",
             "properties": {
                 "message": {
@@ -11405,38 +11744,24 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourcePolicyReport": {
+        "rortypes.ResourcePolicyReport": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
                 "lastReported": {
                     "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
                 },
                 "results": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourcePolicyReportResults"
+                        "$ref": "#/definitions/rortypes.ResourcePolicyReportResults"
                     }
                 },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
-                },
                 "summary": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourcePolicyReportSummary"
+                    "$ref": "#/definitions/rortypes.ResourcePolicyReportSummary"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourcePolicyReportResults": {
+        "rortypes.ResourcePolicyReportResults": {
             "type": "object",
             "properties": {
                 "category": {
@@ -11457,7 +11782,7 @@ const docTemplate = `{
                 "resources": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourcePolicyReportResultsResources"
+                        "$ref": "#/definitions/rortypes.ResourcePolicyReportResultsResources"
                     }
                 },
                 "result": {
@@ -11468,7 +11793,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourcePolicyReportResultsResources": {
+        "rortypes.ResourcePolicyReportResultsResources": {
             "type": "object",
             "properties": {
                 "apiVersion": {
@@ -11485,7 +11810,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourcePolicyReportSummary": {
+        "rortypes.ResourcePolicyReportSummary": {
             "type": "object",
             "properties": {
                 "error": {
@@ -11505,29 +11830,15 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceProject": {
+        "rortypes.ResourceProject": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
-                },
                 "spec": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceProjectSpec"
+                    "$ref": "#/definitions/rortypes.ResourceProjectSpec"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceProjectSpec": {
+        "rortypes.ResourceProjectSpec": {
             "type": "object",
             "properties": {
                 "active": {
@@ -11545,7 +11856,7 @@ const docTemplate = `{
                 "roles": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceProjectSpecRole"
+                        "$ref": "#/definitions/rortypes.ResourceProjectSpecRole"
                     }
                 },
                 "serviceTag": {
@@ -11565,7 +11876,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceProjectSpecRole": {
+        "rortypes.ResourceProjectSpecRole": {
             "type": "object",
             "properties": {
                 "email": {
@@ -11585,71 +11896,43 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceRbacAssessmentReport": {
+        "rortypes.ResourceRbacAssessmentReport": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
                 "report": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceVulnerabilityReportReport"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
+                    "$ref": "#/definitions/rortypes.ResourceVulnerabilityReportReport"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceReplicaSet": {
+        "rortypes.ResourceReplicaSet": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
-                },
                 "spec": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceReplicaSetSpec"
+                    "$ref": "#/definitions/rortypes.ResourceReplicaSetSpec"
                 },
                 "status": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceReplicaSetStatus"
+                    "$ref": "#/definitions/rortypes.ResourceReplicaSetStatus"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceReplicaSetSpec": {
+        "rortypes.ResourceReplicaSetSpec": {
             "type": "object",
             "properties": {
                 "replicas": {
                     "type": "integer"
                 },
                 "selector": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceReplicaSetSpecSelector"
+                    "$ref": "#/definitions/rortypes.ResourceReplicaSetSpecSelector"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceReplicaSetSpecSelector": {
+        "rortypes.ResourceReplicaSetSpecSelector": {
             "type": "object",
             "properties": {
                 "matchExpressions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceReplicaSetSpecSelectorMatchExpressions"
+                        "$ref": "#/definitions/rortypes.ResourceReplicaSetSpecSelectorMatchExpressions"
                     }
                 },
                 "matchLabels": {
@@ -11660,7 +11943,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceReplicaSetSpecSelectorMatchExpressions": {
+        "rortypes.ResourceReplicaSetSpecSelectorMatchExpressions": {
             "type": "object",
             "properties": {
                 "key": {
@@ -11677,7 +11960,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceReplicaSetStatus": {
+        "rortypes.ResourceReplicaSetStatus": {
             "type": "object",
             "properties": {
                 "availableReplicas": {
@@ -11691,11 +11974,11 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceRorMeta": {
+        "rortypes.ResourceRorMeta": {
             "type": "object",
             "properties": {
                 "action": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceAction"
+                    "$ref": "#/definitions/rortypes.ResourceAction"
                 },
                 "hash": {
                     "type": "string"
@@ -11707,36 +11990,71 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "ownerref": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.RorResourceOwnerReference"
+                    "$ref": "#/definitions/rortypes.RorResourceOwnerReference"
                 },
                 "version": {
                     "type": "string"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceService": {
+        "rortypes.ResourceRoute": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
-                },
                 "spec": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceServiceSpec"
+                    "$ref": "#/definitions/rortypes.ResourceRouteSpec"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceServicePorts": {
+        "rortypes.ResourceRouteMessageType": {
+            "type": "object",
+            "properties": {
+                "apiVersion": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceRouteReceiver": {
+            "type": "object",
+            "properties": {
+                "slack": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceRouteSlackReceiver"
+                    }
+                }
+            }
+        },
+        "rortypes.ResourceRouteSlackReceiver": {
+            "type": "object",
+            "properties": {
+                "channelId": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceRouteSpec": {
+            "type": "object",
+            "properties": {
+                "messageType": {
+                    "$ref": "#/definitions/rortypes.ResourceRouteMessageType"
+                },
+                "receivers": {
+                    "$ref": "#/definitions/rortypes.ResourceRouteReceiver"
+                }
+            }
+        },
+        "rortypes.ResourceService": {
+            "type": "object",
+            "properties": {
+                "spec": {
+                    "$ref": "#/definitions/rortypes.ResourceServiceSpec"
+                }
+            }
+        },
+        "rortypes.ResourceServicePorts": {
             "type": "object",
             "properties": {
                 "appProtocol": {
@@ -11756,7 +12074,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceServiceSpec": {
+        "rortypes.ResourceServiceSpec": {
             "type": "object",
             "properties": {
                 "clusterIP": {
@@ -11795,7 +12113,7 @@ const docTemplate = `{
                 "ports": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceServicePorts"
+                        "$ref": "#/definitions/rortypes.ResourceServicePorts"
                     }
                 },
                 "selector": {
@@ -11809,29 +12127,65 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceStatefulSet": {
+        "rortypes.ResourceSlackMessage": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
+                "spec": {
+                    "$ref": "#/definitions/rortypes.ResourceSlackMessageSpec"
                 },
                 "status": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceStatefulSetStatus"
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceSlackMessageStatus"
+                    }
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceStatefulSetStatus": {
+        "rortypes.ResourceSlackMessageResult": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "SLACK_MESSAGE_OK",
+                "SLACK_MESSAGE_ERROR",
+                "SLACK_MESSAGE_UNKNOWN"
+            ]
+        },
+        "rortypes.ResourceSlackMessageSpec": {
+            "type": "object",
+            "properties": {
+                "channelId": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceSlackMessageStatus": {
+            "type": "object",
+            "properties": {
+                "error": {},
+                "result": {
+                    "$ref": "#/definitions/rortypes.ResourceSlackMessageResult"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceStatefulSet": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "$ref": "#/definitions/rortypes.ResourceStatefulSetStatus"
+                }
+            }
+        },
+        "rortypes.ResourceStatefulSetStatus": {
             "type": "object",
             "properties": {
                 "availableReplicas": {
@@ -11851,22 +12205,11 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceStorageClass": {
+        "rortypes.ResourceStorageClass": {
             "type": "object",
             "properties": {
                 "allowVolumeExpansion": {
                     "type": "boolean"
-                },
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
                 },
                 "provisioner": {
                     "type": "string"
@@ -11874,54 +12217,37 @@ const docTemplate = `{
                 "reclaimPolicy": {
                     "type": "string"
                 },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
-                },
                 "volumeBindingMode": {
                     "type": "string"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanuzKuberntesClusterSpec": {
+        "rortypes.ResourceTanuzKuberntesClusterSpec": {
             "type": "object",
             "properties": {
                 "distribution": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecDistribution"
+                    "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecDistribution"
                 },
                 "settings": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettings"
+                    "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecSettings"
                 },
                 "topology": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopology"
+                    "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecTopology"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesCluster": {
+        "rortypes.ResourceTanzuKubernetesCluster": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
-                },
                 "spec": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanuzKuberntesClusterSpec"
+                    "$ref": "#/definitions/rortypes.ResourceTanuzKuberntesClusterSpec"
                 },
                 "status": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterStatus"
+                    "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesClusterStatus"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecDistribution": {
+        "rortypes.ResourceTanzuKubernetesClusterSpecDistribution": {
             "type": "object",
             "properties": {
                 "fullVersion": {
@@ -11932,41 +12258,41 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettings": {
+        "rortypes.ResourceTanzuKubernetesClusterSpecSettings": {
             "type": "object",
             "properties": {
                 "network": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetwork"
+                    "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetwork"
                 },
                 "storage": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsStorage"
+                    "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecSettingsStorage"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetwork": {
+        "rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetwork": {
             "type": "object",
             "properties": {
                 "cni": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkCni"
+                    "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkCni"
                 },
                 "pods": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkPods"
+                    "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkPods"
                 },
                 "proxy": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkProxy"
+                    "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkProxy"
                 },
                 "serviceDomain": {
                     "type": "string"
                 },
                 "services": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkServices"
+                    "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkServices"
                 },
                 "trust": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkTrust"
+                    "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkTrust"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkCni": {
+        "rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkCni": {
             "type": "object",
             "properties": {
                 "name": {
@@ -11974,7 +12300,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkPods": {
+        "rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkPods": {
             "type": "object",
             "properties": {
                 "cidrBlocks": {
@@ -11985,7 +12311,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkProxy": {
+        "rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkProxy": {
             "type": "object",
             "properties": {
                 "httpProxy": {
@@ -11999,7 +12325,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkServices": {
+        "rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkServices": {
             "type": "object",
             "properties": {
                 "cidrBlocks": {
@@ -12010,18 +12336,18 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkTrust": {
+        "rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkTrust": {
             "type": "object",
             "properties": {
                 "additionalTrustedCAs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkTrustAdditionalTrustedCA"
+                        "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkTrustAdditionalTrustedCA"
                     }
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkTrustAdditionalTrustedCA": {
+        "rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkTrustAdditionalTrustedCA": {
             "type": "object",
             "properties": {
                 "data": {
@@ -12032,7 +12358,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsStorage": {
+        "rortypes.ResourceTanzuKubernetesClusterSpecSettingsStorage": {
             "type": "object",
             "properties": {
                 "classes": {
@@ -12046,21 +12372,21 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopology": {
+        "rortypes.ResourceTanzuKubernetesClusterSpecTopology": {
             "type": "object",
             "properties": {
                 "controlPlane": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlane"
+                    "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlane"
                 },
                 "nodePools": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePools"
+                        "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePools"
                     }
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlane": {
+        "rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlane": {
             "type": "object",
             "properties": {
                 "nodeDrainTimeout": {
@@ -12073,22 +12399,22 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "tkr": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlaneTkr"
+                    "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlaneTkr"
                 },
                 "vmClass": {
                     "type": "string"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlaneTkr": {
+        "rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlaneTkr": {
             "type": "object",
             "properties": {
                 "reference": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlaneTkrReference"
+                    "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlaneTkrReference"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlaneTkrReference": {
+        "rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlaneTkrReference": {
             "type": "object",
             "properties": {
                 "kind": {
@@ -12106,7 +12432,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePools": {
+        "rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePools": {
             "type": "object",
             "properties": {
                 "failureDomain": {
@@ -12133,11 +12459,11 @@ const docTemplate = `{
                 "taints": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTaints"
+                        "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTaints"
                     }
                 },
                 "tkr": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTkr"
+                    "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTkr"
                 },
                 "vmClass": {
                     "type": "string"
@@ -12145,12 +12471,12 @@ const docTemplate = `{
                 "volumes": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsVolumes"
+                        "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsVolumes"
                     }
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTaints": {
+        "rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTaints": {
             "type": "object",
             "properties": {
                 "effect": {
@@ -12167,15 +12493,15 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTkr": {
+        "rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTkr": {
             "type": "object",
             "properties": {
                 "reference": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTkrReference"
+                    "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTkrReference"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTkrReference": {
+        "rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTkrReference": {
             "type": "object",
             "properties": {
                 "fieldPath": {
@@ -12196,7 +12522,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsVolumes": {
+        "rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsVolumes": {
             "type": "object",
             "properties": {
                 "capasity": {
@@ -12216,20 +12542,20 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterStatus": {
+        "rortypes.ResourceTanzuKubernetesClusterStatus": {
             "type": "object",
             "properties": {
                 "apiEndpoints": {
                     "description": "Addons []ResourceTanzuKubernetesClusterStatusAddons ` + "`" + `json:\"addons\"` + "`" + `",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterStatusAPIEndpoints"
+                        "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesClusterStatusAPIEndpoints"
                     }
                 },
                 "conditions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterStatusConditions"
+                        "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesClusterStatusConditions"
                     }
                 },
                 "phase": {
@@ -12243,7 +12569,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterStatusAPIEndpoints": {
+        "rortypes.ResourceTanzuKubernetesClusterStatusAPIEndpoints": {
             "type": "object",
             "properties": {
                 "host": {
@@ -12254,7 +12580,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterStatusConditions": {
+        "rortypes.ResourceTanzuKubernetesClusterStatusConditions": {
             "type": "object",
             "properties": {
                 "lastTransitionTime": {
@@ -12277,45 +12603,31 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesRelease": {
+        "rortypes.ResourceTanzuKubernetesRelease": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
-                },
                 "spec": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesReleaseSpec"
+                    "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesReleaseSpec"
                 },
                 "status": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesReleaseStatus"
+                    "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesReleaseStatus"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesReleaseSpec": {
+        "rortypes.ResourceTanzuKubernetesReleaseSpec": {
             "type": "object",
             "properties": {
                 "images": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesReleaseSpecImage"
+                        "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesReleaseSpecImage"
                     }
                 },
                 "kubernetesVersion": {
                     "type": "string"
                 },
                 "nodeImageRef": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesReleaseSpecNodeImageRef"
+                    "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesReleaseSpecNodeImageRef"
                 },
                 "repository": {
                     "type": "string"
@@ -12325,7 +12637,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesReleaseSpecImage": {
+        "rortypes.ResourceTanzuKubernetesReleaseSpecImage": {
             "type": "object",
             "properties": {
                 "name": {
@@ -12339,7 +12651,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesReleaseSpecNodeImageRef": {
+        "rortypes.ResourceTanzuKubernetesReleaseSpecNodeImageRef": {
             "type": "object",
             "properties": {
                 "apiVersion": {
@@ -12360,18 +12672,18 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesReleaseStatus": {
+        "rortypes.ResourceTanzuKubernetesReleaseStatus": {
             "type": "object",
             "properties": {
                 "conditions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesReleaseStatusCondition"
+                        "$ref": "#/definitions/rortypes.ResourceTanzuKubernetesReleaseStatusCondition"
                     }
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceTanzuKubernetesReleaseStatusCondition": {
+        "rortypes.ResourceTanzuKubernetesReleaseStatusCondition": {
             "type": "object",
             "properties": {
                 "lastTransitionTime": {
@@ -12394,25 +12706,28 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceVirtualMachineClass": {
+        "rortypes.ResourceVirtualMachine": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
+                "id": {
                     "type": "string"
                 },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
+                "name": {
                     "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
                 },
                 "spec": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceVirtualMachineClassSpec"
+                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineSpec"
+                },
+                "status": {
+                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineStatus"
+                }
+            }
+        },
+        "rortypes.ResourceVirtualMachineClass": {
+            "type": "object",
+            "properties": {
+                "spec": {
+                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineClassSpec"
                 },
                 "status": {
                     "type": "object",
@@ -12422,29 +12737,15 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceVirtualMachineClassBinding": {
+        "rortypes.ResourceVirtualMachineClassBinding": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
-                    "type": "string"
-                },
                 "classRef": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceVirtualMachineClassBindingClassRef"
-                },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
+                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineClassBindingClassRef"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceVirtualMachineClassBindingClassRef": {
+        "rortypes.ResourceVirtualMachineClassBindingClassRef": {
             "type": "object",
             "properties": {
                 "apiVersion": {
@@ -12458,18 +12759,18 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceVirtualMachineClassSpec": {
+        "rortypes.ResourceVirtualMachineClassSpec": {
             "type": "object",
             "properties": {
                 "description": {
                     "type": "string"
                 },
                 "hardware": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceVirtualMachineClassSpecHardware"
+                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineClassSpecHardware"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceVirtualMachineClassSpecHardware": {
+        "rortypes.ResourceVirtualMachineClassSpecHardware": {
             "type": "object",
             "properties": {
                 "cpus": {
@@ -12479,13 +12780,13 @@ const docTemplate = `{
                     "description": "Devices ResourceVirtualMachineClassSpecHardwareDevice ` + "`" + `json:\"devices\"` + "`" + `",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceVirtualMachineClassSpecHardwareInstanceStorage"
+                            "$ref": "#/definitions/rortypes.ResourceVirtualMachineClassSpecHardwareInstanceStorage"
                         }
                     ]
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceVirtualMachineClassSpecHardwareInstanceStorage": {
+        "rortypes.ResourceVirtualMachineClassSpecHardwareInstanceStorage": {
             "type": "object",
             "properties": {
                 "storageClass": {
@@ -12493,39 +12794,265 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceVulnerabilityReport": {
+        "rortypes.ResourceVirtualMachineCpuSpec": {
             "type": "object",
             "properties": {
-                "apiVersion": {
-                    "description": "APIVersion defines the versioned schema of this representation of an object.\nServers should convert recognized schemas to the latest internal value, and\nmay reject unrecognized values.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources\n+optional",
+                "coresPerSocket": {
+                    "description": "cores per socket",
+                    "type": "integer"
+                },
+                "id": {
                     "type": "string"
                 },
-                "kind": {
-                    "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/v1.ObjectMeta"
-                },
-                "report": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceVulnerabilityReportReport"
-                },
-                "rormeta": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta"
+                "sockets": {
+                    "type": "integer"
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceVulnerabilityReportReport": {
+        "rortypes.ResourceVirtualMachineCpuStatus": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "unit": {
+                    "description": "describes what unit the usage is given in",
+                    "type": "string"
+                },
+                "usage": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceVirtualMachineDiskSpec": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sizeBytes": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceVirtualMachineDiskStatus": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "usageBytes": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceVirtualMachineMemorySpec": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "sizeBytes": {
+                    "type": "integer"
+                }
+            }
+        },
+        "rortypes.ResourceVirtualMachineMemoryStatus": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "unit": {
+                    "description": "describes what unit the usage is given in",
+                    "type": "string"
+                },
+                "usage": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceVirtualMachineNetworkSpec": {
+            "type": "object",
+            "properties": {
+                "dns": {
+                    "type": "string"
+                },
+                "gateway": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "ipv4": {
+                    "type": "string"
+                },
+                "ipv6": {
+                    "type": "string"
+                },
+                "mask": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceVirtualMachineNetworkStatus": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceVirtualMachineOperatingSystemSpec": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceVirtualMachineOperatingSystemStatus": {
+            "type": "object",
+            "properties": {
+                "architecture": {
+                    "type": "string"
+                },
+                "hostName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "powerState": {
+                    "type": "string"
+                },
+                "toolVersion": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceVirtualMachineSpec": {
+            "type": "object",
+            "properties": {
+                "cpu": {
+                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineCpuSpec"
+                },
+                "disks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceVirtualMachineDiskSpec"
+                    }
+                },
+                "memory": {
+                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineMemorySpec"
+                },
+                "networks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceVirtualMachineNetworkSpec"
+                    }
+                },
+                "operatingSystem": {
+                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineOperatingSystemSpec"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceVirtualMachineTagSpec"
+                    }
+                }
+            }
+        },
+        "rortypes.ResourceVirtualMachineStatus": {
+            "type": "object",
+            "properties": {
+                "cpu": {
+                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineCpuStatus"
+                },
+                "disks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceVirtualMachineDiskStatus"
+                    }
+                },
+                "memory": {
+                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineMemoryStatus"
+                },
+                "networks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceVirtualMachineNetworkStatus"
+                    }
+                },
+                "operatingSystem": {
+                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineOperatingSystemStatus"
+                }
+            }
+        },
+        "rortypes.ResourceVirtualMachineTagSpec": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceVulnerabilityEvent": {
+            "type": "object",
+            "properties": {
+                "spec": {
+                    "$ref": "#/definitions/rortypes.ResourceVulnerabilityEventSpec"
+                }
+            }
+        },
+        "rortypes.ResourceVulnerabilityEventSpec": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "owner": {
+                    "$ref": "#/definitions/rortypes.RorResourceOwnerReference"
+                }
+            }
+        },
+        "rortypes.ResourceVulnerabilityReport": {
+            "type": "object",
+            "properties": {
+                "report": {
+                    "$ref": "#/definitions/rortypes.ResourceVulnerabilityReportReport"
+                }
+            }
+        },
+        "rortypes.ResourceVulnerabilityReportReport": {
             "type": "object",
             "properties": {
                 "artifact": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceVulnerabilityReportReportArtifact"
+                    "$ref": "#/definitions/rortypes.ResourceVulnerabilityReportReportArtifact"
                 },
                 "scanner": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.AquaReportScanner"
+                    "$ref": "#/definitions/rortypes.AquaReportScanner"
                 },
                 "summary": {
-                    "$ref": "#/definitions/ror_internal_rorresources_rortypes.AquaReportSummary"
+                    "$ref": "#/definitions/rortypes.AquaReportSummary"
                 },
                 "updateTimestamp": {
                     "type": "string"
@@ -12533,14 +13060,17 @@ const docTemplate = `{
                 "vulnerabilities": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ror_internal_rorresources_rortypes.ResourceVulnerabilityReportReportVulnerability"
+                        "$ref": "#/definitions/rortypes.ResourceVulnerabilityReportReportVulnerability"
                     }
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceVulnerabilityReportReportArtifact": {
+        "rortypes.ResourceVulnerabilityReportReportArtifact": {
             "type": "object",
             "properties": {
+                "digest": {
+                    "type": "string"
+                },
                 "repository": {
                     "type": "string"
                 },
@@ -12549,7 +13079,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.ResourceVulnerabilityReportReportVulnerability": {
+        "rortypes.ResourceVulnerabilityReportReportVulnerability": {
             "type": "object",
             "properties": {
                 "fixedVersion": {
@@ -12578,7 +13108,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.RorResourceOwnerReference": {
+        "rortypes.RorResourceOwnerReference": {
             "type": "object",
             "properties": {
                 "scope": {
@@ -12595,7 +13125,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ror_internal_rorresources_rortypes.SensitivityLevel": {
+        "rortypes.SensitivityLevel": {
             "type": "integer",
             "enum": [
                 0,
@@ -12612,16 +13142,33 @@ const docTemplate = `{
                 "SensitivityLevelCritical"
             ]
         },
-        "rorerror.RorError": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "integer"
-                }
-            }
+        "rortypes.VulnerabilityDismissalReason": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "ACCEPTABLE_RISK",
+                "FALSE_POSITIVE",
+                "NOT_APPLICABLE"
+            ]
+        },
+        "rortypes.VulnerabilityStatus": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3
+            ],
+            "x-enum-varnames": [
+                "NOT_ASSESSED",
+                "NEEDS_TRIAGE",
+                "CONFIRMED",
+                "DISMISSED"
+            ]
         },
         "v1.FieldsV1": {
             "type": "object"
@@ -12682,7 +13229,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "annotations": {
-                    "description": "Annotations is an unstructured key value map stored with a resource that may be\nset by external tools to store and retrieve arbitrary metadata. They are not\nqueryable and should be preserved when modifying objects.\nMore info: http://kubernetes.io/docs/user-guide/annotations\n+optional",
+                    "description": "Annotations is an unstructured key value map stored with a resource that may be\nset by external tools to store and retrieve arbitrary metadata. They are not\nqueryable and should be preserved when modifying objects.\nMore info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations\n+optional",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
@@ -12701,7 +13248,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "finalizers": {
-                    "description": "Must be empty before the object is deleted from the registry. Each entry\nis an identifier for the responsible component that will remove the entry\nfrom the list. If the deletionTimestamp of the object is non-nil, entries\nin this list can only be removed.\nFinalizers may be processed and removed in any order.  Order is NOT enforced\nbecause it introduces significant risk of stuck finalizers.\nfinalizers is a shared field, any actor with permission can reorder it.\nIf the finalizer list is processed in order, then this can lead to a situation\nin which the component responsible for the first finalizer in the list is\nwaiting for a signal (field value, external system, or other) produced by a\ncomponent responsible for a finalizer later in the list, resulting in a deadlock.\nWithout enforced ordering finalizers are free to order amongst themselves and\nare not vulnerable to ordering changes in the list.\n+optional\n+patchStrategy=merge",
+                    "description": "Must be empty before the object is deleted from the registry. Each entry\nis an identifier for the responsible component that will remove the entry\nfrom the list. If the deletionTimestamp of the object is non-nil, entries\nin this list can only be removed.\nFinalizers may be processed and removed in any order.  Order is NOT enforced\nbecause it introduces significant risk of stuck finalizers.\nfinalizers is a shared field, any actor with permission can reorder it.\nIf the finalizer list is processed in order, then this can lead to a situation\nin which the component responsible for the first finalizer in the list is\nwaiting for a signal (field value, external system, or other) produced by a\ncomponent responsible for a finalizer later in the list, resulting in a deadlock.\nWithout enforced ordering finalizers are free to order amongst themselves and\nare not vulnerable to ordering changes in the list.\n+optional\n+patchStrategy=merge\n+listType=set",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -12716,29 +13263,29 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "labels": {
-                    "description": "Map of string keys and values that can be used to organize and categorize\n(scope and select) objects. May match selectors of replication controllers\nand services.\nMore info: http://kubernetes.io/docs/user-guide/labels\n+optional",
+                    "description": "Map of string keys and values that can be used to organize and categorize\n(scope and select) objects. May match selectors of replication controllers\nand services.\nMore info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels\n+optional",
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
                     }
                 },
                 "managedFields": {
-                    "description": "ManagedFields maps workflow-id and version to the set of fields\nthat are managed by that workflow. This is mostly for internal\nhousekeeping, and users typically shouldn't need to set or\nunderstand this field. A workflow can be the user's name, a\ncontroller's name, or the name of a specific apply path like\n\"ci-cd\". The set of fields is always in the version that the\nworkflow used when modifying the object.\n\n+optional",
+                    "description": "ManagedFields maps workflow-id and version to the set of fields\nthat are managed by that workflow. This is mostly for internal\nhousekeeping, and users typically shouldn't need to set or\nunderstand this field. A workflow can be the user's name, a\ncontroller's name, or the name of a specific apply path like\n\"ci-cd\". The set of fields is always in the version that the\nworkflow used when modifying the object.\n\n+optional\n+listType=atomic",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/v1.ManagedFieldsEntry"
                     }
                 },
                 "name": {
-                    "description": "Name must be unique within a namespace. Is required when creating resources, although\nsome resources may allow a client to request the generation of an appropriate name\nautomatically. Name is primarily intended for creation idempotence and configuration\ndefinition.\nCannot be updated.\nMore info: http://kubernetes.io/docs/user-guide/identifiers#names\n+optional",
+                    "description": "Name must be unique within a namespace. Is required when creating resources, although\nsome resources may allow a client to request the generation of an appropriate name\nautomatically. Name is primarily intended for creation idempotence and configuration\ndefinition.\nCannot be updated.\nMore info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names\n+optional",
                     "type": "string"
                 },
                 "namespace": {
-                    "description": "Namespace defines the space within which each name must be unique. An empty namespace is\nequivalent to the \"default\" namespace, but \"default\" is the canonical representation.\nNot all objects are required to be scoped to a namespace - the value of this field for\nthose objects will be empty.\n\nMust be a DNS_LABEL.\nCannot be updated.\nMore info: http://kubernetes.io/docs/user-guide/namespaces\n+optional",
+                    "description": "Namespace defines the space within which each name must be unique. An empty namespace is\nequivalent to the \"default\" namespace, but \"default\" is the canonical representation.\nNot all objects are required to be scoped to a namespace - the value of this field for\nthose objects will be empty.\n\nMust be a DNS_LABEL.\nCannot be updated.\nMore info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces\n+optional",
                     "type": "string"
                 },
                 "ownerReferences": {
-                    "description": "List of objects depended by this object. If ALL objects in the list have\nbeen deleted, this object will be garbage collected. If this object is managed by a controller,\nthen an entry in this list will point to this controller, with the controller field set to true.\nThere cannot be more than one managing controller.\n+optional\n+patchMergeKey=uid\n+patchStrategy=merge",
+                    "description": "List of objects depended by this object. If ALL objects in the list have\nbeen deleted, this object will be garbage collected. If this object is managed by a controller,\nthen an entry in this list will point to this controller, with the controller field set to true.\nThere cannot be more than one managing controller.\n+optional\n+patchMergeKey=uid\n+patchStrategy=merge\n+listType=map\n+listMapKey=uid",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/v1.OwnerReference"
@@ -12753,7 +13300,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "uid": {
-                    "description": "UID is the unique in time and space value for this object. It is typically generated by\nthe server on successful creation of a resource and is not allowed to change on PUT\noperations.\n\nPopulated by the system.\nRead-only.\nMore info: http://kubernetes.io/docs/user-guide/identifiers#uids\n+optional",
+                    "description": "UID is the unique in time and space value for this object. It is typically generated by\nthe server on successful creation of a resource and is not allowed to change on PUT\noperations.\n\nPopulated by the system.\nRead-only.\nMore info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids\n+optional",
                     "type": "string"
                 }
             }
@@ -12778,11 +13325,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
-                    "description": "Name of the referent.\nMore info: http://kubernetes.io/docs/user-guide/identifiers#names",
+                    "description": "Name of the referent.\nMore info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names",
                     "type": "string"
                 },
                 "uid": {
-                    "description": "UID of the referent.\nMore info: http://kubernetes.io/docs/user-guide/identifiers#uids",
+                    "description": "UID of the referent.\nMore info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids",
                     "type": "string"
                 }
             }

@@ -7,6 +7,7 @@ definitions:
     - cluster
     - project
     - datacenter
+    - virtualmachine
     type: string
     x-enum-comments:
       Acl2ScopeRor: ROR
@@ -17,6 +18,7 @@ definitions:
     - Acl2ScopeCluster
     - Acl2ScopeProject
     - Acl2ScopeDatacenter
+    - Acl2ScopeVirtualMachine
   aclmodels.AclV2ListItem:
     properties:
       access:
@@ -26,7 +28,7 @@ definitions:
       created:
         type: string
       group:
-        description: The group wich the acces is granted
+        description: The group which the acces is granted
         minLength: 1
         type: string
       id:
@@ -37,7 +39,8 @@ definitions:
       kubernetes:
         allOf:
         - $ref: '#/definitions/aclmodels.AclV2ListItemKubernetes'
-        description: v2 access model for kubernetes
+        description: Accessv2   []map[AccessType]bool    `json:"accessv2" validate:""`                      //
+          v2 access model for ror api
       scope:
         allOf:
         - $ref: '#/definitions/aclmodels.Acl2Scope'
@@ -249,6 +252,8 @@ definitions:
         type: string
       clusterName:
         type: string
+      environment:
+        type: string
       id:
         type: string
       metadata:
@@ -272,6 +277,7 @@ definitions:
       criticality:
         $ref: '#/definitions/apicontracts.CriticalityLevel'
       description:
+        minLength: 1
         type: string
       project:
         $ref: '#/definitions/apicontracts.Project'
@@ -554,6 +560,8 @@ definitions:
         type: integer
       memoryPercentage:
         type: integer
+      name:
+        type: string
       nodeCount:
         type: integer
       nodePoolCount:
@@ -569,6 +577,8 @@ definitions:
         type: string
       metrics:
         $ref: '#/definitions/apicontracts.Metrics'
+      name:
+        type: string
     type: object
   apicontracts.MetricList:
     properties:
@@ -1133,9 +1143,9 @@ definitions:
   apicontractsv2self.SelfData:
     properties:
       auth:
-        $ref: '#/definitions/github_com_NorskHelsenett_ror_pkg_models_identity.AuthInfo'
+        $ref: '#/definitions/identitymodels.AuthInfo'
       type:
-        $ref: '#/definitions/github_com_NorskHelsenett_ror_pkg_models_identity.IdentityType'
+        $ref: '#/definitions/identitymodels.IdentityType'
       user:
         $ref: '#/definitions/apicontractsv2self.SelfUser'
     type: object
@@ -1332,15 +1342,6 @@ definitions:
     - ResourceClusterOrderStatusPhaseDeleting
     - ResourceClusterOrderStatusPhaseCompleted
     - ResourceClusterOrderStatusPhaseFailed
-  apiresourcecontracts.ResourceClusterorders:
-    properties:
-      clusterorders:
-        items:
-          $ref: '#/definitions/apiresourcecontracts.ResourceClusterOrder'
-        type: array
-      owner:
-        $ref: '#/definitions/apiresourcecontracts.ResourceOwnerReference'
-    type: object
   apiresourcecontracts.ResourceKubernetesClusterStatusCondition:
     properties:
       lastTransitionTime:
@@ -1353,6 +1354,15 @@ definitions:
         type: string
       type:
         type: string
+    type: object
+  apiresourcecontracts.ResourceListClusterorders:
+    properties:
+      clusterorders:
+        items:
+          $ref: '#/definitions/apiresourcecontracts.ResourceClusterOrder'
+        type: array
+      owner:
+        $ref: '#/definitions/apiresourcecontracts.ResourceOwnerReference'
     type: object
   apiresourcecontracts.ResourceMetadata:
     properties:
@@ -1453,7 +1463,7 @@ definitions:
     properties:
       cpu:
         type: string
-      ephemeral-storage:
+      ephemeralStorage:
         type: string
       memory:
         type: string
@@ -1523,7 +1533,17 @@ definitions:
       resource: {}
       uid:
         type: string
+      version:
+        $ref: '#/definitions/apiresourcecontracts.ResourceVersion'
     type: object
+  apiresourcecontracts.ResourceVersion:
+    enum:
+    - v1
+    - v2
+    type: string
+    x-enum-varnames:
+    - ResourceVersionV1
+    - ResourceVersionV2
   apiresourcecontracts.ResourceVulnerabilityReportReportVulnerability:
     properties:
       fixedVersion:
@@ -1557,16 +1577,155 @@ definitions:
     - SensitivityLevelModerate
     - SensitivityLevelHigh
     - SensitivityLevelCritical
-  github_com_NorskHelsenett_ror_pkg_models_identity.AuthInfo:
+  github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReport:
+    properties:
+      clusterid:
+        type: string
+      metadata:
+        $ref: '#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReportMetadata'
+      reports:
+        items:
+          $ref: '#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReportReport'
+        type: array
+      summary:
+        $ref: '#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReportSummary'
+    type: object
+  github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReportMetadata:
+    properties:
+      name:
+        type: string
+      title:
+        type: string
+    type: object
+  github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReportReport:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      severity:
+        $ref: '#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReportSeverity'
+      totalfail:
+        type: integer
+    type: object
+  github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReportSeverity:
+    enum:
+    - CRITICAL
+    - HIGH
+    - MEDIUM
+    - LOW
+    - UNKOWN
+    type: string
+    x-enum-varnames:
+    - CRITICAL
+    - HIGH
+    - MEDIUM
+    - LOW
+    - UNKNOWN
+  github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReportSummary:
+    properties:
+      failcount:
+        type: integer
+      passcount:
+        type: integer
+    type: object
+  github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.VulnerabilityReportsArtifact:
+    properties:
+      repository:
+        type: string
+      tag:
+        type: string
+    type: object
+  github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.VulnerabilityReportsScanner:
+    properties:
+      name:
+        type: string
+      vendor:
+        type: string
+      version:
+        type: string
+    type: object
+  github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.VulnerabilityReportsView:
+    properties:
+      clusterId:
+        type: string
+      criticalCount:
+        type: integer
+      environment:
+        type: string
+      highCount:
+        type: integer
+      lowCount:
+        type: integer
+      mediumCount:
+        type: integer
+      namespaces:
+        items:
+          $ref: '#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.VulnerabilityReportsViewNamespace'
+        type: array
+      project:
+        $ref: '#/definitions/apicontracts.Project'
+      total:
+        type: integer
+    type: object
+  github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.VulnerabilityReportsViewNamespace:
+    properties:
+      criticalCount:
+        type: integer
+      highCount:
+        type: integer
+      lowCount:
+        type: integer
+      mediumCount:
+        type: integer
+      name:
+        type: string
+      reports:
+        items:
+          $ref: '#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.VulnerabilityReportsViewReport'
+        type: array
+      total:
+        type: integer
+    type: object
+  github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.VulnerabilityReportsViewReport:
+    properties:
+      artifact:
+        $ref: '#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.VulnerabilityReportsArtifact'
+      criticalCount:
+        type: integer
+      highCount:
+        type: integer
+      lowCount:
+        type: integer
+      mediumCount:
+        type: integer
+      name:
+        type: string
+      owner_ref:
+        $ref: '#/definitions/apiresourcecontracts.ResourceMetadataOwnerReference'
+      scanner:
+        $ref: '#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.VulnerabilityReportsScanner'
+      total:
+        type: integer
+      uid:
+        type: string
+      updateTimestamp:
+        type: string
+      vulnerabilities:
+        items:
+          $ref: '#/definitions/apiresourcecontracts.ResourceVulnerabilityReportReportVulnerability'
+        type: array
+    type: object
+  identitymodels.AuthInfo:
     properties:
       authProvider:
-        $ref: '#/definitions/github_com_NorskHelsenett_ror_pkg_models_identity.IdentityProvider'
+        $ref: '#/definitions/identitymodels.IdentityProvider'
       authProviderId:
         type: string
       expirationTime:
         type: string
     type: object
-  github_com_NorskHelsenett_ror_pkg_models_identity.IdentityProvider:
+  identitymodels.IdentityProvider:
     enum:
     - OIDC
     - APIKEY
@@ -1574,7 +1733,7 @@ definitions:
     x-enum-varnames:
     - IdentityProviderOidc
     - IdentityProviderApiKey
-  github_com_NorskHelsenett_ror_pkg_models_identity.IdentityType:
+  identitymodels.IdentityType:
     enum:
     - User
     - Cluster
@@ -1729,6 +1888,8 @@ definitions:
     - aks
     - k3d
     - kind
+    - gke
+    - talos
     type: string
     x-enum-varnames:
     - ProviderTypeUnknown
@@ -1736,218 +1897,119 @@ definitions:
     - ProviderTypeAks
     - ProviderTypeK3d
     - ProviderTypeKind
-  ror_internal_models_viewsmodels.ComplianceReport:
+    - ProviderTypeGke
+    - ProviderTypeTalos
+  rorerror.RorError:
     properties:
-      clusterid:
+      message:
         type: string
-      metadata:
-        $ref: '#/definitions/ror_internal_models_viewsmodels.ComplianceReportMetadata'
-      reports:
-        items:
-          $ref: '#/definitions/ror_internal_models_viewsmodels.ComplianceReportReport'
-        type: array
-      summary:
-        $ref: '#/definitions/ror_internal_models_viewsmodels.ComplianceReportSummary'
-    type: object
-  ror_internal_models_viewsmodels.ComplianceReportMetadata:
-    properties:
-      name:
-        type: string
-      title:
-        type: string
-    type: object
-  ror_internal_models_viewsmodels.ComplianceReportReport:
-    properties:
-      id:
-        type: string
-      name:
-        type: string
-      severity:
-        $ref: '#/definitions/ror_internal_models_viewsmodels.ComplianceReportSeverity'
-      totalfail:
+      status:
         type: integer
     type: object
-  ror_internal_models_viewsmodels.ComplianceReportSeverity:
-    enum:
-    - CRITICAL
-    - HIGH
-    - MEDIUM
-    - LOW
-    - UNKOWN
-    type: string
-    x-enum-varnames:
-    - CRITICAL
-    - HIGH
-    - MEDIUM
-    - LOW
-    - UNKNOWN
-  ror_internal_models_viewsmodels.ComplianceReportSummary:
+  rorresources.Resource:
     properties:
-      failcount:
-        type: integer
-      passcount:
-        type: integer
-    type: object
-  ror_internal_models_viewsmodels.VulnerabilityReportsArtifact:
-    properties:
-      repository:
-        type: string
-      tag:
-        type: string
-    type: object
-  ror_internal_models_viewsmodels.VulnerabilityReportsScanner:
-    properties:
-      name:
-        type: string
-      vendor:
-        type: string
-      version:
-        type: string
-    type: object
-  ror_internal_models_viewsmodels.VulnerabilityReportsView:
-    properties:
-      clusterId:
-        type: string
-      criticalCount:
-        type: integer
-      environment:
-        type: string
-      highCount:
-        type: integer
-      lowCount:
-        type: integer
-      mediumCount:
-        type: integer
-      namespaces:
-        items:
-          $ref: '#/definitions/ror_internal_models_viewsmodels.VulnerabilityReportsViewNamespace'
-        type: array
-      project:
-        $ref: '#/definitions/apicontracts.Project'
-      total:
-        type: integer
-    type: object
-  ror_internal_models_viewsmodels.VulnerabilityReportsViewNamespace:
-    properties:
-      criticalCount:
-        type: integer
-      highCount:
-        type: integer
-      lowCount:
-        type: integer
-      mediumCount:
-        type: integer
-      name:
-        type: string
-      reports:
-        items:
-          $ref: '#/definitions/ror_internal_models_viewsmodels.VulnerabilityReportsViewReport'
-        type: array
-      total:
-        type: integer
-    type: object
-  ror_internal_models_viewsmodels.VulnerabilityReportsViewReport:
-    properties:
-      artifact:
-        $ref: '#/definitions/ror_internal_models_viewsmodels.VulnerabilityReportsArtifact'
-      criticalCount:
-        type: integer
-      highCount:
-        type: integer
-      lowCount:
-        type: integer
-      mediumCount:
-        type: integer
-      name:
-        type: string
-      owner_ref:
-        $ref: '#/definitions/apiresourcecontracts.ResourceMetadataOwnerReference'
-      scanner:
-        $ref: '#/definitions/ror_internal_models_viewsmodels.VulnerabilityReportsScanner'
-      total:
-        type: integer
-      uid:
-        type: string
-      updateTimestamp:
-        type: string
-      vulnerabilities:
-        items:
-          $ref: '#/definitions/apiresourcecontracts.ResourceVulnerabilityReportReportVulnerability'
-        type: array
-    type: object
-  ror_internal_rorresources.Resource:
-    properties:
-      api_version:
+      apiVersion:
+        description: |-
+          APIVersion defines the versioned schema of this representation of an object.
+          Servers should convert recognized schemas to the latest internal value, and
+          may reject unrecognized values.
+          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+          +optional
         type: string
       application:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceApplication'
+        $ref: '#/definitions/rortypes.ResourceApplication'
       appproject:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceAppProject'
+        $ref: '#/definitions/rortypes.ResourceAppProject'
       certificate:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceCertificate'
+        $ref: '#/definitions/rortypes.ResourceCertificate'
       clustercompliancereport:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceClusterComplianceReport'
+        $ref: '#/definitions/rortypes.ResourceClusterComplianceReport'
       clusterorder:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceClusterOrder'
+        $ref: '#/definitions/rortypes.ResourceClusterOrder'
+      clustervulnerabilityreport:
+        $ref: '#/definitions/rortypes.ResourceClusterVulnerabilityReport'
       configauditreport:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceConfigAuditReport'
+        $ref: '#/definitions/rortypes.ResourceConfigAuditReport'
       configuration:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceConfiguration'
+        $ref: '#/definitions/rortypes.ResourceConfiguration'
       daemonset:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceDaemonSet'
+        $ref: '#/definitions/rortypes.ResourceDaemonSet'
       deployment:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceDeployment'
+        $ref: '#/definitions/rortypes.ResourceDeployment'
+      endpoints:
+        $ref: '#/definitions/rortypes.ResourceEndpoints'
       exposedsecretreport:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceExposedSecretReport'
+        $ref: '#/definitions/rortypes.ResourceExposedSecretReport'
       ingress:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceIngress'
+        $ref: '#/definitions/rortypes.ResourceIngress'
       ingressclass:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceIngressClass'
+        $ref: '#/definitions/rortypes.ResourceIngressClass'
       kind:
+        description: |-
+          Kind is a string value representing the REST resource this object represents.
+          Servers may infer this from the endpoint the client submits requests to.
+          Cannot be updated.
+          In CamelCase.
+          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+          +optional
         type: string
       kubernetescluster:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesCluster'
+        $ref: '#/definitions/rortypes.ResourceKubernetesCluster'
+      metadata:
+        $ref: '#/definitions/v1.ObjectMeta'
       namespace:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceNamespace'
+        $ref: '#/definitions/rortypes.ResourceNamespace'
+      networkpolicy:
+        $ref: '#/definitions/rortypes.ResourceNetworkPolicy'
       node:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceNode'
+        $ref: '#/definitions/rortypes.ResourceNode'
       persistentvolumeclaim:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourcePersistentVolumeClaim'
+        $ref: '#/definitions/rortypes.ResourcePersistentVolumeClaim'
       pod:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourcePod'
+        $ref: '#/definitions/rortypes.ResourcePod'
       policyreport:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourcePolicyReport'
+        $ref: '#/definitions/rortypes.ResourcePolicyReport'
       project:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceProject'
+        $ref: '#/definitions/rortypes.ResourceProject'
       rbacassessmentreport:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRbacAssessmentReport'
+        $ref: '#/definitions/rortypes.ResourceRbacAssessmentReport'
       replicaset:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceReplicaSet'
+        $ref: '#/definitions/rortypes.ResourceReplicaSet'
+      rormeta:
+        $ref: '#/definitions/rortypes.ResourceRorMeta'
+      route:
+        $ref: '#/definitions/rortypes.ResourceRoute'
       service:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceService'
+        $ref: '#/definitions/rortypes.ResourceService'
+      slackmessage:
+        $ref: '#/definitions/rortypes.ResourceSlackMessage'
       statefulset:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceStatefulSet'
+        $ref: '#/definitions/rortypes.ResourceStatefulSet'
       storageclass:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceStorageClass'
+        $ref: '#/definitions/rortypes.ResourceStorageClass'
       tanzukubernetescluster:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesCluster'
+        $ref: '#/definitions/rortypes.ResourceTanzuKubernetesCluster'
       tanzukubernetesrelease:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesRelease'
+        $ref: '#/definitions/rortypes.ResourceTanzuKubernetesRelease'
+      virtualmachine:
+        $ref: '#/definitions/rortypes.ResourceVirtualMachine'
       virtualmachineclass:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceVirtualMachineClass'
+        $ref: '#/definitions/rortypes.ResourceVirtualMachineClass'
       virtualmachineclassbinding:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceVirtualMachineClassBinding'
+        $ref: '#/definitions/rortypes.ResourceVirtualMachineClassBinding'
+      vulnerabilityevent:
+        $ref: '#/definitions/rortypes.ResourceVulnerabilityEvent'
       vulnerabilityreport:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceVulnerabilityReport'
+        $ref: '#/definitions/rortypes.ResourceVulnerabilityReport'
     type: object
-  ror_internal_rorresources.ResourceSet:
+  rorresources.ResourceSet:
     properties:
       resources:
         items:
-          $ref: '#/definitions/ror_internal_rorresources.Resource'
+          $ref: '#/definitions/rorresources.Resource'
         type: array
     type: object
-  ror_internal_rorresources_rortypes.AquaReportScanner:
+  rortypes.AquaReportScanner:
     properties:
       name:
         type: string
@@ -1956,7 +2018,7 @@ definitions:
       version:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.AquaReportSummary:
+  rortypes.AquaReportSummary:
     properties:
       criticalCount:
         type: integer
@@ -1969,7 +2031,7 @@ definitions:
       total:
         type: integer
     type: object
-  ror_internal_rorresources_rortypes.CriticalityLevel:
+  rortypes.CriticalityLevel:
     enum:
     - 0
     - 1
@@ -1983,7 +2045,7 @@ definitions:
     - CriticalityLevelIntern
     - CriticalityLevelShielded
     - CriticalityLevelHighlyShielded
-  ror_internal_rorresources_rortypes.EnvironmentType:
+  rortypes.EnvironmentType:
     enum:
     - 0
     - 1
@@ -1997,7 +2059,7 @@ definitions:
     - EnvironmentTesting
     - EnvironmentQA
     - EnvironmentProduction
-  ror_internal_rorresources_rortypes.ProviderType:
+  rortypes.ProviderType:
     enum:
     - ""
     - Tanzu
@@ -2009,7 +2071,7 @@ definitions:
     - ProviderTypeTanzu
     - ProviderTypeAzure
     - ProviderTypeK3d
-  ror_internal_rorresources_rortypes.ResourceAction:
+  rortypes.ResourceAction:
     enum:
     - Add
     - Delete
@@ -2019,85 +2081,43 @@ definitions:
     - K8sActionAdd
     - K8sActionDelete
     - K8sActionUpdate
-  ror_internal_rorresources_rortypes.ResourceAppProject:
+  rortypes.ResourceAppProject:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
       spec:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceAppProjectSpec'
+        $ref: '#/definitions/rortypes.ResourceAppProjectSpec'
     type: object
-  ror_internal_rorresources_rortypes.ResourceAppProjectSpec:
+  rortypes.ResourceAppProjectSpec:
     properties:
       description:
         type: string
       destinations:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationSpecDestination'
+          $ref: '#/definitions/rortypes.ResourceApplicationSpecDestination'
         type: array
       sourceRepos:
         items:
           type: string
         type: array
     type: object
-  ror_internal_rorresources_rortypes.ResourceApplication:
+  rortypes.ResourceApplication:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
       spec:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationSpec'
+        $ref: '#/definitions/rortypes.ResourceApplicationSpec'
       status:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationStatus'
+        $ref: '#/definitions/rortypes.ResourceApplicationStatus'
     type: object
-  ror_internal_rorresources_rortypes.ResourceApplicationSpec:
+  rortypes.ResourceApplicationSpec:
     properties:
       destination:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationSpecDestination'
+        $ref: '#/definitions/rortypes.ResourceApplicationSpecDestination'
       project:
         type: string
       source:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationSpecSource'
+        $ref: '#/definitions/rortypes.ResourceApplicationSpecSource'
       syncPolicy:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationSpecSyncpolicy'
+        $ref: '#/definitions/rortypes.ResourceApplicationSpecSyncpolicy'
     type: object
-  ror_internal_rorresources_rortypes.ResourceApplicationSpecDestination:
+  rortypes.ResourceApplicationSpecDestination:
     properties:
       name:
         type: string
@@ -2106,7 +2126,7 @@ definitions:
       server:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceApplicationSpecSource:
+  rortypes.ResourceApplicationSpecSource:
     properties:
       chart:
         type: string
@@ -2117,18 +2137,18 @@ definitions:
       targetRevision:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceApplicationSpecSyncpolicy:
+  rortypes.ResourceApplicationSpecSyncpolicy:
     properties:
       automated:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationSpecSyncpolicyAutomated'
+        $ref: '#/definitions/rortypes.ResourceApplicationSpecSyncpolicyAutomated'
       retry:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationSpecSyncpolicyRetry'
+        $ref: '#/definitions/rortypes.ResourceApplicationSpecSyncpolicyRetry'
       syncOptions:
         items:
           type: string
         type: array
     type: object
-  ror_internal_rorresources_rortypes.ResourceApplicationSpecSyncpolicyAutomated:
+  rortypes.ResourceApplicationSpecSyncpolicyAutomated:
     properties:
       allowEmpty:
         type: boolean
@@ -2137,14 +2157,14 @@ definitions:
       selfHeal:
         type: boolean
     type: object
-  ror_internal_rorresources_rortypes.ResourceApplicationSpecSyncpolicyRetry:
+  rortypes.ResourceApplicationSpecSyncpolicyRetry:
     properties:
       backoff:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationSpecSyncpolicyRetryBackoff'
+        $ref: '#/definitions/rortypes.ResourceApplicationSpecSyncpolicyRetryBackoff'
       limit:
         type: integer
     type: object
-  ror_internal_rorresources_rortypes.ResourceApplicationSpecSyncpolicyRetryBackoff:
+  rortypes.ResourceApplicationSpecSyncpolicyRetryBackoff:
     properties:
       duration:
         type: string
@@ -2153,27 +2173,27 @@ definitions:
       maxDuration:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceApplicationStatus:
+  rortypes.ResourceApplicationStatus:
     properties:
       health:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationStatusHealth'
+        $ref: '#/definitions/rortypes.ResourceApplicationStatusHealth'
       operationState:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationStatusOperationstate'
+        $ref: '#/definitions/rortypes.ResourceApplicationStatusOperationstate'
       reconciledAt:
         type: string
       sourceType:
         type: string
       sync:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceApplicationStatusSync'
+        $ref: '#/definitions/rortypes.ResourceApplicationStatusSync'
     type: object
-  ror_internal_rorresources_rortypes.ResourceApplicationStatusHealth:
+  rortypes.ResourceApplicationStatusHealth:
     properties:
       message:
         type: string
       status:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceApplicationStatusOperationstate:
+  rortypes.ResourceApplicationStatusOperationstate:
     properties:
       finishedAt:
         type: string
@@ -2186,49 +2206,28 @@ definitions:
       status:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceApplicationStatusSync:
+  rortypes.ResourceApplicationStatusSync:
     properties:
       revision:
         type: string
       status:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceCertificate:
+  rortypes.ResourceCertificate:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
       spec:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceCertificateSpec'
+        $ref: '#/definitions/rortypes.ResourceCertificateSpec'
       status:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceCertificateStatus'
+        $ref: '#/definitions/rortypes.ResourceCertificateStatus'
     type: object
-  ror_internal_rorresources_rortypes.ResourceCertificateSpec:
+  rortypes.ResourceCertificateSpec:
     properties:
       dnsNames:
         items:
           type: string
         type: array
       issuerRef:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceCertificateSpecIssuerref'
+        $ref: '#/definitions/rortypes.ResourceCertificateSpecIssuerref'
       secretName:
         type: string
       usages:
@@ -2236,7 +2235,7 @@ definitions:
           type: string
         type: array
     type: object
-  ror_internal_rorresources_rortypes.ResourceCertificateSpecIssuerref:
+  rortypes.ResourceCertificateSpecIssuerref:
     properties:
       group:
         type: string
@@ -2245,11 +2244,11 @@ definitions:
       name:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceCertificateStatus:
+  rortypes.ResourceCertificateStatus:
     properties:
       conditions:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceCertificateStatusCondition'
+          $ref: '#/definitions/rortypes.ResourceCertificateStatusCondition'
         type: array
       notAfter:
         type: string
@@ -2258,7 +2257,7 @@ definitions:
       renewalTime:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceCertificateStatusCondition:
+  rortypes.ResourceCertificateStatusCondition:
     properties:
       lastTransitionTime:
         type: string
@@ -2273,78 +2272,35 @@ definitions:
       type:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceClusterComplianceReport:
-    properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
+  rortypes.ResourceClusterComplianceReport:
     type: object
-  ror_internal_rorresources_rortypes.ResourceClusterOrder:
+  rortypes.ResourceClusterOrder:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
       spec:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceClusterOrderSpec'
+        $ref: '#/definitions/rortypes.ResourceClusterOrderSpec'
       status:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceClusterOrderStatus'
+        $ref: '#/definitions/rortypes.ResourceClusterOrderStatus'
     type: object
-  ror_internal_rorresources_rortypes.ResourceClusterOrderSpec:
+  rortypes.ResourceClusterOrderSpec:
     properties:
       clusterName:
         minLength: 1
         type: string
       criticality:
         allOf:
-        - $ref: '#/definitions/ror_internal_rorresources_rortypes.CriticalityLevel'
+        - $ref: '#/definitions/rortypes.CriticalityLevel'
         maximum: 4
         minimum: 1
       environment:
         allOf:
-        - $ref: '#/definitions/ror_internal_rorresources_rortypes.EnvironmentType'
+        - $ref: '#/definitions/rortypes.EnvironmentType'
         maximum: 4
         minimum: 1
       highAvailability:
         type: boolean
       nodePools:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceClusterOrderSpecNodePool'
+          $ref: '#/definitions/rortypes.ResourceClusterOrderSpecNodePool'
         minItems: 1
         type: array
       orderBy:
@@ -2358,14 +2314,14 @@ definitions:
         type: string
       provider:
         allOf:
-        - $ref: '#/definitions/ror_internal_rorresources_rortypes.ProviderType'
+        - $ref: '#/definitions/rortypes.ProviderType'
         minLength: 1
       providerConfig:
         additionalProperties: true
         type: object
       sensitivity:
         allOf:
-        - $ref: '#/definitions/ror_internal_rorresources_rortypes.SensitivityLevel'
+        - $ref: '#/definitions/rortypes.SensitivityLevel'
         maximum: 4
         minimum: 1
       serviceTags:
@@ -2383,7 +2339,7 @@ definitions:
     - provider
     - sensitivity
     type: object
-  ror_internal_rorresources_rortypes.ResourceClusterOrderSpecNodePool:
+  rortypes.ResourceClusterOrderSpecNodePool:
     properties:
       count:
         minimum: 1
@@ -2399,11 +2355,11 @@ definitions:
     - machineClass
     - name
     type: object
-  ror_internal_rorresources_rortypes.ResourceClusterOrderStatus:
+  rortypes.ResourceClusterOrderStatus:
     properties:
       conditions:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterStatusCondition'
+          $ref: '#/definitions/rortypes.ResourceKubernetesClusterStatusCondition'
         type: array
       createdTime:
         type: string
@@ -2416,59 +2372,94 @@ definitions:
       updatedTime:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceConfigAuditReport:
+  rortypes.ResourceClusterVulnerabilityReport:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
       report:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceVulnerabilityReportReport'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
+        additionalProperties:
+          $ref: '#/definitions/rortypes.ResourceClusterVulnerabilityReportReport'
+        type: object
+      summary:
+        $ref: '#/definitions/rortypes.ResourceClusterVulnerabilityReportSummary'
     type: object
-  ror_internal_rorresources_rortypes.ResourceConfiguration:
+  rortypes.ResourceClusterVulnerabilityReportReport:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
+      firstObserved:
         type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
+      lastObserved:
         type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
-      spec:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceConfigurationSpec'
+      owners:
+        items:
+          $ref: '#/definitions/rortypes.ResourceClusterVulnerabilityReportReportOwner'
+        type: array
+      primaryLink:
+        type: string
+      score:
+        type: number
+      severity:
+        type: string
+      status:
+        $ref: '#/definitions/rortypes.ResourceClusterVulnerabilityReportReportStatus'
+      title:
+        type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceConfigurationSpec:
+  rortypes.ResourceClusterVulnerabilityReportReportOwner:
+    properties:
+      digest:
+        type: string
+      fixedVersion:
+        type: string
+      installedVersion:
+        type: string
+      namespace:
+        type: string
+      ownerReferences:
+        items:
+          $ref: '#/definitions/v1.OwnerReference'
+        type: array
+      repository:
+        type: string
+      resource:
+        type: string
+      tag:
+        type: string
+    type: object
+  rortypes.ResourceClusterVulnerabilityReportReportStatus:
+    properties:
+      comment:
+        type: string
+      reason:
+        $ref: '#/definitions/rortypes.VulnerabilityDismissalReason'
+      riskAssessment:
+        type: string
+      status:
+        $ref: '#/definitions/rortypes.VulnerabilityStatus'
+      until:
+        type: string
+    type: object
+  rortypes.ResourceClusterVulnerabilityReportSummary:
+    properties:
+      critical:
+        type: integer
+      high:
+        type: integer
+      low:
+        type: integer
+      medium:
+        type: integer
+      unknown:
+        type: integer
+    type: object
+  rortypes.ResourceConfigAuditReport:
+    properties:
+      report:
+        $ref: '#/definitions/rortypes.ResourceVulnerabilityReportReport'
+    type: object
+  rortypes.ResourceConfiguration:
+    properties:
+      spec:
+        $ref: '#/definitions/rortypes.ResourceConfigurationSpec'
+    type: object
+  rortypes.ResourceConfigurationSpec:
     properties:
       b64enc:
         type: boolean
@@ -2477,33 +2468,12 @@ definitions:
       type:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceDaemonSet:
+  rortypes.ResourceDaemonSet:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
       status:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceDaemonSetStatus'
+        $ref: '#/definitions/rortypes.ResourceDaemonSetStatus'
     type: object
-  ror_internal_rorresources_rortypes.ResourceDaemonSetStatus:
+  rortypes.ResourceDaemonSetStatus:
     properties:
       currentNumberScheduled:
         type: integer
@@ -2520,33 +2490,12 @@ definitions:
       updatedNumberScheduled:
         type: integer
     type: object
-  ror_internal_rorresources_rortypes.ResourceDeployment:
+  rortypes.ResourceDeployment:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
       status:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceDeploymentStatus'
+        $ref: '#/definitions/rortypes.ResourceDeploymentStatus'
     type: object
-  ror_internal_rorresources_rortypes.ResourceDeploymentStatus:
+  rortypes.ResourceDeploymentStatus:
     properties:
       availableReplicas:
         type: integer
@@ -2557,94 +2506,120 @@ definitions:
       updatedReplicas:
         type: integer
     type: object
-  ror_internal_rorresources_rortypes.ResourceExposedSecretReport:
+  rortypes.ResourceEndpointSpecSubsets:
+    properties:
+      addresses:
+        items:
+          $ref: '#/definitions/rortypes.ResourceEndpointSpecSubsetsAddresses'
+        type: array
+      notReadyAddresses:
+        items:
+          $ref: '#/definitions/rortypes.ResourceEndpointSpecSubsetsNotReadyAddresses'
+        type: array
+      ports:
+        items:
+          $ref: '#/definitions/rortypes.ResourceEndpointSpecSubsetsPorts'
+        type: array
+    type: object
+  rortypes.ResourceEndpointSpecSubsetsAddresses:
+    properties:
+      hostname:
+        type: string
+      ip:
+        type: string
+      nodeName:
+        type: string
+      targetRef:
+        $ref: '#/definitions/rortypes.ResourceEndpointSpecSubsetsAddressesTargetRef'
+    type: object
+  rortypes.ResourceEndpointSpecSubsetsAddressesTargetRef:
     properties:
       apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
+        type: string
+      fieldPath:
         type: string
       kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
         type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
+      name:
+        type: string
+      namespace:
+        type: string
+      resourceVersion:
+        type: string
+      uid:
+        type: string
+    type: object
+  rortypes.ResourceEndpointSpecSubsetsNotReadyAddresses:
+    properties:
+      hostname:
+        type: string
+      ip:
+        type: string
+      nodeName:
+        type: string
+      targetRef:
+        $ref: '#/definitions/rortypes.ResourceEndpointSpecSubsetsNotReadyAddressesTargetRef'
+    type: object
+  rortypes.ResourceEndpointSpecSubsetsNotReadyAddressesTargetRef:
+    properties:
+      apiVersion:
+        type: string
+      fieldPath:
+        type: string
+      kind:
+        type: string
+      name:
+        type: string
+      namespace:
+        type: string
+      resourceVersion:
+        type: string
+      uid:
+        type: string
+    type: object
+  rortypes.ResourceEndpointSpecSubsetsPorts:
+    properties:
+      appProtocol:
+        type: string
+      name:
+        type: string
+      port:
+        type: integer
+      protocol:
+        type: string
+    type: object
+  rortypes.ResourceEndpoints:
+    properties:
+      subsets:
+        items:
+          $ref: '#/definitions/rortypes.ResourceEndpointSpecSubsets'
+        type: array
+    type: object
+  rortypes.ResourceExposedSecretReport:
+    properties:
       report:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceVulnerabilityReportReport'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
+        $ref: '#/definitions/rortypes.ResourceVulnerabilityReportReport'
     type: object
-  ror_internal_rorresources_rortypes.ResourceIngress:
+  rortypes.ResourceIngress:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
       spec:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceIngressSpec'
+        $ref: '#/definitions/rortypes.ResourceIngressSpec'
       status:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceIngressStatus'
+        $ref: '#/definitions/rortypes.ResourceIngressStatus'
     type: object
-  ror_internal_rorresources_rortypes.ResourceIngressClass:
+  rortypes.ResourceIngressClass:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
       spec:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceIngressClassSpec'
+        $ref: '#/definitions/rortypes.ResourceIngressClassSpec'
     type: object
-  ror_internal_rorresources_rortypes.ResourceIngressClassSpec:
+  rortypes.ResourceIngressClassSpec:
     properties:
       controller:
         type: string
       parameters:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceIngressClassSpecParameters'
+        $ref: '#/definitions/rortypes.ResourceIngressClassSpecParameters'
     type: object
-  ror_internal_rorresources_rortypes.ResourceIngressClassSpecParameters:
+  rortypes.ResourceIngressClassSpecParameters:
     properties:
       apiGroup:
         type: string
@@ -2657,22 +2632,22 @@ definitions:
       scope:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceIngressSpec:
+  rortypes.ResourceIngressSpec:
     properties:
       defaultBackend:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceIngressSpecRulesHttpPathsBackend'
+        $ref: '#/definitions/rortypes.ResourceIngressSpecRulesHttpPathsBackend'
       ingressClassName:
         type: string
       rules:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceIngressSpecRules'
+          $ref: '#/definitions/rortypes.ResourceIngressSpecRules'
         type: array
       tls:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceIngressSpecTls'
+          $ref: '#/definitions/rortypes.ResourceIngressSpecTls'
         type: array
     type: object
-  ror_internal_rorresources_rortypes.ResourceIngressSpecBackendResource:
+  rortypes.ResourceIngressSpecBackendResource:
     properties:
       apiGroup:
         type: string
@@ -2681,51 +2656,51 @@ definitions:
       name:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceIngressSpecBackendService:
+  rortypes.ResourceIngressSpecBackendService:
     properties:
       name:
         type: string
       port:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceIngressSpecBackendServicePort'
+        $ref: '#/definitions/rortypes.ResourceIngressSpecBackendServicePort'
     type: object
-  ror_internal_rorresources_rortypes.ResourceIngressSpecBackendServicePort:
+  rortypes.ResourceIngressSpecBackendServicePort:
     properties:
       name:
         type: string
       number:
         type: integer
     type: object
-  ror_internal_rorresources_rortypes.ResourceIngressSpecRules:
+  rortypes.ResourceIngressSpecRules:
     properties:
       apiGroup:
         type: string
       http:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceIngressSpecRulesHttp'
+        $ref: '#/definitions/rortypes.ResourceIngressSpecRulesHttp'
     type: object
-  ror_internal_rorresources_rortypes.ResourceIngressSpecRulesHttp:
+  rortypes.ResourceIngressSpecRulesHttp:
     properties:
       paths:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceIngressSpecRulesHttpPaths'
+          $ref: '#/definitions/rortypes.ResourceIngressSpecRulesHttpPaths'
         type: array
     type: object
-  ror_internal_rorresources_rortypes.ResourceIngressSpecRulesHttpPaths:
+  rortypes.ResourceIngressSpecRulesHttpPaths:
     properties:
       backend:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceIngressSpecRulesHttpPathsBackend'
+        $ref: '#/definitions/rortypes.ResourceIngressSpecRulesHttpPathsBackend'
       path:
         type: string
       pathType:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceIngressSpecRulesHttpPathsBackend:
+  rortypes.ResourceIngressSpecRulesHttpPathsBackend:
     properties:
       resource:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceIngressSpecBackendResource'
+        $ref: '#/definitions/rortypes.ResourceIngressSpecBackendResource'
       service:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceIngressSpecBackendService'
+        $ref: '#/definitions/rortypes.ResourceIngressSpecBackendService'
     type: object
-  ror_internal_rorresources_rortypes.ResourceIngressSpecTls:
+  rortypes.ResourceIngressSpecTls:
     properties:
       hosts:
         items:
@@ -2734,54 +2709,33 @@ definitions:
       secretName:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceIngressStatus:
+  rortypes.ResourceIngressStatus:
     properties:
       loadBalancer:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceIngressStatusLoadBalancer'
+        $ref: '#/definitions/rortypes.ResourceIngressStatusLoadBalancer'
     type: object
-  ror_internal_rorresources_rortypes.ResourceIngressStatusLoadBalancer:
+  rortypes.ResourceIngressStatusLoadBalancer:
     properties:
       ingress:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceIngressStatusLoadBalancerIngress'
+          $ref: '#/definitions/rortypes.ResourceIngressStatusLoadBalancerIngress'
         type: array
     type: object
-  ror_internal_rorresources_rortypes.ResourceIngressStatusLoadBalancerIngress:
+  rortypes.ResourceIngressStatusLoadBalancerIngress:
     properties:
       hostname:
         type: string
       ip:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceKubernetesCluster:
+  rortypes.ResourceKubernetesCluster:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
       spec:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpec'
+        $ref: '#/definitions/rortypes.ResourceKubernetesClusterSpec'
       status:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterStatus'
+        $ref: '#/definitions/rortypes.ResourceKubernetesClusterStatus'
     type: object
-  ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpec:
+  rortypes.ResourceKubernetesClusterSpec:
     properties:
       clusterId:
         type: string
@@ -2793,7 +2747,7 @@ definitions:
         type: string
       endpoints:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecEndpoint'
+          $ref: '#/definitions/rortypes.ResourceKubernetesClusterSpecEndpoint'
         type: array
       environment:
         type: string
@@ -2802,55 +2756,55 @@ definitions:
       provider:
         type: string
       providerSpec:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecProviderSpec'
+        $ref: '#/definitions/rortypes.ResourceKubernetesClusterSpecProviderSpec'
       toolingConfig:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecToolingConfig'
+        $ref: '#/definitions/rortypes.ResourceKubernetesClusterSpecToolingConfig'
       topology:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecTopology'
+        $ref: '#/definitions/rortypes.ResourceKubernetesClusterSpecTopology'
     type: object
-  ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecEndpoint:
+  rortypes.ResourceKubernetesClusterSpecEndpoint:
     properties:
       address:
         type: string
       type:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecProviderSpec:
+  rortypes.ResourceKubernetesClusterSpecProviderSpec:
     properties:
       azureSpec:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecProviderSpecAzureSpec'
+        $ref: '#/definitions/rortypes.ResourceKubernetesClusterSpecProviderSpecAzureSpec'
       tanzuSpec:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecProviderSpecTanzuSpec'
+        $ref: '#/definitions/rortypes.ResourceKubernetesClusterSpecProviderSpecTanzuSpec'
     type: object
-  ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecProviderSpecAzureSpec:
+  rortypes.ResourceKubernetesClusterSpecProviderSpecAzureSpec:
     properties:
       resourceGroup:
         type: string
       subscriptionId:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecProviderSpecTanzuSpec:
+  rortypes.ResourceKubernetesClusterSpecProviderSpecTanzuSpec:
     properties:
       namespace:
         type: string
       supervisorClusterName:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecToolingConfig:
+  rortypes.ResourceKubernetesClusterSpecToolingConfig:
     properties:
       splunkIndex:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecTopology:
+  rortypes.ResourceKubernetesClusterSpecTopology:
     properties:
       controlPlane:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecTopologyControlPlane'
+        $ref: '#/definitions/rortypes.ResourceKubernetesClusterSpecTopologyControlPlane'
       workers:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecTopologyWorkers'
+          $ref: '#/definitions/rortypes.ResourceKubernetesClusterSpecTopologyWorkers'
         type: array
     type: object
-  ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecTopologyControlPlane:
+  rortypes.ResourceKubernetesClusterSpecTopologyControlPlane:
     properties:
       machineClass:
         type: string
@@ -2859,7 +2813,7 @@ definitions:
       version:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceKubernetesClusterSpecTopologyWorkers:
+  rortypes.ResourceKubernetesClusterSpecTopologyWorkers:
     properties:
       machineClass:
         type: string
@@ -2870,11 +2824,11 @@ definitions:
       version:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceKubernetesClusterStatus:
+  rortypes.ResourceKubernetesClusterStatus:
     properties:
       conditions:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceKubernetesClusterStatusCondition'
+          $ref: '#/definitions/rortypes.ResourceKubernetesClusterStatusCondition'
         type: array
       createdTime:
         type: string
@@ -2892,7 +2846,7 @@ definitions:
       updatedTime:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceKubernetesClusterStatusCondition:
+  rortypes.ResourceKubernetesClusterStatusCondition:
     properties:
       lastTransitionTime:
         type: string
@@ -2905,59 +2859,140 @@ definitions:
       type:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceNamespace:
-    properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
+  rortypes.ResourceNamespace:
     type: object
-  ror_internal_rorresources_rortypes.ResourceNode:
+  rortypes.ResourceNetworkPolicy:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
       spec:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceNodeSpec'
+        $ref: '#/definitions/rortypes.ResourceNetworkPolicySpec'
       status:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceNodeStatus'
+        $ref: '#/definitions/rortypes.ResourceNetworkPolicyStatus'
     type: object
-  ror_internal_rorresources_rortypes.ResourceNodeSpec:
+  rortypes.ResourceNetworkPolicyCondition:
+    properties:
+      lastTransitionTime:
+        type: string
+      message:
+        type: string
+      observedGeneration:
+        type: integer
+      reason:
+        type: string
+      status:
+        type: string
+      type:
+        type: string
+    type: object
+  rortypes.ResourceNetworkPolicyEgressRule:
+    properties:
+      ports:
+        items:
+          $ref: '#/definitions/rortypes.ResourceNetworkPolicyPort'
+        type: array
+      to:
+        items:
+          $ref: '#/definitions/rortypes.ResourceNetworkPolicyPeer'
+        type: array
+    type: object
+  rortypes.ResourceNetworkPolicyIngressRule:
+    properties:
+      from:
+        items:
+          $ref: '#/definitions/rortypes.ResourceNetworkPolicyPeer'
+        type: array
+      ports:
+        items:
+          $ref: '#/definitions/rortypes.ResourceNetworkPolicyPort'
+        type: array
+    type: object
+  rortypes.ResourceNetworkPolicyIpBlock:
+    properties:
+      cidr:
+        type: string
+      except:
+        items:
+          type: string
+        type: array
+    type: object
+  rortypes.ResourceNetworkPolicyPeer:
+    properties:
+      ipBlock:
+        $ref: '#/definitions/rortypes.ResourceNetworkPolicyIpBlock'
+      namespaceSelector:
+        $ref: '#/definitions/rortypes.ResourceNetworkPolicySelector'
+      podSelector:
+        $ref: '#/definitions/rortypes.ResourceNetworkPolicySelector'
+    type: object
+  rortypes.ResourceNetworkPolicyPodSelector:
+    properties:
+      matchLabels:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  rortypes.ResourceNetworkPolicyPort:
+    properties:
+      endPort:
+        type: integer
+      port:
+        $ref: '#/definitions/intstr.IntOrString'
+      protocol:
+        type: string
+    type: object
+  rortypes.ResourceNetworkPolicySelector:
+    properties:
+      matchExpressions:
+        items:
+          $ref: '#/definitions/rortypes.ResourceNetworkPolicySelectorExpression'
+        type: array
+      matchLabels:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  rortypes.ResourceNetworkPolicySelectorExpression:
+    properties:
+      key:
+        type: string
+      operator:
+        type: string
+      values:
+        items:
+          type: string
+        type: array
+    type: object
+  rortypes.ResourceNetworkPolicySpec:
+    properties:
+      egress:
+        items:
+          $ref: '#/definitions/rortypes.ResourceNetworkPolicyEgressRule'
+        type: array
+      ingress:
+        items:
+          $ref: '#/definitions/rortypes.ResourceNetworkPolicyIngressRule'
+        type: array
+      podSelector:
+        $ref: '#/definitions/rortypes.ResourceNetworkPolicyPodSelector'
+      policyTypes:
+        items:
+          type: string
+        type: array
+    type: object
+  rortypes.ResourceNetworkPolicyStatus:
+    properties:
+      conditions:
+        items:
+          $ref: '#/definitions/rortypes.ResourceNetworkPolicyCondition'
+        type: array
+    type: object
+  rortypes.ResourceNode:
+    properties:
+      spec:
+        $ref: '#/definitions/rortypes.ResourceNodeSpec'
+      status:
+        $ref: '#/definitions/rortypes.ResourceNodeStatus'
+    type: object
+  rortypes.ResourceNodeSpec:
     properties:
       podCIDR:
         type: string
@@ -2969,50 +3004,50 @@ definitions:
         type: string
       taints:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceNodeSpecTaints'
+          $ref: '#/definitions/rortypes.ResourceNodeSpecTaints'
         type: array
     type: object
-  ror_internal_rorresources_rortypes.ResourceNodeSpecTaints:
+  rortypes.ResourceNodeSpecTaints:
     properties:
       effect:
         type: string
       key:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceNodeStatus:
+  rortypes.ResourceNodeStatus:
     properties:
       addresses:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceNodeStatusAddresses'
+          $ref: '#/definitions/rortypes.ResourceNodeStatusAddresses'
         type: array
       capacity:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceNodeStatusCapacity'
+        $ref: '#/definitions/rortypes.ResourceNodeStatusCapacity'
       conditions:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceNodeStatusConditions'
+          $ref: '#/definitions/rortypes.ResourceNodeStatusConditions'
         type: array
       nodeInfo:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceNodeStatusNodeinfo'
+        $ref: '#/definitions/rortypes.ResourceNodeStatusNodeinfo'
     type: object
-  ror_internal_rorresources_rortypes.ResourceNodeStatusAddresses:
+  rortypes.ResourceNodeStatusAddresses:
     properties:
       address:
         type: string
       type:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceNodeStatusCapacity:
+  rortypes.ResourceNodeStatusCapacity:
     properties:
       cpu:
         type: string
-      ephemeral-storage:
+      ephemeralStorage:
         type: string
       memory:
         type: string
       pods:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceNodeStatusConditions:
+  rortypes.ResourceNodeStatusConditions:
     properties:
       lastHeartbeatTime:
         type: string
@@ -3027,7 +3062,7 @@ definitions:
       type:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceNodeStatusNodeinfo:
+  rortypes.ResourceNodeStatusNodeinfo:
     properties:
       architecture:
         type: string
@@ -3050,42 +3085,21 @@ definitions:
       systemUUID:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourcePersistentVolumeClaim:
+  rortypes.ResourcePersistentVolumeClaim:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
       spec:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourcePersistentVolumeClaimSpec'
+        $ref: '#/definitions/rortypes.ResourcePersistentVolumeClaimSpec'
       status:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourcePersistentVolumeClaimStatus'
+        $ref: '#/definitions/rortypes.ResourcePersistentVolumeClaimStatus'
     type: object
-  ror_internal_rorresources_rortypes.ResourcePersistentVolumeClaimSpec:
+  rortypes.ResourcePersistentVolumeClaimSpec:
     properties:
       accessModes:
         items:
           type: string
         type: array
       resources:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourcePersistentVolumeClaimSpecResources'
+        $ref: '#/definitions/rortypes.ResourcePersistentVolumeClaimSpecResources'
       storageClassName:
         type: string
       volumeMode:
@@ -3093,7 +3107,7 @@ definitions:
       volumeName:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourcePersistentVolumeClaimSpecResources:
+  rortypes.ResourcePersistentVolumeClaimSpecResources:
     properties:
       limits:
         additionalProperties:
@@ -3104,7 +3118,7 @@ definitions:
           type: string
         type: object
     type: object
-  ror_internal_rorresources_rortypes.ResourcePersistentVolumeClaimStatus:
+  rortypes.ResourcePersistentVolumeClaimStatus:
     properties:
       accessModes:
         items:
@@ -3117,46 +3131,25 @@ definitions:
       phase:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourcePod:
+  rortypes.ResourcePod:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
       spec:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourcePodSpec'
+        $ref: '#/definitions/rortypes.ResourcePodSpec'
       status:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourcePodStatus'
+        $ref: '#/definitions/rortypes.ResourcePodStatus'
     type: object
-  ror_internal_rorresources_rortypes.ResourcePodSpec:
+  rortypes.ResourcePodSpec:
     properties:
       containers:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourcePodSpecContainers'
+          $ref: '#/definitions/rortypes.ResourcePodSpecContainers'
         type: array
       nodeName:
         type: string
       serviceAccountName:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourcePodSpecContainers:
+  rortypes.ResourcePodSpecContainers:
     properties:
       image:
         type: string
@@ -3164,10 +3157,10 @@ definitions:
         type: string
       ports:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourcePodSpecContainersPorts'
+          $ref: '#/definitions/rortypes.ResourcePodSpecContainersPorts'
         type: array
     type: object
-  ror_internal_rorresources_rortypes.ResourcePodSpecContainersPorts:
+  rortypes.ResourcePodSpecContainersPorts:
     properties:
       containerPort:
         type: integer
@@ -3176,7 +3169,7 @@ definitions:
       protocol:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourcePodStatus:
+  rortypes.ResourcePodStatus:
     properties:
       message:
         type: string
@@ -3187,39 +3180,18 @@ definitions:
       startTime:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourcePolicyReport:
+  rortypes.ResourcePolicyReport:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
       lastReported:
         type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
       results:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourcePolicyReportResults'
+          $ref: '#/definitions/rortypes.ResourcePolicyReportResults'
         type: array
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
       summary:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourcePolicyReportSummary'
+        $ref: '#/definitions/rortypes.ResourcePolicyReportSummary'
     type: object
-  ror_internal_rorresources_rortypes.ResourcePolicyReportResults:
+  rortypes.ResourcePolicyReportResults:
     properties:
       category:
         type: string
@@ -3233,14 +3205,14 @@ definitions:
         type: object
       resources:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourcePolicyReportResultsResources'
+          $ref: '#/definitions/rortypes.ResourcePolicyReportResultsResources'
         type: array
       result:
         type: string
       severity:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourcePolicyReportResultsResources:
+  rortypes.ResourcePolicyReportResultsResources:
     properties:
       apiVersion:
         type: string
@@ -3251,7 +3223,7 @@ definitions:
       uid:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourcePolicyReportSummary:
+  rortypes.ResourcePolicyReportSummary:
     properties:
       error:
         type: integer
@@ -3264,33 +3236,12 @@ definitions:
       warn:
         type: integer
     type: object
-  ror_internal_rorresources_rortypes.ResourceProject:
+  rortypes.ResourceProject:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
       spec:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceProjectSpec'
+        $ref: '#/definitions/rortypes.ResourceProjectSpec'
     type: object
-  ror_internal_rorresources_rortypes.ResourceProjectSpec:
+  rortypes.ResourceProjectSpec:
     properties:
       active:
         type: boolean
@@ -3302,7 +3253,7 @@ definitions:
         type: string
       roles:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceProjectSpecRole'
+          $ref: '#/definitions/rortypes.ResourceProjectSpecRole'
         type: array
       serviceTag:
         type: string
@@ -3315,7 +3266,7 @@ definitions:
       workorder:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceProjectSpecRole:
+  rortypes.ResourceProjectSpecRole:
     properties:
       email:
         type: string
@@ -3328,79 +3279,37 @@ definitions:
       upn:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceRbacAssessmentReport:
+  rortypes.ResourceRbacAssessmentReport:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
       report:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceVulnerabilityReportReport'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
+        $ref: '#/definitions/rortypes.ResourceVulnerabilityReportReport'
     type: object
-  ror_internal_rorresources_rortypes.ResourceReplicaSet:
+  rortypes.ResourceReplicaSet:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
       spec:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceReplicaSetSpec'
+        $ref: '#/definitions/rortypes.ResourceReplicaSetSpec'
       status:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceReplicaSetStatus'
+        $ref: '#/definitions/rortypes.ResourceReplicaSetStatus'
     type: object
-  ror_internal_rorresources_rortypes.ResourceReplicaSetSpec:
+  rortypes.ResourceReplicaSetSpec:
     properties:
       replicas:
         type: integer
       selector:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceReplicaSetSpecSelector'
+        $ref: '#/definitions/rortypes.ResourceReplicaSetSpecSelector'
     type: object
-  ror_internal_rorresources_rortypes.ResourceReplicaSetSpecSelector:
+  rortypes.ResourceReplicaSetSpecSelector:
     properties:
       matchExpressions:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceReplicaSetSpecSelectorMatchExpressions'
+          $ref: '#/definitions/rortypes.ResourceReplicaSetSpecSelectorMatchExpressions'
         type: array
       matchLabels:
         additionalProperties:
           type: string
         type: object
     type: object
-  ror_internal_rorresources_rortypes.ResourceReplicaSetSpecSelectorMatchExpressions:
+  rortypes.ResourceReplicaSetSpecSelectorMatchExpressions:
     properties:
       key:
         type: string
@@ -3411,7 +3320,7 @@ definitions:
           type: string
         type: array
     type: object
-  ror_internal_rorresources_rortypes.ResourceReplicaSetStatus:
+  rortypes.ResourceReplicaSetStatus:
     properties:
       availableReplicas:
         type: integer
@@ -3420,10 +3329,10 @@ definitions:
       replicas:
         type: integer
     type: object
-  ror_internal_rorresources_rortypes.ResourceRorMeta:
+  rortypes.ResourceRorMeta:
     properties:
       action:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceAction'
+        $ref: '#/definitions/rortypes.ResourceAction'
       hash:
         type: string
       internal:
@@ -3431,37 +3340,47 @@ definitions:
       lastReported:
         type: string
       ownerref:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.RorResourceOwnerReference'
+        $ref: '#/definitions/rortypes.RorResourceOwnerReference'
       version:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceService:
+  rortypes.ResourceRoute:
+    properties:
+      spec:
+        $ref: '#/definitions/rortypes.ResourceRouteSpec'
+    type: object
+  rortypes.ResourceRouteMessageType:
     properties:
       apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
         type: string
       kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
         type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
-      spec:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceServiceSpec'
     type: object
-  ror_internal_rorresources_rortypes.ResourceServicePorts:
+  rortypes.ResourceRouteReceiver:
+    properties:
+      slack:
+        items:
+          $ref: '#/definitions/rortypes.ResourceRouteSlackReceiver'
+        type: array
+    type: object
+  rortypes.ResourceRouteSlackReceiver:
+    properties:
+      channelId:
+        type: string
+    type: object
+  rortypes.ResourceRouteSpec:
+    properties:
+      messageType:
+        $ref: '#/definitions/rortypes.ResourceRouteMessageType'
+      receivers:
+        $ref: '#/definitions/rortypes.ResourceRouteReceiver'
+    type: object
+  rortypes.ResourceService:
+    properties:
+      spec:
+        $ref: '#/definitions/rortypes.ResourceServiceSpec'
+    type: object
+  rortypes.ResourceServicePorts:
     properties:
       appProtocol:
         type: string
@@ -3474,7 +3393,7 @@ definitions:
       targetPort:
         $ref: '#/definitions/intstr.IntOrString'
     type: object
-  ror_internal_rorresources_rortypes.ResourceServiceSpec:
+  rortypes.ResourceServiceSpec:
     properties:
       clusterIP:
         type: string
@@ -3500,7 +3419,7 @@ definitions:
         type: string
       ports:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceServicePorts'
+          $ref: '#/definitions/rortypes.ResourceServicePorts'
         type: array
       selector:
         additionalProperties:
@@ -3509,33 +3428,46 @@ definitions:
       type:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceStatefulSet:
+  rortypes.ResourceSlackMessage:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
+      spec:
+        $ref: '#/definitions/rortypes.ResourceSlackMessageSpec'
       status:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceStatefulSetStatus'
+        items:
+          $ref: '#/definitions/rortypes.ResourceSlackMessageStatus'
+        type: array
     type: object
-  ror_internal_rorresources_rortypes.ResourceStatefulSetStatus:
+  rortypes.ResourceSlackMessageResult:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - SLACK_MESSAGE_OK
+    - SLACK_MESSAGE_ERROR
+    - SLACK_MESSAGE_UNKNOWN
+  rortypes.ResourceSlackMessageSpec:
+    properties:
+      channelId:
+        type: string
+      message:
+        type: string
+    type: object
+  rortypes.ResourceSlackMessageStatus:
+    properties:
+      error: {}
+      result:
+        $ref: '#/definitions/rortypes.ResourceSlackMessageResult'
+      timestamp:
+        type: string
+    type: object
+  rortypes.ResourceStatefulSet:
+    properties:
+      status:
+        $ref: '#/definitions/rortypes.ResourceStatefulSetStatus'
+    type: object
+  rortypes.ResourceStatefulSetStatus:
     properties:
       availableReplicas:
         type: integer
@@ -3548,117 +3480,75 @@ definitions:
       updatedReplicas:
         type: integer
     type: object
-  ror_internal_rorresources_rortypes.ResourceStorageClass:
+  rortypes.ResourceStorageClass:
     properties:
       allowVolumeExpansion:
         type: boolean
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
       provisioner:
         type: string
       reclaimPolicy:
         type: string
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
       volumeBindingMode:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanuzKuberntesClusterSpec:
+  rortypes.ResourceTanuzKuberntesClusterSpec:
     properties:
       distribution:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecDistribution'
+        $ref: '#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecDistribution'
       settings:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettings'
+        $ref: '#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecSettings'
       topology:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopology'
+        $ref: '#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecTopology'
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesCluster:
+  rortypes.ResourceTanzuKubernetesCluster:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
       spec:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanuzKuberntesClusterSpec'
+        $ref: '#/definitions/rortypes.ResourceTanuzKuberntesClusterSpec'
       status:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterStatus'
+        $ref: '#/definitions/rortypes.ResourceTanzuKubernetesClusterStatus'
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecDistribution:
+  rortypes.ResourceTanzuKubernetesClusterSpecDistribution:
     properties:
       fullVersion:
         type: string
       version:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettings:
+  rortypes.ResourceTanzuKubernetesClusterSpecSettings:
     properties:
       network:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetwork'
+        $ref: '#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetwork'
       storage:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsStorage'
+        $ref: '#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecSettingsStorage'
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetwork:
+  rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetwork:
     properties:
       cni:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkCni'
+        $ref: '#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkCni'
       pods:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkPods'
+        $ref: '#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkPods'
       proxy:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkProxy'
+        $ref: '#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkProxy'
       serviceDomain:
         type: string
       services:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkServices'
+        $ref: '#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkServices'
       trust:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkTrust'
+        $ref: '#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkTrust'
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkCni:
+  rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkCni:
     properties:
       name:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkPods:
+  rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkPods:
     properties:
       cidrBlocks:
         items:
           type: string
         type: array
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkProxy:
+  rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkProxy:
     properties:
       httpProxy:
         type: string
@@ -3667,28 +3557,28 @@ definitions:
       noProxy:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkServices:
+  rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkServices:
     properties:
       cidrBlocks:
         items:
           type: string
         type: array
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkTrust:
+  rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkTrust:
     properties:
       additionalTrustedCAs:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkTrustAdditionalTrustedCA'
+          $ref: '#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkTrustAdditionalTrustedCA'
         type: array
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkTrustAdditionalTrustedCA:
+  rortypes.ResourceTanzuKubernetesClusterSpecSettingsNetworkTrustAdditionalTrustedCA:
     properties:
       data:
         type: string
       name:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecSettingsStorage:
+  rortypes.ResourceTanzuKubernetesClusterSpecSettingsStorage:
     properties:
       classes:
         items:
@@ -3697,16 +3587,16 @@ definitions:
       defaultClass:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopology:
+  rortypes.ResourceTanzuKubernetesClusterSpecTopology:
     properties:
       controlPlane:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlane'
+        $ref: '#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlane'
       nodePools:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePools'
+          $ref: '#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePools'
         type: array
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlane:
+  rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlane:
     properties:
       nodeDrainTimeout:
         type: string
@@ -3715,16 +3605,16 @@ definitions:
       storageClass:
         type: string
       tkr:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlaneTkr'
+        $ref: '#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlaneTkr'
       vmClass:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlaneTkr:
+  rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlaneTkr:
     properties:
       reference:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlaneTkrReference'
+        $ref: '#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlaneTkrReference'
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlaneTkrReference:
+  rortypes.ResourceTanzuKubernetesClusterSpecTopologyControlPlaneTkrReference:
     properties:
       kind:
         type: string
@@ -3736,7 +3626,7 @@ definitions:
         description: ResourceVersion string `json:"resourceVersion"`
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePools:
+  rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePools:
     properties:
       failureDomain:
         type: string
@@ -3754,18 +3644,18 @@ definitions:
         type: string
       taints:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTaints'
+          $ref: '#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTaints'
         type: array
       tkr:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTkr'
+        $ref: '#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTkr'
       vmClass:
         type: string
       volumes:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsVolumes'
+          $ref: '#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsVolumes'
         type: array
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTaints:
+  rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTaints:
     properties:
       effect:
         type: string
@@ -3776,12 +3666,12 @@ definitions:
       value:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTkr:
+  rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTkr:
     properties:
       reference:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTkrReference'
+        $ref: '#/definitions/rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTkrReference'
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTkrReference:
+  rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsTkrReference:
     properties:
       fieldPath:
         type: string
@@ -3795,7 +3685,7 @@ definitions:
         description: ResourceVersion string `json:"resourceVersion"`
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsVolumes:
+  rortypes.ResourceTanzuKubernetesClusterSpecTopologyNodePoolsVolumes:
     properties:
       capasity:
         additionalProperties:
@@ -3808,16 +3698,16 @@ definitions:
       storageClass:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterStatus:
+  rortypes.ResourceTanzuKubernetesClusterStatus:
     properties:
       apiEndpoints:
         description: Addons []ResourceTanzuKubernetesClusterStatusAddons `json:"addons"`
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterStatusAPIEndpoints'
+          $ref: '#/definitions/rortypes.ResourceTanzuKubernetesClusterStatusAPIEndpoints'
         type: array
       conditions:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterStatusConditions'
+          $ref: '#/definitions/rortypes.ResourceTanzuKubernetesClusterStatusConditions'
         type: array
       phase:
         type: string
@@ -3826,14 +3716,14 @@ definitions:
       version:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterStatusAPIEndpoints:
+  rortypes.ResourceTanzuKubernetesClusterStatusAPIEndpoints:
     properties:
       host:
         type: string
       port:
         type: integer
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesClusterStatusConditions:
+  rortypes.ResourceTanzuKubernetesClusterStatusConditions:
     properties:
       lastTransitionTime:
         type: string
@@ -3848,50 +3738,29 @@ definitions:
       type:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesRelease:
+  rortypes.ResourceTanzuKubernetesRelease:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
       spec:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesReleaseSpec'
+        $ref: '#/definitions/rortypes.ResourceTanzuKubernetesReleaseSpec'
       status:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesReleaseStatus'
+        $ref: '#/definitions/rortypes.ResourceTanzuKubernetesReleaseStatus'
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesReleaseSpec:
+  rortypes.ResourceTanzuKubernetesReleaseSpec:
     properties:
       images:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesReleaseSpecImage'
+          $ref: '#/definitions/rortypes.ResourceTanzuKubernetesReleaseSpecImage'
         type: array
       kubernetesVersion:
         type: string
       nodeImageRef:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesReleaseSpecNodeImageRef'
+        $ref: '#/definitions/rortypes.ResourceTanzuKubernetesReleaseSpecNodeImageRef'
       repository:
         type: string
       version:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesReleaseSpecImage:
+  rortypes.ResourceTanzuKubernetesReleaseSpecImage:
     properties:
       name:
         type: string
@@ -3900,7 +3769,7 @@ definitions:
       tag:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesReleaseSpecNodeImageRef:
+  rortypes.ResourceTanzuKubernetesReleaseSpecNodeImageRef:
     properties:
       apiVersion:
         type: string
@@ -3914,14 +3783,14 @@ definitions:
         description: ResourceVersion string `json:"resourceVersion"`
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesReleaseStatus:
+  rortypes.ResourceTanzuKubernetesReleaseStatus:
     properties:
       conditions:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceTanzuKubernetesReleaseStatusCondition'
+          $ref: '#/definitions/rortypes.ResourceTanzuKubernetesReleaseStatusCondition'
         type: array
     type: object
-  ror_internal_rorresources_rortypes.ResourceTanzuKubernetesReleaseStatusCondition:
+  rortypes.ResourceTanzuKubernetesReleaseStatusCondition:
     properties:
       lastTransitionTime:
         type: string
@@ -3936,63 +3805,32 @@ definitions:
       type:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceVirtualMachineClass:
+  rortypes.ResourceVirtualMachine:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
+      id:
         type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
+      name:
         type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
       spec:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceVirtualMachineClassSpec'
+        $ref: '#/definitions/rortypes.ResourceVirtualMachineSpec'
+      status:
+        $ref: '#/definitions/rortypes.ResourceVirtualMachineStatus'
+    type: object
+  rortypes.ResourceVirtualMachineClass:
+    properties:
+      spec:
+        $ref: '#/definitions/rortypes.ResourceVirtualMachineClassSpec'
       status:
         additionalProperties:
           type: string
         type: object
     type: object
-  ror_internal_rorresources_rortypes.ResourceVirtualMachineClassBinding:
+  rortypes.ResourceVirtualMachineClassBinding:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
-        type: string
       classRef:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceVirtualMachineClassBindingClassRef'
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
+        $ref: '#/definitions/rortypes.ResourceVirtualMachineClassBindingClassRef'
     type: object
-  ror_internal_rorresources_rortypes.ResourceVirtualMachineClassBindingClassRef:
+  rortypes.ResourceVirtualMachineClassBindingClassRef:
     properties:
       apiVersion:
         type: string
@@ -4001,76 +3839,213 @@ definitions:
       name:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceVirtualMachineClassSpec:
+  rortypes.ResourceVirtualMachineClassSpec:
     properties:
       description:
         type: string
       hardware:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceVirtualMachineClassSpecHardware'
+        $ref: '#/definitions/rortypes.ResourceVirtualMachineClassSpecHardware'
     type: object
-  ror_internal_rorresources_rortypes.ResourceVirtualMachineClassSpecHardware:
+  rortypes.ResourceVirtualMachineClassSpecHardware:
     properties:
       cpus:
         type: integer
       instanceStorage:
         allOf:
-        - $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceVirtualMachineClassSpecHardwareInstanceStorage'
+        - $ref: '#/definitions/rortypes.ResourceVirtualMachineClassSpecHardwareInstanceStorage'
         description: Devices ResourceVirtualMachineClassSpecHardwareDevice `json:"devices"`
     type: object
-  ror_internal_rorresources_rortypes.ResourceVirtualMachineClassSpecHardwareInstanceStorage:
+  rortypes.ResourceVirtualMachineClassSpecHardwareInstanceStorage:
     properties:
       storageClass:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceVulnerabilityReport:
+  rortypes.ResourceVirtualMachineCpuSpec:
     properties:
-      apiVersion:
-        description: |-
-          APIVersion defines the versioned schema of this representation of an object.
-          Servers should convert recognized schemas to the latest internal value, and
-          may reject unrecognized values.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-          +optional
+      coresPerSocket:
+        description: cores per socket
+        type: integer
+      id:
         type: string
-      kind:
-        description: |-
-          Kind is a string value representing the REST resource this object represents.
-          Servers may infer this from the endpoint the client submits requests to.
-          Cannot be updated.
-          In CamelCase.
-          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-          +optional
-        type: string
-      metadata:
-        $ref: '#/definitions/v1.ObjectMeta'
-      report:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceVulnerabilityReportReport'
-      rormeta:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceRorMeta'
+      sockets:
+        type: integer
     type: object
-  ror_internal_rorresources_rortypes.ResourceVulnerabilityReportReport:
+  rortypes.ResourceVirtualMachineCpuStatus:
+    properties:
+      id:
+        type: string
+      unit:
+        description: describes what unit the usage is given in
+        type: string
+      usage:
+        type: string
+    type: object
+  rortypes.ResourceVirtualMachineDiskSpec:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      sizeBytes:
+        type: integer
+      type:
+        type: string
+    type: object
+  rortypes.ResourceVirtualMachineDiskStatus:
+    properties:
+      id:
+        type: string
+      usageBytes:
+        type: string
+    type: object
+  rortypes.ResourceVirtualMachineMemorySpec:
+    properties:
+      id:
+        type: string
+      sizeBytes:
+        type: integer
+    type: object
+  rortypes.ResourceVirtualMachineMemoryStatus:
+    properties:
+      id:
+        type: string
+      unit:
+        description: describes what unit the usage is given in
+        type: string
+      usage:
+        type: string
+    type: object
+  rortypes.ResourceVirtualMachineNetworkSpec:
+    properties:
+      dns:
+        type: string
+      gateway:
+        type: string
+      id:
+        type: string
+      ipv4:
+        type: string
+      ipv6:
+        type: string
+      mask:
+        type: string
+    type: object
+  rortypes.ResourceVirtualMachineNetworkStatus:
+    properties:
+      id:
+        type: string
+    type: object
+  rortypes.ResourceVirtualMachineOperatingSystemSpec:
+    properties:
+      id:
+        type: string
+    type: object
+  rortypes.ResourceVirtualMachineOperatingSystemStatus:
+    properties:
+      architecture:
+        type: string
+      hostName:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      powerState:
+        type: string
+      toolVersion:
+        type: string
+      version:
+        type: string
+    type: object
+  rortypes.ResourceVirtualMachineSpec:
+    properties:
+      cpu:
+        $ref: '#/definitions/rortypes.ResourceVirtualMachineCpuSpec'
+      disks:
+        items:
+          $ref: '#/definitions/rortypes.ResourceVirtualMachineDiskSpec'
+        type: array
+      memory:
+        $ref: '#/definitions/rortypes.ResourceVirtualMachineMemorySpec'
+      networks:
+        items:
+          $ref: '#/definitions/rortypes.ResourceVirtualMachineNetworkSpec'
+        type: array
+      operatingSystem:
+        $ref: '#/definitions/rortypes.ResourceVirtualMachineOperatingSystemSpec'
+      tags:
+        items:
+          $ref: '#/definitions/rortypes.ResourceVirtualMachineTagSpec'
+        type: array
+    type: object
+  rortypes.ResourceVirtualMachineStatus:
+    properties:
+      cpu:
+        $ref: '#/definitions/rortypes.ResourceVirtualMachineCpuStatus'
+      disks:
+        items:
+          $ref: '#/definitions/rortypes.ResourceVirtualMachineDiskStatus'
+        type: array
+      memory:
+        $ref: '#/definitions/rortypes.ResourceVirtualMachineMemoryStatus'
+      networks:
+        items:
+          $ref: '#/definitions/rortypes.ResourceVirtualMachineNetworkStatus'
+        type: array
+      operatingSystem:
+        $ref: '#/definitions/rortypes.ResourceVirtualMachineOperatingSystemStatus'
+    type: object
+  rortypes.ResourceVirtualMachineTagSpec:
+    properties:
+      description:
+        type: string
+      key:
+        type: string
+      value:
+        type: string
+    type: object
+  rortypes.ResourceVulnerabilityEvent:
+    properties:
+      spec:
+        $ref: '#/definitions/rortypes.ResourceVulnerabilityEventSpec'
+    type: object
+  rortypes.ResourceVulnerabilityEventSpec:
+    properties:
+      message:
+        type: string
+      owner:
+        $ref: '#/definitions/rortypes.RorResourceOwnerReference'
+    type: object
+  rortypes.ResourceVulnerabilityReport:
+    properties:
+      report:
+        $ref: '#/definitions/rortypes.ResourceVulnerabilityReportReport'
+    type: object
+  rortypes.ResourceVulnerabilityReportReport:
     properties:
       artifact:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceVulnerabilityReportReportArtifact'
+        $ref: '#/definitions/rortypes.ResourceVulnerabilityReportReportArtifact'
       scanner:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.AquaReportScanner'
+        $ref: '#/definitions/rortypes.AquaReportScanner'
       summary:
-        $ref: '#/definitions/ror_internal_rorresources_rortypes.AquaReportSummary'
+        $ref: '#/definitions/rortypes.AquaReportSummary'
       updateTimestamp:
         type: string
       vulnerabilities:
         items:
-          $ref: '#/definitions/ror_internal_rorresources_rortypes.ResourceVulnerabilityReportReportVulnerability'
+          $ref: '#/definitions/rortypes.ResourceVulnerabilityReportReportVulnerability'
         type: array
     type: object
-  ror_internal_rorresources_rortypes.ResourceVulnerabilityReportReportArtifact:
+  rortypes.ResourceVulnerabilityReportReportArtifact:
     properties:
+      digest:
+        type: string
       repository:
         type: string
       tag:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.ResourceVulnerabilityReportReportVulnerability:
+  rortypes.ResourceVulnerabilityReportReportVulnerability:
     properties:
       fixedVersion:
         type: string
@@ -4089,7 +4064,7 @@ definitions:
       vulnerabilityID:
         type: string
     type: object
-  ror_internal_rorresources_rortypes.RorResourceOwnerReference:
+  rortypes.RorResourceOwnerReference:
     properties:
       scope:
         allOf:
@@ -4099,7 +4074,7 @@ definitions:
         description: ror id eg clusterId or workspaceName
         type: string
     type: object
-  ror_internal_rorresources_rortypes.SensitivityLevel:
+  rortypes.SensitivityLevel:
     enum:
     - 0
     - 1
@@ -4113,13 +4088,28 @@ definitions:
     - SensitivityLevelModerate
     - SensitivityLevelHigh
     - SensitivityLevelCritical
-  rorerror.RorError:
-    properties:
-      message:
-        type: string
-      status:
-        type: integer
-    type: object
+  rortypes.VulnerabilityDismissalReason:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - ACCEPTABLE_RISK
+    - FALSE_POSITIVE
+    - NOT_APPLICABLE
+  rortypes.VulnerabilityStatus:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    type: integer
+    x-enum-varnames:
+    - NOT_ASSESSED
+    - NEEDS_TRIAGE
+    - CONFIRMED
+    - DISMISSED
   v1.FieldsV1:
     type: object
   v1.ManagedFieldsEntry:
@@ -4188,7 +4178,7 @@ definitions:
           Annotations is an unstructured key value map stored with a resource that may be
           set by external tools to store and retrieve arbitrary metadata. They are not
           queryable and should be preserved when modifying objects.
-          More info: http://kubernetes.io/docs/user-guide/annotations
+          More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations
           +optional
         type: object
       creationTimestamp:
@@ -4250,6 +4240,7 @@ definitions:
           are not vulnerable to ordering changes in the list.
           +optional
           +patchStrategy=merge
+          +listType=set
         items:
           type: string
         type: array
@@ -4282,7 +4273,7 @@ definitions:
           Map of string keys and values that can be used to organize and categorize
           (scope and select) objects. May match selectors of replication controllers
           and services.
-          More info: http://kubernetes.io/docs/user-guide/labels
+          More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels
           +optional
         type: object
       managedFields:
@@ -4296,6 +4287,7 @@ definitions:
           workflow used when modifying the object.
 
           +optional
+          +listType=atomic
         items:
           $ref: '#/definitions/v1.ManagedFieldsEntry'
         type: array
@@ -4306,7 +4298,7 @@ definitions:
           automatically. Name is primarily intended for creation idempotence and configuration
           definition.
           Cannot be updated.
-          More info: http://kubernetes.io/docs/user-guide/identifiers#names
+          More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names
           +optional
         type: string
       namespace:
@@ -4318,7 +4310,7 @@ definitions:
 
           Must be a DNS_LABEL.
           Cannot be updated.
-          More info: http://kubernetes.io/docs/user-guide/namespaces
+          More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces
           +optional
         type: string
       ownerReferences:
@@ -4330,6 +4322,8 @@ definitions:
           +optional
           +patchMergeKey=uid
           +patchStrategy=merge
+          +listType=map
+          +listMapKey=uid
         items:
           $ref: '#/definitions/v1.OwnerReference'
         type: array
@@ -4360,7 +4354,7 @@ definitions:
 
           Populated by the system.
           Read-only.
-          More info: http://kubernetes.io/docs/user-guide/identifiers#uids
+          More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids
           +optional
         type: string
     type: object
@@ -4394,18 +4388,18 @@ definitions:
       name:
         description: |-
           Name of the referent.
-          More info: http://kubernetes.io/docs/user-guide/identifiers#names
+          More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names
         type: string
       uid:
         description: |-
           UID of the referent.
-          More info: http://kubernetes.io/docs/user-guide/identifiers#uids
+          More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids
         type: string
     type: object
 info:
   contact:
-    name: Privat Sky
-    url: http://ror.sky.nhn.no
+    name: ROR
+    url: https://github.com/NorskHelsenett/ror
   description: 'ROR-API, need any help? Go to channel #drift-sdi-devops in norskhelsenett.slack.com
     slack workspace'
   title: Swagger ROR-API
@@ -4415,7 +4409,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get health status for NHN-ROR-API
+      description: Get health status for ROR-API
       produces:
       - application/json
       responses:
@@ -5033,7 +5027,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/ror_internal_models_viewsmodels.ComplianceReport'
+              $ref: '#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReport'
             type: array
         "401":
           description: Unauthorized
@@ -5593,7 +5587,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/ror_internal_models_viewsmodels.ComplianceReport'
+              $ref: '#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReport'
             type: array
         "401":
           description: Unauthorized
@@ -5656,7 +5650,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/ror_internal_models_viewsmodels.VulnerabilityReportsView'
+              $ref: '#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.VulnerabilityReportsView'
             type: array
         "401":
           description: Unauthorized
@@ -5740,7 +5734,7 @@ paths:
       summary: Vulnerability reports view
       tags:
       - clusters
-  /v1/clusters/workspace/{workspaceName}/filter:
+  /v1/clusters/workspace/{workspaceId}/filter:
     get:
       consumes:
       - application/json
@@ -5752,9 +5746,9 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/apicontracts.Filter'
-      - description: workspaceName
+      - description: workspaceId
         in: path
-        name: workspaceName
+        name: workspaceId
         required: true
         type: string
       produces:
@@ -6323,15 +6317,15 @@ paths:
       summary: Get metrics for clusters
       tags:
       - metrics
-  /v1/metrics/clusters/workspace/{workspaceName}:
+  /v1/metrics/clusters/workspace/{workspaceId}:
     get:
       consumes:
       - application/json
       description: Get metrics for clusters by workspace
       parameters:
-      - description: workspaceName
+      - description: workspaceId
         in: path
-        name: workspaceName
+        name: workspaceId
         required: true
         type: string
       produces:
@@ -6491,15 +6485,15 @@ paths:
       summary: Get metrics
       tags:
       - metrics
-  /v1/metrics/workspace/{workspaceName}:
+  /v1/metrics/workspace/{workspaceId}:
     get:
       consumes:
       - application/json
       description: Get metrics for workspace name
       parameters:
-      - description: workspaceName
+      - description: workspaceId
         in: path
-        name: workspaceName
+        name: workspaceId
         required: true
         type: string
       produces:
@@ -6527,15 +6521,15 @@ paths:
       summary: Get metrics for workspace name
       tags:
       - metrics
-  /v1/metrics/workspaces/datacenter/{datacenterName}/filter:
+  /v1/metrics/workspaces/datacenter/{datacenterId}/filter:
     post:
       consumes:
       - application/json
       description: Get metrics for workspaces by datacenter name
       parameters:
-      - description: datacenterName
+      - description: datacenterId
         in: path
-        name: datacenterName
+        name: datacenterId
         required: true
         type: string
       - description: Filter
@@ -6864,7 +6858,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/apiresourcecontracts.ResourceClusterorders'
+            $ref: '#/definitions/apiresourcecontracts.ResourceListClusterorders'
         "401":
           description: Unauthorized
           schema:
@@ -6884,7 +6878,7 @@ paths:
       tags:
       - orders
   /v1/orders/cluster:
-    post:
+    delete:
       consumes:
       - application/json
       description: Order a kubernetes cluster
@@ -6918,6 +6912,42 @@ paths:
       - AccessToken: []
         ApiKey: []
       summary: Order deletion a kubernetes cluster
+      tags:
+      - orders
+    post:
+      consumes:
+      - application/json
+      description: Order a kubernetes cluster
+      parameters:
+      - description: Filter
+        in: body
+        name: filter
+        required: true
+        schema:
+          $ref: '#/definitions/apiresourcecontracts.ResourceClusterOrderSpec'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apicontracts.PaginatedResult-apicontracts_Cluster'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Order a kubernetes cluster
       tags:
       - orders
   /v1/prices:
@@ -7417,6 +7447,7 @@ paths:
         - cluster
         - project
         - datacenter
+        - virtualmachine
         in: query
         name: ownerScope
         required: true
@@ -7476,6 +7507,7 @@ paths:
         - cluster
         - project
         - datacenter
+        - virtualmachine
         in: query
         name: ownerScope
         required: true
@@ -7571,6 +7603,7 @@ paths:
         - cluster
         - project
         - datacenter
+        - virtualmachine
         in: query
         name: ownerScope
         required: true
@@ -7655,6 +7688,7 @@ paths:
         - cluster
         - project
         - datacenter
+        - virtualmachine
         in: query
         name: ownerScope
         required: true
@@ -8467,6 +8501,7 @@ paths:
         - cluster
         - project
         - datacenter
+        - virtualmachine
         in: query
         name: ownerScope
         required: true
@@ -8526,6 +8561,7 @@ paths:
         - cluster
         - project
         - datacenter
+        - virtualmachine
         in: query
         name: ownerScope
         required: true
@@ -8582,7 +8618,7 @@ paths:
         name: rorresource
         required: true
         schema:
-          $ref: '#/definitions/ror_internal_rorresources.ResourceSet'
+          $ref: '#/definitions/rorresources.ResourceSet'
       produces:
       - application/json
       responses:
@@ -8621,6 +8657,7 @@ paths:
         - cluster
         - project
         - datacenter
+        - virtualmachine
         in: query
         name: ownerScope
         required: true
@@ -8705,6 +8742,7 @@ paths:
         - cluster
         - project
         - datacenter
+        - virtualmachine
         in: query
         name: ownerScope
         required: true
