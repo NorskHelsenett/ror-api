@@ -111,13 +111,13 @@ func GetForWorkspaces() gin.HandlerFunc {
 //	@Tags			metrics
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200															{object}	apicontracts.MetricList
-//	@Failure		403															{string}	Forbidden
-//	@Failure		401															{string}	Unauthorized
-//	@Failure		500															{string}	Failure	message
-//	@Param			datacenterId												path		string	true	"datacenterId"
+//	@Success		200														{object}	apicontracts.MetricList
+//	@Failure		403														{string}	Forbidden
+//	@Failure		401														{string}	Unauthorized
+//	@Failure		500														{string}	Failure	message
+//	@Param			datacenterId											path		string	true	"datacenterId"
 //	@Router			/v1/metrics/workspaces/datacenter/{datacenterId}/filter	[post]
-//	@Param			filter														body	apicontracts.Filter	true	"Filter"
+//	@Param			filter													body	apicontracts.Filter	true	"Filter"
 //	@Security		ApiKey || AccessToken
 func GetForWorkspacesByDatacenterId() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -182,10 +182,10 @@ func GetForWorkspacesByDatacenterId() gin.HandlerFunc {
 //	@Tags			metrics
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200										{object}	apicontracts.MetricItem
-//	@Failure		403										{string}	Forbidden
-//	@Failure		401										{string}	Unauthorized
-//	@Failure		500										{string}	Failure	message
+//	@Success		200									{object}	apicontracts.MetricItem
+//	@Failure		403									{string}	Forbidden
+//	@Failure		401									{string}	Unauthorized
+//	@Failure		500									{string}	Failure	message
 //	@Router			/v1/metrics/workspace/{workspaceId}	[get]
 //	@Param			workspaceId							path	string	true	"workspaceId"
 //	@Security		ApiKey || AccessToken

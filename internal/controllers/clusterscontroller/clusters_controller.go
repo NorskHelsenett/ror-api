@@ -201,12 +201,12 @@ func ClusterByFilter() gin.HandlerFunc {
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200												{array}		apicontracts.Cluster
-//	@Failure		403												{string}	Forbidden
-//	@Failure		401												{string}	Unauthorized
-//	@Failure		500												{string}	Failure	message
+//	@Success		200											{array}		apicontracts.Cluster
+//	@Failure		403											{string}	Forbidden
+//	@Failure		401											{string}	Unauthorized
+//	@Failure		500											{string}	Failure	message
 //	@Router			/v1/clusters/workspace/{workspaceId}/filter	[get]
-//	@Param			filter											body	apicontracts.Filter	true	"Filter"
+//	@Param			filter										body	apicontracts.Filter	true	"Filter"
 //	@Param			workspaceId									path	string				true	"workspaceId"
 //	@Security		ApiKey || AccessToken
 func ClusterGetByWorkspaceId() gin.HandlerFunc {
@@ -508,12 +508,12 @@ func GetControlPlanesMetadata() gin.HandlerFunc {
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			id	path		string	true	"id"
-//	@Param			credentials				body	apicontracts.KubeconfigCredentials	true	"Credentials"
-//	@Success		200	{object}	apicontracts.ClusterKubeconfig
-//	@Failure		403	{string}	Forbidden
-//	@Failure		401	{string}	Unauthorized
-//	@Failure		500	{string}	Failure	message
+//	@Param			id			path		string								true	"id"
+//	@Param			credentials	body		apicontracts.KubeconfigCredentials	true	"Credentials"
+//	@Success		200			{object}	apicontracts.ClusterKubeconfig
+//	@Failure		403			{string}	Forbidden
+//	@Failure		401			{string}	Unauthorized
+//	@Failure		500			{string}	Failure	message
 //	@Router			/v1/clusters/{clusterid}/login [post]
 //	@Security		ApiKey || AccessToken
 func GetKubeconfig() gin.HandlerFunc {
@@ -625,11 +625,11 @@ func GetKubeconfig() gin.HandlerFunc {
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			credentials				body	apicontracts.Cluster	true	"Credentials"
-//	@Success		200	{string}	ClusterId
-//	@Failure		403	{string}	Forbidden
-//	@Failure		401	{string}	Unauthorized
-//	@Failure		500	{string}	Failure	message
+//	@Param			credentials	body		apicontracts.Cluster	true	"Credentials"
+//	@Success		200			{string}	ClusterId
+//	@Failure		403			{string}	Forbidden
+//	@Failure		401			{string}	Unauthorized
+//	@Failure		500			{string}	Failure	message
 //	@Router			/v1/clusters [post]
 //	@Security		ApiKey || AccessToken
 func CreateCluster() gin.HandlerFunc {

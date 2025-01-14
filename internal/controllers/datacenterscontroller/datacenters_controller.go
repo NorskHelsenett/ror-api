@@ -113,19 +113,19 @@ func GetByName() gin.HandlerFunc {
 	}
 }
 
-// @Summary	Get datacenter by id
-// @Schemes
-// @Description	Get datacenter by id
-// @Tags			datacenters
-// @Accept			application/json
-// @Produce		application/json
-// @Success		200									{object}	apicontracts.Datacenter
-// @Failure		403									{string}	Forbidden
-// @Failure		401									{string}	Unauthorized
-// @Failure		500									{string}	Failure	message
-// @Router			/v1/datacenters/id/{id}	[get]
-// @Param			id						path	string	true	"id"
-// @Security		ApiKey || AccessToken
+//	@Summary	Get datacenter by id
+//	@Schemes
+//	@Description	Get datacenter by id
+//	@Tags			datacenters
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Success		200						{object}	apicontracts.Datacenter
+//	@Failure		403						{string}	Forbidden
+//	@Failure		401						{string}	Unauthorized
+//	@Failure		500						{string}	Failure	message
+//	@Router			/v1/datacenters/id/{id}	[get]
+//	@Param			id						path	string	true	"id"
+//	@Security		ApiKey || AccessToken
 func GetById() gin.HandlerFunc {
 	// todo scheduled for deletion
 	return func(c *gin.Context) {

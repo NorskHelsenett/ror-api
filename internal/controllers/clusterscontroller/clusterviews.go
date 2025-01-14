@@ -294,16 +294,16 @@ func VulnerabilityReportsViewById() gin.HandlerFunc {
 
 // VulnerabilityReportsGlobal godoc
 //
-//	@Summary		Get vulnerability reports summary per cluster
+//	@Summary	Get vulnerability reports summary per cluster
 //	@Schemes
 //	@Description	Shows a summary of trivy vulnerability reports per cluster categorized by amount of critical/high/medium/low vulnerabilities.
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200		{object}	[]viewsmodels.VulnerabilityReportsView
-//	@Failure		403		{string}	Forbidden
-//	@Failure		401		{string}	Unauthorized
-//	@Failure		500		{string}	Failure	message
+//	@Success		200	{object}	[]viewsmodels.VulnerabilityReportsView
+//	@Failure		403	{string}	Forbidden
+//	@Failure		401	{string}	Unauthorized
+//	@Failure		500	{string}	Failure	message
 //	@Router			/v1/clusters/views/vulnerabilityreports [get]
 //	@Security		ApiKey || AccessToken
 func VulnerabilityReportsGlobal() gin.HandlerFunc {
@@ -341,7 +341,7 @@ func VulnerabilityReportsGlobal() gin.HandlerFunc {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Query			cveid	{string}
-//	@Success		200		{string}	This	is		not	the	view	you	are	looking	for
+//	@Success		200		{string}	This	is	not	the	view	you	are	looking	for
 //	@Failure		403		{string}	Forbidden
 //	@Failure		401		{string}	Unauthorized
 //	@Failure		500		{string}	Failure	message
@@ -387,11 +387,11 @@ func GlobalVulnerabilityReportsViewById() gin.HandlerFunc {
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			clusterid	path	string	true	"clusterid"
-//	@Success		200		{array}		viewsmodels.ComplianceReport
-//	@Failure		403		{string}	Forbidden
-//	@Failure		401		{string}	Unauthorized
-//	@Failure		500		{string}	Failure	message
+//	@Param			clusterid	path		string	true	"clusterid"
+//	@Success		200			{array}		viewsmodels.ComplianceReport
+//	@Failure		403			{string}	Forbidden
+//	@Failure		401			{string}	Unauthorized
+//	@Failure		500			{string}	Failure	message
 //	@Router			/v1/clusters/:clusterid/views/compliancereports [get]
 //	@Security		ApiKey || AccessToken
 func ComplianceReports() gin.HandlerFunc {
@@ -428,16 +428,16 @@ func ComplianceReports() gin.HandlerFunc {
 
 // ComplianceReportsGlobal godoc
 //
-//	@Summary		Get compliance reports summary per cluster
+//	@Summary	Get compliance reports summary per cluster
 //	@Schemes
 //	@Description	Shows a summary of trivy compliance reports per cluster categorized by amount failed or passed.
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200		{object}	[]viewsmodels.ComplianceReport
-//	@Failure		403		{string}	Forbidden
-//	@Failure		401		{string}	Unauthorized
-//	@Failure		500		{string}	Failure	message
+//	@Success		200	{object}	[]viewsmodels.ComplianceReport
+//	@Failure		403	{string}	Forbidden
+//	@Failure		401	{string}	Unauthorized
+//	@Failure		500	{string}	Failure	message
 //	@Router			/v1/clusters/views/compliancereports [get]
 //	@Security		ApiKey || AccessToken
 func ComplianceReportsGlobal() gin.HandlerFunc {
@@ -467,19 +467,21 @@ func ComplianceReportsGlobal() gin.HandlerFunc {
 	}
 }
 
+// ComplianceReportsGlobal godoc
+//
 //	@Summary		Get cluster self data
 //	@Schemes		https
 //	@Description	Get cluster self data
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-
-// @Success	200	{string}	Get	data	for	the	cluster
-// @Failure	403	{string}	Forbidden
-// @Failure	401	{string}	Unauthorized
-// @Failure	500	{string}	Failure	message
-// @Router		/v1/clusters/self [get]
-// @Security	ApiKey || AccessToken
+//
+//	@Success		200	{string}	Get	data	for	the	cluster
+//	@Failure		403	{string}	Forbidden
+//	@Failure		401	{string}	Unauthorized
+//	@Failure		500	{string}	Failure	message
+//	@Router			/v1/clusters/self [get]
+//	@Security		ApiKey || AccessToken
 func GetSelf() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)

@@ -178,10 +178,10 @@ func DeleteCluster() gin.HandlerFunc {
 //	@Tags			orders
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200					{object}	apicontracts.PaginatedResult[apicontracts.Cluster]
-//	@Failure		403					{object}	rorerror.RorError
-//	@Failure		401					{object}	rorerror.RorError
-//	@Failure		500					{object}	rorerror.RorError
+//	@Success		200			{object}	apicontracts.PaginatedResult[apicontracts.Cluster]
+//	@Failure		403			{object}	rorerror.RorError
+//	@Failure		401			{object}	rorerror.RorError
+//	@Failure		500			{object}	rorerror.RorError
 //	@Router			/v1/orders	[get]
 //	@Security		ApiKey || AccessToken
 func GetOrders() gin.HandlerFunc {

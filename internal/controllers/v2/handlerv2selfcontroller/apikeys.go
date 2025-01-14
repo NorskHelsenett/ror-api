@@ -18,19 +18,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// @Summary	Create api key
-// @Schemes
-// @Description	Create a api key
-// @Tags			users
-// @Accept			application/json
-// @Produce		application/json
-// @Success		200						{object}	apicontractsv2self.CreateOrRenewApikeyResponse
-// @Failure		403						{object}	rorerror.RorError
-// @Failure		401						{object}	rorerror.RorError
-// @Failure		500						{object}	rorerror.RorError
-// @Router			/v2/self/apikeys	[post]
-// @Param			project					body	apicontractsv2self.CreateOrRenewApikeyRequest	true	"Api key"
-// @Security		ApiKey || AccessToken
+//	@Summary	Create api key
+//	@Schemes
+//	@Description	Create a api key
+//	@Tags			users
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Success		200					{object}	apicontractsv2self.CreateOrRenewApikeyResponse
+//	@Failure		403					{object}	rorerror.RorError
+//	@Failure		401					{object}	rorerror.RorError
+//	@Failure		500					{object}	rorerror.RorError
+//	@Router			/v2/self/apikeys	[post]
+//	@Param			project				body	apicontractsv2self.CreateOrRenewApikeyRequest	true	"Api key"
+//	@Security		ApiKey || AccessToken
 func CreateOrRenewApikey() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var input apicontractsv2self.CreateOrRenewApikeyRequest
@@ -75,19 +75,19 @@ func CreateOrRenewApikey() gin.HandlerFunc {
 	}
 }
 
-// @Summary	Delete api key for user
-// @Schemes
-// @Description	Delete a api key by id for user
-// @Tags			user
-// @Accept			application/json
-// @Produce		application/json
-// @Success		200									{bool}		bool
-// @Failure		403									{object}	rorerror.RorError
-// @Failure		401									{object}	rorerror.RorError
-// @Failure		500									{object}	rorerror.RorError
-// @Router			/v2/self/apikeys/{apikeyId}	[delete]
-// @Param			apikeyId							path	string	true	"apikeyId"
-// @Security		ApiKey || AccessToken
+//	@Summary	Delete api key for user
+//	@Schemes
+//	@Description	Delete a api key by id for user
+//	@Tags			user
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Success		200							{bool}		bool
+//	@Failure		403							{object}	rorerror.RorError
+//	@Failure		401							{object}	rorerror.RorError
+//	@Failure		500							{object}	rorerror.RorError
+//	@Router			/v2/self/apikeys/{apikeyId}	[delete]
+//	@Param			apikeyId					path	string	true	"apikeyId"
+//	@Security		ApiKey || AccessToken
 func DeleteApiKey() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)

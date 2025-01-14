@@ -30,18 +30,18 @@ func init() {
 	validate = validator.New()
 }
 
-// @Summary	Get workspaces
-// @Schemes
-// @Description	Get workspaces
-// @Tags			workspaces
-// @Accept			application/json
-// @Produce		application/json
-// @Success		200				{array}		apicontracts.Workspace
-// @Failure		403				{string}	Forbidden
-// @Failure		401				{string}	Unauthorized
-// @Failure		500				{string}	Failure	message
-// @Router			/v1/workspaces	[get]
-// @Security		ApiKey || AccessToken
+//	@Summary	Get workspaces
+//	@Schemes
+//	@Description	Get workspaces
+//	@Tags			workspaces
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Success		200				{array}		apicontracts.Workspace
+//	@Failure		403				{string}	Forbidden
+//	@Failure		401				{string}	Unauthorized
+//	@Failure		500				{string}	Failure	message
+//	@Router			/v1/workspaces	[get]
+//	@Security		ApiKey || AccessToken
 func GetAll() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
@@ -68,19 +68,19 @@ func GetAll() gin.HandlerFunc {
 	}
 }
 
-// @Summary	Get a workspace
-// @Schemes
-// @Description	Get a workspace its name
-// @Tags			workspaces
-// @Accept			application/json
-// @Produce		application/json
-// @Param			name	path		string	true	"name"
-// @Success		200		{object}	apicontracts.Workspace
-// @Failure		403		{string}	Forbidden
-// @Failure		401		{string}	Unauthorized
-// @Failure		500		{string}	Failure	message
-// @Router			/v1/workspaces/{workspaceName} [get]
-// @Security		ApiKey || AccessToken
+//	@Summary	Get a workspace
+//	@Schemes
+//	@Description	Get a workspace its name
+//	@Tags			workspaces
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Param			name	path		string	true	"name"
+//	@Success		200		{object}	apicontracts.Workspace
+//	@Failure		403		{string}	Forbidden
+//	@Failure		401		{string}	Unauthorized
+//	@Failure		500		{string}	Failure	message
+//	@Router			/v1/workspaces/{workspaceName} [get]
+//	@Security		ApiKey || AccessToken
 func GetByName() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
@@ -175,19 +175,19 @@ func Update() gin.HandlerFunc {
 	}
 }
 
-// @Summary	Get a workspace by id
-// @Schemes
-// @Description	Get a workspace its id
-// @Tags			workspaces
-// @Accept			application/json
-// @Produce		application/json
-// @Param			id	path		string	true	"id"
-// @Success		200		{object}	apicontracts.Workspace
-// @Failure		403		{string}	Forbidden
-// @Failure		401		{string}	Unauthorized
-// @Failure		500		{string}	Failure	message
-// @Router			/v1/workspaces/id/{workspaceName} [get]
-// @Security		ApiKey || AccessToken
+//	@Summary	Get a workspace by id
+//	@Schemes
+//	@Description	Get a workspace its id
+//	@Tags			workspaces
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Param			id	path		string	true	"id"
+//	@Success		200	{object}	apicontracts.Workspace
+//	@Failure		403	{string}	Forbidden
+//	@Failure		401	{string}	Unauthorized
+//	@Failure		500	{string}	Failure	message
+//	@Router			/v1/workspaces/id/{workspaceName} [get]
+//	@Security		ApiKey || AccessToken
 func GetById() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
@@ -224,12 +224,12 @@ func GetById() gin.HandlerFunc {
 //	@Tags			workspaces
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			id	path		string	true	"id"
-//	@Param			credentials				body	apicontracts.KubeconfigCredentials	true	"Credentials"
-//	@Success		200	{object}	apicontracts.ClusterKubeconfig
-//	@Failure		403	{string}	Forbidden
-//	@Failure		401	{string}	Unauthorized
-//	@Failure		500	{string}	Failure	message
+//	@Param			id			path		string								true	"id"
+//	@Param			credentials	body		apicontracts.KubeconfigCredentials	true	"Credentials"
+//	@Success		200			{object}	apicontracts.ClusterKubeconfig
+//	@Failure		403			{string}	Forbidden
+//	@Failure		401			{string}	Unauthorized
+//	@Failure		500			{string}	Failure	message
 //	@Router			/v1/workspaces/{workspaceName}/login [post]
 //	@Security		ApiKey || AccessToken
 func GetKubeconfig() gin.HandlerFunc {
