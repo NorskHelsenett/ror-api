@@ -12,8 +12,8 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/rorresourceowner"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
-	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -118,7 +118,7 @@ func GetResourceHashList() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		resourceOwner := rortypes.RorResourceOwnerReference{
+		resourceOwner := rorresourceowner.RorResourceOwnerReference{
 			Scope:   aclmodels.Acl2Scope(c.Query("ownerScope")),
 			Subject: aclmodels.Acl2Subject(c.Query("ownerSubject")),
 		}

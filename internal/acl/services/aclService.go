@@ -11,8 +11,6 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
 
-	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
-
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
@@ -20,6 +18,7 @@ import (
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/rorresourceowner"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
 	"github.com/gin-gonic/gin"
@@ -141,7 +140,7 @@ func CheckAccessByOwnerref(ctx context.Context, ownerref apiresourcecontracts.Re
 	return aclrepository.CheckAcl2ByIdentityQuery(ctx, aclModel)
 }
 
-func CheckAccessByRorOwnerref(ctx context.Context, ownerref rortypes.RorResourceOwnerReference) aclmodels.AclV2ListItemAccess {
+func CheckAccessByRorOwnerref(ctx context.Context, ownerref rorresourceowner.RorResourceOwnerReference) aclmodels.AclV2ListItemAccess {
 	ctx, span := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "aclService.CheckAccessByContextScopeSubject")
 	defer span.End()
 	_, ok := ctx.(*gin.Context)
