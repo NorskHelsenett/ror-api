@@ -33,19 +33,19 @@ func main() {
 
 	// Resource controller - api
 	//   - internal/controllers/resourcescontroller/resources_controller_read_generated.go
-	templateFile("internal/controllers/resourcescontroller/resources_controller_read_generated.go.tmpl", rordefs.Resourcedefs)
+	templateFile("internal/controllers/resourcescontroller/resources_controller_read_generated.go.tmpl", rordefs.Resourcedefs.GetResourcesByVersion(rordefs.ApiVersionV1))
 
 	// Resource services - api
 	//   - internal/apiservices/resourcesService/resourceServices_generated.go
-	templateFile("internal/apiservices/resourcesService/resourceServices_generated.go.tmpl", rordefs.Resourcedefs)
+	templateFile("internal/apiservices/resourcesService/resourceServices_generated.go.tmpl", rordefs.Resourcedefs.GetResourcesByVersion(rordefs.ApiVersionV1))
 
 	// Internal - models
 	//   - internal/models/rorResources/extractResource.go
-	templateFile("internal/models/rorResources/extractResource.go.tmpl", rordefs.Resourcedefs)
+	templateFile("internal/models/rorResources/extractResource.go.tmpl", rordefs.Resourcedefs.GetResourcesByVersion(rordefs.ApiVersionV1))
 
 	// Internal - mongorepo
 	//   - internal/mongodbrepo/repositories/resourcesmongodbrepo/resourcesinsertupdate_generated.go
-	templateFile("internal/mongodbrepo/repositories/resourcesmongodbrepo/resourcesinsertupdate_generated.go.tmpl", rordefs.Resourcedefs)
+	templateFile("internal/mongodbrepo/repositories/resourcesmongodbrepo/resourcesinsertupdate_generated.go.tmpl", rordefs.Resourcedefs.GetResourcesByVersion(rordefs.ApiVersionV1))
 }
 
 func templateFileOnce(filepath string, templatePath string, data any) {

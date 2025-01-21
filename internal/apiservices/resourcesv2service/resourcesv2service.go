@@ -14,6 +14,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
 	"github.com/NorskHelsenett/ror/pkg/messagebuscontracts"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/rorresourceowner"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
@@ -249,9 +250,9 @@ func sendToMessageBus(ctx context.Context, resource *rorresources.Resource, acti
 	return nil
 }
 
-func ResourceGetHashlist(ctx context.Context, owner rortypes.RorResourceOwnerReference) (apiresourcecontracts.HashList, error) {
+func ResourceGetHashlist(ctx context.Context, owner rorresourceowner.RorResourceOwnerReference) (apiresourcecontracts.HashList, error) {
 	query := rorresources.ResourceQuery{
-		OwnerRefs: []rortypes.RorResourceOwnerReference{owner},
+		OwnerRefs: []rorresourceowner.RorResourceOwnerReference{owner},
 		Limit:     -1,
 	}
 

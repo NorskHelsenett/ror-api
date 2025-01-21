@@ -875,6 +875,30 @@ func GetNetworkPolicyByUid(ctx context.Context, ownerref apiresourcecontracts.Re
 
 }
 
+// Functions to get Backupjobs by uid,ownerref
+// The function is intended for use by internal functions
+func GetBackupJobByUid(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerReference, uid string) (apiresourcecontracts.ResourceBackupJob, error) {
+	if uid == "" {
+		return apiresourcecontracts.ResourceBackupJob{}, errors.New("uid is empty")
+	}
+	query := apiresourcecontracts.ResourceQuery{
+		Owner:      ownerref,
+		Kind:       "BackupJob",
+		ApiVersion: "backupjob.ror.internal/v1alpha1",
+		Internal:   true,
+		Uid:        uid,
+	}
+
+	resource, err := GetResource[apiresourcecontracts.ResourceBackupJob](ctx, query)
+	if err != nil {
+		rlog.Errorc(ctx, "could not get resource", err)
+		return apiresourcecontracts.ResourceBackupJob{}, errors.New("could not get resource")
+	}
+
+	return resource, nil
+
+}
+
 // Functions to get Namespaces by ownerref
 // The function is intended for use by internal functions
 func GetNamespaces(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerReference) (apiresourcecontracts.ResourceListNamespaces, error) {
@@ -1523,6 +1547,24 @@ func GetNetworkpolicies(ctx context.Context, ownerref apiresourcecontracts.Resou
 	return resources, nil
 }
 
+// Functions to get Backupjobs by ownerref
+// The function is intended for use by internal functions
+func GetBackupjobs(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerReference) (apiresourcecontracts.ResourceListBackupjobs, error) {
+	var resources apiresourcecontracts.ResourceListBackupjobs
+	query := apiresourcecontracts.ResourceQuery{
+		Owner:      ownerref,
+		Kind:       "BackupJob",
+		ApiVersion: "backupjob.ror.internal/v1alpha1",
+	}
+	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceBackupJob](ctx, query)
+	resources.Owner = ownerref
+	resources.Backupjobs = resourceset
+	if err != nil {
+		return resources, errors.New("could not fetch resource BackupJob")
+	}
+	return resources, nil
+}
+
 // Function to creates a resource by the 'apiresourcecontracts.ResourceUpdateModel'
 func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontracts.ResourceUpdateModel) error {
 	var err error
@@ -1951,6 +1993,18 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceNetworkPolicy]](resourceUpdate)
 		resource = filterInNetworkPolicy(resource)
 		err = resourcesmongodbrepo.CreateResourceNetworkPolicy(resource, ctx)
+		if err == nil {
+			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
+			if err != nil {
+				rlog.Errorc(ctx, "could not send to message bus", err)
+			}
+		}
+	}
+
+	if resourceUpdate.ApiVersion == "backupjob.ror.internal/v1alpha1" && resourceUpdate.Kind == "BackupJob" {
+		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceBackupJob]](resourceUpdate)
+		resource = filterInBackupJob(resource)
+		err = resourcesmongodbrepo.CreateResourceBackupJob(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -2396,6 +2450,18 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceNetworkPolicy]](resourceUpdate)
 		resource = filterInNetworkPolicy(resource)
 		err = resourcesmongodbrepo.UpdateResourceNetworkPolicy(resource, ctx)
+		if err == nil {
+			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
+			if err != nil {
+				rlog.Errorc(ctx, "could not send to message bus", err)
+			}
+		}
+	}
+
+	if resourceUpdate.ApiVersion == "backupjob.ror.internal/v1alpha1" && resourceUpdate.Kind == "BackupJob" {
+		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceBackupJob]](resourceUpdate)
+		resource = filterInBackupJob(resource)
+		err = resourcesmongodbrepo.UpdateResourceBackupJob(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {

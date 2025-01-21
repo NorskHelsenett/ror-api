@@ -335,6 +335,14 @@ func GetResources() gin.HandlerFunc {
 			}
 			c.JSON(http.StatusOK, resources)
 		}
+		if query.ApiVersion == "backupjob.ror.internal/v1alpha1" && query.Kind == "BackupJob" {
+			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceBackupJob](ctx, query)
+			if err != nil {
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				return
+			}
+			c.JSON(http.StatusOK, resources)
+		}
 	}
 }
 
@@ -665,6 +673,14 @@ func GetResource() gin.HandlerFunc {
 		}
 		if query.ApiVersion == "networking.k8s.io/v1" && query.Kind == "NetworkPolicy" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceNetworkPolicy](ctx, query)
+			if err != nil {
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				return
+			}
+			c.JSON(http.StatusOK, resources)
+		}
+		if query.ApiVersion == "backupjob.ror.internal/v1alpha1" && query.Kind == "BackupJob" {
+			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceBackupJob](ctx, query)
 			if err != nil {
 				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
 				return
