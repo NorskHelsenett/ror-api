@@ -27,7 +27,7 @@ import (
 //	@Produce		application/json
 //	@Success		200			{object}	apicontracts.MetricsTotal
 //	@Failure		403			{string}	Forbidden
-//	@Failure		401			{string}	Unauthorized
+//	@Failure		401			{object}	rorerror.RorError
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/metrics	[get]
 //	@Security		ApiKey || AccessToken
@@ -41,8 +41,8 @@ func GetTotalByUser() gin.HandlerFunc {
 
 		metricsTotal, err := metricsservice.GetTotalByUser(ctx)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, rorerror.RorError{
-				Status:  http.StatusUnauthorized,
+			c.JSON(http.StatusForbidden, rorerror.RorError{
+				Status:  http.StatusForbidden,
 				Message: "Could not fetch user",
 			})
 			return
@@ -68,7 +68,7 @@ func GetTotalByUser() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200					{object}	apicontracts.MetricsTotal
 //	@Failure		403					{string}	Forbidden
-//	@Failure		401					{string}	Unauthorized
+//	@Failure		401					{object}	rorerror.RorError
 //	@Failure		500					{string}	Failure	message
 //	@Router			/v1/metrics/total	[get]
 //	@Security		ApiKey || AccessToken
@@ -110,7 +110,7 @@ func GetTotal() gin.HandlerFunc {
 //	@Param			metrics		body		apicontracts.MetricsReport	true	"MetricsReport"
 //	@Success		200			{object}	apicontracts.MetricsTotal
 //	@Failure		403			{string}	Forbidden
-//	@Failure		401			{string}	Unauthorized
+//	@Failure		401			{object}	rorerror.RorError
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/metrics	[post]
 //	@Security		ApiKey || AccessToken

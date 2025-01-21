@@ -51,8 +51,8 @@ func GetById() gin.HandlerFunc {
 
 		_, err := gincontext.GetUserFromGinContext(c)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, rorerror.RorError{
-				Status:  http.StatusUnauthorized,
+			c.JSON(http.StatusForbidden, rorerror.RorError{
+				Status:  http.StatusForbidden,
 				Message: "Could not fetch user",
 			})
 			return

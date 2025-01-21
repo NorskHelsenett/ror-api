@@ -1906,6 +1906,16 @@ definitions:
       status:
         type: integer
     type: object
+  rorresourceowner.RorResourceOwnerReference:
+    properties:
+      scope:
+        allOf:
+        - $ref: '#/definitions/aclmodels.Acl2Scope'
+        description: cluster, workspace,...
+      subject:
+        description: ror id eg clusterId or workspaceName
+        type: string
+    type: object
   rorresources.Resource:
     properties:
       apiVersion:
@@ -1920,6 +1930,8 @@ definitions:
         $ref: '#/definitions/rortypes.ResourceApplication'
       appproject:
         $ref: '#/definitions/rortypes.ResourceAppProject'
+      backupjob:
+        $ref: '#/definitions/rortypes.ResourceBackupJob'
       certificate:
         $ref: '#/definitions/rortypes.ResourceCertificate'
       clustercompliancereport:
@@ -1934,6 +1946,8 @@ definitions:
         $ref: '#/definitions/rortypes.ResourceConfiguration'
       daemonset:
         $ref: '#/definitions/rortypes.ResourceDaemonSet'
+      datacenter:
+        $ref: '#/definitions/rortypes.ResourceDatacenter'
       deployment:
         $ref: '#/definitions/rortypes.ResourceDeployment'
       endpoints:
@@ -2045,6 +2059,28 @@ definitions:
     - CriticalityLevelIntern
     - CriticalityLevelShielded
     - CriticalityLevelHighlyShielded
+  rortypes.Datacenter:
+    properties:
+      apiEndpoint:
+        type: string
+      id:
+        type: string
+      location:
+        $ref: '#/definitions/rortypes.DatacenterLocation'
+      name:
+        type: string
+      provider:
+        $ref: '#/definitions/providers.ProviderType'
+    type: object
+  rortypes.DatacenterLocation:
+    properties:
+      country:
+        type: string
+      id:
+        type: string
+      region:
+        type: string
+    type: object
   rortypes.EnvironmentType:
     enum:
     - 0
@@ -2211,6 +2247,147 @@ definitions:
       revision:
         type: string
       status:
+        type: string
+    type: object
+  rortypes.ResourceBackupDestination:
+    properties:
+      Status:
+        description: Status spesific to the destination - remote being unavailable
+        type: string
+      expiryTime:
+        description: ExpiryTime is defined per destination
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      type:
+        description: Local, remote, archive, etc.
+        type: string
+    type: object
+  rortypes.ResourceBackupJob:
+    properties:
+      spec:
+        $ref: '#/definitions/rortypes.ResourceBackupJobSpec'
+      status:
+        $ref: '#/definitions/rortypes.ResourceBackupJobStatus'
+    type: object
+  rortypes.ResourceBackupJobSpec:
+    properties:
+      backupDestination:
+        items:
+          $ref: '#/definitions/rortypes.ResourceBackupDestination'
+        type: array
+      directBackupTarget:
+        items:
+          $ref: '#/definitions/rortypes.ResourceIndirectBackupTarget'
+        type: array
+      endTime:
+        description: Some backup systems allow EndTime to be defined per backupJob,
+          while some use policies
+        type: string
+      expiryTime:
+        description: Some backup systems allow ExpiryTime to be defined per backupJob,
+          while some use policies
+        type: string
+      indirectBackupTarget:
+        items:
+          $ref: '#/definitions/rortypes.ResourceDirectBackupTarget'
+        type: array
+      name:
+        description: The name of the job
+        type: string
+      policyId:
+        description: |-
+          Defines the policy id at the local system that defines the rules for the data, how long it's stored
+          where's it's stored, and other options
+        type: string
+      sourceId:
+        description: Defines the id of the system the run originates from
+        type: string
+      sourceName:
+        description: Defines the name of the system the run originates from
+        type: string
+      startTime:
+        description: Some backup systems allow StartTime to be defined per backupJob,
+          while some use policies
+        type: string
+      status:
+        description: Status of the backup job, active, paused, etc.
+        type: string
+    type: object
+  rortypes.ResourceBackupJobStatus:
+    properties:
+      backupDestination:
+        items:
+          $ref: '#/definitions/rortypes.ResourceBackupDestination'
+        type: array
+      directBackupTarget:
+        items:
+          $ref: '#/definitions/rortypes.ResourceIndirectBackupTarget'
+        type: array
+      endTime:
+        description: Some backup systems allow EndTime to be defined per backupJob,
+          while some use policies
+        type: string
+      expiryTime:
+        description: Some backup systems allow ExpiryTime to be defined per backupJob,
+          while some use policies
+        type: string
+      indirectBackupTarget:
+        items:
+          $ref: '#/definitions/rortypes.ResourceDirectBackupTarget'
+        type: array
+      name:
+        description: The name of the job
+        type: string
+      policyId:
+        description: |-
+          Defines the policy id at the local system that defines the rules for the data, how long it's stored
+          where's it's stored, and other options
+        type: string
+      sourceId:
+        description: Defines the id of the system the run originates from
+        type: string
+      sourceName:
+        description: Defines the name of the system the run originates from
+        type: string
+      startTime:
+        description: Some backup systems allow StartTime to be defined per backupJob,
+          while some use policies
+        type: string
+      status:
+        description: Status of the backup job, active, paused, etc.
+        type: string
+    type: object
+  rortypes.ResourceBackupStorage:
+    properties:
+      logicalSize:
+        description: The total logical size of the VM
+        type: integer
+      physicalSize:
+        description: Physical data written to the backup system
+        type: integer
+      sourceSize:
+        description: Total changed data in the run, incremental will have changes
+          since last time, full runs will have the entire VM - not including unusued
+          space
+        type: integer
+      unit:
+        type: string
+    type: object
+  rortypes.ResourceBackupTarget:
+    properties:
+      externalIds:
+        additionalProperties:
+          type: string
+        description: Defines any external ids by the backup system(s)
+        type: object
+      id:
+        description: Defines the object's id
+        type: string
+      name:
+        description: Defines the object's name
         type: string
     type: object
   rortypes.ResourceCertificate:
@@ -2490,6 +2667,13 @@ definitions:
       updatedNumberScheduled:
         type: integer
     type: object
+  rortypes.ResourceDatacenter:
+    properties:
+      legacy:
+        $ref: '#/definitions/rortypes.Datacenter'
+      spec:
+        $ref: '#/definitions/rortypes.ResourceDaemonSetStatus'
+    type: object
   rortypes.ResourceDeployment:
     properties:
       status:
@@ -2505,6 +2689,26 @@ definitions:
         type: integer
       updatedReplicas:
         type: integer
+    type: object
+  rortypes.ResourceDirectBackupTarget:
+    properties:
+      backupDestination:
+        description: A run can have multiple destinations defined into a single job
+        items:
+          $ref: '#/definitions/rortypes.ResourceBackupDestination'
+        type: array
+      backupStorage:
+        $ref: '#/definitions/rortypes.ResourceBackupStorage'
+      backupTargets:
+        items:
+          $ref: '#/definitions/rortypes.ResourceBackupTarget'
+        type: array
+      endTime:
+        type: string
+      expiryTime:
+        type: string
+      startTime:
+        type: string
     type: object
   rortypes.ResourceEndpointSpecSubsets:
     properties:
@@ -2599,6 +2803,26 @@ definitions:
     properties:
       report:
         $ref: '#/definitions/rortypes.ResourceVulnerabilityReportReport'
+    type: object
+  rortypes.ResourceIndirectBackupTarget:
+    properties:
+      ids:
+        description: For where the ids are referenced
+        items:
+          type: string
+        type: array
+      keyValues:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        description: For key values pairs, some allow the same key with different
+          values
+        type: object
+      type:
+        description: The type of indrect target, some allow tags and/or other types
+          of criteria
+        type: string
     type: object
   rortypes.ResourceIngress:
     properties:
@@ -3340,7 +3564,11 @@ definitions:
       lastReported:
         type: string
       ownerref:
-        $ref: '#/definitions/rortypes.RorResourceOwnerReference'
+        $ref: '#/definitions/rorresourceowner.RorResourceOwnerReference'
+      tags:
+        items:
+          $ref: '#/definitions/rortypes.ResourceTag'
+        type: array
       version:
         type: string
     type: object
@@ -3489,6 +3717,17 @@ definitions:
       reclaimPolicy:
         type: string
       volumeBindingMode:
+        type: string
+    type: object
+  rortypes.ResourceTag:
+    properties:
+      key:
+        type: string
+      properties:
+        additionalProperties:
+          type: string
+        type: object
+      value:
         type: string
     type: object
   rortypes.ResourceTanuzKuberntesClusterSpec:
@@ -4014,7 +4253,7 @@ definitions:
       message:
         type: string
       owner:
-        $ref: '#/definitions/rortypes.RorResourceOwnerReference'
+        $ref: '#/definitions/rorresourceowner.RorResourceOwnerReference'
     type: object
   rortypes.ResourceVulnerabilityReport:
     properties:
@@ -4062,16 +4301,6 @@ definitions:
       title:
         type: string
       vulnerabilityID:
-        type: string
-    type: object
-  rortypes.RorResourceOwnerReference:
-    properties:
-      scope:
-        allOf:
-        - $ref: '#/definitions/aclmodels.Acl2Scope'
-        description: cluster, workspace,...
-      subject:
-        description: ror id eg clusterId or workspaceName
         type: string
     type: object
   rortypes.SensitivityLevel:
@@ -4670,7 +4899,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -4848,7 +5077,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -4884,7 +5113,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -4920,7 +5149,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -4957,7 +5186,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -4994,7 +5223,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5032,7 +5261,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5068,7 +5297,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5104,7 +5333,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5146,7 +5375,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5182,7 +5411,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5217,7 +5446,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5253,7 +5482,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5289,7 +5518,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5325,7 +5554,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5365,7 +5594,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5401,7 +5630,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5433,7 +5662,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5507,7 +5736,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5559,7 +5788,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5592,7 +5821,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5622,7 +5851,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5655,7 +5884,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5685,7 +5914,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5719,7 +5948,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5763,7 +5992,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5795,7 +6024,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5833,7 +6062,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5877,7 +6106,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -5913,7 +6142,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -6008,7 +6237,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -6044,7 +6273,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -6109,7 +6338,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -6170,8 +6399,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -6200,7 +6428,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -6236,7 +6464,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -6272,7 +6500,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -6302,7 +6530,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -6338,7 +6566,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -6374,7 +6602,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -6410,7 +6638,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -6440,7 +6668,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -6470,7 +6698,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -6506,7 +6734,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -6548,7 +6776,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -6585,7 +6813,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -6617,7 +6845,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -6655,7 +6883,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -6691,7 +6919,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -6732,7 +6960,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -6773,7 +7001,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -6967,7 +7195,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -7003,7 +7231,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -7044,7 +7272,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -7082,7 +7310,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -7575,7 +7803,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -7625,7 +7853,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -7661,7 +7889,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -7711,7 +7939,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "404":
           description: Not Found
           schema:
@@ -7752,7 +7980,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -7788,7 +8016,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -7831,7 +8059,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -7874,7 +8102,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -7922,7 +8150,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -7960,7 +8188,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -7992,7 +8220,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -8432,7 +8660,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -8629,7 +8857,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -8679,7 +8907,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -8715,7 +8943,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -8765,7 +8993,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "404":
           description: Not Found
           schema:
@@ -8806,7 +9034,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:

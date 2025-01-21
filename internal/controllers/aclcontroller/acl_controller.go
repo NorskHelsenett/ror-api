@@ -416,6 +416,7 @@ func Update() gin.HandlerFunc {
 		_ = apiconnections.RabbitMQConnection.SendMessage(ctx, payload, messagebuscontracts.Route_Acl_Update, nil)
 
 		c.JSON(http.StatusOK, created)
+
 	}
 }
 
@@ -488,7 +489,7 @@ func Delete() gin.HandlerFunc {
 //	@Param			id	path		string	true	"id"
 //	@Success		200	{string}	Status
 //	@Failure		403	{string}	Forbidden
-//	@Failure		401	{string}	Unauthorized
+//	@Failure		401	{object}	rorerror.RorError
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/acl/migrate [get]
 //	@Security		ApiKey || AccessToken

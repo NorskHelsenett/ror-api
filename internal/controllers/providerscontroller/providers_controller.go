@@ -17,18 +17,18 @@ import (
 	"github.com/spf13/viper"
 )
 
-// @Summary	Get providers
-// @Schemes
-// @Description	Get providers
-// @Tags			providers
-// @Accept			application/json
-// @Produce		application/json
-// @Success		200				{array}		providers.Provider
-// @Failure		403				{string}	Forbidden
-// @Failure		401				{string}	Unauthorized
-// @Failure		500				{string}	Failure	message
-// @Router			/v1/providers [get]
-// @Security		ApiKey || AccessToken
+//	@Summary	Get providers
+//	@Schemes
+//	@Description	Get providers
+//	@Tags			providers
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Success		200	{array}		providers.Provider
+//	@Failure		403	{string}	Forbidden
+//	@Failure		401	{string}	Unauthorized
+//	@Failure		500	{string}	Failure	message
+//	@Router			/v1/providers [get]
+//	@Security		ApiKey || AccessToken
 func GetAll() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		_, cancel := gincontext.GetRorContextFromGinContext(c)
@@ -70,21 +70,21 @@ func GetAll() gin.HandlerFunc {
 	}
 }
 
-// @Summary	Get kuberntes versions by provider
-// @Schemes
-// @Description	Get supported kubernetes versions by provider
-// @Tags			providers
-// @Accept			application/json
-// @Produce		application/json
+//	@Summary	Get kuberntes versions by provider
+//	@Schemes
+//	@Description	Get supported kubernetes versions by provider
+//	@Tags			providers
+//	@Accept			application/json
+//	@Produce		application/json
 //
 //	@Param			providerType	path		string	true	"providerType"
 //
-// @Success		200				{array}		providers.Provider
-// @Failure		403				{string}	Forbidden
-// @Failure		401				{string}	Unauthorized
-// @Failure		500				{string}	Failure	message
-// @Router			/v1/providers/{providerType}/kubernetes/versions [get]
-// @Security		ApiKey || AccessToken
+//	@Success		200				{array}		providers.Provider
+//	@Failure		403				{string}	Forbidden
+//	@Failure		401				{string}	Unauthorized
+//	@Failure		500				{string}	Failure	message
+//	@Router			/v1/providers/{providerType}/kubernetes/versions [get]
+//	@Security		ApiKey || AccessToken
 func GetKubernetesVersionByProvider() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		_, cancel := gincontext.GetRorContextFromGinContext(c)
@@ -123,21 +123,21 @@ func GetKubernetesVersionByProvider() gin.HandlerFunc {
 	}
 }
 
-// @Summary	Get kuberntes versions by provider
-// @Schemes
-// @Description	Get supported kubernetes versions by provider
-// @Tags			providers
-// @Accept			application/json
-// @Produce		application/json
+//	@Summary	Get kuberntes versions by provider
+//	@Schemes
+//	@Description	Get supported kubernetes versions by provider
+//	@Tags			providers
+//	@Accept			application/json
+//	@Produce		application/json
 //
 //	@Param			providerType	path		string	true	"providerType"
 //
-// @Success		200				{array}		providers.Provider
-// @Failure		403				{string}	Forbidden
-// @Failure		401				{string}	Unauthorized
-// @Failure		500				{string}	Failure	message
-// @Router			/v1/providers/{providerType}/configs/params [get]
-// @Security		ApiKey || AccessToken
+//	@Success		200				{array}		providers.Provider
+//	@Failure		403				{string}	Forbidden
+//	@Failure		401				{string}	Unauthorized
+//	@Failure		500				{string}	Failure	message
+//	@Router			/v1/providers/{providerType}/configs/params [get]
+//	@Security		ApiKey || AccessToken
 func GetConfigParametersByProvider() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		_, cancel := gincontext.GetRorContextFromGinContext(c)

@@ -94,7 +94,7 @@ func GetAll() gin.HandlerFunc {
 //	@Param			version	body		apicontracts.DesiredVersion	true	"Add a desired version"
 //	@Success		200		{string}	Ok
 //	@Failure		403		{string}	Forbidden
-//	@Failure		401		{string}	Unauthorized
+//	@Failure		401		{object}	rorerror.RorError
 //	@Failure		500		{string}	Failure	message
 //	@Router			/v1/desired_versions [post]
 //	@Security		ApiKey || AccessToken
@@ -159,7 +159,7 @@ func Create() gin.HandlerFunc {
 //	@Param			version	body		apicontracts.DesiredVersion	true	"Update the desired version"
 //	@Success		200		{string}	Ok
 //	@Failure		403		{string}	Forbidden
-//	@Failure		401		{string}	Unauthorized
+//	@Failure		401		{object}	rorerror.RorError
 //	@Failure		500		{string}	Failure	message
 //	@Router			/v1/desired_versions/{key} [put]
 //	@Security		ApiKey || AccessToken
@@ -229,7 +229,7 @@ func Update() gin.HandlerFunc {
 //	@Param			key	path		string	true	"key"
 //	@Success		200	{string}	Ok
 //	@Failure		403	{string}	Forbidden
-//	@Failure		401	{string}	Unauthorized
+//	@Failure		401	{object}	rorerror.RorError
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/desired_versions/{key} [delete]
 //	@Security		ApiKey || AccessToken

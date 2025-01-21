@@ -135,18 +135,18 @@ func sendMessage(sse *SSE, clients []apicontracts.SSEClient, message string) {
 	sse.lock.RUnlock()
 }
 
-// @Summary	Server sent events
-// @Schemes
-// @Description	Listen to server sent events
-// @Tags			events
-// @Accept			text/event-stream
-// @Produce		text/event-stream
-// @Success		200		{string}  string    "ok"
-// @Failure		403		{object}	rorerror.RorError
-// @Failure		401		{object}	rorerror.RorError
-// @Failure		500		{object}	rorerror.RorError
-// @Router			/v1/events/listen	[get]
-// @Security		ApiKey || AccessToken
+//	@Summary	Server sent events
+//	@Schemes
+//	@Description	Listen to server sent events
+//	@Tags			events
+//	@Accept			text/event-stream
+//	@Produce		text/event-stream
+//	@Success		200					{string}	string	"ok"
+//	@Failure		403					{object}	rorerror.RorError
+//	@Failure		401					{object}	rorerror.RorError
+//	@Failure		500					{object}	rorerror.RorError
+//	@Router			/v1/events/listen	[get]
+//	@Security		ApiKey || AccessToken
 func (sse *SSE) HandleSSE() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)

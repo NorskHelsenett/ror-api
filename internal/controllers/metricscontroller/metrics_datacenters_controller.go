@@ -24,7 +24,7 @@ import (
 //	@Produce		application/json
 //	@Success		200						{object}	apicontracts.MetricList
 //	@Failure		403						{string}	Forbidden
-//	@Failure		401						{string}	Unauthorized
+//	@Failure		401						{object}	rorerror.RorError
 //	@Failure		500						{string}	Failure	message
 //	@Router			/v1/metrics/datacenters	[get]
 //	@Security		ApiKey || AccessToken
@@ -64,7 +64,7 @@ func GetForDatacenters() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200										{object}	apicontracts.MetricItem
 //	@Failure		403										{string}	Forbidden
-//	@Failure		401										{string}	Unauthorized
+//	@Failure		401										{object}	rorerror.RorError
 //	@Failure		500										{string}	Failure	message
 //	@Router			/v1/metrics/datacenter/{datacenterName}	[get]
 //	@Param			datacenterName							path	string	true	"datacenterName"

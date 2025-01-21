@@ -24,7 +24,7 @@ import (
 //	@Produce		application/json
 //	@Success		200						{object}	apicontracts.MetricList
 //	@Failure		403						{string}	Forbidden
-//	@Failure		401						{string}	Unauthorized
+//	@Failure		401						{object}	rorerror.RorError
 //	@Failure		500						{string}	Failure	message
 //	@Router			/v1/metrics/clusters	[get]
 //	@Security		ApiKey || AccessToken
@@ -62,7 +62,7 @@ func GetForClusters() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200												{object}	apicontracts.MetricList
 //	@Failure		403												{string}	Forbidden
-//	@Failure		401												{string}	Unauthorized
+//	@Failure		401												{object}	rorerror.RorError
 //	@Failure		500												{string}	Failure	message
 //	@Param			workspaceId										path		string	true	"workspaceId"
 //	@Router			/v1/metrics/clusters/workspace/{workspaceId}	[get]
@@ -104,7 +104,7 @@ func GetForClustersByWorkspaceId() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200	{object}	apicontracts.MetricItem
 //	@Failure		403	{string}	Forbidden
-//	@Failure		401	{string}	Unauthorized
+//	@Failure		401	{object}	rorerror.RorError
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/metrics/cluster/{clusterId} [get]
 //	@Param			clusterId	path	string	true	"clusterId"
@@ -144,7 +144,7 @@ func GetByClusterId() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200	{object}	apicontracts.MetricsCustom
 //	@Failure		403	{string}	Forbidden
-//	@Failure		401	{string}	Unauthorized
+//	@Failure		401	{object}	rorerror.RorError
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/metrics/custom/cluster/{property} [get]
 //	@Param			property	path	string	true	"property"

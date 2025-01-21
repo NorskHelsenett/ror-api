@@ -77,7 +77,7 @@ func SelfRegister() gin.HandlerFunc {
 		}
 
 		if len(clusterSecret.Data.RorClientSecret) > 0 {
-			c.JSON(http.StatusUnauthorized, nil)
+			c.JSON(http.StatusForbidden, nil)
 			return
 		} else {
 			newSecret := stringhelper.RandomString(20, stringhelper.StringTypeAlphaNum)

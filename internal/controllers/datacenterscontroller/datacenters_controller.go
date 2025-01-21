@@ -36,7 +36,7 @@ func init() {
 //	@Produce		application/json
 //	@Success		200				{array}		apicontracts.Datacenter
 //	@Failure		403				{string}	Forbidden
-//	@Failure		401				{string}	Unauthorized
+//	@Failure		401				{object}	rorerror.RorError
 //	@Failure		500				{string}	Failure	message
 //	@Router			/v1/datacenters	[get]
 //	@Security		ApiKey || AccessToken
@@ -47,8 +47,8 @@ func GetAll() gin.HandlerFunc {
 
 		_, err := gincontext.GetUserFromGinContext(c)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, rorerror.RorError{
-				Status:  http.StatusUnauthorized,
+			c.JSON(http.StatusForbidden, rorerror.RorError{
+				Status:  http.StatusForbidden,
 				Message: "Could not fetch user",
 			})
 			return
@@ -59,8 +59,8 @@ func GetAll() gin.HandlerFunc {
 
 		datacenters, err := datacentersservice.GetAllByUser(ctx)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, rorerror.RorError{
-				Status:  http.StatusUnauthorized,
+			c.JSON(http.StatusForbidden, rorerror.RorError{
+				Status:  http.StatusForbidden,
 				Message: "Could not fetch datacenters",
 			})
 			return
@@ -80,7 +80,7 @@ func GetAll() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200									{object}	apicontracts.Datacenter
 //	@Failure		403									{string}	Forbidden
-//	@Failure		401									{string}	Unauthorized
+//	@Failure		401									{object}	rorerror.RorError
 //	@Failure		500									{string}	Failure	message
 //	@Router			/v1/datacenters/{datacenterName}	[get]
 //	@Param			datacenterName						path	string	true	"datacenterName"
@@ -97,8 +97,8 @@ func GetByName() gin.HandlerFunc {
 
 		datacenter, err := datacentersservice.GetByName(ctx, datacenterName)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, rorerror.RorError{
-				Status:  http.StatusUnauthorized,
+			c.JSON(http.StatusForbidden, rorerror.RorError{
+				Status:  http.StatusForbidden,
 				Message: "Could not fetch datacenter",
 			})
 			return
@@ -113,19 +113,19 @@ func GetByName() gin.HandlerFunc {
 	}
 }
 
-// @Summary	Get datacenter by id
-// @Schemes
-// @Description	Get datacenter by id
-// @Tags			datacenters
-// @Accept			application/json
-// @Produce		application/json
-// @Success		200									{object}	apicontracts.Datacenter
-// @Failure		403									{string}	Forbidden
-// @Failure		401									{string}	Unauthorized
-// @Failure		500									{string}	Failure	message
-// @Router			/v1/datacenters/id/{id}	[get]
-// @Param			id						path	string	true	"id"
-// @Security		ApiKey || AccessToken
+//	@Summary	Get datacenter by id
+//	@Schemes
+//	@Description	Get datacenter by id
+//	@Tags			datacenters
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Success		200						{object}	apicontracts.Datacenter
+//	@Failure		403						{string}	Forbidden
+//	@Failure		401						{string}	Unauthorized
+//	@Failure		500						{string}	Failure	message
+//	@Router			/v1/datacenters/id/{id}	[get]
+//	@Param			id						path	string	true	"id"
+//	@Security		ApiKey || AccessToken
 func GetById() gin.HandlerFunc {
 	// todo scheduled for deletion
 	return func(c *gin.Context) {
@@ -138,8 +138,8 @@ func GetById() gin.HandlerFunc {
 
 		datacenter, err := datacentersservice.GetById(ctx, datacenterId)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, rorerror.RorError{
-				Status:  http.StatusUnauthorized,
+			c.JSON(http.StatusForbidden, rorerror.RorError{
+				Status:  http.StatusForbidden,
 				Message: "Could not fetch datacenter",
 			})
 			return
@@ -164,7 +164,7 @@ func GetById() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200				{array}		apicontracts.Datacenter
 //	@Failure		403				{string}	Forbidden
-//	@Failure		401				{string}	Unauthorized
+//	@Failure		401				{object}	rorerror.RorError
 //	@Failure		500				{string}	Failure					message
 //	@Param			datacenter		body		apicontracts.Datacenter	true	"Datacenter"
 //	@Router			/v1/datacenters	[post]
@@ -238,7 +238,7 @@ func Create() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200								{array}		apicontracts.Datacenter
 //	@Failure		403								{string}	Forbidden
-//	@Failure		401								{string}	Unauthorized
+//	@Failure		401								{object}	rorerror.RorError
 //	@Failure		500								{string}	Failure					message
 //	@Param			datacenterId					path		string					true	"datacenterId"
 //	@Param			datacenter						body		apicontracts.Datacenter	true	"Datacenter"

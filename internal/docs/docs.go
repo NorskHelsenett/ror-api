@@ -201,7 +201,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -715,7 +715,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -771,7 +771,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -827,7 +827,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -883,7 +883,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -941,7 +941,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -1000,7 +1000,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -1050,7 +1050,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -1166,7 +1166,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -1249,7 +1249,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -1299,7 +1299,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -1346,7 +1346,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -1396,7 +1396,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -1440,7 +1440,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -1496,7 +1496,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -1564,7 +1564,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -1620,7 +1620,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -1676,7 +1676,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -1741,7 +1741,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -1797,7 +1797,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -1851,7 +1851,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -1907,7 +1907,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -1963,7 +1963,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -2019,7 +2019,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -2080,7 +2080,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -2136,7 +2136,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -2186,7 +2186,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -2245,7 +2245,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -2369,7 +2369,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -2425,7 +2425,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -2516,7 +2516,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -2617,7 +2617,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -2671,7 +2671,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -2760,8 +2760,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -2810,7 +2809,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -2866,7 +2865,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -2922,7 +2921,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -2969,7 +2968,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -3025,7 +3024,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -3081,7 +3080,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -3137,7 +3136,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -3184,7 +3183,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -3231,7 +3230,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -3287,7 +3286,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -3352,7 +3351,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -3410,7 +3409,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -3460,7 +3459,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -3519,7 +3518,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -3584,7 +3583,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -3647,7 +3646,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -3701,7 +3700,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -4004,7 +4003,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -4069,7 +4068,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -4123,7 +4122,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -4182,7 +4181,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -4937,7 +4936,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -5011,7 +5010,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -5076,7 +5075,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -5130,7 +5129,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -5203,7 +5202,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "404": {
@@ -5264,7 +5263,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -5316,7 +5315,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -5377,7 +5376,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -5445,7 +5444,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -5513,7 +5512,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -5588,7 +5587,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -6325,7 +6324,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -6564,7 +6563,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -6638,7 +6637,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -6703,7 +6702,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -6757,7 +6756,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -6830,7 +6829,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "404": {
@@ -9815,6 +9814,23 @@ const docTemplate = `{
                 }
             }
         },
+        "rorresourceowner.RorResourceOwnerReference": {
+            "type": "object",
+            "properties": {
+                "scope": {
+                    "description": "cluster, workspace,...",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/aclmodels.Acl2Scope"
+                        }
+                    ]
+                },
+                "subject": {
+                    "description": "ror id eg clusterId or workspaceName",
+                    "type": "string"
+                }
+            }
+        },
         "rorresources.Resource": {
             "type": "object",
             "properties": {
@@ -9827,6 +9843,9 @@ const docTemplate = `{
                 },
                 "appproject": {
                     "$ref": "#/definitions/rortypes.ResourceAppProject"
+                },
+                "backupjob": {
+                    "$ref": "#/definitions/rortypes.ResourceBackupJob"
                 },
                 "certificate": {
                     "$ref": "#/definitions/rortypes.ResourceCertificate"
@@ -9848,6 +9867,9 @@ const docTemplate = `{
                 },
                 "daemonset": {
                     "$ref": "#/definitions/rortypes.ResourceDaemonSet"
+                },
+                "datacenter": {
+                    "$ref": "#/definitions/rortypes.ResourceDatacenter"
                 },
                 "deployment": {
                     "$ref": "#/definitions/rortypes.ResourceDeployment"
@@ -10003,6 +10025,40 @@ const docTemplate = `{
                 "CriticalityLevelShielded",
                 "CriticalityLevelHighlyShielded"
             ]
+        },
+        "rortypes.Datacenter": {
+            "type": "object",
+            "properties": {
+                "apiEndpoint": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "location": {
+                    "$ref": "#/definitions/rortypes.DatacenterLocation"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "provider": {
+                    "$ref": "#/definitions/providers.ProviderType"
+                }
+            }
+        },
+        "rortypes.DatacenterLocation": {
+            "type": "object",
+            "properties": {
+                "country": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                }
+            }
         },
         "rortypes.EnvironmentType": {
             "type": "integer",
@@ -10250,6 +10306,190 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceBackupDestination": {
+            "type": "object",
+            "properties": {
+                "Status": {
+                    "description": "Status spesific to the destination - remote being unavailable",
+                    "type": "string"
+                },
+                "expiryTime": {
+                    "description": "ExpiryTime is defined per destination",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Local, remote, archive, etc.",
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceBackupJob": {
+            "type": "object",
+            "properties": {
+                "spec": {
+                    "$ref": "#/definitions/rortypes.ResourceBackupJobSpec"
+                },
+                "status": {
+                    "$ref": "#/definitions/rortypes.ResourceBackupJobStatus"
+                }
+            }
+        },
+        "rortypes.ResourceBackupJobSpec": {
+            "type": "object",
+            "properties": {
+                "backupDestination": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceBackupDestination"
+                    }
+                },
+                "directBackupTarget": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceIndirectBackupTarget"
+                    }
+                },
+                "endTime": {
+                    "description": "Some backup systems allow EndTime to be defined per backupJob, while some use policies",
+                    "type": "string"
+                },
+                "expiryTime": {
+                    "description": "Some backup systems allow ExpiryTime to be defined per backupJob, while some use policies",
+                    "type": "string"
+                },
+                "indirectBackupTarget": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceDirectBackupTarget"
+                    }
+                },
+                "name": {
+                    "description": "The name of the job",
+                    "type": "string"
+                },
+                "policyId": {
+                    "description": "Defines the policy id at the local system that defines the rules for the data, how long it's stored\nwhere's it's stored, and other options",
+                    "type": "string"
+                },
+                "sourceId": {
+                    "description": "Defines the id of the system the run originates from",
+                    "type": "string"
+                },
+                "sourceName": {
+                    "description": "Defines the name of the system the run originates from",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "Some backup systems allow StartTime to be defined per backupJob, while some use policies",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status of the backup job, active, paused, etc.",
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceBackupJobStatus": {
+            "type": "object",
+            "properties": {
+                "backupDestination": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceBackupDestination"
+                    }
+                },
+                "directBackupTarget": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceIndirectBackupTarget"
+                    }
+                },
+                "endTime": {
+                    "description": "Some backup systems allow EndTime to be defined per backupJob, while some use policies",
+                    "type": "string"
+                },
+                "expiryTime": {
+                    "description": "Some backup systems allow ExpiryTime to be defined per backupJob, while some use policies",
+                    "type": "string"
+                },
+                "indirectBackupTarget": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceDirectBackupTarget"
+                    }
+                },
+                "name": {
+                    "description": "The name of the job",
+                    "type": "string"
+                },
+                "policyId": {
+                    "description": "Defines the policy id at the local system that defines the rules for the data, how long it's stored\nwhere's it's stored, and other options",
+                    "type": "string"
+                },
+                "sourceId": {
+                    "description": "Defines the id of the system the run originates from",
+                    "type": "string"
+                },
+                "sourceName": {
+                    "description": "Defines the name of the system the run originates from",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "Some backup systems allow StartTime to be defined per backupJob, while some use policies",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status of the backup job, active, paused, etc.",
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceBackupStorage": {
+            "type": "object",
+            "properties": {
+                "logicalSize": {
+                    "description": "The total logical size of the VM",
+                    "type": "integer"
+                },
+                "physicalSize": {
+                    "description": "Physical data written to the backup system",
+                    "type": "integer"
+                },
+                "sourceSize": {
+                    "description": "Total changed data in the run, incremental will have changes since last time, full runs will have the entire VM - not including unusued space",
+                    "type": "integer"
+                },
+                "unit": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceBackupTarget": {
+            "type": "object",
+            "properties": {
+                "externalIds": {
+                    "description": "Defines any external ids by the backup system(s)",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "description": "Defines the object's id",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Defines the object's name",
                     "type": "string"
                 }
             }
@@ -10676,6 +10916,17 @@ const docTemplate = `{
                 }
             }
         },
+        "rortypes.ResourceDatacenter": {
+            "type": "object",
+            "properties": {
+                "legacy": {
+                    "$ref": "#/definitions/rortypes.Datacenter"
+                },
+                "spec": {
+                    "$ref": "#/definitions/rortypes.ResourceDaemonSetStatus"
+                }
+            }
+        },
         "rortypes.ResourceDeployment": {
             "type": "object",
             "properties": {
@@ -10698,6 +10949,36 @@ const docTemplate = `{
                 },
                 "updatedReplicas": {
                     "type": "integer"
+                }
+            }
+        },
+        "rortypes.ResourceDirectBackupTarget": {
+            "type": "object",
+            "properties": {
+                "backupDestination": {
+                    "description": "A run can have multiple destinations defined into a single job",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceBackupDestination"
+                    }
+                },
+                "backupStorage": {
+                    "$ref": "#/definitions/rortypes.ResourceBackupStorage"
+                },
+                "backupTargets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceBackupTarget"
+                    }
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "expiryTime": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "string"
                 }
             }
         },
@@ -10843,6 +11124,32 @@ const docTemplate = `{
             "properties": {
                 "report": {
                     "$ref": "#/definitions/rortypes.ResourceVulnerabilityReportReport"
+                }
+            }
+        },
+        "rortypes.ResourceIndirectBackupTarget": {
+            "type": "object",
+            "properties": {
+                "ids": {
+                    "description": "For where the ids are referenced",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "keyValues": {
+                    "description": "For key values pairs, some allow the same key with different values",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "type": {
+                    "description": "The type of indrect target, some allow tags and/or other types of criteria",
+                    "type": "string"
                 }
             }
         },
@@ -11990,7 +12297,13 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "ownerref": {
-                    "$ref": "#/definitions/rortypes.RorResourceOwnerReference"
+                    "$ref": "#/definitions/rorresourceowner.RorResourceOwnerReference"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceTag"
+                    }
                 },
                 "version": {
                     "type": "string"
@@ -12218,6 +12531,23 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "volumeBindingMode": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceTag": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "properties": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "value": {
                     "type": "string"
                 }
             }
@@ -13030,7 +13360,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "owner": {
-                    "$ref": "#/definitions/rortypes.RorResourceOwnerReference"
+                    "$ref": "#/definitions/rorresourceowner.RorResourceOwnerReference"
                 }
             }
         },
@@ -13104,23 +13434,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "vulnerabilityID": {
-                    "type": "string"
-                }
-            }
-        },
-        "rortypes.RorResourceOwnerReference": {
-            "type": "object",
-            "properties": {
-                "scope": {
-                    "description": "cluster, workspace,...",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/aclmodels.Acl2Scope"
-                        }
-                    ]
-                },
-                "subject": {
-                    "description": "ror id eg clusterId or workspaceName",
                     "type": "string"
                 }
             }

@@ -56,7 +56,7 @@ func GetUser() gin.HandlerFunc {
 		}
 
 		if identity.User == nil {
-			c.JSON(http.StatusUnauthorized, nil)
+			c.JSON(http.StatusForbidden, nil)
 			return
 		}
 
