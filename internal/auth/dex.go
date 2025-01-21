@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
 
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
@@ -21,7 +22,7 @@ import (
 func DexMiddleware(c *gin.Context) {
 	auth := c.Request.Header.Get("Authorization")
 	if auth == "" {
-		c.String(http.StatusForbidden, "No Authorization header provided ")
+		c.String(http.StatusUnauthorized, "No Authorization header provided ")
 		c.Abort()
 		return
 	}
@@ -44,16 +45,15 @@ func DexMiddleware(c *gin.Context) {
 	}
 
 	if err != nil {
-		rlog.Error(fmt.Sprintf("Could not get provider, %s", oicdProvider), err)
-		c.String(http.StatusForbidden, "Could not get provider, %s", oicdProvider)
-		c.Abort()
+		rerr := rorerror.NewRorError(http.StatusBadRequest, fmt.Sprintf("Could not get provider, %s", oicdProvider), err)
+		rerr.GinLogErrorAndAbort(c, rorerror.Field{Key: "oidcProvider", Value: oicdProvider})
 		return
 	}
 
 	token := strings.TrimPrefix(auth, "Bearer ")
 	if token == auth {
-		c.String(http.StatusForbidden, "Could not find bearer token in Authorization header")
-		c.Abort()
+		rerr := rorerror.NewRorError(http.StatusUnauthorized, "Could not find bearer token in Authorization header")
+		rerr.GinLogErrorAndAbort(c)
 		return
 	}
 
@@ -75,24 +75,23 @@ func DexMiddleware(c *gin.Context) {
 	// Parse and verify ID Token payload.
 	idToken, err := idTokenVerifier.Verify(c, token)
 	if err != nil {
-		// handle error
-		c.String(http.StatusForbidden, "Could not verify token.")
-		c.Abort()
+		rerr := rorerror.NewRorError(http.StatusUnauthorized, "Could not verify token.", err)
+		rerr.GinLogErrorAndAbort(c)
 		return
 	}
 
 	// Extract custom user.
 	user := identitymodels.User{Groups: []string{"NotAuthorized"}}
 	if err := idToken.Claims(&user); err != nil {
-		c.String(http.StatusUnauthorized, "Not authorized")
-		c.Abort()
+		rerr := rorerror.NewRorError(http.StatusUnauthorized, "Not authorized")
+		rerr.GinLogErrorAndAbort(c)
 		return
 	}
 
 	groupsWithDomain, err := ExtractGroups(&user)
 	if err != nil || len(groupsWithDomain) == 0 {
-		c.String(http.StatusUnauthorized, "Not authorized, missing groups")
-		c.Abort()
+		rerr := rorerror.NewRorError(http.StatusUnauthorized, "Not authorized, missing groups")
+		rerr.GinLogErrorAndAbort(c)
 		return
 	}
 
