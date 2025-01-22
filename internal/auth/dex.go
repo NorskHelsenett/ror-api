@@ -22,8 +22,8 @@ import (
 func DexMiddleware(c *gin.Context) {
 	auth := c.Request.Header.Get("Authorization")
 	if auth == "" {
-		c.String(http.StatusUnauthorized, "No Authorization header provided ")
-		c.Abort()
+		rerr := rorerror.NewRorError(http.StatusUnauthorized, "No Authorization header provided ")
+		rerr.GinLogErrorAbort(c)
 		return
 	}
 
@@ -46,14 +46,14 @@ func DexMiddleware(c *gin.Context) {
 
 	if err != nil {
 		rerr := rorerror.NewRorError(http.StatusBadRequest, fmt.Sprintf("Could not get provider, %s", oicdProvider), err)
-		rerr.GinLogErrorAndAbort(c, rorerror.Field{Key: "oidcProvider", Value: oicdProvider})
+		rerr.GinLogErrorAbort(c, rorerror.Field{Key: "oidcProvider", Value: oicdProvider})
 		return
 	}
 
 	token := strings.TrimPrefix(auth, "Bearer ")
 	if token == auth {
 		rerr := rorerror.NewRorError(http.StatusUnauthorized, "Could not find bearer token in Authorization header")
-		rerr.GinLogErrorAndAbort(c)
+		rerr.GinLogErrorAbort(c)
 		return
 	}
 
@@ -76,7 +76,7 @@ func DexMiddleware(c *gin.Context) {
 	idToken, err := idTokenVerifier.Verify(c, token)
 	if err != nil {
 		rerr := rorerror.NewRorError(http.StatusUnauthorized, "Could not verify token.", err)
-		rerr.GinLogErrorAndAbort(c)
+		rerr.GinLogErrorAbort(c)
 		return
 	}
 
@@ -84,14 +84,14 @@ func DexMiddleware(c *gin.Context) {
 	user := identitymodels.User{Groups: []string{"NotAuthorized"}}
 	if err := idToken.Claims(&user); err != nil {
 		rerr := rorerror.NewRorError(http.StatusUnauthorized, "Not authorized")
-		rerr.GinLogErrorAndAbort(c)
+		rerr.GinLogErrorAbort(c)
 		return
 	}
 
 	groupsWithDomain, err := ExtractGroups(&user)
 	if err != nil || len(groupsWithDomain) == 0 {
 		rerr := rorerror.NewRorError(http.StatusUnauthorized, "Not authorized, missing groups")
-		rerr.GinLogErrorAndAbort(c)
+		rerr.GinLogErrorAbort(c)
 		return
 	}
 

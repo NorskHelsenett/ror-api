@@ -49,21 +49,15 @@ func GetByFilter() gin.HandlerFunc {
 
 		var filter apicontracts.Filter
 		if err := c.BindJSON(&filter); err != nil {
-			rlog.Errorc(ctx, "could not bind json", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Missing parameter",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&filter); err != nil {
-			rlog.Errorc(ctx, "could not get auditlog", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: err.Error(),
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not get auditlog", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -99,10 +93,8 @@ func GetById() gin.HandlerFunc {
 
 		id := c.Param("id")
 		if id == "" || len(id) == 0 {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "invalid auditlog id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid auditlog id")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 

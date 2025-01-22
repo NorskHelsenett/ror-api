@@ -38,19 +38,15 @@ func SelfRegister() gin.HandlerFunc {
 		ctx := c.Request.Context()
 		//validate the request body
 		if err := c.BindJSON(&tokenModel); err != nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Missing body",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing body", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		//use the validator library to validate required fields
-		if validationErr := validate.Struct(&tokenModel); validationErr != nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: validationErr.Error(),
-			})
+		if err := validate.Struct(&tokenModel); err != nil {
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 

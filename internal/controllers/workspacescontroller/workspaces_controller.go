@@ -77,7 +77,9 @@ func GetAll() gin.HandlerFunc {
 //	@Param			name	path		string	true	"name"
 //	@Success		200		{object}	apicontracts.Workspace
 //	@Failure		403		{string}	Forbidden
-//	@Failure		401		{string}	Unauthorized
+//	@Failure		400		{object}	rorerror.RorError
+//	@Failure		401		{object}	rorerror.RorError
+//	@Failure		401		{object}	rorerror.RorError
 //	@Failure		500		{string}	Failure	message
 //	@Router			/v1/workspaces/{workspaceName} [get]
 //	@Security		ApiKey || AccessToken
@@ -110,10 +112,8 @@ func Update() gin.HandlerFunc {
 		id := c.Param("id")
 		if id == "" || len(id) == 0 {
 			rlog.Errorc(ctx, "invalid id", fmt.Errorf("id is zero length"))
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid id")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 		// Access check
@@ -131,21 +131,15 @@ func Update() gin.HandlerFunc {
 		var input apicontracts.Workspace
 		err := c.BindJSON(&input)
 		if err != nil {
-			rlog.Errorc(ctx, "could not bind the request body", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Object is not valid",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Object is not valid", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		err = validate.Struct(&input)
 		if err != nil {
-			rlog.Errorc(ctx, "could not validate the request body", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Required fields missing",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields missing", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -161,10 +155,8 @@ func Update() gin.HandlerFunc {
 
 		if updatedObject == nil {
 			rlog.Errorc(ctx, "could not update object", fmt.Errorf("object does not exist"))
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not update object, does it exist?!",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not update object, does it exist?!")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -195,10 +187,8 @@ func GetById() gin.HandlerFunc {
 
 		id := c.Param("id")
 		if id == "" || len(id) == 0 {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "invalid id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid id")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -259,21 +249,16 @@ func GetKubeconfig() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&credentialPayload); err != nil {
-			rlog.Errorc(ctx, "error when binding kubeconfig credentials", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Missing parameter",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&credentialPayload); validationErr != nil {
 			rlog.Errorc(ctx, "error when validating kubeconfig credentials", validationErr)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: validationErr.Error(),
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, validationErr.Error())
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 

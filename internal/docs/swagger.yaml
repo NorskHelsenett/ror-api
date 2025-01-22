@@ -4672,6 +4672,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/aclmodels.AclV2ListItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -4708,6 +4712,10 @@ paths:
           description: OK
           schema:
             type: bool
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -4743,6 +4751,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/apicontracts.PaginatedResult-aclmodels_AclV2ListItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -4784,6 +4796,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/aclmodels.AclV2ListItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -4825,6 +4841,10 @@ paths:
       responses:
         "200":
           description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -4860,6 +4880,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/apicontracts.PaginatedResult-aclmodels_AclV2ListItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -5110,6 +5134,10 @@ paths:
           description: OK
           schema:
             type: bool
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -5146,6 +5174,10 @@ paths:
           description: OK
           schema:
             type: bool
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -5183,6 +5215,10 @@ paths:
           description: OK
           schema:
             type: bool
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -5220,6 +5256,10 @@ paths:
           description: OK
           schema:
             type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -5258,6 +5298,10 @@ paths:
             items:
               $ref: '#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReport'
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -5330,6 +5374,10 @@ paths:
           description: OK
           schema:
             type: bool
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -5372,6 +5420,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/apicontracts.ClusterKubeconfig'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -5443,6 +5495,10 @@ paths:
           description: OK
           schema:
             type: bool
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -5591,6 +5647,10 @@ paths:
           description: OK
           schema:
             type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -5627,6 +5687,10 @@ paths:
           description: OK
           schema:
             type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -5696,6 +5760,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/apicontracts.PaginatedResult-apicontracts_Cluster'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -5733,6 +5801,10 @@ paths:
           description: OK
           schema:
             type: bool
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -5753,6 +5825,11 @@ paths:
       - clusters
   /v1/clusters/self:
     get:
+      consumes:
+      - application/json
+      description: Get cluster self data
+      produces:
+      - application/json
       responses:
         "200":
           description: OK
@@ -5773,6 +5850,9 @@ paths:
       security:
       - AccessToken: []
         ApiKey: []
+      summary: Get cluster self data
+      tags:
+      - clusters
   /v1/clusters/views/clusterlist:
     get:
       consumes:
@@ -5911,6 +5991,10 @@ paths:
           description: OK
           schema:
             type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -5945,6 +6029,10 @@ paths:
           description: OK
           schema:
             type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -5989,6 +6077,10 @@ paths:
             items:
               $ref: '#/definitions/apicontracts.Cluster'
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -6059,6 +6151,10 @@ paths:
             items:
               $ref: '#/definitions/apicontracts.Datacenter'
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -6103,6 +6199,10 @@ paths:
             items:
               $ref: '#/definitions/apicontracts.Datacenter'
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -6234,6 +6334,10 @@ paths:
           description: OK
           schema:
             type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -6270,6 +6374,10 @@ paths:
           description: OK
           schema:
             type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -6305,6 +6413,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/apicontracts.DesiredVersion'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "500":
           description: Internal Server Error
           schema:
@@ -6335,6 +6451,10 @@ paths:
           description: OK
           schema:
             type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -6731,6 +6851,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/apicontracts.MetricItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -6773,14 +6897,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/apicontracts.MetricList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
             $ref: '#/definitions/rorerror.RorError'
-        "403":
-          description: Forbidden
-          schema:
-            type: string
         "500":
           description: Internal Server Error
           schema:
@@ -6810,6 +6934,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/apicontracts.PaginatedResult-apicontracts_Metric'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -6880,6 +7008,10 @@ paths:
             items:
               $ref: '#/definitions/apicontracts.OperatorConfig'
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -6916,6 +7048,10 @@ paths:
           description: OK
           schema:
             type: bool
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -6957,6 +7093,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/apicontracts.OperatorConfig'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -6998,6 +7138,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/apicontracts.OperatorConfig'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -7028,6 +7172,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/apicontracts.PaginatedResult-apicontracts_Cluster'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -7058,6 +7206,10 @@ paths:
           description: OK
           schema:
             type: bool
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -7087,6 +7239,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/apiresourcecontracts.ResourceListClusterorders'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -7124,6 +7280,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/apicontracts.PaginatedResult-apicontracts_Cluster'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -7160,6 +7320,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/apicontracts.PaginatedResult-apicontracts_Cluster'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -7192,6 +7356,10 @@ paths:
             items:
               $ref: '#/definitions/apicontracts.Price'
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -7208,6 +7376,48 @@ paths:
       - AccessToken: []
         ApiKey: []
       summary: Get prices
+      tags:
+      - prices
+    post:
+      consumes:
+      - application/json
+      description: Create a price
+      parameters:
+      - description: Add a price
+        in: body
+        name: price
+        required: true
+        schema:
+          $ref: '#/definitions/apicontracts.Cluster'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/apicontracts.Price'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Create a price
       tags:
       - prices
   /v1/prices/:id:
@@ -7228,6 +7438,10 @@ paths:
           description: OK
           schema:
             type: bool
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -7269,6 +7483,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/apicontracts.Price'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -7307,6 +7525,10 @@ paths:
             items:
               $ref: '#/definitions/apicontracts.Price'
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -7344,6 +7566,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/apicontracts.Project'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -7380,6 +7606,10 @@ paths:
           description: OK
           schema:
             type: bool
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -7415,6 +7645,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/apicontracts.Project'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -7456,6 +7690,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/apicontracts.PaginatedResult-apicontracts_Project'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -7494,6 +7732,10 @@ paths:
             items:
               $ref: '#/definitions/apicontracts.ClusterInfo'
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
@@ -7531,6 +7773,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/apicontracts.PaginatedResult-apicontracts_Project'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:

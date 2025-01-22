@@ -58,21 +58,15 @@ func GetByFilter() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&filter); err != nil {
-			rlog.Errorc(ctx, "could not bind json", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Missing parameter",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&filter); validationErr != nil {
-			rlog.Errorc(ctx, "validation of required fields failed", validationErr)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: validationErr.Error(),
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "validation of required fields failed", validationErr)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -105,30 +99,21 @@ func CreateForAgent() gin.HandlerFunc {
 
 		var input apicontracts.AgentApiKeyModel
 		if err := c.BindJSON(&input); err != nil {
-			rlog.Errorc(ctx, "could not bind JSON", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Required fields are missing",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields are missing", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		if err := validate.Struct(&input); err != nil {
-			rlog.Errorc(ctx, "could not validate object", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not validate project object",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate project object", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 		rlog.Infof("Creating api key for agent %s", input.Identifier)
 		apikeyText, err := apikeysservice.CreateForAgent(ctx, &input)
 		if err != nil {
-			rlog.Errorc(ctx, "could not create api key", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Unable to create api key",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Unable to create api key", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -160,11 +145,8 @@ func Delete() gin.HandlerFunc {
 
 		apikeyId := c.Param("id")
 		if apikeyId == "" || len(apikeyId) == 0 {
-			rlog.Errorc(ctx, "invalid id", fmt.Errorf("id is zero length"))
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid id", fmt.Errorf("id is zero length"))
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -184,11 +166,8 @@ func Delete() gin.HandlerFunc {
 
 		result, err := apikeysservice.Delete(ctx, apikeyId, &identity)
 		if err != nil {
-			rlog.Errorc(ctx, "could not delete object", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not delete object",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not delete object", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -229,39 +208,27 @@ func CreateApikey() gin.HandlerFunc {
 
 		var input apicontracts.ApiKey
 		if err := c.BindJSON(&input); err != nil {
-			rlog.Errorc(ctx, "could not bind JSON", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Required fields are missing",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields are missing", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		if err := validate.Struct(&input); err != nil {
-			rlog.Errorc(ctx, "could not validate object", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not validate project object",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate project object", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		if input.Type != apicontracts.ApiKeyTypeService {
-			rlog.Errorc(ctx, "invalid api key type", fmt.Errorf("invalid api key type"))
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid api key type, only service api keys are supported",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid api key type, only service api keys are supported")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		apikeyText, err := apikeysservice.Create(ctx, &input, &identity)
 		if err != nil {
-			rlog.Errorc(ctx, "could not create api key", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Unable to create api key, perhaps it already exist?",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Unable to create api key, perhaps it already exist?", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 

@@ -103,6 +103,7 @@ func ClusterGetById() gin.HandlerFunc {
 //	@Param			id	path		string	true	"id"
 //	@Success		200	{bool}		bool
 //	@Failure		403	{string}	Forbidden
+//	@Failure		400	{object}	rorerror.RorError
 //	@Failure		401	{object}	rorerror.RorError
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/cluster/{clusterid}/exists [get]
@@ -115,7 +116,8 @@ func ClusterExistsById() gin.HandlerFunc {
 		defer cancel()
 
 		if clusterId == "" {
-			c.JSON(http.StatusBadRequest, map[string]interface{}{"error": "Missing clusterId"})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing clusterId")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -140,6 +142,7 @@ func ClusterExistsById() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200					{object}	apicontracts.PaginatedResult[apicontracts.Cluster]
 //	@Failure		403					{object}	rorerror.RorError
+//	@Failure		400					{object}	rorerror.RorError
 //	@Failure		401					{object}	rorerror.RorError
 //	@Failure		500					{object}	rorerror.RorError
 //	@Router			/v1/clusters/filter	[post]
@@ -154,21 +157,15 @@ func ClusterByFilter() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&filter); err != nil {
-			rlog.Errorc(ctx, "missing parameter", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Missing parameter",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		//use the validator library to validate required fields
-		if validationErr := validate.Struct(&filter); validationErr != nil {
-			rlog.Errorc(ctx, "could not validate required fields", validationErr)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: validationErr.Error(),
-			})
+		if err := validate.Struct(&filter); err != nil {
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate required fields", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -203,6 +200,7 @@ func ClusterByFilter() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200											{array}		apicontracts.Cluster
 //	@Failure		403											{string}	Forbidden
+//	@Failure		400											{object}	rorerror.RorError
 //	@Failure		401											{object}	rorerror.RorError
 //	@Failure		500											{string}	Failure	message
 //	@Router			/v1/clusters/workspace/{workspaceId}/filter	[get]
@@ -218,19 +216,15 @@ func ClusterGetByWorkspaceId() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&filter); err != nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Missing parameter",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&filter); validationErr != nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: validationErr.Error(),
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", validationErr)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -238,10 +232,8 @@ func ClusterGetByWorkspaceId() gin.HandlerFunc {
 			sort := filter.Sort[i]
 
 			if validationErr := validate.Struct(sort); validationErr != nil {
-				c.JSON(http.StatusBadRequest, rorerror.RorError{
-					Status:  http.StatusBadRequest,
-					Message: validationErr.Error(),
-				})
+				rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", validationErr)
+				rerr.GinLogErrorJSON(c)
 				return
 			}
 		}
@@ -251,10 +243,8 @@ func ClusterGetByWorkspaceId() gin.HandlerFunc {
 
 		result, err := clustersservice.GetByWorkspaceId(ctx, &filter, workspaceId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not get clusters by workspace",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get clusters by workspace", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -314,6 +304,7 @@ func GetMetadata() gin.HandlerFunc {
 //	@Param			id	path		string	true	"id"
 //	@Success		200	{bool}		bool
 //	@Failure		403	{string}	Forbidden
+//	@Failure		400	{object}	rorerror.RorError
 //	@Failure		401	{object}	rorerror.RorError
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/cluster/{clusterid}/metadata [patch]
@@ -338,25 +329,22 @@ func UpdateMetadata() gin.HandlerFunc {
 		}
 
 		if clusterId == "" {
-			c.JSON(http.StatusBadRequest, map[string]interface{}{"error": "Missing clusterId"})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing clusterId")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		//validate the request body
 		if err := c.BindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Missing parameter",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		//use the validator library to validate required fields
-		if validationErr := validate.Struct(&input); validationErr != nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: validationErr.Error(),
-			})
+		if err := validate.Struct(&input); err != nil {
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -401,6 +389,7 @@ func UpdateMetadata() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200	{bool}		bool
 //	@Failure		403	{string}	Forbidden
+//	@Failure		400	{object}	rorerror.RorError
 //	@Failure		401	{object}	rorerror.RorError
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/cluster/heartbeat [post]
@@ -418,12 +407,14 @@ func RegisterHeartbeat() gin.HandlerFunc {
 		_, span1 := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "Validate request")
 		defer span1.End()
 
+		//TODO: return rorerror.RorError
 		//validate the request body
 		if err := c.BindJSON(&input); err != nil {
 			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
 			return
 		}
 
+		//TODO: return rorerror.RorError
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&input); validationErr != nil {
 			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": validationErr.Error()}})
@@ -512,6 +503,7 @@ func GetControlPlanesMetadata() gin.HandlerFunc {
 //	@Param			credentials	body		apicontracts.KubeconfigCredentials	true	"Credentials"
 //	@Success		200			{object}	apicontracts.ClusterKubeconfig
 //	@Failure		403			{string}	Forbidden
+//	@Failure		400			{object}	rorerror.RorError
 //	@Failure		401			{object}	rorerror.RorError
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/clusters/{clusterid}/login [post]
@@ -521,8 +513,8 @@ func GetKubeconfig() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		clusterid := c.Param("clusterid")
 		if clusterid == "" {
-			rlog.Errorc(ctx, "clusterid must be provided", nil)
-			c.JSON(http.StatusBadRequest, "clusterid must be provided")
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "clusterid must be provided")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 		defer cancel()
@@ -558,21 +550,15 @@ func GetKubeconfig() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&clusterKubeConfigPayload); err != nil {
-			rlog.Errorc(ctx, "missing parameter", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Missing parameter",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		//use the validator library to validate required fields
-		if validationErr := validate.Struct(&clusterKubeConfigPayload); validationErr != nil {
-			rlog.Errorc(ctx, "could not validate required fields", validationErr)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: validationErr.Error(),
-			})
+		if err := validate.Struct(&clusterKubeConfigPayload); err != nil {
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate required fields", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -628,6 +614,7 @@ func GetKubeconfig() gin.HandlerFunc {
 //	@Param			credentials	body		apicontracts.Cluster	true	"Credentials"
 //	@Success		200			{string}	ClusterId
 //	@Failure		403			{string}	Forbidden
+//	@Failure		400			{object}	rorerror.RorError
 //	@Failure		401			{object}	rorerror.RorError
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/clusters [post]
@@ -652,19 +639,15 @@ func CreateCluster() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&clusterInput); err != nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Missing parameter",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		//use the validator library to validate required fields
-		if validationErr := validate.Struct(&clusterInput); validationErr != nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: validationErr.Error(),
-			})
+		if err := validate.Struct(&clusterInput); err != nil {
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 

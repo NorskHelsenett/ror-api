@@ -33,6 +33,7 @@ func init() {
 //	@Param			clusterId	path		string	true	"clusterId"
 //	@Success		200			{object}	messages.RulesetModel
 //	@Failure		403			{string}	Forbidden
+//	@Failure		400			{object}	rorerror.RorError
 //	@Failure		401			{object}	rorerror.RorError
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/rulesets/cluster/{clusterId} [get]
@@ -46,10 +47,8 @@ func GetByCluster() gin.HandlerFunc {
 		clusterId := c.Param("clusterId")
 
 		if clusterId == "" || len(clusterId) == 0 {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid cluster name",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid cluster name")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -131,6 +130,7 @@ func GetInternal() gin.HandlerFunc {
 //	@Param			rulesetId	path		string	true	"rulesetId"
 //	@Success		200			{object}	messages.RulesetResourceModel
 //	@Failure		403			{string}	Forbidden
+//	@Failure		400			{object}	rorerror.RorError
 //	@Failure		401			{object}	rorerror.RorError
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/rulesets/{rulesetId}/resources [post]
@@ -145,11 +145,8 @@ func AddResource() gin.HandlerFunc {
 		var input messages.RulesetResourceInput
 
 		if err := c.BindJSON(&input); err != nil {
-			rlog.Errorc(ctx, "could not bind resource input", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "invalid json",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid json", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -208,6 +205,7 @@ func AddResource() gin.HandlerFunc {
 //	@Param			resourceId	path		string	true	"resourceId"
 //	@Success		200			{bool}		Deleted
 //	@Failure		403			{string}	Forbidden
+//	@Failure		400			{object}	rorerror.RorError
 //	@Failure		401			{object}	rorerror.RorError
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/rulesets/{rulesetId}/resources/{resourceId} [delete]
@@ -276,6 +274,7 @@ func DeleteResource() gin.HandlerFunc {
 //	@Param			resourceId	path		string	true	"resourceId"
 //	@Success		200			{object}	messages.RulesetRuleModel
 //	@Failure		403			{string}	Forbidden
+//	@Failure		400			{object}	rorerror.RorError
 //	@Failure		401			{object}	rorerror.RorError
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/rulesets/{rulesetId}/resources/{resourceId}/rules [post]
@@ -288,11 +287,8 @@ func AddResourceRule() gin.HandlerFunc {
 
 		input := new(messages.RulesetRuleInput)
 		if err := c.BindJSON(input); err != nil {
-			rlog.Errorc(ctx, "could not bind rule input", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "invalid json",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid json", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 

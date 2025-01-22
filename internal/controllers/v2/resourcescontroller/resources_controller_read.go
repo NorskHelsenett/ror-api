@@ -30,7 +30,8 @@ import (
 //	@Param			kind			query		string				true	"Kind"
 //	@Success		200				{array}		apiresourcecontracts.ResourceNode
 //	@Failure		403				{string}	Forbidden
-//	@Failure		401				{string}	Unauthorized
+//	@Failure		400				{object}	rorerror.RorError
+//	@Failure		401				{object}	rorerror.RorError
 //	@Failure		500				{string}	Failure	message
 //	@Router			/v2/resources [get]
 //	@Security		ApiKey || AccessToken
@@ -54,10 +55,8 @@ func GetResources() gin.HandlerFunc {
 		}
 
 		if validationErr := validate.Struct(rsQuery); validationErr != nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: validationErr.Error(),
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, validationErr.Error())
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -82,7 +81,7 @@ func GetResources() gin.HandlerFunc {
 //	@Param			kind			query		string				true	"Kind"
 //	@Success		200				{array}		apiresourcecontracts.ResourceNode
 //	@Failure		403				{string}	Forbidden
-//	@Failure		401				{string}	Unauthorized
+//	@Failure		401				{object}	rorerror.RorError
 //	@Failure		500				{string}	Failure	message
 //	@Router			/v2/resource/uid/{uid} [get]
 //	@Security		ApiKey || AccessToken

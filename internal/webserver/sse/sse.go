@@ -143,6 +143,7 @@ func sendMessage(sse *SSE, clients []apicontracts.SSEClient, message string) {
 //	@Produce		text/event-stream
 //	@Success		200					{string}	string	"ok"
 //	@Failure		403					{object}	rorerror.RorError
+//	@Failure		400					{object}	rorerror.RorError
 //	@Failure		401					{object}	rorerror.RorError
 //	@Failure		500					{object}	rorerror.RorError
 //	@Router			/v1/events/listen	[get]
@@ -156,11 +157,8 @@ func (sse *SSE) HandleSSE() gin.HandlerFunc {
 		identity := rorcontext.GetIdentityFromRorContext(ctx)
 		client, err := getClientFromRequest(identity, connection)
 		if err != nil {
-			rlog.Errorc(ctx, "Could not get client from request", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not get client from request",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not get client from request", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 		sse.Clients = append(sse.Clients, client)
@@ -225,21 +223,15 @@ func (sse *SSE) Send() gin.HandlerFunc {
 		var input apicontracts.SSEMessage
 		err := c.BindJSON(&input)
 		if err != nil {
-			rlog.Errorc(ctx, "could not bind the request body", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Object is not valid",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Object is not valid", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		err = validate.Struct(&input)
 		if err != nil {
-			rlog.Errorc(ctx, "could not validate the request body", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Required fields missing",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields missing", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 

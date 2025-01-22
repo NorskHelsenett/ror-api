@@ -43,6 +43,7 @@ func init() {
 //	@Param			operatorconfig	body		apicontracts.OperatorConfig	true	"Get a operator config"
 //	@Success		200				{object}	apicontracts.OperatorConfig
 //	@Failure		403				{string}	Forbidden
+//	@Failure		400				{object}	rorerror.RorError
 //	@Failure		401				{object}	rorerror.RorError
 //	@Failure		500				{string}	Failure	message
 //	@Router			/v1/operatorconfigs/:id [get]
@@ -64,10 +65,8 @@ func GetById() gin.HandlerFunc {
 
 		id := c.Param("id")
 		if id == "" || len(id) == 0 {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "invalid id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid id")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -137,6 +136,7 @@ func GetAll() gin.HandlerFunc {
 //	@Param			operatorconfig	body		apicontracts.OperatorConfig	true	"Add a operator config"
 //	@Success		200				{array}		apicontracts.OperatorConfig
 //	@Failure		403				{string}	Forbidden
+//	@Failure		400				{object}	rorerror.RorError
 //	@Failure		401				{object}	rorerror.RorError
 //	@Failure		500				{string}	Failure	message
 //	@Router			/v1/operatorconfigs [post]
@@ -159,21 +159,15 @@ func Create() gin.HandlerFunc {
 		var config apicontracts.OperatorConfig
 		//validate the request body
 		if err := c.BindJSON(&config); err != nil {
-			rlog.Errorc(ctx, "could not bind JSON", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not validate operator config input",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate operator config input", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&config); err != nil {
-			rlog.Errorc(ctx, "could not validate input", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: fmt.Sprintf("Required fields are missing: %s", err),
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -181,17 +175,12 @@ func Create() gin.HandlerFunc {
 		if err != nil {
 			rlog.Errorc(ctx, "could not create operator config", err)
 			if strings.Contains(err.Error(), "exists") {
-				c.JSON(http.StatusBadRequest, rorerror.RorError{
-					Status:  http.StatusBadRequest,
-					Message: "Already exists",
-				})
+				rerr := rorerror.NewRorError(http.StatusBadRequest, "Already exists", err)
+				rerr.GinLogErrorJSON(c)
 				return
 			}
-
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Required fields are missing",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields are missing", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -213,6 +202,7 @@ func Create() gin.HandlerFunc {
 //	@Param			operatorconfig	body		apicontracts.OperatorConfig	true	"Update operator config"
 //	@Success		200				{object}	apicontracts.OperatorConfig
 //	@Failure		403				{string}	Forbidden
+//	@Failure		400				{object}	rorerror.RorError
 //	@Failure		401				{object}	rorerror.RorError
 //	@Failure		500				{string}	Failure	message
 //	@Router			/v1/operatorconfigs/:id [put]
@@ -224,11 +214,8 @@ func Update() gin.HandlerFunc {
 
 		id := c.Param("id")
 		if id == "" || len(id) == 0 {
-			rlog.Errorc(ctx, "invalid operator config id", fmt.Errorf("id is zero length"))
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid operator config id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid operator config id", fmt.Errorf("id is zero length"))
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 		// Access check
@@ -246,21 +233,15 @@ func Update() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&input); err != nil {
-			rlog.Errorc(ctx, "input is not valid", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Input is not valid",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Input is not valid", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		//use the validator library to validate required fields
-		if validationErr := validate.Struct(&input); validationErr != nil {
-			rlog.Errorc(ctx, "could not validate required fields", validationErr)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Required fields missing",
-			})
+		if err := validate.Struct(&input); err != nil {
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields missing", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -275,11 +256,8 @@ func Update() gin.HandlerFunc {
 		}
 
 		if updated == nil {
-			rlog.Errorc(ctx, "Could not update operator config", fmt.Errorf("object does not exist"))
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not update operator config, does it exist?!",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not update operator config, does it exist?!", fmt.Errorf("object does not exist"))
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -301,6 +279,7 @@ func Update() gin.HandlerFunc {
 //	@Param			id	path		string	true	"id"
 //	@Success		200	{bool}		true
 //	@Failure		403	{string}	Forbidden
+//	@Failure		400	{object}	rorerror.RorError
 //	@Failure		401	{object}	rorerror.RorError
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/operatorconfigs/:id [delete]
@@ -312,11 +291,8 @@ func Delete() gin.HandlerFunc {
 
 		id := c.Param("id")
 		if id == "" || len(id) == 0 {
-			rlog.Errorc(ctx, "invalid id", fmt.Errorf("id is zero length"))
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid id", fmt.Errorf("id is zero length"))
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 		// Access check
@@ -332,11 +308,8 @@ func Delete() gin.HandlerFunc {
 
 		result, err := operatorconfigservice.Delete(ctx, id)
 		if err != nil {
-			rlog.Errorc(ctx, "could not delete operator config", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not delete operator config",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not delete operator config", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 

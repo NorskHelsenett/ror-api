@@ -10,6 +10,7 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
@@ -60,6 +61,7 @@ func DummyView() gin.HandlerFunc {
 //	@Param			id	path		string	true	"id"
 //	@Success		200	{string}	This	is		not	the	view	you	are	looking	for
 //	@Failure		403	{string}	Forbidden
+//	@Failure		400	{object}	rorerror.RorError
 //	@Failure		401	{object}	rorerror.RorError
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/clusters/{clusterid}/views/policyreports [get]
@@ -71,7 +73,8 @@ func PolicyreportsView() gin.HandlerFunc {
 
 		clusterid := c.Param("clusterid")
 		if clusterid == "" {
-			c.JSON(http.StatusBadRequest, "")
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "No clusterid")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -107,6 +110,7 @@ func PolicyreportsView() gin.HandlerFunc {
 //	@Param			type	query		viewsmodels.PolicyreportGlobalQueryType	true	"type"
 //	@Success		200		{string}	This									is		not	the	view	you	are	looking	for
 //	@Failure		403		{string}	Forbidden
+//	@Failure		400		{object}	rorerror.RorError
 //	@Failure		401		{object}	rorerror.RorError
 //	@Failure		500		{string}	Failure	message
 //	@Router			/v1/clusters/{clusterid}/views/policyreports [get]
@@ -119,7 +123,8 @@ func PolicyreportSummaryView() gin.HandlerFunc {
 		query := viewsmodels.PolicyreportGlobalQueryType(c.Query("type"))
 
 		if query == "" {
-			c.JSON(http.StatusBadRequest, "No type defined")
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "no type defined")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 		// Access check
@@ -159,6 +164,7 @@ func PolicyreportSummaryView() gin.HandlerFunc {
 //	@Param			type	query		viewsmodels.PolicyreportGlobalQueryType	true	"type"
 //	@Success		200		{string}	This									is		not	the	view	you	are	looking	for
 //	@Failure		403		{string}	Forbidden
+//	@Failure		400		{object}	rorerror.RorError
 //	@Failure		401		{object}	rorerror.RorError
 //	@Failure		500		{string}	Failure	message
 //	@Router			/v1/clusters/{clusterid}/views/policyreports [get]
@@ -171,7 +177,8 @@ func VulnerabilityreportSummaryView() gin.HandlerFunc {
 		query := viewsmodels.PolicyreportGlobalQueryType(c.Query("type"))
 
 		if query == "" {
-			c.JSON(http.StatusBadRequest, "No type defined")
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "No type defined")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -209,6 +216,7 @@ func VulnerabilityreportSummaryView() gin.HandlerFunc {
 //	@Param			id	path		string	true	"id"
 //	@Success		200	{string}	This	is		not	the	view	you	are	looking	for
 //	@Failure		403	{string}	Forbidden
+//	@Failure		400	{object}	rorerror.RorError
 //	@Failure		401	{object}	rorerror.RorError
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/clusters/{clusterid}/views/vulnerabilityreports [get]
@@ -220,7 +228,8 @@ func VulnerabilityReportsView() gin.HandlerFunc {
 
 		clusterid := c.Param("clusterid")
 		if clusterid == "" {
-			c.JSON(http.StatusBadRequest, "")
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "no clusterid")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -256,6 +265,7 @@ func VulnerabilityReportsView() gin.HandlerFunc {
 //	@Param			cveid	path		string	true	"cveid"
 //	@Success		200		{string}	This	is		not	the	view	you	are	looking	for
 //	@Failure		403		{string}	Forbidden
+//	@Failure		400		{object}	rorerror.RorError
 //	@Failure		401		{object}	rorerror.RorError
 //	@Failure		500		{string}	Failure	message
 //	@Router			/v1/clusters/views/vulnerabilityreports/byid/:cveid [get]
@@ -267,7 +277,8 @@ func VulnerabilityReportsViewById() gin.HandlerFunc {
 
 		cveId := c.Param("cveid")
 		if cveId == "" {
-			c.JSON(http.StatusBadRequest, "")
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "no cve-id provided")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -343,6 +354,7 @@ func VulnerabilityReportsGlobal() gin.HandlerFunc {
 //	@Query			cveid	{string}
 //	@Success		200		{string}	This	is	not	the	view	you	are	looking	for
 //	@Failure		403		{string}	Forbidden
+//	@Failure		400		{object}	rorerror.RorError
 //	@Failure		401		{object}	rorerror.RorError
 //	@Failure		500		{string}	Failure	message
 //	@Router			/v1/clusters/views/vulnerabilityreports/byid [get]
@@ -354,7 +366,8 @@ func GlobalVulnerabilityReportsViewById() gin.HandlerFunc {
 
 		cveId := c.Query("cveid")
 		if cveId == "" {
-			c.JSON(http.StatusBadRequest, "")
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "no cve-id in query")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 		// Access check
@@ -390,6 +403,7 @@ func GlobalVulnerabilityReportsViewById() gin.HandlerFunc {
 //	@Param			clusterid	path		string	true	"clusterid"
 //	@Success		200			{array}		viewsmodels.ComplianceReport
 //	@Failure		403			{string}	Forbidden
+//	@Failure		400			{object}	rorerror.RorError
 //	@Failure		401			{object}	rorerror.RorError
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/clusters/:clusterid/views/compliancereports [get]
@@ -401,7 +415,8 @@ func ComplianceReports() gin.HandlerFunc {
 
 		clusterId := c.Param("clusterid")
 		if clusterId == "" {
-			c.JSON(http.StatusBadRequest, "")
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "no cluster-id in query")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -473,13 +488,13 @@ func ComplianceReportsGlobal() gin.HandlerFunc {
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-
-//	@Success	200	{string}	Get	data	for	the	cluster
-//	@Failure	403	{string}	Forbidden
-//	@Failure	401	{string}	Unauthorized
-//	@Failure	500	{string}	Failure	message
-//	@Router		/v1/clusters/self [get]
-//	@Security	ApiKey || AccessToken
+//
+//	@Success		200	{string}	Get	data	for	the	cluster
+//	@Failure		403	{string}	Forbidden
+//	@Failure		401	{string}	Unauthorized
+//	@Failure		500	{string}	Failure	message
+//	@Router			/v1/clusters/self [get]
+//	@Security		ApiKey || AccessToken
 func GetSelf() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)

@@ -30,28 +30,27 @@ func init() {
 	customvalidators.Setup(validate)
 }
 
-// @Summary	Get user
-// @Schemes
-// @Description	Get user details
-// @Tags			users
-// @Accept			application/json
-// @Produce		application/json
-// @Success		200	{object}	apicontracts.User
-// @Failure		403	{string}	Forbidden
-// @Failure		401	{string}	Unauthorized
-// @Failure		500	{string}	Failure	message
-// @Router			/v1/users/self [get]
-// @Security		ApiKey || AccessToken
+//	@Summary	Get user
+//	@Schemes
+//	@Description	Get user details
+//	@Tags			users
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Success		200	{object}	apicontracts.User
+//	@Failure		403	{string}	Forbidden
+//	@Failure		400	{object}	rorerror.RorError
+//	@Failure		401	{string}	Unauthorized
+//	@Failure		500	{string}	Failure	message
+//	@Router			/v1/users/self [get]
+//	@Security		ApiKey || AccessToken
 func GetUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, _ := gincontext.GetRorContextFromGinContext(c)
 
 		identity := rorcontext.GetIdentityFromRorContext(ctx)
 		if !identity.IsUser() {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid identity",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid identity")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -70,19 +69,20 @@ func GetUser() gin.HandlerFunc {
 	}
 }
 
-// @Summary	Get apikeys by filter
-// @Schemes
-// @Description	Get apikeys by filter
-// @Tags			users
-// @Accept			application/json
-// @Produce		application/json
-// @Success		200								{object}	apicontracts.PaginatedResult[apicontracts.ApiKey]
-// @Failure		403								{object}	rorerror.RorError
-// @Failure		401								{object}	rorerror.RorError
-// @Failure		500								{object}	rorerror.RorError
-// @Router			/v1/users/self/apikeys/filter	[post]
-// @Param			filter							body	apicontracts.Filter	true	"Filter"
-// @Security		ApiKey || AccessToken
+//	@Summary	Get apikeys by filter
+//	@Schemes
+//	@Description	Get apikeys by filter
+//	@Tags			users
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Success		200								{object}	apicontracts.PaginatedResult[apicontracts.ApiKey]
+//	@Failure		403								{object}	rorerror.RorError
+//	@Failure		400								{object}	rorerror.RorError
+//	@Failure		401								{object}	rorerror.RorError
+//	@Failure		500								{object}	rorerror.RorError
+//	@Router			/v1/users/self/apikeys/filter	[post]
+//	@Param			filter							body	apicontracts.Filter	true	"Filter"
+//	@Security		ApiKey || AccessToken
 func GetApiKeysByFilter() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
@@ -92,30 +92,23 @@ func GetApiKeysByFilter() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&filter); err != nil {
-			rlog.Errorc(ctx, "missing parameter", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Missing parameter",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&filter); validationErr != nil {
 			rlog.Errorc(ctx, "failed to validate required fields", validationErr)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: validationErr.Error(),
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, validationErr.Error())
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		identity := rorcontext.GetIdentityFromRorContext(ctx)
 		if !identity.IsUser() {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid identity",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid identity")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -143,19 +136,20 @@ func GetApiKeysByFilter() gin.HandlerFunc {
 	}
 }
 
-// @Summary	Create api key
-// @Schemes
-// @Description	Create a api key
-// @Tags			users
-// @Accept			application/json
-// @Produce		application/json
-// @Success		200						{string}	api	key
-// @Failure		403						{object}	rorerror.RorError
-// @Failure		401						{object}	rorerror.RorError
-// @Failure		500						{object}	rorerror.RorError
-// @Router			/v1/users/self/apikeys	[post]
-// @Param			project					body	apicontracts.ApiKey	true	"Api key"
-// @Security		ApiKey || AccessToken
+//	@Summary	Create api key
+//	@Schemes
+//	@Description	Create a api key
+//	@Tags			users
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Success		200						{string}	api	key
+//	@Failure		403						{object}	rorerror.RorError
+//	@Failure		400						{object}	rorerror.RorError
+//	@Failure		401						{object}	rorerror.RorError
+//	@Failure		500						{object}	rorerror.RorError
+//	@Router			/v1/users/self/apikeys	[post]
+//	@Param			project					body	apicontracts.ApiKey	true	"Api key"
+//	@Security		ApiKey || AccessToken
 func CreateApikey() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
@@ -164,20 +158,15 @@ func CreateApikey() gin.HandlerFunc {
 		identity := rorcontext.GetIdentityFromRorContext(ctx)
 
 		if !identity.IsUser() {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid identity",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid identity")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		var input apicontracts.ApiKey
 		if err := c.BindJSON(&input); err != nil {
-			rlog.Errorc(ctx, "could not bind JSON", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Required fields are missing",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields are missing", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -185,11 +174,8 @@ func CreateApikey() gin.HandlerFunc {
 		input.Identifier = identity.GetId()
 
 		if err := validate.Struct(&input); err != nil {
-			rlog.Errorc(ctx, "could not validate object", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not validate project object",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate project object", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -202,12 +188,8 @@ func CreateApikey() gin.HandlerFunc {
 				})
 				return
 			}
-
-			rlog.Errorc(ctx, "could not create api key", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Unable to create api key, perhaps it already exist?",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Unable to create api key, perhaps it already exist?", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -215,19 +197,20 @@ func CreateApikey() gin.HandlerFunc {
 	}
 }
 
-// @Summary	Delete api key for user
-// @Schemes
-// @Description	Delete a api key by id for user
-// @Tags			user
-// @Accept			application/json
-// @Produce		application/json
-// @Success		200									{bool}		bool
-// @Failure		403									{object}	rorerror.RorError
-// @Failure		401									{object}	rorerror.RorError
-// @Failure		500									{object}	rorerror.RorError
-// @Router			/v1/users/self/apikeys/{apikeyId}	[delete]
-// @Param			apikeyId							path	string	true	"apikeyId"
-// @Security		ApiKey || AccessToken
+//	@Summary	Delete api key for user
+//	@Schemes
+//	@Description	Delete a api key by id for user
+//	@Tags			user
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Success		200									{bool}		bool
+//	@Failure		403									{object}	rorerror.RorError
+//	@Failure		400									{object}	rorerror.RorError
+//	@Failure		401									{object}	rorerror.RorError
+//	@Failure		500									{object}	rorerror.RorError
+//	@Router			/v1/users/self/apikeys/{apikeyId}	[delete]
+//	@Param			apikeyId							path	string	true	"apikeyId"
+//	@Security		ApiKey || AccessToken
 func DeleteApiKey() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
@@ -236,31 +219,24 @@ func DeleteApiKey() gin.HandlerFunc {
 		apikeyId := c.Param("id")
 		if apikeyId == "" || len(apikeyId) == 0 {
 			rlog.Errorc(ctx, "invalid id", fmt.Errorf("id is zero length"))
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid id")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		identity := rorcontext.GetIdentityFromRorContext(ctx)
 
 		if !identity.IsUser() {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid identity",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid identity")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		// todo fix delete for user
 		result, err := apikeysservice.DeleteForUser(ctx, apikeyId, &identity)
 		if err != nil {
-			rlog.Errorc(ctx, "could not delete object", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not delete object",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not delete object", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 

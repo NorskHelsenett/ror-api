@@ -44,6 +44,7 @@ func init() {
 //	@Produce		application/json
 //	@Success		200					{object}	apicontracts.PaginatedResult[apicontracts.Cluster]
 //	@Failure		403					{object}	rorerror.RorError
+//	@Failure		400					{object}	rorerror.RorError
 //	@Failure		401					{object}	rorerror.RorError
 //	@Failure		500					{object}	rorerror.RorError
 //	@Router			/v1/orders/cluster	[post]
@@ -69,32 +70,23 @@ func OrderCluster() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&order); err != nil {
-			rlog.Errorc(ctx, "Missing parameter", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Missing parameter",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		//use the validator library to validate required fields
-		if validationErr := validate.Struct(&order); validationErr != nil {
-			rlog.Errorc(ctx, validationErr.Error(), validationErr)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: validationErr.Error(),
-			})
+		if err := validate.Struct(&order); err != nil {
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		rlog.Debugc(ctx, "cluster order request", rlog.Any("order", order))
 		err := orderservice.OrderCluster(ctx, order)
 		if err != nil {
-			rlog.Errorc(ctx, "error ordering cluster", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: err.Error(),
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "error ordering cluster", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -113,6 +105,7 @@ func OrderCluster() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200					{object}	apicontracts.PaginatedResult[apicontracts.Cluster]
 //	@Failure		403					{object}	rorerror.RorError
+//	@Failure		400					{object}	rorerror.RorError
 //	@Failure		401					{object}	rorerror.RorError
 //	@Failure		500					{object}	rorerror.RorError
 //	@Router			/v1/orders/cluster	[delete]
@@ -137,21 +130,15 @@ func DeleteCluster() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&order); err != nil {
-			rlog.Errorc(ctx, "Missing parameter", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Missing parameter",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		//use the validator library to validate required fields
-		if validationErr := validate.Struct(&order); validationErr != nil {
-			rlog.Errorc(ctx, validationErr.Error(), validationErr)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: validationErr.Error(),
-			})
+		if err := validate.Struct(&order); err != nil {
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -180,6 +167,7 @@ func DeleteCluster() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200			{object}	apicontracts.PaginatedResult[apicontracts.Cluster]
 //	@Failure		403			{object}	rorerror.RorError
+//	@Failure		400			{object}	rorerror.RorError
 //	@Failure		401			{object}	rorerror.RorError
 //	@Failure		500			{object}	rorerror.RorError
 //	@Router			/v1/orders	[get]
@@ -206,11 +194,8 @@ func GetOrders() gin.HandlerFunc {
 			Subject: string(aclmodels.Acl2RorSubjectGlobal),
 		})
 		if err != nil {
-			rlog.Errorc(ctx, "error getting orders", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: err.Error(),
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "error getting orders", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -228,6 +213,7 @@ func GetOrders() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200					{object}	apiresourcecontracts.ResourceListClusterorders
 //	@Failure		403					{object}	rorerror.RorError
+//	@Failure		400					{object}	rorerror.RorError
 //	@Failure		401					{object}	rorerror.RorError
 //	@Failure		500					{object}	rorerror.RorError
 //	@Router			/v1/orders/{uid}	[get]
@@ -249,21 +235,15 @@ func GetOrder() gin.HandlerFunc {
 
 		uid := c.Param("uid")
 		if uid == "" || len(uid) == 0 {
-			rlog.Errorc(ctx, "invalid id", nil)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid id")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		universalId, err := uuid.Parse(uid)
 		if err != nil {
-			rlog.Errorc(ctx, "invalid id", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid id", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -272,11 +252,8 @@ func GetOrder() gin.HandlerFunc {
 			Subject: string(aclmodels.Acl2RorSubjectGlobal),
 		}, universalId.String())
 		if err != nil {
-			rlog.Errorc(ctx, "error getting orders", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: err.Error(),
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "error getting orders", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -294,6 +271,7 @@ func GetOrder() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200					{bool}		bool
 //	@Failure		403					{object}	rorerror.RorError
+//	@Failure		400					{object}	rorerror.RorError
 //	@Failure		401					{object}	rorerror.RorError
 //	@Failure		500					{object}	rorerror.RorError
 //	@Router			/v1/orders/{uid}	[delete]
@@ -305,21 +283,15 @@ func DeleteOrder() gin.HandlerFunc {
 
 		uid := c.Param("uid")
 		if uid == "" || len(uid) == 0 {
-			rlog.Errorc(ctx, "invalid id", nil)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid id")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		universalId, err := uuid.Parse(uid)
 		if err != nil {
-			rlog.Errorc(ctx, "invalid id", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid id", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 		// Access check
@@ -338,11 +310,8 @@ func DeleteOrder() gin.HandlerFunc {
 		}
 		err = resourcesservice.ResourceDeleteService(ctx, resource)
 		if err != nil {
-			rlog.Errorc(ctx, "error getting orders", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: err.Error(),
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "error getting orders", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 

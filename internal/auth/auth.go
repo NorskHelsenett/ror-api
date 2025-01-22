@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"net/http"
 	"strings"
 
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
@@ -20,9 +21,6 @@ func AuthenticationMiddleware(c *gin.Context) {
 		return
 	}
 
-	rorerror := rorerror.RorError{
-		Status:  401,
-		Message: "Authorization provider not supported",
-	}
-	c.AbortWithStatusJSON(rorerror.Status, rorerror)
+	rerr := rorerror.NewRorError(http.StatusUnauthorized, "Authorization provider not supported")
+	rerr.GinLogErrorAbort(c)
 }

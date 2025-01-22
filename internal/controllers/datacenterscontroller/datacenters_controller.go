@@ -164,6 +164,7 @@ func GetById() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200				{array}		apicontracts.Datacenter
 //	@Failure		403				{string}	Forbidden
+//	@Failure		400				{object}	rorerror.RorError
 //	@Failure		401				{object}	rorerror.RorError
 //	@Failure		500				{string}	Failure					message
 //	@Param			datacenter		body		apicontracts.Datacenter	true	"Datacenter"
@@ -191,19 +192,15 @@ func Create() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&datacenterInput); err != nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Missing body",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing body", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		//use the validator library to validate required fields
-		if validationErr := validate.Struct(&datacenterInput); validationErr != nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: validationErr.Error(),
-			})
+		if err := validate.Struct(&datacenterInput); err != nil {
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -217,10 +214,8 @@ func Create() gin.HandlerFunc {
 		}
 
 		if datacenter == nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not create datacenter, does it already exists?! ",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not create datacenter, does it already exists?! ", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -238,6 +233,7 @@ func Create() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200								{array}		apicontracts.Datacenter
 //	@Failure		403								{string}	Forbidden
+//	@Failure		400								{object}	rorerror.RorError
 //	@Failure		401								{object}	rorerror.RorError
 //	@Failure		500								{string}	Failure					message
 //	@Param			datacenterId					path		string					true	"datacenterId"
@@ -267,19 +263,15 @@ func Update() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&datacenterInput); err != nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Missing body",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing body", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		//use the validator library to validate required fields
-		if validationErr := validate.Struct(&datacenterInput); validationErr != nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: validationErr.Error(),
-			})
+		if err := validate.Struct(&datacenterInput); err != nil {
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -293,10 +285,8 @@ func Update() gin.HandlerFunc {
 		}
 
 		if datacenter == nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not update datacenter, does it exists?!",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not update datacenter, does it exists?!", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 

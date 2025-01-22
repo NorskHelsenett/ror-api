@@ -34,6 +34,8 @@ var (
 //	@Produce		application/json
 //	@Param			key	path		string	true	"key"
 //	@Success		200	{object}	apicontracts.DesiredVersion
+//	@Failure		400	{object}	rorerror.RorError
+//	@Failure		401	{object}	rorerror.RorError
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/desired_versions/{key} [get]
 func GetByKey() gin.HandlerFunc {
@@ -43,10 +45,8 @@ func GetByKey() gin.HandlerFunc {
 
 		key := c.Param("key")
 		if key == "" {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "invalid desired version key",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid desired version key")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -94,6 +94,7 @@ func GetAll() gin.HandlerFunc {
 //	@Param			version	body		apicontracts.DesiredVersion	true	"Add a desired version"
 //	@Success		200		{string}	Ok
 //	@Failure		403		{string}	Forbidden
+//	@Failure		400		{object}	rorerror.RorError
 //	@Failure		401		{object}	rorerror.RorError
 //	@Failure		500		{string}	Failure	message
 //	@Router			/v1/desired_versions [post]
@@ -118,21 +119,15 @@ func Create() gin.HandlerFunc {
 		var desiredversion apicontracts.DesiredVersion
 		//validate the request body
 		if err := c.BindJSON(&desiredversion); err != nil {
-			rlog.Errorc(ctx, "could not bind JSON", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not validate desired version object",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate desired version object", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		err := validate.Struct(&desiredversion)
 		if err != nil {
-			rlog.Errorc(ctx, "could not validate the request body", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Required fields missing",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields missing", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -159,6 +154,7 @@ func Create() gin.HandlerFunc {
 //	@Param			version	body		apicontracts.DesiredVersion	true	"Update the desired version"
 //	@Success		200		{string}	Ok
 //	@Failure		403		{string}	Forbidden
+//	@Failure		400		{object}	rorerror.RorError
 //	@Failure		401		{object}	rorerror.RorError
 //	@Failure		500		{string}	Failure	message
 //	@Router			/v1/desired_versions/{key} [put]
@@ -180,30 +176,22 @@ func Update() gin.HandlerFunc {
 
 		var desiredversion apicontracts.DesiredVersion
 		if err := c.BindJSON(&desiredversion); err != nil {
-			rlog.Errorc(ctx, "could not bind JSON", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not validate desired version object",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate desired version object", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		err := validate.Struct(&desiredversion)
 		if err != nil {
-			rlog.Errorc(ctx, "could not validate the request body", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Required fields missing",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields missing", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		key := c.Param("key")
 		if key == "" {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "invalid desired version key",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid desired version key")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -229,6 +217,7 @@ func Update() gin.HandlerFunc {
 //	@Param			key	path		string	true	"key"
 //	@Success		200	{string}	Ok
 //	@Failure		403	{string}	Forbidden
+//	@Failure		400	{object}	rorerror.RorError
 //	@Failure		401	{object}	rorerror.RorError
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/desired_versions/{key} [delete]
@@ -251,10 +240,8 @@ func Delete() gin.HandlerFunc {
 
 		key := c.Param("key")
 		if key == "" {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "invalid desired version key",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid desired version key")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 

@@ -36,6 +36,7 @@ func init() {
 //	@Produce		application/json
 //	@Success		200								{object}	apicontracts.PaginatedResult[apicontracts.Metric]
 //	@Failure		403								{string}	Forbidden
+//	@Failure		400								{object}	rorerror.RorError
 //	@Failure		401								{object}	rorerror.RorError
 //	@Failure		500								{string}	Failure	message
 //	@Router			/v1/metrics/workspaces/filter	[post]
@@ -48,30 +49,24 @@ func GetForWorkspaces() gin.HandlerFunc {
 		defer cancel()
 
 		if err := c.BindJSON(&filter); err != nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Missing parameter",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		//use the validator library to validate required fields
-		if validationErr := validate.Struct(&filter); validationErr != nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: validationErr.Error(),
-			})
+		if err := validate.Struct(&filter); err != nil {
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		for i := 0; i < len(filter.Sort); i++ {
 			sort := filter.Sort[i]
 
-			if validationErr := validate.Struct(sort); validationErr != nil {
-				c.JSON(http.StatusBadRequest, rorerror.RorError{
-					Status:  http.StatusBadRequest,
-					Message: validationErr.Error(),
-				})
+			if err := validate.Struct(sort); err != nil {
+				rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+				rerr.GinLogErrorJSON(c)
 				return
 			}
 		}
@@ -112,7 +107,7 @@ func GetForWorkspaces() gin.HandlerFunc {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200														{object}	apicontracts.MetricList
-//	@Failure		403														{string}	Forbidden
+//	@Failure		400														{object}	rorerror.RorError
 //	@Failure		401														{object}	rorerror.RorError
 //	@Failure		500														{string}	Failure	message
 //	@Param			datacenterId											path		string	true	"datacenterId"
@@ -127,30 +122,24 @@ func GetForWorkspacesByDatacenterId() gin.HandlerFunc {
 		defer cancel()
 
 		if err := c.BindJSON(&filter); err != nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Missing parameter",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		//use the validator library to validate required fields
-		if validationErr := validate.Struct(&filter); validationErr != nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: validationErr.Error(),
-			})
+		if err := validate.Struct(&filter); err != nil {
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		for i := 0; i < len(filter.Sort); i++ {
 			sort := filter.Sort[i]
 
-			if validationErr := validate.Struct(sort); validationErr != nil {
-				c.JSON(http.StatusBadRequest, rorerror.RorError{
-					Status:  http.StatusBadRequest,
-					Message: validationErr.Error(),
-				})
+			if err := validate.Struct(sort); err != nil {
+				rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+				rerr.GinLogErrorJSON(c)
 				return
 			}
 		}
@@ -184,6 +173,7 @@ func GetForWorkspacesByDatacenterId() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200									{object}	apicontracts.MetricItem
 //	@Failure		403									{string}	Forbidden
+//	@Failure		400									{object}	rorerror.RorError
 //	@Failure		401									{object}	rorerror.RorError
 //	@Failure		500									{string}	Failure	message
 //	@Router			/v1/metrics/workspace/{workspaceId}	[get]

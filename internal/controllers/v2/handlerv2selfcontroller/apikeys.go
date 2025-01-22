@@ -26,6 +26,7 @@ import (
 //	@Produce		application/json
 //	@Success		200					{object}	apicontractsv2self.CreateOrRenewApikeyResponse
 //	@Failure		403					{object}	rorerror.RorError
+//	@Failure		400					{object}	rorerror.RorError
 //	@Failure		401					{object}	rorerror.RorError
 //	@Failure		500					{object}	rorerror.RorError
 //	@Router			/v2/self/apikeys	[post]
@@ -39,35 +40,26 @@ func CreateOrRenewApikey() gin.HandlerFunc {
 
 		identity := rorcontext.GetIdentityFromRorContext(ctx)
 		if identity.Auth.AuthProvider == identitymodels.IdentityProviderApiKey {
-			rlog.Error("cannot create apikey with apikey", fmt.Errorf("cannot create apikey with apikey"))
-			c.AbortWithError(http.StatusBadRequest, fmt.Errorf("cannot create apikey with apikey"))
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "cannot create apikey with apikey")
+			rerr.GinLogErrorAbort(c)
 		}
 
 		if err := c.BindJSON(&input); err != nil {
-			rlog.Errorc(ctx, "could not bind JSON", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Required fields are missing",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields are missing", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		if err := validate.Struct(&input); err != nil {
-			rlog.Errorc(ctx, "could not validate object", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not validate project object",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate project object", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		apikeyresponse, err := apikeysservice.CreateOrRenew(ctx, &input)
 		if err != nil {
-			rlog.Errorc(ctx, "could not create api key", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Unable to create api key, perhaps it already exist?",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Unable to create api key, perhaps it already exist?", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
@@ -83,6 +75,7 @@ func CreateOrRenewApikey() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200							{bool}		bool
 //	@Failure		403							{object}	rorerror.RorError
+//	@Failure		400							{object}	rorerror.RorError
 //	@Failure		401							{object}	rorerror.RorError
 //	@Failure		500							{object}	rorerror.RorError
 //	@Router			/v2/self/apikeys/{apikeyId}	[delete]
@@ -96,31 +89,24 @@ func DeleteApiKey() gin.HandlerFunc {
 		apikeyId := c.Param("id")
 		if apikeyId == "" || len(apikeyId) == 0 {
 			rlog.Errorc(ctx, "invalid id", fmt.Errorf("id is zero length"))
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid id")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		identity := rorcontext.GetIdentityFromRorContext(ctx)
 
 		if !identity.IsUser() {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid identity",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid identity")
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
 		// todo fix delete for user
 		result, err := apikeysservice.DeleteForUser(ctx, apikeyId, &identity)
 		if err != nil {
-			rlog.Errorc(ctx, "could not delete object", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not delete object",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not delete object", err)
+			rerr.GinLogErrorJSON(c)
 			return
 		}
 
