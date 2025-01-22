@@ -41,10 +41,8 @@ func GetTotalByUser() gin.HandlerFunc {
 
 		metricsTotal, err := metricsservice.GetTotalByUser(ctx)
 		if err != nil {
-			c.JSON(http.StatusForbidden, rorerror.RorError{
-				Status:  http.StatusForbidden,
-				Message: "Could not fetch user",
-			})
+			rerr := rorerror.NewRorError(http.StatusForbidden, "Could not get user", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -82,10 +80,8 @@ func GetTotal() gin.HandlerFunc {
 
 		metrics, err := metricsservice.GetTotal(ctx)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not fetch metrics",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get metrics", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 

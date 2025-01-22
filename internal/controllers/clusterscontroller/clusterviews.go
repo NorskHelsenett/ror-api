@@ -74,7 +74,7 @@ func PolicyreportsView() gin.HandlerFunc {
 		clusterid := c.Param("clusterid")
 		if clusterid == "" {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "No clusterid")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -124,7 +124,7 @@ func PolicyreportSummaryView() gin.HandlerFunc {
 
 		if query == "" {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "no type defined")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 		// Access check
@@ -178,7 +178,7 @@ func VulnerabilityreportSummaryView() gin.HandlerFunc {
 
 		if query == "" {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "No type defined")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -229,7 +229,7 @@ func VulnerabilityReportsView() gin.HandlerFunc {
 		clusterid := c.Param("clusterid")
 		if clusterid == "" {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "no clusterid")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -278,7 +278,7 @@ func VulnerabilityReportsViewById() gin.HandlerFunc {
 		cveId := c.Param("cveid")
 		if cveId == "" {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "no cve-id provided")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -367,7 +367,7 @@ func GlobalVulnerabilityReportsViewById() gin.HandlerFunc {
 		cveId := c.Query("cveid")
 		if cveId == "" {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "no cve-id in query")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 		// Access check
@@ -416,7 +416,7 @@ func ComplianceReports() gin.HandlerFunc {
 		clusterId := c.Param("clusterid")
 		if clusterId == "" {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "no cluster-id in query")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -482,19 +482,19 @@ func ComplianceReportsGlobal() gin.HandlerFunc {
 	}
 }
 
-//	@Summary		Get cluster self data
-//	@Schemes		https
-//	@Description	Get cluster self data
-//	@Tags			clusters
-//	@Accept			application/json
-//	@Produce		application/json
+// @Summary		Get cluster self data
+// @Schemes		https
+// @Description	Get cluster self data
+// @Tags			clusters
+// @Accept			application/json
+// @Produce		application/json
 //
-//	@Success		200	{string}	Get	data	for	the	cluster
-//	@Failure		403	{string}	Forbidden
-//	@Failure		401	{string}	Unauthorized
-//	@Failure		500	{string}	Failure	message
-//	@Router			/v1/clusters/self [get]
-//	@Security		ApiKey || AccessToken
+// @Success		200	{string}	Get	data	for	the	cluster
+// @Failure		403	{string}	Forbidden
+// @Failure		401	{string}	Unauthorized
+// @Failure		500	{string}	Failure	message
+// @Router			/v1/clusters/self [get]
+// @Security		ApiKey || AccessToken
 func GetSelf() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)

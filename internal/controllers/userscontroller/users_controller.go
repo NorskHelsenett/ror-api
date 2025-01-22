@@ -30,19 +30,19 @@ func init() {
 	customvalidators.Setup(validate)
 }
 
-//	@Summary	Get user
-//	@Schemes
-//	@Description	Get user details
-//	@Tags			users
-//	@Accept			application/json
-//	@Produce		application/json
-//	@Success		200	{object}	apicontracts.User
-//	@Failure		403	{string}	Forbidden
-//	@Failure		400	{object}	rorerror.RorError
-//	@Failure		401	{string}	Unauthorized
-//	@Failure		500	{string}	Failure	message
-//	@Router			/v1/users/self [get]
-//	@Security		ApiKey || AccessToken
+// @Summary	Get user
+// @Schemes
+// @Description	Get user details
+// @Tags			users
+// @Accept			application/json
+// @Produce		application/json
+// @Success		200	{object}	apicontracts.User
+// @Failure		403	{string}	Forbidden
+// @Failure		400	{object}	rorerror.RorError
+// @Failure		401	{string}	Unauthorized
+// @Failure		500	{string}	Failure	message
+// @Router			/v1/users/self [get]
+// @Security		ApiKey || AccessToken
 func GetUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, _ := gincontext.GetRorContextFromGinContext(c)
@@ -50,7 +50,7 @@ func GetUser() gin.HandlerFunc {
 		identity := rorcontext.GetIdentityFromRorContext(ctx)
 		if !identity.IsUser() {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid identity")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -69,20 +69,20 @@ func GetUser() gin.HandlerFunc {
 	}
 }
 
-//	@Summary	Get apikeys by filter
-//	@Schemes
-//	@Description	Get apikeys by filter
-//	@Tags			users
-//	@Accept			application/json
-//	@Produce		application/json
-//	@Success		200								{object}	apicontracts.PaginatedResult[apicontracts.ApiKey]
-//	@Failure		403								{object}	rorerror.RorError
-//	@Failure		400								{object}	rorerror.RorError
-//	@Failure		401								{object}	rorerror.RorError
-//	@Failure		500								{object}	rorerror.RorError
-//	@Router			/v1/users/self/apikeys/filter	[post]
-//	@Param			filter							body	apicontracts.Filter	true	"Filter"
-//	@Security		ApiKey || AccessToken
+// @Summary	Get apikeys by filter
+// @Schemes
+// @Description	Get apikeys by filter
+// @Tags			users
+// @Accept			application/json
+// @Produce		application/json
+// @Success		200								{object}	apicontracts.PaginatedResult[apicontracts.ApiKey]
+// @Failure		403								{object}	rorerror.RorError
+// @Failure		400								{object}	rorerror.RorError
+// @Failure		401								{object}	rorerror.RorError
+// @Failure		500								{object}	rorerror.RorError
+// @Router			/v1/users/self/apikeys/filter	[post]
+// @Param			filter							body	apicontracts.Filter	true	"Filter"
+// @Security		ApiKey || AccessToken
 func GetApiKeysByFilter() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
@@ -93,7 +93,7 @@ func GetApiKeysByFilter() gin.HandlerFunc {
 		//validate the request body
 		if err := c.BindJSON(&filter); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -101,14 +101,14 @@ func GetApiKeysByFilter() gin.HandlerFunc {
 		if validationErr := validate.Struct(&filter); validationErr != nil {
 			rlog.Errorc(ctx, "failed to validate required fields", validationErr)
 			rerr := rorerror.NewRorError(http.StatusBadRequest, validationErr.Error())
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		identity := rorcontext.GetIdentityFromRorContext(ctx)
 		if !identity.IsUser() {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid identity")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -136,20 +136,20 @@ func GetApiKeysByFilter() gin.HandlerFunc {
 	}
 }
 
-//	@Summary	Create api key
-//	@Schemes
-//	@Description	Create a api key
-//	@Tags			users
-//	@Accept			application/json
-//	@Produce		application/json
-//	@Success		200						{string}	api	key
-//	@Failure		403						{object}	rorerror.RorError
-//	@Failure		400						{object}	rorerror.RorError
-//	@Failure		401						{object}	rorerror.RorError
-//	@Failure		500						{object}	rorerror.RorError
-//	@Router			/v1/users/self/apikeys	[post]
-//	@Param			project					body	apicontracts.ApiKey	true	"Api key"
-//	@Security		ApiKey || AccessToken
+// @Summary	Create api key
+// @Schemes
+// @Description	Create a api key
+// @Tags			users
+// @Accept			application/json
+// @Produce		application/json
+// @Success		200						{string}	api	key
+// @Failure		403						{object}	rorerror.RorError
+// @Failure		400						{object}	rorerror.RorError
+// @Failure		401						{object}	rorerror.RorError
+// @Failure		500						{object}	rorerror.RorError
+// @Router			/v1/users/self/apikeys	[post]
+// @Param			project					body	apicontracts.ApiKey	true	"Api key"
+// @Security		ApiKey || AccessToken
 func CreateApikey() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
@@ -159,14 +159,14 @@ func CreateApikey() gin.HandlerFunc {
 
 		if !identity.IsUser() {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid identity")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		var input apicontracts.ApiKey
 		if err := c.BindJSON(&input); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields are missing", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -175,21 +175,19 @@ func CreateApikey() gin.HandlerFunc {
 
 		if err := validate.Struct(&input); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate project object", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		apikeyText, err := apikeysservice.Create(ctx, &input, &identity)
 		if err != nil {
 			if strings.Contains(err.Error(), "too many apikeys") {
-				c.JSON(http.StatusBadRequest, rorerror.RorError{
-					Status:  http.StatusForbidden,
-					Message: "Too many apikeys, limit of 100 reached.",
-				})
+				rerr := rorerror.NewRorError(http.StatusForbidden, "Too many apikeys, limit of 100 reached.", err)
+				rerr.GinLogErrorAbort(c)
 				return
 			}
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Unable to create api key, perhaps it already exist?", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -197,20 +195,20 @@ func CreateApikey() gin.HandlerFunc {
 	}
 }
 
-//	@Summary	Delete api key for user
-//	@Schemes
-//	@Description	Delete a api key by id for user
-//	@Tags			user
-//	@Accept			application/json
-//	@Produce		application/json
-//	@Success		200									{bool}		bool
-//	@Failure		403									{object}	rorerror.RorError
-//	@Failure		400									{object}	rorerror.RorError
-//	@Failure		401									{object}	rorerror.RorError
-//	@Failure		500									{object}	rorerror.RorError
-//	@Router			/v1/users/self/apikeys/{apikeyId}	[delete]
-//	@Param			apikeyId							path	string	true	"apikeyId"
-//	@Security		ApiKey || AccessToken
+// @Summary	Delete api key for user
+// @Schemes
+// @Description	Delete a api key by id for user
+// @Tags			user
+// @Accept			application/json
+// @Produce		application/json
+// @Success		200									{bool}		bool
+// @Failure		403									{object}	rorerror.RorError
+// @Failure		400									{object}	rorerror.RorError
+// @Failure		401									{object}	rorerror.RorError
+// @Failure		500									{object}	rorerror.RorError
+// @Router			/v1/users/self/apikeys/{apikeyId}	[delete]
+// @Param			apikeyId							path	string	true	"apikeyId"
+// @Security		ApiKey || AccessToken
 func DeleteApiKey() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
@@ -220,7 +218,7 @@ func DeleteApiKey() gin.HandlerFunc {
 		if apikeyId == "" || len(apikeyId) == 0 {
 			rlog.Errorc(ctx, "invalid id", fmt.Errorf("id is zero length"))
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid id")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -228,7 +226,7 @@ func DeleteApiKey() gin.HandlerFunc {
 
 		if !identity.IsUser() {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid identity")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -236,7 +234,7 @@ func DeleteApiKey() gin.HandlerFunc {
 		result, err := apikeysservice.DeleteForUser(ctx, apikeyId, &identity)
 		if err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not delete object", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 

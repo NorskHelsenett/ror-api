@@ -67,14 +67,14 @@ func Create() gin.HandlerFunc {
 		//validate the request body
 		if err := c.BindJSON(&price); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate price object", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&price); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields are missing", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -83,11 +83,11 @@ func Create() gin.HandlerFunc {
 			rlog.Errorc(ctx, "could not create price", err)
 			if strings.Contains(err.Error(), "exists") {
 				rerr := rorerror.NewRorError(http.StatusBadRequest, "Already exists")
-				rerr.GinLogErrorJSON(c)
+				rerr.GinLogErrorAbort(c)
 				return
 			}
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields are missing")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -120,16 +120,14 @@ func GetByProvider() gin.HandlerFunc {
 
 		if providerName == "" || len(providerName) == 0 {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid provider name")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		prices, err := pricesService.GetByProperty(ctx, "provider", strings.ToLower(providerName))
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "could not get prices",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not get prices", err)
+			rerr.GinLogErrorAbort(c)
 		}
 
 		c.JSON(http.StatusOK, prices)
@@ -162,7 +160,7 @@ func Update() gin.HandlerFunc {
 		if priceId == "" || len(priceId) == 0 {
 			rlog.Errorc(ctx, "invalid price id", fmt.Errorf("id is zero length"))
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid price id")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -181,7 +179,7 @@ func Update() gin.HandlerFunc {
 		//validate the request body
 		if err := c.BindJSON(&priceInput); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Object is not valid", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -189,24 +187,21 @@ func Update() gin.HandlerFunc {
 		if validationErr := validate.Struct(&priceInput); validationErr != nil {
 			rlog.Errorc(ctx, "could not validate reqired fields", validationErr)
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields missing")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		updatedprice, originalprice, err := pricesService.Update(ctx, priceId, &priceInput)
 		if err != nil {
-			rlog.Errorc(ctx, "could not update price", err)
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not update price",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not update price", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		if updatedprice == nil {
 			rlog.Errorc(ctx, "Could not update price", fmt.Errorf("object does not exist"))
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not update price, does it exist?!")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -241,7 +236,7 @@ func Delete() gin.HandlerFunc {
 		if priceId == "" || len(priceId) == 0 {
 			rlog.Errorc(ctx, "invalid price id", fmt.Errorf("id is zero length"))
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid price id")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 		// Access check
@@ -258,7 +253,7 @@ func Delete() gin.HandlerFunc {
 		result, deletedPrice, err := pricesService.Delete(ctx, priceId)
 		if err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not delete price", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -289,10 +284,8 @@ func GetAll() gin.HandlerFunc {
 
 		prices, err := pricesService.GetAll(ctx)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not find prices ...",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not find prices ...", err)
+			rerr.GinLogErrorAbort(c)
 		}
 
 		c.JSON(http.StatusOK, prices)
@@ -308,7 +301,7 @@ func GetById() gin.HandlerFunc {
 		priceId := c.Param("priceId")
 		if priceId == "" || len(priceId) == 0 {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid price id")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -325,10 +318,8 @@ func GetById() gin.HandlerFunc {
 
 		price, err := pricesService.GetById(ctx, priceId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "could not get price",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not get price", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 

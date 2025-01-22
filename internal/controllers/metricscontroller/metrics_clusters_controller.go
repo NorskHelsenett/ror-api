@@ -35,10 +35,8 @@ func GetForClusters() gin.HandlerFunc {
 
 		metrics, err := metricsservice.GetForClusters(ctx)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not fetch metrics for clusters",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get metrics for clusters", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -77,10 +75,8 @@ func GetForClustersByWorkspaceId() gin.HandlerFunc {
 		var _ apicontracts.Datacenter
 		results, err := metricsservice.GetForClustersByWorkspaceId(ctx, workspaceId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not fetch metrics for clusters by workspace",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get metrics for clusters by workspace", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -117,10 +113,8 @@ func GetByClusterId() gin.HandlerFunc {
 
 		result, err := metricsservice.GetForClusterid(ctx, clusterId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not fetch metrics for clusterid",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get metrics for clusterid", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -157,10 +151,8 @@ func MetricsForClustersByProperty() gin.HandlerFunc {
 
 		result, err := metricsservice.ForClustersByProperty(ctx, property)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not fetch custom metrics for clusters by property",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get custom metrics for clusters by property", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 

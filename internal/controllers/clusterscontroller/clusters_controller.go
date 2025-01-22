@@ -117,7 +117,7 @@ func ClusterExistsById() gin.HandlerFunc {
 
 		if clusterId == "" {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing clusterId")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -158,14 +158,14 @@ func ClusterByFilter() gin.HandlerFunc {
 		//validate the request body
 		if err := c.BindJSON(&filter); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&filter); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate required fields", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -217,14 +217,14 @@ func ClusterGetByWorkspaceId() gin.HandlerFunc {
 		//validate the request body
 		if err := c.BindJSON(&filter); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&filter); validationErr != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", validationErr)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -233,7 +233,7 @@ func ClusterGetByWorkspaceId() gin.HandlerFunc {
 
 			if validationErr := validate.Struct(sort); validationErr != nil {
 				rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", validationErr)
-				rerr.GinLogErrorJSON(c)
+				rerr.GinLogErrorAbort(c)
 				return
 			}
 		}
@@ -244,7 +244,7 @@ func ClusterGetByWorkspaceId() gin.HandlerFunc {
 		result, err := clustersservice.GetByWorkspaceId(ctx, &filter, workspaceId)
 		if err != nil {
 			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get clusters by workspace", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -330,21 +330,21 @@ func UpdateMetadata() gin.HandlerFunc {
 
 		if clusterId == "" {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing clusterId")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//validate the request body
 		if err := c.BindJSON(&input); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&input); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -514,7 +514,7 @@ func GetKubeconfig() gin.HandlerFunc {
 		clusterid := c.Param("clusterid")
 		if clusterid == "" {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "clusterid must be provided")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 		defer cancel()
@@ -551,14 +551,14 @@ func GetKubeconfig() gin.HandlerFunc {
 		//validate the request body
 		if err := c.BindJSON(&clusterKubeConfigPayload); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&clusterKubeConfigPayload); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate required fields", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -640,23 +640,21 @@ func CreateCluster() gin.HandlerFunc {
 		//validate the request body
 		if err := c.BindJSON(&clusterInput); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&clusterInput); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		clusterId, err := clustersservice.Create(ctx, &clusterInput)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: fmt.Sprintf("Could not create cluster (%s)", err),
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, fmt.Sprintf("Could not create cluster (%s)", err), err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 

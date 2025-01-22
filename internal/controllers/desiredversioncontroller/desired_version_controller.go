@@ -46,7 +46,7 @@ func GetByKey() gin.HandlerFunc {
 		key := c.Param("key")
 		if key == "" {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid desired version key")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -120,14 +120,14 @@ func Create() gin.HandlerFunc {
 		//validate the request body
 		if err := c.BindJSON(&desiredversion); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate desired version object", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		err := validate.Struct(&desiredversion)
 		if err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields missing", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -177,21 +177,21 @@ func Update() gin.HandlerFunc {
 		var desiredversion apicontracts.DesiredVersion
 		if err := c.BindJSON(&desiredversion); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate desired version object", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		err := validate.Struct(&desiredversion)
 		if err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields missing", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		key := c.Param("key")
 		if key == "" {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid desired version key")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -241,7 +241,7 @@ func Delete() gin.HandlerFunc {
 		key := c.Param("key")
 		if key == "" {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid desired version key")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 

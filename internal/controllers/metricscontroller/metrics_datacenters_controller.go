@@ -37,10 +37,8 @@ func GetForDatacenters() gin.HandlerFunc {
 		var _ apicontracts.MetricList
 		metrics, err := metricsservice.GetForDatacenters(ctx)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not fetch metrics",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get metrics", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -80,10 +78,8 @@ func GetByDatacenterId() gin.HandlerFunc {
 
 		metrics, err := metricsservice.GetForDatacenterId(ctx, datacenterId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not fetch metrics",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get metrics", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 

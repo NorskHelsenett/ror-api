@@ -223,7 +223,7 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 	results, err := db.Collection(CollectionName).Aggregate(ctx, query)
 
 	if err != nil {
-		return nil, fmt.Errorf("could not fetch clusters: %v", err)
+		return nil, fmt.Errorf("Could not get clusters: %v", err)
 	}
 	span3.End()
 
@@ -232,12 +232,12 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 
 	totalCountResult, err := clusterCollection.Aggregate(ctx, totalCountQuery)
 	if err != nil {
-		return nil, fmt.Errorf("could not fetch clusters: %v", err)
+		return nil, fmt.Errorf("Could not get clusters: %v", err)
 	}
 
 	var totalCountAcc []bson.M
 	if err = totalCountResult.All(ctx, &totalCountAcc); err != nil {
-		return nil, fmt.Errorf("could not fetch total count for clusters: %v", err)
+		return nil, fmt.Errorf("Could not get total count for clusters: %v", err)
 	}
 
 	totalCount := len(totalCountAcc)
@@ -263,7 +263,7 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 	for results.Next(ctx) {
 		var singleCluster apicontracts.Cluster
 		if err = results.Decode(&singleCluster); err != nil {
-			return nil, fmt.Errorf("could not fetch clusters: %v", err)
+			return nil, fmt.Errorf("Could not get clusters: %v", err)
 		}
 
 		clusterhelper.SetStatus(&singleCluster)

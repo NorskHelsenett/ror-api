@@ -66,16 +66,14 @@ func GetById() gin.HandlerFunc {
 		id := c.Param("id")
 		if id == "" || len(id) == 0 {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid id")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		result, err := operatorconfigservice.GetById(ctx, id)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "could not get operator config",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not get operator config", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -115,10 +113,8 @@ func GetAll() gin.HandlerFunc {
 
 		elements, err := operatorconfigservice.GetAll(ctx)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not find operator configs ...",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not find operator configs ...", err)
+			rerr.GinLogErrorAbort(c)
 		}
 
 		c.JSON(http.StatusOK, elements)
@@ -160,14 +156,14 @@ func Create() gin.HandlerFunc {
 		//validate the request body
 		if err := c.BindJSON(&config); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate operator config input", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&config); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -176,11 +172,11 @@ func Create() gin.HandlerFunc {
 			rlog.Errorc(ctx, "could not create operator config", err)
 			if strings.Contains(err.Error(), "exists") {
 				rerr := rorerror.NewRorError(http.StatusBadRequest, "Already exists", err)
-				rerr.GinLogErrorJSON(c)
+				rerr.GinLogErrorAbort(c)
 				return
 			}
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields are missing", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -215,7 +211,7 @@ func Update() gin.HandlerFunc {
 		id := c.Param("id")
 		if id == "" || len(id) == 0 {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid operator config id", fmt.Errorf("id is zero length"))
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 		// Access check
@@ -234,30 +230,27 @@ func Update() gin.HandlerFunc {
 		//validate the request body
 		if err := c.BindJSON(&input); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Input is not valid", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&input); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields missing", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		updated, original, err := operatorconfigservice.Update(ctx, id, &input)
 		if err != nil {
-			rlog.Errorc(ctx, "could not update operator config", err)
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not update operator config",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not update operator config", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		if updated == nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not update operator config, does it exist?!", fmt.Errorf("object does not exist"))
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -292,7 +285,7 @@ func Delete() gin.HandlerFunc {
 		id := c.Param("id")
 		if id == "" || len(id) == 0 {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid id", fmt.Errorf("id is zero length"))
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 		// Access check
@@ -309,7 +302,7 @@ func Delete() gin.HandlerFunc {
 		result, err := operatorconfigservice.Delete(ctx, id)
 		if err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not delete operator config", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 

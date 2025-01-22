@@ -56,7 +56,7 @@ func GetResources() gin.HandlerFunc {
 
 		if validationErr := validate.Struct(rsQuery); validationErr != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, validationErr.Error())
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 

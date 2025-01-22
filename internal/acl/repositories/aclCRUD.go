@@ -49,12 +49,12 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) ([]aclmodels.
 
 	totalCountResult, err := collection.Aggregate(ctx, totalCountPipeline)
 	if err != nil {
-		return nil, 0, fmt.Errorf("could not fetch acl: %v", err)
+		return nil, 0, fmt.Errorf("Could not get acl: %v", err)
 	}
 
 	var totalCountAcc []bson.M
 	if err = totalCountResult.All(ctx, &totalCountAcc); err != nil {
-		return nil, 0, fmt.Errorf("could not fetch total count for acl: %v", err)
+		return nil, 0, fmt.Errorf("Could not get total count for acl: %v", err)
 	}
 
 	totalCount := len(totalCountAcc)

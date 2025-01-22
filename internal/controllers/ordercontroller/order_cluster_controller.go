@@ -71,14 +71,14 @@ func OrderCluster() gin.HandlerFunc {
 		//validate the request body
 		if err := c.BindJSON(&order); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&order); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -86,7 +86,7 @@ func OrderCluster() gin.HandlerFunc {
 		err := orderservice.OrderCluster(ctx, order)
 		if err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "error ordering cluster", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -131,14 +131,14 @@ func DeleteCluster() gin.HandlerFunc {
 		//validate the request body
 		if err := c.BindJSON(&order); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&order); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -195,7 +195,7 @@ func GetOrders() gin.HandlerFunc {
 		})
 		if err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "error getting orders", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -236,14 +236,14 @@ func GetOrder() gin.HandlerFunc {
 		uid := c.Param("uid")
 		if uid == "" || len(uid) == 0 {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid id")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		universalId, err := uuid.Parse(uid)
 		if err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid id", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -253,7 +253,7 @@ func GetOrder() gin.HandlerFunc {
 		}, universalId.String())
 		if err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "error getting orders", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -284,14 +284,14 @@ func DeleteOrder() gin.HandlerFunc {
 		uid := c.Param("uid")
 		if uid == "" || len(uid) == 0 {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid id")
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		universalId, err := uuid.Parse(uid)
 		if err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid id", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 		// Access check
@@ -311,7 +311,7 @@ func DeleteOrder() gin.HandlerFunc {
 		err = resourcesservice.ResourceDeleteService(ctx, resource)
 		if err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "error getting orders", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 

@@ -54,7 +54,7 @@ func Get{{.PluralCapitalized}}(ctx context.Context, ownerref apiresourcecontract
 	resources.Owner = ownerref
 	resources.{{.PluralCapitalized}} = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource {{.Kind}}")
+		return resources, errors.New("Could not get resource {{.Kind}}")
 	}
 	return resources, nil
 }

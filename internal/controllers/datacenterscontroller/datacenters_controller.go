@@ -35,7 +35,7 @@ func init() {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200				{array}		apicontracts.Datacenter
-//	@Failure		403				{string}	Forbidden
+//	@Failure		403				{object}	rorerror.RorError
 //	@Failure		401				{object}	rorerror.RorError
 //	@Failure		500				{string}	Failure	message
 //	@Router			/v1/datacenters	[get]
@@ -47,10 +47,8 @@ func GetAll() gin.HandlerFunc {
 
 		_, err := gincontext.GetUserFromGinContext(c)
 		if err != nil {
-			c.JSON(http.StatusForbidden, rorerror.RorError{
-				Status:  http.StatusForbidden,
-				Message: "Could not fetch user",
-			})
+			rerr := rorerror.NewRorError(http.StatusForbidden, "Could not get user", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -59,10 +57,8 @@ func GetAll() gin.HandlerFunc {
 
 		datacenters, err := datacentersservice.GetAllByUser(ctx)
 		if err != nil {
-			c.JSON(http.StatusForbidden, rorerror.RorError{
-				Status:  http.StatusForbidden,
-				Message: "Could not fetch datacenters",
-			})
+			rerr := rorerror.NewRorError(http.StatusForbidden, "Could not get datacenters", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -79,7 +75,7 @@ func GetAll() gin.HandlerFunc {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200									{object}	apicontracts.Datacenter
-//	@Failure		403									{string}	Forbidden
+//	@Failure		403									{object}	rorerror.RorError
 //	@Failure		401									{object}	rorerror.RorError
 //	@Failure		500									{string}	Failure	message
 //	@Router			/v1/datacenters/{datacenterName}	[get]
@@ -97,10 +93,8 @@ func GetByName() gin.HandlerFunc {
 
 		datacenter, err := datacentersservice.GetByName(ctx, datacenterName)
 		if err != nil {
-			c.JSON(http.StatusForbidden, rorerror.RorError{
-				Status:  http.StatusForbidden,
-				Message: "Could not fetch datacenter",
-			})
+			rerr := rorerror.NewRorError(http.StatusForbidden, "Could not get datacenter", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -113,19 +107,19 @@ func GetByName() gin.HandlerFunc {
 	}
 }
 
-//	@Summary	Get datacenter by id
-//	@Schemes
-//	@Description	Get datacenter by id
-//	@Tags			datacenters
-//	@Accept			application/json
-//	@Produce		application/json
-//	@Success		200						{object}	apicontracts.Datacenter
-//	@Failure		403						{string}	Forbidden
-//	@Failure		401						{string}	Unauthorized
-//	@Failure		500						{string}	Failure	message
-//	@Router			/v1/datacenters/id/{id}	[get]
-//	@Param			id						path	string	true	"id"
-//	@Security		ApiKey || AccessToken
+// @Summary	Get datacenter by id
+// @Schemes
+// @Description	Get datacenter by id
+// @Tags			datacenters
+// @Accept			application/json
+// @Produce		application/json
+// @Success		200						{object}	apicontracts.Datacenter
+// @Failure		403						{string}	Forbidden
+// @Failure		401						{string}	Unauthorized
+// @Failure		500						{string}	Failure	message
+// @Router			/v1/datacenters/id/{id}	[get]
+// @Param			id						path	string	true	"id"
+// @Security		ApiKey || AccessToken
 func GetById() gin.HandlerFunc {
 	// todo scheduled for deletion
 	return func(c *gin.Context) {
@@ -138,10 +132,8 @@ func GetById() gin.HandlerFunc {
 
 		datacenter, err := datacentersservice.GetById(ctx, datacenterId)
 		if err != nil {
-			c.JSON(http.StatusForbidden, rorerror.RorError{
-				Status:  http.StatusForbidden,
-				Message: "Could not fetch datacenter",
-			})
+			rerr := rorerror.NewRorError(http.StatusForbidden, "Could not get datacenter", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -193,29 +185,27 @@ func Create() gin.HandlerFunc {
 		//validate the request body
 		if err := c.BindJSON(&datacenterInput); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing body", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&datacenterInput); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		datacenter, err := datacentersservice.Create(ctx, &datacenterInput, identity.User)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not create datacenter",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not create datacenter", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		if datacenter == nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not create datacenter, does it already exists?! ", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -264,29 +254,27 @@ func Update() gin.HandlerFunc {
 		//validate the request body
 		if err := c.BindJSON(&datacenterInput); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing body", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&datacenterInput); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		datacenter, err := datacentersservice.Update(ctx, datacenterId, &datacenterInput, identity.User)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not update datacenter",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not update datacenter", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		if datacenter == nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not update datacenter, does it exists?!", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 

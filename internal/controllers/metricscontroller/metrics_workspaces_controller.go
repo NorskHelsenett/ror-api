@@ -50,14 +50,14 @@ func GetForWorkspaces() gin.HandlerFunc {
 
 		if err := c.BindJSON(&filter); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&filter); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -66,7 +66,7 @@ func GetForWorkspaces() gin.HandlerFunc {
 
 			if err := validate.Struct(sort); err != nil {
 				rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
-				rerr.GinLogErrorJSON(c)
+				rerr.GinLogErrorAbort(c)
 				return
 			}
 		}
@@ -76,10 +76,8 @@ func GetForWorkspaces() gin.HandlerFunc {
 
 		metrics, err := metricsservice.GetForWorkspaces(ctx, &filter)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not fetch metrics for workspaces",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get metrics for workspaces", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -123,14 +121,14 @@ func GetForWorkspacesByDatacenterId() gin.HandlerFunc {
 
 		if err := c.BindJSON(&filter); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&filter); err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
-			rerr.GinLogErrorJSON(c)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -139,17 +137,15 @@ func GetForWorkspacesByDatacenterId() gin.HandlerFunc {
 
 			if err := validate.Struct(sort); err != nil {
 				rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
-				rerr.GinLogErrorJSON(c)
+				rerr.GinLogErrorAbort(c)
 				return
 			}
 		}
 
 		result, err := metricsservice.GetForWorkspacesByDatacenterId(ctx, &filter, datacenterId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusNotFound,
-				Message: "could not fetch metris for workspaces by datacenter",
-			})
+			rerr := rorerror.NewRorError(http.StatusNotFound, "Could not get metris for workspaces by datacenter", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -187,10 +183,8 @@ func GetByWorkspaceId() gin.HandlerFunc {
 
 		metrics, err := metricsservice.GetForWorkspaceId(ctx, workspaceId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "could not fetch metris for workspace",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get metris for workspace", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
