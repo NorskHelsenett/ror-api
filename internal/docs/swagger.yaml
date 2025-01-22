@@ -6120,7 +6120,7 @@ paths:
         "403":
           description: Forbidden
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "500":
           description: Internal Server Error
           schema:
@@ -6246,7 +6246,7 @@ paths:
         "403":
           description: Forbidden
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "500":
           description: Internal Server Error
           schema:
@@ -8896,15 +8896,17 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
-            type: string
-        "500":
-          description: Internal Server Error
+            $ref: '#/definitions/rorerror.RorError'
+        "404":
+          description: Not Found
           schema:
-            type: string
+            items:
+              $ref: '#/definitions/apicontracts.Workspace'
+            type: array
       security:
       - AccessToken: []
         ApiKey: []
@@ -8944,7 +8946,7 @@ paths:
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
       security:
       - AccessToken: []
         ApiKey: []
@@ -9011,10 +9013,14 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/apicontracts.Workspace'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
         "403":
           description: Forbidden
           schema:
@@ -9022,7 +9028,7 @@ paths:
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.RorError'
       security:
       - AccessToken: []
         ApiKey: []

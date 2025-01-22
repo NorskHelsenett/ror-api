@@ -2322,7 +2322,7 @@
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "500": {
@@ -2573,7 +2573,7 @@
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "500": {
@@ -6612,19 +6612,22 @@
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
-                            "type": "string"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/apicontracts.Workspace"
+                            }
                         }
                     }
                 }
@@ -6665,10 +6668,16 @@
                             "$ref": "#/definitions/apicontracts.Workspace"
                         }
                     },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.RorError"
+                        }
+                    },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -6680,7 +6689,7 @@
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     }
                 }
@@ -6742,7 +6751,7 @@
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     }
                 }

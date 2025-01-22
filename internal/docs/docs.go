@@ -2329,7 +2329,7 @@ const docTemplate = `{
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "500": {
@@ -2580,7 +2580,7 @@ const docTemplate = `{
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "500": {
@@ -6619,19 +6619,22 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
-                            "type": "string"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/apicontracts.Workspace"
+                            }
                         }
                     }
                 }
@@ -6672,10 +6675,16 @@ const docTemplate = `{
                             "$ref": "#/definitions/apicontracts.Workspace"
                         }
                     },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.RorError"
+                        }
+                    },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     },
                     "403": {
@@ -6687,7 +6696,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     }
                 }
@@ -6749,7 +6758,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.RorError"
                         }
                     }
                 }
