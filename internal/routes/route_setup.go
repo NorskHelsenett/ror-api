@@ -29,6 +29,10 @@ import (
 	v2resourcescontroller "github.com/NorskHelsenett/ror-api/internal/controllers/v2/resourcescontroller"
 	ctrlWorkspaces "github.com/NorskHelsenett/ror-api/internal/controllers/workspacescontroller"
 
+	"github.com/NorskHelsenett/ror-api/pkg/handlers/ssehandler"
+	"github.com/NorskHelsenett/ror-api/pkg/middelware/ssemiddleware"
+	"github.com/NorskHelsenett/ror-api/pkg/servers/sseserver"
+
 	"github.com/NorskHelsenett/ror-api/internal/controllers/v2/handlerv2selfcontroller"
 	"github.com/NorskHelsenett/ror-api/internal/models"
 	"github.com/NorskHelsenett/ror-api/internal/webserver/middlewares"
@@ -313,8 +317,16 @@ func SetupRoutes(router *gin.Engine) {
 
 	v2 := router.Group("/v2")
 
-	v2.Use(middlewares.TimeoutMiddleware(timeoutduration))
+	eventsRoute := v2.Group("events", auth.AuthenticationMiddleware)
+	{
+		eventstimeout := 60 * time.Second
+		eventsRoute.GET("listen", middlewares.TimeoutMiddleware(eventstimeout), ssemiddleware.SSEHeadersMiddleware(), sseserver.Server.ServeSSE(), ssehandler.Server.HandleSSE())
+		eventsRoute.POST("send", middlewares.TimeoutMiddleware(timeoutduration), sse.Server.Send())
+	}
+
 	v2.Use(auth.AuthenticationMiddleware)
+	v2.Use(middlewares.TimeoutMiddleware(timeoutduration))
+	// Self
 	selfv2Route := v2.Group("self")
 	selfv2Route.GET("", handlerv2selfcontroller.GetSelf())
 	selfv2Route.POST("/apikeys", handlerv2selfcontroller.CreateOrRenewApikey())
@@ -326,8 +338,6 @@ func SetupRoutes(router *gin.Engine) {
 	docs.SwaggerInfo.BasePath = "/"
 	docs.SwaggerInfo.Version = apiconfig.RorVersion.GetVersion()
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-
-	v2.Use(auth.AuthenticationMiddleware)
 
 	resourceRoute := v2.Group("resources")
 
