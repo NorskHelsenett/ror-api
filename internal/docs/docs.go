@@ -265,18 +265,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/rorerror.RorError"
                         }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
-                        }
                     }
                 }
             }
@@ -481,12 +469,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "Check acl by scope, subject and access method",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "acl"
                 ],
@@ -516,25 +498,13 @@ const docTemplate = `{
                         "description": "OK"
                     },
                     "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
-                        }
+                        "description": "Bad Request"
                     },
                     "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
-                        }
+                        "description": "Unauthorized"
                     },
                     "403": {
                         "description": "Forbidden"
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
-                        }
                     }
                 }
             }
@@ -10312,10 +10282,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "message": {
-                    "type": "string"
+                    "description": "Error message",
+                    "type": "string",
+                    "example": "Bad Request"
                 },
                 "status": {
-                    "type": "integer"
+                    "description": "HTTP status code",
+                    "type": "integer",
+                    "example": 400
                 }
             }
         },

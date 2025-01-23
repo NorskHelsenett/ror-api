@@ -42,14 +42,11 @@ func init() {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200				{array}		aclmodels.Acl2Scope
-//	@Failure		403				{object}	rorerror.RorError
 //	@Failure		401				{object}	rorerror.RorError
-//	@Failure		500				{object}	rorerror.RorError
 //	@Router			/v1/acl/scopes	[get]
 //	@Security		ApiKey || AccessToken
 func GetScopes() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		results := aclmodels.GetScopes()
 		c.JSON(http.StatusOK, results)
 	}
@@ -61,13 +58,10 @@ func GetScopes() gin.HandlerFunc {
 //	@Schemes
 //	@Description	Check acl by scope, subject and access method
 //	@Tags			acl
-//	@Accept			application/json
-//	@Produce		application/json
 //	@Success		200
 //	@Failure		403
-//	@Failure		400									{object}	rorerror.RorError
-//	@Failure		401									{object}	rorerror.RorError
-//	@Failure		500									{object}	rorerror.RorError
+//	@Failure		400
+//	@Failure		401
 //	@Param			scope								path		string	false	"Scope"
 //	@Param			subject								path		string	false	"Subject"
 //	@Param			access								path		string	false	"read,write,update or delete"
