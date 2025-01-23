@@ -243,7 +243,7 @@ func (sse *SSE) Send() gin.HandlerFunc {
 			return
 		}
 
-		message := ssemodels.SseMessage{SSEBase: ssemodels.SSEBase{Event: ssemodels.SseType(input.Event)}, Data: input.Data}
+		message := ssemodels.SseMessage{Event: ssemodels.SseType(input.Event), Data: input.Data}
 		err = apiconnections.RabbitMQConnection.SendMessage(ctx, message, messagebuscontracts.Event_Broadcast, nil)
 		if err != nil {
 			rlog.Errorc(ctx, "could not send sse broadcast event", err)
@@ -267,10 +267,8 @@ func KeepAlive() {
 		for {
 			now := time.Now()
 			payload := ssemodels.SseMessage{
-				SSEBase: ssemodels.SSEBase{
-					Event: ssemodels.SseType_Time,
-				},
-				Data: now,
+				Event: ssemodels.SseType_Time,
+				Data:  now,
 			}
 			Server.BroadcastMessage(payload)
 			time.Sleep(time.Second * 15)

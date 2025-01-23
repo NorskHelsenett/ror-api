@@ -13,16 +13,14 @@ const (
 	SseType_ClusterOrder_Updated SseType = "clusterOrder.updated"
 )
 
-type SSEBase struct {
-	Event SseType `json:"event"`
-}
-
+// Deprecated: Use SseMessage instead, this is not a valid format
 type Time struct {
-	SSEBase
+	Event       SseType   `json:"event"`
 	CurrentTime time.Time `json:"currentTime"`
 }
 
 type SseMessage struct {
-	SSEBase
-	Data interface{} `json:"data"`
+	Id    string      `json:"id omitempty"`
+	Event SseType     `json:"event"`
+	Data  interface{} `json:"data"`
 }
