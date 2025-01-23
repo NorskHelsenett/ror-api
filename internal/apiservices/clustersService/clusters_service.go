@@ -145,7 +145,7 @@ func Create(ctx context.Context, input *apicontracts.Cluster) (string, error) {
 		rlog.Errorc(ctx, "could not send cluster created event", err, rlog.String("clusterId", clusterId))
 	}
 
-	sse.Server.BroadcastMessage(ssemodels.SseMessage{SSEBase: ssemodels.SSEBase{Event: ssemodels.SseType_Cluster_Created}, Data: event})
+	sse.Server.BroadcastMessage(ssemodels.SseMessage{Event: ssemodels.SseType_Cluster_Created, Data: event})
 	return clusterId, nil
 }
 
