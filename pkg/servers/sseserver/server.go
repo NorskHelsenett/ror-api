@@ -27,7 +27,7 @@ type EventServer struct {
 
 type EventMessage struct {
 	Clients []EventClientId
-	Message string
+	SseEvent
 }
 
 func StartEventServer() {
@@ -62,7 +62,7 @@ func (es *EventServer) listen() {
 		// Broadcast message to client
 		case eventMsg := <-es.Message:
 			for _, clientid := range eventMsg.Clients {
-				es.Clients.Get(clientid).Connection <- eventMsg.Message
+				es.Clients.Get(clientid).Connection <- SseEvent{Event: eventMsg.Event, Data: eventMsg.Data}
 			}
 		}
 	}
@@ -86,7 +86,12 @@ func (stream *EventServer) ServeSSE() gin.HandlerFunc {
 		defer func() {
 			// Drain client channel so that it does not block. Server may keep sending messages to this channel
 			go func() {
-				for range <-client.Connection {
+				for {
+					select {
+					case <-client.Connection:
+					case <-c.Done():
+						return
+					}
 				}
 			}()
 			// Send closed connection to event server

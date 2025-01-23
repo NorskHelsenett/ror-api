@@ -2,9 +2,14 @@ package sseserver
 
 import identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
+type SseEvent struct {
+	Event string `json:"event"`
+	Data  string `json:"data"`
+}
+
 type EventClientId string
 
-type EventClientChan chan string
+type EventClientChan chan SseEvent
 
 type EventClient struct {
 	Id         EventClientId
@@ -39,4 +44,12 @@ func (e *EventClients) Remove(id EventClientId) {
 
 func (e *EventClients) Add(client *EventClient) {
 	*e = append(*e, client)
+}
+
+func (e *EventClients) GetBroadcast() []EventClientId {
+	var clients []EventClientId
+	for _, client := range *e {
+		clients = append(clients, client.Id)
+	}
+	return clients
 }
