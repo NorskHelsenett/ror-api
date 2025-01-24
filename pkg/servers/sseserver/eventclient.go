@@ -1,10 +1,14 @@
 package sseserver
 
-import identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
+import (
+	"sync"
+
+	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
+)
 
 type SseEvent struct {
 	Event string `json:"event"`
-	Data  string `json:"data"`
+	Data  string `json:"data" validate:"required"`
 }
 
 type EventClientId string
@@ -17,14 +21,27 @@ type EventClient struct {
 	Identity   identitymodels.Identity
 }
 
-type EventClients []*EventClient
-
-func (e EventClients) Len() int {
-	return len(e)
+type EventClients struct {
+	clients []*EventClient
+	lock    sync.RWMutex
 }
 
-func (e EventClients) Get(id EventClientId) *EventClient {
-	for _, client := range e {
+func NewEventClients() EventClients {
+	return EventClients{
+		clients: make([]*EventClient, 0),
+	}
+}
+
+func (e *EventClients) Len() int {
+	e.lock.RLock()
+	defer e.lock.RUnlock()
+	return len(e.clients)
+}
+
+func (e *EventClients) Get(id EventClientId) *EventClient {
+	e.lock.RLock()
+	defer e.lock.RUnlock()
+	for _, client := range e.clients {
 		if client.Id == id {
 			return client
 		}
@@ -33,22 +50,28 @@ func (e EventClients) Get(id EventClientId) *EventClient {
 }
 
 func (e *EventClients) Remove(id EventClientId) {
-	for i, client := range *e {
+	e.lock.Lock()
+	defer e.lock.Unlock()
+	for i, client := range e.clients {
 		if client.Id == id {
-			(*e)[i] = (*e)[len(*e)-1]
-			(*e) = (*e)[:len(*e)-1]
+			e.clients[i] = e.clients[len(e.clients)-1]
+			e.clients = e.clients[:len(e.clients)-1]
 			break
 		}
 	}
 }
 
 func (e *EventClients) Add(client *EventClient) {
-	*e = append(*e, client)
+	e.lock.Lock()
+	defer e.lock.Unlock()
+	e.clients = append(e.clients, client)
 }
 
 func (e *EventClients) GetBroadcast() []EventClientId {
+	e.lock.RLock()
+	defer e.lock.RUnlock()
 	var clients []EventClientId
-	for _, client := range *e {
+	for _, client := range e.clients {
 		clients = append(clients, client.Id)
 	}
 	return clients

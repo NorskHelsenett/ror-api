@@ -31,7 +31,6 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/pkg/handlers/ssehandler"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/ssemiddleware"
-	"github.com/NorskHelsenett/ror-api/pkg/servers/sseserver"
 
 	"github.com/NorskHelsenett/ror-api/internal/controllers/v2/handlerv2selfcontroller"
 	"github.com/NorskHelsenett/ror-api/internal/models"
@@ -320,7 +319,7 @@ func SetupRoutes(router *gin.Engine) {
 	eventsRoute := v2.Group("events", auth.AuthenticationMiddleware)
 	{
 		eventstimeout := 60 * time.Second
-		eventsRoute.GET("listen", ssemiddleware.SSEHeadersMiddleware(), sseserver.Server.ServeSSE(), ssehandler.HandleSSE())
+		eventsRoute.GET("listen", ssemiddleware.SSEHeadersMiddleware(), ssehandler.HandleSSE())
 		eventsRoute.POST("send", middlewares.TimeoutMiddleware(eventstimeout), ssehandler.Send())
 	}
 

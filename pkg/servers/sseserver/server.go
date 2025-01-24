@@ -1,14 +1,7 @@
 package sseserver
 
 import (
-	"fmt"
-	"log"
-	"sync"
-	"time"
-
-	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
-	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
-	"github.com/gin-gonic/gin"
+	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/google/uuid"
 )
 
@@ -26,8 +19,6 @@ type EventServer struct {
 
 	// Total client connections
 	Clients EventClients
-
-	lock sync.RWMutex
 }
 
 type EventMessage struct {
@@ -40,19 +31,8 @@ func StartEventServer() {
 		Message:       make(chan EventMessage),
 		NewClients:    make(chan *EventClient),
 		ClosedClients: make(chan EventClientId),
-		Clients:       make(EventClients, 0),
+		Clients:       NewEventClients(),
 	}
-
-	go func() {
-		for {
-			time.Sleep(time.Second * 10)
-			now := time.Now().Format("2006-01-02 15:04:05")
-			currentTime := fmt.Sprintf("The Current Time Is %v", now)
-
-			// Send current time to clients message channel
-			Server.Message <- EventMessage{Clients: Server.Clients.GetBroadcast(), SseEvent: SseEvent{Event: "time", Data: currentTime}}
-		}
-	}()
 
 	go Server.listen()
 
@@ -66,63 +46,27 @@ func (es *EventServer) listen() {
 		// Add new available client
 		case client := <-es.NewClients:
 			es.Clients.Add(client)
-			log.Printf("Client added. %d registered clients", es.Clients.Len())
+			rlog.Infof("Added sse client. %d registered clients", es.Clients.Len())
 
 		// Remove closed client
 		case client := <-es.ClosedClients:
 
 			close(es.Clients.Get(client).Connection)
 			es.Clients.Remove(client)
-			log.Printf("Removed client. %d registered clients", es.Clients.Len())
+			rlog.Infof("Removed sse client. %d registered clients", es.Clients.Len())
 
 		// Broadcast message to client
 		case eventMsg := <-es.Message:
-			fmt.Println("Broadcasting message to clients", eventMsg)
-			for _, clientid := range eventMsg.Clients {
-				es.Clients.Get(clientid).Connection <- SseEvent{Event: eventMsg.Event, Data: eventMsg.Data}
+			if len(eventMsg.Clients) > 0 {
+				for _, clientid := range eventMsg.Clients {
+					es.Clients.Get(clientid).Connection <- SseEvent{Event: eventMsg.Event, Data: eventMsg.Data}
+				}
 			}
 		}
 	}
 }
 
-func (stream *EventServer) ServeSSE() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// Initialize client channel
-		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
-		defer cancel()
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
-		client := &EventClient{
-			Id:         newEventId(),
-			Identity:   identity,
-			Connection: make(EventClientChan),
-		}
-
-		// Send new connection to event server
-		stream.NewClients <- client
-
-		defer func() {
-			// Drain client channel so that it does not block. Server may keep sending messages to this channel
-
-			go func() {
-				for {
-					select {
-					case <-client.Connection:
-					case <-c.Done():
-						return
-					}
-				}
-			}()
-			// Send closed connection to event server
-			stream.ClosedClients <- client.Id
-		}()
-
-		c.Set("sseClient", client)
-
-		c.Next()
-	}
-}
-
-func newEventId() EventClientId {
+func NewEventClientId() EventClientId {
 	id, _ := uuid.NewUUID()
 	return EventClientId(id.String())
 }

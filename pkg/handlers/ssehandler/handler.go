@@ -1,9 +1,10 @@
 package ssehandler
 
 import (
-	"fmt"
 	"io"
 	"net/http"
+	"sync"
+	"time"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 	"github.com/NorskHelsenett/ror-api/pkg/servers/sseserver"
@@ -13,13 +14,9 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
 
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
+	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
-)
-
-var (
-	validate *validator.Validate
 )
 
 // @Summary	Server sent events
@@ -37,21 +34,58 @@ var (
 // @Security		ApiKey || AccessToken
 func HandleSSE() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		v, ok := c.Get("sseClient")
-		if !ok {
-			return
+		stopChan := make(chan bool)
+		var writeLock sync.Mutex
+
+		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
+		defer cancel()
+		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		client := &sseserver.EventClient{
+			Id:         sseserver.NewEventClientId(),
+			Identity:   identity,
+			Connection: make(sseserver.EventClientChan),
 		}
-		client, ok := v.(*sseserver.EventClient)
-		if !ok {
-			return
-		}
-		c.Stream(func(w io.Writer) bool {
-			if msg, ok := <-client.Connection; ok {
-				fmt.Println("Sending message to client", msg)
-				c.SSEvent(msg.Event, msg.Data)
-				return true
+		sseserver.Server.NewClients <- client
+		// Send new connection to event server
+
+		defer func() {
+			stopChan <- true
+		}()
+		go func() {
+			for {
+				select {
+				case <-stopChan:
+					go func() {
+						for range client.Connection {
+						}
+					}()
+					// Send closed connection to event server
+					sseserver.Server.ClosedClients <- client.Id
+					return
+				default:
+					time.Sleep(time.Second * 1)
+					writeLock.Lock()
+					c.Writer.Write([]byte(":keepalive\n"))
+					c.Writer.Flush()
+					writeLock.Unlock()
+				}
 			}
-			return false
+		}()
+
+		c.Stream(func(w io.Writer) bool {
+			select {
+			case msg, ok := <-client.Connection:
+				if ok {
+					writeLock.Lock()
+					c.SSEvent(msg.Event, msg.Data)
+					writeLock.Unlock()
+					return true
+				}
+				return false
+			case <-c.Request.Context().Done():
+				stopChan <- true
+				return false
+			}
 		})
 	}
 }
@@ -79,15 +113,6 @@ func Send() gin.HandlerFunc {
 			rerr.GinLogErrorAbort(c)
 			return
 		}
-
-		// err = validate.Struct(&input)
-		// if err != nil {
-		// 	rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields missing", err)
-		// 	rerr.GinLogErrorAbort(c)
-		// 	return
-		// }
-
-		fmt.Println("Sending message to clients")
 
 		sseserver.Server.Message <- sseserver.EventMessage{
 			Clients: sseserver.Server.Clients.GetBroadcast(),
