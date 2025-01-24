@@ -320,8 +320,8 @@ func SetupRoutes(router *gin.Engine) {
 	eventsRoute := v2.Group("events", auth.AuthenticationMiddleware)
 	{
 		eventstimeout := 60 * time.Second
-		eventsRoute.GET("listen", middlewares.TimeoutMiddleware(eventstimeout), ssemiddleware.SSEHeadersMiddleware(), sseserver.Server.ServeSSE(), ssehandler.HandleSSE())
-		eventsRoute.POST("send", middlewares.TimeoutMiddleware(timeoutduration), sse.Server.Send())
+		eventsRoute.GET("listen", ssemiddleware.SSEHeadersMiddleware(), sseserver.Server.ServeSSE(), ssehandler.HandleSSE())
+		eventsRoute.POST("send", middlewares.TimeoutMiddleware(eventstimeout), ssehandler.Send())
 	}
 
 	v2.Use(auth.AuthenticationMiddleware)

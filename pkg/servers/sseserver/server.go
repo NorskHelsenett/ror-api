@@ -1,7 +1,10 @@
 package sseserver
 
 import (
+	"fmt"
 	"log"
+	"sync"
+	"time"
 
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
@@ -23,6 +26,8 @@ type EventServer struct {
 
 	// Total client connections
 	Clients EventClients
+
+	lock sync.RWMutex
 }
 
 type EventMessage struct {
@@ -37,6 +42,17 @@ func StartEventServer() {
 		ClosedClients: make(chan EventClientId),
 		Clients:       make(EventClients, 0),
 	}
+
+	go func() {
+		for {
+			time.Sleep(time.Second * 10)
+			now := time.Now().Format("2006-01-02 15:04:05")
+			currentTime := fmt.Sprintf("The Current Time Is %v", now)
+
+			// Send current time to clients message channel
+			Server.Message <- EventMessage{Clients: Server.Clients.GetBroadcast(), SseEvent: SseEvent{Event: "time", Data: currentTime}}
+		}
+	}()
 
 	go Server.listen()
 
@@ -61,6 +77,7 @@ func (es *EventServer) listen() {
 
 		// Broadcast message to client
 		case eventMsg := <-es.Message:
+			fmt.Println("Broadcasting message to clients", eventMsg)
 			for _, clientid := range eventMsg.Clients {
 				es.Clients.Get(clientid).Connection <- SseEvent{Event: eventMsg.Event, Data: eventMsg.Data}
 			}
@@ -85,6 +102,7 @@ func (stream *EventServer) ServeSSE() gin.HandlerFunc {
 
 		defer func() {
 			// Drain client channel so that it does not block. Server may keep sending messages to this channel
+
 			go func() {
 				for {
 					select {

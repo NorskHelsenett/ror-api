@@ -1,6 +1,7 @@
 package ssehandler
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 
@@ -46,7 +47,8 @@ func HandleSSE() gin.HandlerFunc {
 		}
 		c.Stream(func(w io.Writer) bool {
 			if msg, ok := <-client.Connection; ok {
-				c.SSEvent("message", msg)
+				fmt.Println("Sending message to client", msg)
+				c.SSEvent(msg.Event, msg.Data)
 				return true
 			}
 			return false
@@ -78,12 +80,14 @@ func Send() gin.HandlerFunc {
 			return
 		}
 
-		err = validate.Struct(&input)
-		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields missing", err)
-			rerr.GinLogErrorAbort(c)
-			return
-		}
+		// err = validate.Struct(&input)
+		// if err != nil {
+		// 	rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields missing", err)
+		// 	rerr.GinLogErrorAbort(c)
+		// 	return
+		// }
+
+		fmt.Println("Sending message to clients")
 
 		sseserver.Server.Message <- sseserver.EventMessage{
 			Clients: sseserver.Server.Clients.GetBroadcast(),
