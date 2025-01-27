@@ -8,6 +8,7 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/internal/utils/switchboard"
 	"github.com/NorskHelsenett/ror-api/internal/webserver/sse"
+	"github.com/NorskHelsenett/ror-api/pkg/servers/sseserver"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiconfig"
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
@@ -90,7 +91,7 @@ func main() {
 		<-sigs
 		done <- struct{}{}
 	}()
-
+	sseserver.StartEventServer()
 	rlog.Infoc(ctx, "Initializing health server")
 	_ = healthserver.Start(healthserver.ServerString(viper.GetString(configconsts.HEALTH_ENDPOINT)))
 

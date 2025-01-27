@@ -21,10 +21,8 @@ func HandleClusterOrderResource(ctx context.Context, message amqp091.Delivery) e
 	}
 
 	payload := ssemodels.SseMessage{
-		SSEBase: ssemodels.SSEBase{
-			Event: ssemodels.SseType_ClusterOrder_Updated,
-		},
-		Data: resourceUpdateModel,
+		Event: ssemodels.SseType_ClusterOrder_Updated,
+		Data:  resourceUpdateModel,
 	}
 
 	sse.Server.BroadcastMessage(payload)
