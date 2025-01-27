@@ -40,7 +40,8 @@ func init() {
 // @Param			task	body		apicontracts.Task	true	"Get a task"
 // @Success		200		{object}	apicontracts.Task
 // @Failure		403		{string}	Forbidden
-// @Failure		401		{string}	Unauthorized
+// @Failure		400		{object}	rorerror.RorError
+// @Failure		401		{object}	rorerror.RorError
 // @Failure		500		{string}	Failure	message
 // @Router			/v1/tasks/:id [get]
 // @Security		ApiKey || AccessToken
@@ -51,28 +52,22 @@ func GetById() gin.HandlerFunc {
 
 		_, err := gincontext.GetUserFromGinContext(c)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, rorerror.RorError{
-				Status:  http.StatusUnauthorized,
-				Message: "Could not fetch user",
-			})
+			rerr := rorerror.NewRorError(http.StatusForbidden, "Could not get user", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		taskId := c.Param("id")
 		if taskId == "" || len(taskId) == 0 {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "invalid task id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid task id")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		result, err := tasksservice.GetById(ctx, taskId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "could not get task",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not get task", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -88,6 +83,7 @@ func GetById() gin.HandlerFunc {
 // @Produce		application/json
 // @Success		200			{array}		apicontracts.Task
 // @Failure		403			{string}	Forbidden
+// @Failure		400			{object}	rorerror.RorError
 // @Failure		401			{string}	Unauthorized
 // @Failure		500			{string}	Failure	message
 // @Router			/v1/tasks	[get]
@@ -111,10 +107,8 @@ func GetAll() gin.HandlerFunc {
 
 		tasks, err := tasksservice.GetAll(ctx)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not find tasks ...",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not find tasks ...", err)
+			rerr.GinLogErrorAbort(c)
 		}
 
 		c.JSON(http.StatusOK, tasks)
@@ -130,7 +124,8 @@ func GetAll() gin.HandlerFunc {
 // @Param			task	body		apicontracts.Task	true	"Add a task"
 // @Success		200		{array}		apicontracts.Task
 // @Failure		403		{string}	Forbidden
-// @Failure		401		{string}	Unauthorized
+// @Failure		400		{object}	rorerror.RorError
+// @Failure		401		{object}	rorerror.RorError
 // @Failure		500		{string}	Failure	message
 // @Router			/v1/tasks [post]
 // @Security		ApiKey || AccessToken
@@ -154,21 +149,15 @@ func Create() gin.HandlerFunc {
 		var task apicontracts.Task
 		//validate the request body
 		if err := c.BindJSON(&task); err != nil {
-			rlog.Errorc(ctx, "could not bind JSON", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not validate task object",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate task object", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&task); err != nil {
-			rlog.Errorc(ctx, "could not validate object", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: fmt.Sprintf("Required fields are missing: %s", err),
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, fmt.Sprintf("Required fields are missing: %s", err), err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -176,17 +165,12 @@ func Create() gin.HandlerFunc {
 		if err != nil {
 			rlog.Errorc(ctx, "could not create task", err)
 			if strings.Contains(err.Error(), "exists") {
-				c.JSON(http.StatusBadRequest, rorerror.RorError{
-					Status:  http.StatusBadRequest,
-					Message: "Already exists",
-				})
+				rerr := rorerror.NewRorError(http.StatusBadRequest, "Already exists")
+				rerr.GinLogErrorAbort(c)
 				return
 			}
-
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Required fields are missing",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields are missing")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -206,7 +190,8 @@ func Create() gin.HandlerFunc {
 // @Param			task	body		apicontracts.Task	true	"Update task"
 // @Success		200		{object}	apicontracts.Task
 // @Failure		403		{string}	Forbidden
-// @Failure		401		{string}	Unauthorized
+// @Failure		400		{object}	rorerror.RorError
+// @Failure		401		{object}	rorerror.RorError
 // @Failure		500		{string}	Failure	message
 // @Router			/v1/tasks/:id [put]
 // @Security		ApiKey || AccessToken
@@ -220,10 +205,8 @@ func Update() gin.HandlerFunc {
 		taskId := c.Param("id")
 		if taskId == "" || len(taskId) == 0 {
 			rlog.Errorc(ctx, "invalid task id", fmt.Errorf("id is zero length"))
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid task id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid task id")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 		// Access check
@@ -240,40 +223,30 @@ func Update() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&taskInput); err != nil {
-			rlog.Errorc(ctx, "could not bind json", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Object is not valid",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Object is not valid", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&taskInput); validationErr != nil {
 			rlog.Errorc(ctx, "could not validate reqired fields", validationErr)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Required fields missing",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields missing")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		updatedTask, originalTask, err := tasksservice.Update(ctx, taskId, &taskInput)
 		if err != nil {
-			rlog.Errorc(ctx, "could not update task", err)
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not update task",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not update task", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		if updatedTask == nil {
 			rlog.Errorc(ctx, "Could not update task", fmt.Errorf("task does not exist"))
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not update task, does it exist?!",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not update task, does it exist?!")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -293,6 +266,7 @@ func Update() gin.HandlerFunc {
 // @Param			id	path		string	true	"id"
 // @Success		200	{bool}		true
 // @Failure		403	{string}	Forbidden
+// @Failure		400	{object}	rorerror.RorError
 // @Failure		401	{string}	Unauthorized
 // @Failure		500	{string}	Failure	message
 // @Router			/v1/tasks/:id [delete]
@@ -305,10 +279,8 @@ func Delete() gin.HandlerFunc {
 		taskId := c.Param("taskId")
 		if taskId == "" || len(taskId) == 0 {
 			rlog.Errorc(ctx, "invalid id", fmt.Errorf("id is zero lenght"))
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid id")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 		// Access check
@@ -325,11 +297,8 @@ func Delete() gin.HandlerFunc {
 
 		result, deletedTask, err := tasksservice.Delete(ctx, taskId)
 		if err != nil {
-			rlog.Errorc(ctx, "could not delete task", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not delete task",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not delete task", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 

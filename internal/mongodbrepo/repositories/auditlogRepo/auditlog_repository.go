@@ -57,12 +57,12 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) ([]mongoTypes
 
 	totalCountResult, err := collection.Aggregate(ctx, totalCountPipeline)
 	if err != nil {
-		return nil, 0, fmt.Errorf("could not fetch auditlogs: %v", err)
+		return nil, 0, fmt.Errorf("Could not get auditlogs: %v", err)
 	}
 
 	var totalCountAcc []bson.M
 	if err = totalCountResult.All(ctx, &totalCountAcc); err != nil {
-		return nil, 0, fmt.Errorf("could not fetch total count for auditlogs: %v", err)
+		return nil, 0, fmt.Errorf("Could not get total count for auditlogs: %v", err)
 	}
 
 	totalCount := len(totalCountAcc)

@@ -18,7 +18,7 @@ import (
 func GetAllByUser(ctx context.Context) (*[]apicontracts.Datacenter, error) {
 	datacenters, err := datacentersRepo.GetAllByUser(ctx)
 	if err != nil {
-		return nil, errors.New("could not fetch datacenters")
+		return nil, errors.New("Could not get datacenters")
 	}
 
 	return datacenters, nil
@@ -27,7 +27,7 @@ func GetAllByUser(ctx context.Context) (*[]apicontracts.Datacenter, error) {
 func GetById(ctx context.Context, datacenterId string) (*apicontracts.Datacenter, error) {
 	datacenter, err := datacentersRepo.GetById(ctx, datacenterId)
 	if err != nil {
-		return nil, errors.New("could not fetch datacenter by id")
+		return nil, errors.New("Could not get datacenter by id")
 	}
 
 	return datacenter, nil
@@ -36,7 +36,7 @@ func GetById(ctx context.Context, datacenterId string) (*apicontracts.Datacenter
 func GetByName(ctx context.Context, datacenterName string) (*apicontracts.Datacenter, error) {
 	datacenter, err := datacentersRepo.FindByName(ctx, datacenterName)
 	if err != nil {
-		return nil, errors.New("could not fetch datacenter by name")
+		return nil, errors.New("Could not get datacenter by name")
 	}
 
 	return datacenter, nil
@@ -46,7 +46,7 @@ func Create(ctx context.Context, datacenterInput *apicontracts.DatacenterModel, 
 	exists, err := datacentersRepo.FindByName(ctx, datacenterInput.Name)
 	if err != nil {
 		rlog.Error("could not create datacenter", err)
-		return nil, errors.New("could not fetch datacenter")
+		return nil, errors.New("Could not get datacenter")
 	}
 
 	if exists != nil {
@@ -56,7 +56,7 @@ func Create(ctx context.Context, datacenterInput *apicontracts.DatacenterModel, 
 	datacenterResult, err := datacentersRepo.Create(ctx, datacenterInput, user)
 	if err != nil {
 		rlog.Error("could not create datacenter", err)
-		return nil, errors.New("could not fetch datacenters")
+		return nil, errors.New("Could not get datacenters")
 	}
 
 	_, err = auditlog.Create(ctx, "New datacenter created", models.AuditCategoryDatacenter, models.AuditActionCreate, user, datacenterResult, nil)

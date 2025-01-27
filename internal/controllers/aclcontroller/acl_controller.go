@@ -42,14 +42,11 @@ func init() {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200				{array}		aclmodels.Acl2Scope
-//	@Failure		403				{object}	rorerror.RorError
 //	@Failure		401				{object}	rorerror.RorError
-//	@Failure		500				{object}	rorerror.RorError
 //	@Router			/v1/acl/scopes	[get]
 //	@Security		ApiKey || AccessToken
 func GetScopes() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		results := aclmodels.GetScopes()
 		c.JSON(http.StatusOK, results)
 	}
@@ -61,12 +58,10 @@ func GetScopes() gin.HandlerFunc {
 //	@Schemes
 //	@Description	Check acl by scope, subject and access method
 //	@Tags			acl
-//	@Accept			application/json
-//	@Produce		application/json
 //	@Success		200
 //	@Failure		403
-//	@Failure		401									{object}	rorerror.RorError
-//	@Failure		500									{object}	rorerror.RorError
+//	@Failure		400
+//	@Failure		401
 //	@Param			scope								path		string	false	"Scope"
 //	@Param			subject								path		string	false	"Subject"
 //	@Param			access								path		string	false	"read,write,update or delete"
@@ -79,28 +74,22 @@ func CheckAcl() gin.HandlerFunc {
 
 		scope := c.Param("scope")
 		if scope == "" || len(scope) == 0 {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "invalid scope",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid scope")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		subject := c.Param("subject")
 		if subject == "" || len(subject) == 0 {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "invalid subject",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid subject")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		access := c.Param("access")
 		if access == "" || len(access) == 0 {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "invalid id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid id")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -155,6 +144,7 @@ func CheckAcl() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200				{object}	apicontracts.PaginatedResult[aclmodels.AclV2ListItem]
 //	@Failure		403				{object}	rorerror.RorError
+//	@Failure		400				{object}	rorerror.RorError
 //	@Failure		401				{object}	rorerror.RorError
 //	@Failure		500				{object}	rorerror.RorError
 //	@Router			/v1/acl/{aclId}	[get]
@@ -178,20 +168,16 @@ func GetById() gin.HandlerFunc {
 
 		aclId := c.Param("id")
 		if aclId == "" || len(aclId) == 0 {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "invalid id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid id")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		var _ aclmodels.AclV2ListItem
 		object, err := aclservice.GetById(ctx, aclId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "could not get object",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not get object", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -209,6 +195,7 @@ func GetById() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200				{object}	apicontracts.PaginatedResult[aclmodels.AclV2ListItem]
 //	@Failure		403				{object}	rorerror.RorError
+//	@Failure		400				{object}	rorerror.RorError
 //	@Failure		401				{object}	rorerror.RorError
 //	@Failure		500				{object}	rorerror.RorError
 //	@Router			/v1/acl/filter	[post]
@@ -235,21 +222,15 @@ func GetByFilter() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&filter); err != nil {
-			rlog.Errorc(ctx, "Missing parameter", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Missing parameter",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&filter); validationErr != nil {
-			rlog.Errorc(ctx, validationErr.Error(), validationErr)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: validationErr.Error(),
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, validationErr.Error())
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -282,6 +263,7 @@ func GetByFilter() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200		{object}	aclmodels.AclV2ListItem
 //	@Failure		403		{object}	rorerror.RorError
+//	@Failure		400		{object}	rorerror.RorError
 //	@Failure		401		{object}	rorerror.RorError
 //	@Failure		500		{object}	rorerror.RorError
 //	@Router			/v1/acl	[post]
@@ -307,30 +289,21 @@ func Create() gin.HandlerFunc {
 
 		var aclModel aclmodels.AclV2ListItem
 		if err := c.BindJSON(&aclModel); err != nil {
-			rlog.Errorc(ctx, "could not bind JSON", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Required fields are missing",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields are missing", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		if err := validate.Struct(&aclModel); err != nil {
-			rlog.Errorc(ctx, "could not validate object", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not validate object",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate object", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		created, err := aclservice.Create(ctx, &aclModel, &identity)
 		if err != nil {
-			rlog.Errorc(ctx, "could not create", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Unable to create",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Unable to create", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -349,6 +322,7 @@ func Create() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200				{object}	aclmodels.AclV2ListItem
 //	@Failure		403				{object}	rorerror.RorError
+//	@Failure		400				{object}	rorerror.RorError
 //	@Failure		401				{object}	rorerror.RorError
 //	@Failure		500				{object}	rorerror.RorError
 //	@Router			/v1/acl/{aclId}	[put]
@@ -375,40 +349,28 @@ func Update() gin.HandlerFunc {
 
 		aclId := c.Param("id")
 		if aclId == "" || len(aclId) == 0 {
-			rlog.Errorc(ctx, "invalid id", nil)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid id")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		var aclModel aclmodels.AclV2ListItem
 		if err := c.BindJSON(&aclModel); err != nil {
-			rlog.Errorc(ctx, "could not bind JSON", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Required fields are missing",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields are missing", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		if err := validate.Struct(&aclModel); err != nil {
-			rlog.Errorc(ctx, "could not validate object", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not validate object",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate object", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		created, err := aclservice.Update(ctx, aclId, &aclModel, &identity)
 		if err != nil {
-			rlog.Errorc(ctx, "could not update", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Unable to update",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Unable to update", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -416,6 +378,7 @@ func Update() gin.HandlerFunc {
 		_ = apiconnections.RabbitMQConnection.SendMessage(ctx, payload, messagebuscontracts.Route_Acl_Update, nil)
 
 		c.JSON(http.StatusOK, created)
+
 	}
 }
 
@@ -428,6 +391,7 @@ func Update() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200				{bool}		bool
 //	@Failure		403				{object}	rorerror.RorError
+//	@Failure		400				{object}	rorerror.RorError
 //	@Failure		401				{object}	rorerror.RorError
 //	@Failure		500				{object}	rorerror.RorError
 //	@Router			/v1/acl/{aclId}	[delete]
@@ -441,11 +405,8 @@ func Delete() gin.HandlerFunc {
 		identity := rorcontext.GetIdentityFromRorContext(ctx)
 		aclId := c.Param("id")
 		if aclId == "" || len(aclId) == 0 {
-			rlog.Errorc(ctx, "invalid id", nil)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid id")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -462,11 +423,8 @@ func Delete() gin.HandlerFunc {
 
 		result, _, err := aclservice.Delete(ctx, aclId, &identity)
 		if err != nil {
-			rlog.Errorc(ctx, "could not delete object", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not delete object",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not delete object", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -488,7 +446,7 @@ func Delete() gin.HandlerFunc {
 //	@Param			id	path		string	true	"id"
 //	@Success		200	{string}	Status
 //	@Failure		403	{string}	Forbidden
-//	@Failure		401	{string}	Unauthorized
+//	@Failure		401	{object}	rorerror.RorError
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/acl/migrate [get]
 //	@Security		ApiKey || AccessToken

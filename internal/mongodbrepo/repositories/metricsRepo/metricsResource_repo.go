@@ -136,7 +136,7 @@ func GetMetricsByFilter(filter apicontracts.MetricsFilter, ctx context.Context, 
 	}})
 	results, err := mongodb.Collection("metrics").Aggregate(ctx, aggregationPipeline)
 	if err != nil {
-		return nil, fmt.Errorf("could not fetch metrics: %v", err)
+		return nil, fmt.Errorf("Could not get metrics: %v", err)
 	}
 
 	defer func(results *mongo.Cursor, ctx context.Context) {
@@ -150,7 +150,7 @@ func GetMetricsByFilter(filter apicontracts.MetricsFilter, ctx context.Context, 
 	for results.Next(ctx) {
 		var singleMetric apicontracts.MetricsResult
 		if err = results.Decode(&singleMetric); err != nil {
-			return nil, fmt.Errorf("could not fetch metric: %v", err)
+			return nil, fmt.Errorf("Could not get metric: %v", err)
 		}
 		metricsresult = append(metricsresult, singleMetric)
 	}

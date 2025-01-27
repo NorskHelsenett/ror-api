@@ -27,7 +27,7 @@ import (
 //	@Param			uid	path		string	true	"UID"
 //	@Success		200	{bool}		bool
 //	@Failure		403	{string}	Forbidden
-//	@Failure		401	{string}	Unauthorized
+//	@Failure		401	{object}	rorerror.RorError
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/resources/uid/{uid} [delete]
 //	@Security		ApiKey || AccessToken

@@ -87,7 +87,7 @@ func GetResourcesByQuery[T apiresourcecontracts.Resourcetypes](ctx context.Conte
 	for results.Next(ctx) {
 		var dbResult T
 		if err = results.Decode(&dbResult); err != nil {
-			return returnvalue, fmt.Errorf("could not fetch resource: %v", err)
+			return returnvalue, fmt.Errorf("Could not get resource: %v", err)
 		}
 		returnvalue = append(returnvalue, dbResult)
 	}
@@ -119,7 +119,7 @@ func GetResourceByQuery[T apiresourcecontracts.Resourcetypes](ctx context.Contex
 	results.Next(ctx)
 	var dbResult T
 	if err = results.Decode(&dbResult); err != nil {
-		return returnvalue, fmt.Errorf("could not fetch resource: %v", err)
+		return returnvalue, fmt.Errorf("Could not get resource: %v", err)
 	}
 	return dbResult, nil
 
@@ -160,7 +160,7 @@ func GetHashList(ctx context.Context, owner apiresourcecontracts.ResourceOwnerRe
 
 	results, err := db.Collection(ResourceCollectionName).Aggregate(ctx, query)
 	if err != nil {
-		return hashList, fmt.Errorf("could not fetch clusters: %v", err)
+		return hashList, fmt.Errorf("Could not get clusters: %v", err)
 	}
 
 	defer func(results *mongo.Cursor, ctx context.Context) {
@@ -176,7 +176,7 @@ func GetHashList(ctx context.Context, owner apiresourcecontracts.ResourceOwnerRe
 	for results.Next(ctx) {
 		var hashItem apiresourcecontracts.HashItem
 		if err = results.Decode(&hashItem); err != nil {
-			return hashList, fmt.Errorf("could not fetch clusters: %v", err)
+			return hashList, fmt.Errorf("Could not get clusters: %v", err)
 		}
 		hashList.Items = append(hashList.Items, hashItem)
 	}

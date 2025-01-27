@@ -36,7 +36,8 @@ func init() {
 //	@Produce		application/json
 //	@Success		200								{object}	apicontracts.PaginatedResult[apicontracts.Metric]
 //	@Failure		403								{string}	Forbidden
-//	@Failure		401								{string}	Unauthorized
+//	@Failure		400								{object}	rorerror.RorError
+//	@Failure		401								{object}	rorerror.RorError
 //	@Failure		500								{string}	Failure	message
 //	@Router			/v1/metrics/workspaces/filter	[post]
 //	@Param			filter							body	apicontracts.Filter	true	"Filter"
@@ -48,30 +49,24 @@ func GetForWorkspaces() gin.HandlerFunc {
 		defer cancel()
 
 		if err := c.BindJSON(&filter); err != nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Missing parameter",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
-		if validationErr := validate.Struct(&filter); validationErr != nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: validationErr.Error(),
-			})
+		if err := validate.Struct(&filter); err != nil {
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		for i := 0; i < len(filter.Sort); i++ {
 			sort := filter.Sort[i]
 
-			if validationErr := validate.Struct(sort); validationErr != nil {
-				c.JSON(http.StatusBadRequest, rorerror.RorError{
-					Status:  http.StatusBadRequest,
-					Message: validationErr.Error(),
-				})
+			if err := validate.Struct(sort); err != nil {
+				rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+				rerr.GinLogErrorAbort(c)
 				return
 			}
 		}
@@ -81,10 +76,8 @@ func GetForWorkspaces() gin.HandlerFunc {
 
 		metrics, err := metricsservice.GetForWorkspaces(ctx, &filter)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not fetch metrics for workspaces",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get metrics for workspaces", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -111,13 +104,13 @@ func GetForWorkspaces() gin.HandlerFunc {
 //	@Tags			metrics
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200															{object}	apicontracts.MetricList
-//	@Failure		403															{string}	Forbidden
-//	@Failure		401															{string}	Unauthorized
-//	@Failure		500															{string}	Failure	message
-//	@Param			datacenterId												path		string	true	"datacenterId"
+//	@Success		200														{object}	apicontracts.MetricList
+//	@Failure		400														{object}	rorerror.RorError
+//	@Failure		401														{object}	rorerror.RorError
+//	@Failure		500														{string}	Failure	message
+//	@Param			datacenterId											path		string	true	"datacenterId"
 //	@Router			/v1/metrics/workspaces/datacenter/{datacenterId}/filter	[post]
-//	@Param			filter														body	apicontracts.Filter	true	"Filter"
+//	@Param			filter													body	apicontracts.Filter	true	"Filter"
 //	@Security		ApiKey || AccessToken
 func GetForWorkspacesByDatacenterId() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -127,40 +120,32 @@ func GetForWorkspacesByDatacenterId() gin.HandlerFunc {
 		defer cancel()
 
 		if err := c.BindJSON(&filter); err != nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Missing parameter",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
-		if validationErr := validate.Struct(&filter); validationErr != nil {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: validationErr.Error(),
-			})
+		if err := validate.Struct(&filter); err != nil {
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		for i := 0; i < len(filter.Sort); i++ {
 			sort := filter.Sort[i]
 
-			if validationErr := validate.Struct(sort); validationErr != nil {
-				c.JSON(http.StatusBadRequest, rorerror.RorError{
-					Status:  http.StatusBadRequest,
-					Message: validationErr.Error(),
-				})
+			if err := validate.Struct(sort); err != nil {
+				rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+				rerr.GinLogErrorAbort(c)
 				return
 			}
 		}
 
 		result, err := metricsservice.GetForWorkspacesByDatacenterId(ctx, &filter, datacenterId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusNotFound,
-				Message: "could not fetch metris for workspaces by datacenter",
-			})
+			rerr := rorerror.NewRorError(http.StatusNotFound, "Could not get metris for workspaces by datacenter", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -182,10 +167,11 @@ func GetForWorkspacesByDatacenterId() gin.HandlerFunc {
 //	@Tags			metrics
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200										{object}	apicontracts.MetricItem
-//	@Failure		403										{string}	Forbidden
-//	@Failure		401										{string}	Unauthorized
-//	@Failure		500										{string}	Failure	message
+//	@Success		200									{object}	apicontracts.MetricItem
+//	@Failure		403									{string}	Forbidden
+//	@Failure		400									{object}	rorerror.RorError
+//	@Failure		401									{object}	rorerror.RorError
+//	@Failure		500									{string}	Failure	message
 //	@Router			/v1/metrics/workspace/{workspaceId}	[get]
 //	@Param			workspaceId							path	string	true	"workspaceId"
 //	@Security		ApiKey || AccessToken
@@ -197,10 +183,8 @@ func GetByWorkspaceId() gin.HandlerFunc {
 
 		metrics, err := metricsservice.GetForWorkspaceId(ctx, workspaceId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "could not fetch metris for workspace",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get metris for workspace", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 

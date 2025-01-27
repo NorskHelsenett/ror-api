@@ -31,7 +31,7 @@ import (
 //	@Param			resourcereport	body		apiresourcecontracts.ResourceUpdateModel	true	"ResourceUpdate"
 //	@Success		200				{bool}		bool
 //	@Failure		403				{string}	Forbidden
-//	@Failure		401				{string}	Unauthorized
+//	@Failure		401				{object}	rorerror.RorError
 //	@Failure		500				{string}	Failure	message
 //	@Router			/v2/resources/uid/{uid} [put]
 //	@Security		ApiKey || AccessToken

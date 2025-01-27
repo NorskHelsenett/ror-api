@@ -39,11 +39,11 @@ func init() {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Param			ownerScope		query	aclmodels.Acl2Scope	true	"The kind of the owner, currently only support 'Cluster'"
-//	@Param			ownerSubject	query	string							true	"The name og the owner"
-//	@Param			uid				path	string							true	"UID"
+//	@Param			ownerSubject	query	string				true	"The name og the owner"
+//	@Param			uid				path	string				true	"UID"
 //	@Success		204
 //	@Failure		404	{string}	NotFound
-//	@Failure		401	{string}	Unauthorized
+//	@Failure		401	{object}	rorerror.RorError
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v2/resources/uid/{uid} [head]
 //	@Security		ApiKey || AccessToken
@@ -106,10 +106,10 @@ func ExistsResources() gin.HandlerFunc {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Param			ownerScope		query		aclmodels.Acl2Scope	true	"The kind of the owner, currently only support 'Cluster'"
-//	@Param			ownerSubject	query		string							true	"The name og the owner"
+//	@Param			ownerSubject	query		string				true	"The name og the owner"
 //	@Success		200				{array}		apiresourcecontracts.HashList
 //	@Failure		403				{string}	Forbidden
-//	@Failure		401				{string}	Unauthorized
+//	@Failure		401				{object}	rorerror.RorError
 //	@Failure		500				{string}	Failure	message
 //	@Router			/v2/resources/hashes [get]
 //	@Security		ApiKey || AccessToken

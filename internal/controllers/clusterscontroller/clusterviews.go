@@ -10,6 +10,7 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
@@ -32,7 +33,7 @@ import (
 //	@Param			id	path		string	true	"id"
 //	@Success		200	{string}	This	is		not	the	view	you	are	looking	for
 //	@Failure		403	{string}	Forbidden
-//	@Failure		401	{string}	Unauthorized
+//	@Failure		401	{object}	rorerror.RorError
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/clusters/{clusterid}/views/ingresses [get]
 //	@Router			/v1/clusters/{clusterid}/views/nodes [get]
@@ -60,7 +61,8 @@ func DummyView() gin.HandlerFunc {
 //	@Param			id	path		string	true	"id"
 //	@Success		200	{string}	This	is		not	the	view	you	are	looking	for
 //	@Failure		403	{string}	Forbidden
-//	@Failure		401	{string}	Unauthorized
+//	@Failure		400	{object}	rorerror.RorError
+//	@Failure		401	{object}	rorerror.RorError
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/clusters/{clusterid}/views/policyreports [get]
 //	@Security		ApiKey || AccessToken
@@ -71,7 +73,8 @@ func PolicyreportsView() gin.HandlerFunc {
 
 		clusterid := c.Param("clusterid")
 		if clusterid == "" {
-			c.JSON(http.StatusBadRequest, "")
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "No clusterid")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -107,7 +110,8 @@ func PolicyreportsView() gin.HandlerFunc {
 //	@Param			type	query		viewsmodels.PolicyreportGlobalQueryType	true	"type"
 //	@Success		200		{string}	This									is		not	the	view	you	are	looking	for
 //	@Failure		403		{string}	Forbidden
-//	@Failure		401		{string}	Unauthorized
+//	@Failure		400		{object}	rorerror.RorError
+//	@Failure		401		{object}	rorerror.RorError
 //	@Failure		500		{string}	Failure	message
 //	@Router			/v1/clusters/{clusterid}/views/policyreports [get]
 //	@Security		ApiKey || AccessToken
@@ -119,7 +123,8 @@ func PolicyreportSummaryView() gin.HandlerFunc {
 		query := viewsmodels.PolicyreportGlobalQueryType(c.Query("type"))
 
 		if query == "" {
-			c.JSON(http.StatusBadRequest, "No type defined")
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "no type defined")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 		// Access check
@@ -159,7 +164,8 @@ func PolicyreportSummaryView() gin.HandlerFunc {
 //	@Param			type	query		viewsmodels.PolicyreportGlobalQueryType	true	"type"
 //	@Success		200		{string}	This									is		not	the	view	you	are	looking	for
 //	@Failure		403		{string}	Forbidden
-//	@Failure		401		{string}	Unauthorized
+//	@Failure		400		{object}	rorerror.RorError
+//	@Failure		401		{object}	rorerror.RorError
 //	@Failure		500		{string}	Failure	message
 //	@Router			/v1/clusters/{clusterid}/views/policyreports [get]
 //	@Security		ApiKey || AccessToken
@@ -171,7 +177,8 @@ func VulnerabilityreportSummaryView() gin.HandlerFunc {
 		query := viewsmodels.PolicyreportGlobalQueryType(c.Query("type"))
 
 		if query == "" {
-			c.JSON(http.StatusBadRequest, "No type defined")
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "No type defined")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -209,7 +216,8 @@ func VulnerabilityreportSummaryView() gin.HandlerFunc {
 //	@Param			id	path		string	true	"id"
 //	@Success		200	{string}	This	is		not	the	view	you	are	looking	for
 //	@Failure		403	{string}	Forbidden
-//	@Failure		401	{string}	Unauthorized
+//	@Failure		400	{object}	rorerror.RorError
+//	@Failure		401	{object}	rorerror.RorError
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/clusters/{clusterid}/views/vulnerabilityreports [get]
 //	@Security		ApiKey || AccessToken
@@ -220,7 +228,8 @@ func VulnerabilityReportsView() gin.HandlerFunc {
 
 		clusterid := c.Param("clusterid")
 		if clusterid == "" {
-			c.JSON(http.StatusBadRequest, "")
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "no clusterid")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -256,7 +265,8 @@ func VulnerabilityReportsView() gin.HandlerFunc {
 //	@Param			cveid	path		string	true	"cveid"
 //	@Success		200		{string}	This	is		not	the	view	you	are	looking	for
 //	@Failure		403		{string}	Forbidden
-//	@Failure		401		{string}	Unauthorized
+//	@Failure		400		{object}	rorerror.RorError
+//	@Failure		401		{object}	rorerror.RorError
 //	@Failure		500		{string}	Failure	message
 //	@Router			/v1/clusters/views/vulnerabilityreports/byid/:cveid [get]
 //	@Security		ApiKey || AccessToken
@@ -267,7 +277,8 @@ func VulnerabilityReportsViewById() gin.HandlerFunc {
 
 		cveId := c.Param("cveid")
 		if cveId == "" {
-			c.JSON(http.StatusBadRequest, "")
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "no cve-id provided")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -294,16 +305,16 @@ func VulnerabilityReportsViewById() gin.HandlerFunc {
 
 // VulnerabilityReportsGlobal godoc
 //
-//	@Summary		Get vulnerability reports summary per cluster
+//	@Summary	Get vulnerability reports summary per cluster
 //	@Schemes
 //	@Description	Shows a summary of trivy vulnerability reports per cluster categorized by amount of critical/high/medium/low vulnerabilities.
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200		{object}	[]viewsmodels.VulnerabilityReportsView
-//	@Failure		403		{string}	Forbidden
-//	@Failure		401		{string}	Unauthorized
-//	@Failure		500		{string}	Failure	message
+//	@Success		200	{object}	[]viewsmodels.VulnerabilityReportsView
+//	@Failure		403	{string}	Forbidden
+//	@Failure		401	{object}	rorerror.RorError
+//	@Failure		500	{string}	Failure	message
 //	@Router			/v1/clusters/views/vulnerabilityreports [get]
 //	@Security		ApiKey || AccessToken
 func VulnerabilityReportsGlobal() gin.HandlerFunc {
@@ -341,9 +352,10 @@ func VulnerabilityReportsGlobal() gin.HandlerFunc {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Query			cveid	{string}
-//	@Success		200		{string}	This	is		not	the	view	you	are	looking	for
+//	@Success		200		{string}	This	is	not	the	view	you	are	looking	for
 //	@Failure		403		{string}	Forbidden
-//	@Failure		401		{string}	Unauthorized
+//	@Failure		400		{object}	rorerror.RorError
+//	@Failure		401		{object}	rorerror.RorError
 //	@Failure		500		{string}	Failure	message
 //	@Router			/v1/clusters/views/vulnerabilityreports/byid [get]
 //	@Security		ApiKey || AccessToken
@@ -354,7 +366,8 @@ func GlobalVulnerabilityReportsViewById() gin.HandlerFunc {
 
 		cveId := c.Query("cveid")
 		if cveId == "" {
-			c.JSON(http.StatusBadRequest, "")
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "no cve-id in query")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 		// Access check
@@ -387,11 +400,12 @@ func GlobalVulnerabilityReportsViewById() gin.HandlerFunc {
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			clusterid	path	string	true	"clusterid"
-//	@Success		200		{array}		viewsmodels.ComplianceReport
-//	@Failure		403		{string}	Forbidden
-//	@Failure		401		{string}	Unauthorized
-//	@Failure		500		{string}	Failure	message
+//	@Param			clusterid	path		string	true	"clusterid"
+//	@Success		200			{array}		viewsmodels.ComplianceReport
+//	@Failure		403			{string}	Forbidden
+//	@Failure		400			{object}	rorerror.RorError
+//	@Failure		401			{object}	rorerror.RorError
+//	@Failure		500			{string}	Failure	message
 //	@Router			/v1/clusters/:clusterid/views/compliancereports [get]
 //	@Security		ApiKey || AccessToken
 func ComplianceReports() gin.HandlerFunc {
@@ -401,7 +415,8 @@ func ComplianceReports() gin.HandlerFunc {
 
 		clusterId := c.Param("clusterid")
 		if clusterId == "" {
-			c.JSON(http.StatusBadRequest, "")
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "no cluster-id in query")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -428,16 +443,16 @@ func ComplianceReports() gin.HandlerFunc {
 
 // ComplianceReportsGlobal godoc
 //
-//	@Summary		Get compliance reports summary per cluster
+//	@Summary	Get compliance reports summary per cluster
 //	@Schemes
 //	@Description	Shows a summary of trivy compliance reports per cluster categorized by amount failed or passed.
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200		{object}	[]viewsmodels.ComplianceReport
-//	@Failure		403		{string}	Forbidden
-//	@Failure		401		{string}	Unauthorized
-//	@Failure		500		{string}	Failure	message
+//	@Success		200	{object}	[]viewsmodels.ComplianceReport
+//	@Failure		403	{string}	Forbidden
+//	@Failure		401	{object}	rorerror.RorError
+//	@Failure		500	{string}	Failure	message
 //	@Router			/v1/clusters/views/compliancereports [get]
 //	@Security		ApiKey || AccessToken
 func ComplianceReportsGlobal() gin.HandlerFunc {
@@ -467,19 +482,19 @@ func ComplianceReportsGlobal() gin.HandlerFunc {
 	}
 }
 
-//	@Summary		Get cluster self data
-//	@Schemes		https
-//	@Description	Get cluster self data
-//	@Tags			clusters
-//	@Accept			application/json
-//	@Produce		application/json
-
-// @Success	200	{string}	Get	data	for	the	cluster
-// @Failure	403	{string}	Forbidden
-// @Failure	401	{string}	Unauthorized
-// @Failure	500	{string}	Failure	message
-// @Router		/v1/clusters/self [get]
-// @Security	ApiKey || AccessToken
+// @Summary		Get cluster self data
+// @Schemes		https
+// @Description	Get cluster self data
+// @Tags			clusters
+// @Accept			application/json
+// @Produce		application/json
+//
+// @Success		200	{string}	Get	data	for	the	cluster
+// @Failure		403	{string}	Forbidden
+// @Failure		401	{string}	Unauthorized
+// @Failure		500	{string}	Failure	message
+// @Router			/v1/clusters/self [get]
+// @Security		ApiKey || AccessToken
 func GetSelf() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
