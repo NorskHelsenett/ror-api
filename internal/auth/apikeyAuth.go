@@ -21,7 +21,7 @@ func ApiKeyAuth(c *gin.Context) {
 	ctx := c.Request.Context()
 	if len(apikey) == 0 {
 		rerr := rorerror.NewRorError(401, "api key not provided")
-		rerr.GinLogErrorAbort(c)
+		rerr.GinLogErrorAndAbort(c)
 		return
 	}
 
@@ -39,7 +39,7 @@ func ApiKeyAuth(c *gin.Context) {
 		serviceAuth(c, apikeyResult)
 	default:
 		rerr := rorerror.NewRorError(401, "error wrong api key type")
-		rerr.GinLogErrorAbort(c)
+		rerr.GinLogErrorAndAbort(c)
 	}
 
 }
