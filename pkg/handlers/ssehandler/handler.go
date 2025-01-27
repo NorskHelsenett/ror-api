@@ -6,10 +6,7 @@ import (
 	"sync"
 	"time"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 	"github.com/NorskHelsenett/ror-api/pkg/servers/sseserver"
-
-	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
 
@@ -92,19 +89,19 @@ func HandleSSE() gin.HandlerFunc {
 
 func Send() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
-		defer cancel()
-		// Access check
-		// Scope: ror
-		// Subject: global
-		// Access: create
-		// TODO: check if this is the right way to do it
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Create {
-			c.JSON(http.StatusForbidden, "403: No access")
-			return
-		}
+		// ctx, cancel := gincontext.GetRorContextFromGinContext(c)
+		// defer cancel()
+		// // // Access check
+		// // // Scope: ror
+		// // // Subject: global
+		// // // Access: create
+		// // // TODO: check if this is the right way to do it
+		// accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal)
+		// accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
+		// if !accessObject.Create {
+		// 	c.JSON(http.StatusForbidden, "403: No access")
+		// 	return
+		// }
 
 		var input sseserver.SseEvent
 		err := c.BindJSON(&input)
