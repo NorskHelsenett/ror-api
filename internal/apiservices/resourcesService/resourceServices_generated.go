@@ -912,7 +912,7 @@ func GetNamespaces(ctx context.Context, ownerref apiresourcecontracts.ResourceOw
 	resources.Owner = ownerref
 	resources.Namespaces = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource Namespace")
+		return resources, errors.New("Could not get resource Namespace")
 	}
 	return resources, nil
 }
@@ -930,7 +930,7 @@ func GetNodes(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerRe
 	resources.Owner = ownerref
 	resources.Nodes = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource Node")
+		return resources, errors.New("Could not get resource Node")
 	}
 	return resources, nil
 }
@@ -948,7 +948,7 @@ func GetPersistentvolumeclaims(ctx context.Context, ownerref apiresourcecontract
 	resources.Owner = ownerref
 	resources.Persistentvolumeclaims = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource PersistentVolumeClaim")
+		return resources, errors.New("Could not get resource PersistentVolumeClaim")
 	}
 	return resources, nil
 }
@@ -966,7 +966,7 @@ func GetDeployments(ctx context.Context, ownerref apiresourcecontracts.ResourceO
 	resources.Owner = ownerref
 	resources.Deployments = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource Deployment")
+		return resources, errors.New("Could not get resource Deployment")
 	}
 	return resources, nil
 }
@@ -984,7 +984,7 @@ func GetStorageclasses(ctx context.Context, ownerref apiresourcecontracts.Resour
 	resources.Owner = ownerref
 	resources.Storageclasses = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource StorageClass")
+		return resources, errors.New("Could not get resource StorageClass")
 	}
 	return resources, nil
 }
@@ -1002,7 +1002,7 @@ func GetPolicyreports(ctx context.Context, ownerref apiresourcecontracts.Resourc
 	resources.Owner = ownerref
 	resources.Policyreports = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource PolicyReport")
+		return resources, errors.New("Could not get resource PolicyReport")
 	}
 	return resources, nil
 }
@@ -1020,7 +1020,7 @@ func GetApplications(ctx context.Context, ownerref apiresourcecontracts.Resource
 	resources.Owner = ownerref
 	resources.Applications = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource Application")
+		return resources, errors.New("Could not get resource Application")
 	}
 	return resources, nil
 }
@@ -1038,7 +1038,7 @@ func GetAppprojects(ctx context.Context, ownerref apiresourcecontracts.ResourceO
 	resources.Owner = ownerref
 	resources.Appprojects = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource AppProject")
+		return resources, errors.New("Could not get resource AppProject")
 	}
 	return resources, nil
 }
@@ -1056,7 +1056,7 @@ func GetCertificates(ctx context.Context, ownerref apiresourcecontracts.Resource
 	resources.Owner = ownerref
 	resources.Certificates = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource Certificate")
+		return resources, errors.New("Could not get resource Certificate")
 	}
 	return resources, nil
 }
@@ -1074,7 +1074,7 @@ func GetServices(ctx context.Context, ownerref apiresourcecontracts.ResourceOwne
 	resources.Owner = ownerref
 	resources.Services = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource Service")
+		return resources, errors.New("Could not get resource Service")
 	}
 	return resources, nil
 }
@@ -1092,7 +1092,7 @@ func GetPods(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerRef
 	resources.Owner = ownerref
 	resources.Pods = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource Pod")
+		return resources, errors.New("Could not get resource Pod")
 	}
 	return resources, nil
 }
@@ -1110,7 +1110,7 @@ func GetReplicasets(ctx context.Context, ownerref apiresourcecontracts.ResourceO
 	resources.Owner = ownerref
 	resources.Replicasets = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource ReplicaSet")
+		return resources, errors.New("Could not get resource ReplicaSet")
 	}
 	return resources, nil
 }
@@ -1128,7 +1128,7 @@ func GetStatefulsets(ctx context.Context, ownerref apiresourcecontracts.Resource
 	resources.Owner = ownerref
 	resources.Statefulsets = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource StatefulSet")
+		return resources, errors.New("Could not get resource StatefulSet")
 	}
 	return resources, nil
 }
@@ -1146,7 +1146,7 @@ func GetDaemonsets(ctx context.Context, ownerref apiresourcecontracts.ResourceOw
 	resources.Owner = ownerref
 	resources.Daemonsets = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource DaemonSet")
+		return resources, errors.New("Could not get resource DaemonSet")
 	}
 	return resources, nil
 }
@@ -1164,7 +1164,7 @@ func GetIngresses(ctx context.Context, ownerref apiresourcecontracts.ResourceOwn
 	resources.Owner = ownerref
 	resources.Ingresses = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource Ingress")
+		return resources, errors.New("Could not get resource Ingress")
 	}
 	return resources, nil
 }
@@ -1182,7 +1182,7 @@ func GetIngressclasses(ctx context.Context, ownerref apiresourcecontracts.Resour
 	resources.Owner = ownerref
 	resources.Ingressclasses = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource IngressClass")
+		return resources, errors.New("Could not get resource IngressClass")
 	}
 	return resources, nil
 }
@@ -1200,7 +1200,7 @@ func GetVulnerabilityreports(ctx context.Context, ownerref apiresourcecontracts.
 	resources.Owner = ownerref
 	resources.Vulnerabilityreports = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource VulnerabilityReport")
+		return resources, errors.New("Could not get resource VulnerabilityReport")
 	}
 	return resources, nil
 }
@@ -1218,7 +1218,7 @@ func GetExposedsecretreports(ctx context.Context, ownerref apiresourcecontracts.
 	resources.Owner = ownerref
 	resources.Exposedsecretreports = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource ExposedSecretReport")
+		return resources, errors.New("Could not get resource ExposedSecretReport")
 	}
 	return resources, nil
 }
@@ -1236,7 +1236,7 @@ func GetConfigauditreports(ctx context.Context, ownerref apiresourcecontracts.Re
 	resources.Owner = ownerref
 	resources.Configauditreports = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource ConfigAuditReport")
+		return resources, errors.New("Could not get resource ConfigAuditReport")
 	}
 	return resources, nil
 }
@@ -1254,7 +1254,7 @@ func GetRbacassessmentreports(ctx context.Context, ownerref apiresourcecontracts
 	resources.Owner = ownerref
 	resources.Rbacassessmentreports = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource RbacAssessmentReport")
+		return resources, errors.New("Could not get resource RbacAssessmentReport")
 	}
 	return resources, nil
 }
@@ -1272,7 +1272,7 @@ func GetTanzukubernetesclusters(ctx context.Context, ownerref apiresourcecontrac
 	resources.Owner = ownerref
 	resources.Tanzukubernetesclusters = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource TanzuKubernetesCluster")
+		return resources, errors.New("Could not get resource TanzuKubernetesCluster")
 	}
 	return resources, nil
 }
@@ -1290,7 +1290,7 @@ func GetTanzukubernetesreleases(ctx context.Context, ownerref apiresourcecontrac
 	resources.Owner = ownerref
 	resources.Tanzukubernetesreleases = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource TanzuKubernetesRelease")
+		return resources, errors.New("Could not get resource TanzuKubernetesRelease")
 	}
 	return resources, nil
 }
@@ -1308,7 +1308,7 @@ func GetVirtualmachineclasses(ctx context.Context, ownerref apiresourcecontracts
 	resources.Owner = ownerref
 	resources.Virtualmachineclasses = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource VirtualMachineClass")
+		return resources, errors.New("Could not get resource VirtualMachineClass")
 	}
 	return resources, nil
 }
@@ -1326,7 +1326,7 @@ func GetVirtualmachineclassbindings(ctx context.Context, ownerref apiresourcecon
 	resources.Owner = ownerref
 	resources.Virtualmachineclassbindings = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource VirtualMachineClassBinding")
+		return resources, errors.New("Could not get resource VirtualMachineClassBinding")
 	}
 	return resources, nil
 }
@@ -1344,7 +1344,7 @@ func GetKubernetesclusters(ctx context.Context, ownerref apiresourcecontracts.Re
 	resources.Owner = ownerref
 	resources.Kubernetesclusters = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource KubernetesCluster")
+		return resources, errors.New("Could not get resource KubernetesCluster")
 	}
 	return resources, nil
 }
@@ -1362,7 +1362,7 @@ func GetClusterorders(ctx context.Context, ownerref apiresourcecontracts.Resourc
 	resources.Owner = ownerref
 	resources.Clusterorders = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource ClusterOrder")
+		return resources, errors.New("Could not get resource ClusterOrder")
 	}
 	return resources, nil
 }
@@ -1380,7 +1380,7 @@ func GetProjects(ctx context.Context, ownerref apiresourcecontracts.ResourceOwne
 	resources.Owner = ownerref
 	resources.Projects = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource Project")
+		return resources, errors.New("Could not get resource Project")
 	}
 	return resources, nil
 }
@@ -1398,7 +1398,7 @@ func GetConfigurations(ctx context.Context, ownerref apiresourcecontracts.Resour
 	resources.Owner = ownerref
 	resources.Configurations = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource Configuration")
+		return resources, errors.New("Could not get resource Configuration")
 	}
 	return resources, nil
 }
@@ -1416,7 +1416,7 @@ func GetClustercompliancereports(ctx context.Context, ownerref apiresourcecontra
 	resources.Owner = ownerref
 	resources.Clustercompliancereports = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource ClusterComplianceReport")
+		return resources, errors.New("Could not get resource ClusterComplianceReport")
 	}
 	return resources, nil
 }
@@ -1434,7 +1434,7 @@ func GetClustervulnerabilityreports(ctx context.Context, ownerref apiresourcecon
 	resources.Owner = ownerref
 	resources.Clustervulnerabilityreports = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource ClusterVulnerabilityReport")
+		return resources, errors.New("Could not get resource ClusterVulnerabilityReport")
 	}
 	return resources, nil
 }
@@ -1452,7 +1452,7 @@ func GetRoutes(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerR
 	resources.Owner = ownerref
 	resources.Routes = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource Route")
+		return resources, errors.New("Could not get resource Route")
 	}
 	return resources, nil
 }
@@ -1470,7 +1470,7 @@ func GetSlackmessages(ctx context.Context, ownerref apiresourcecontracts.Resourc
 	resources.Owner = ownerref
 	resources.Slackmessages = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource SlackMessage")
+		return resources, errors.New("Could not get resource SlackMessage")
 	}
 	return resources, nil
 }
@@ -1488,7 +1488,7 @@ func GetVulnerabilityevents(ctx context.Context, ownerref apiresourcecontracts.R
 	resources.Owner = ownerref
 	resources.Vulnerabilityevents = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource VulnerabilityEvent")
+		return resources, errors.New("Could not get resource VulnerabilityEvent")
 	}
 	return resources, nil
 }
@@ -1506,7 +1506,7 @@ func GetVirtualmachines(ctx context.Context, ownerref apiresourcecontracts.Resou
 	resources.Owner = ownerref
 	resources.Virtualmachines = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource VirtualMachine")
+		return resources, errors.New("Could not get resource VirtualMachine")
 	}
 	return resources, nil
 }
@@ -1524,7 +1524,7 @@ func GetEndpoints(ctx context.Context, ownerref apiresourcecontracts.ResourceOwn
 	resources.Owner = ownerref
 	resources.Endpoints = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource Endpoints")
+		return resources, errors.New("Could not get resource Endpoints")
 	}
 	return resources, nil
 }
@@ -1542,7 +1542,7 @@ func GetNetworkpolicies(ctx context.Context, ownerref apiresourcecontracts.Resou
 	resources.Owner = ownerref
 	resources.Networkpolicies = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource NetworkPolicy")
+		return resources, errors.New("Could not get resource NetworkPolicy")
 	}
 	return resources, nil
 }
@@ -1560,7 +1560,7 @@ func GetBackupjobs(ctx context.Context, ownerref apiresourcecontracts.ResourceOw
 	resources.Owner = ownerref
 	resources.Backupjobs = resourceset
 	if err != nil {
-		return resources, errors.New("could not fetch resource BackupJob")
+		return resources, errors.New("Could not get resource BackupJob")
 	}
 	return resources, nil
 }

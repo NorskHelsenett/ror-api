@@ -77,7 +77,7 @@ func GetAllByIdentity(ctx context.Context) (*[]apicontracts.Workspace, error) {
 
 	results, err := db.Collection(ClustersCollectionName).Aggregate(ctx, workspacesQuery)
 	if err != nil {
-		return nil, fmt.Errorf("could not fetch workspaces: %v", err)
+		return nil, fmt.Errorf("Could not get workspaces: %v", err)
 	}
 	defer func(results *mongo.Cursor, ctx context.Context) {
 		_ = results.Close(ctx)
@@ -91,7 +91,7 @@ func GetAllByIdentity(ctx context.Context) (*[]apicontracts.Workspace, error) {
 	for results.Next(ctx) {
 		var singleWorkspace apicontracts.Workspace
 		if err = results.Decode(&singleWorkspace); err != nil {
-			return nil, fmt.Errorf("could not fetch workspace: %v", err)
+			return nil, fmt.Errorf("Could not get workspace: %v", err)
 		}
 		workspaces = append(workspaces, singleWorkspace)
 	}
@@ -179,7 +179,7 @@ func GetByName(ctx context.Context, workspaceName string) (*apicontracts.Workspa
 
 	clusterCursor, err := db.Collection(ClustersCollectionName).Aggregate(ctx, clusterQuery)
 	if err != nil {
-		return nil, errors.New("could not fetch all workspaces")
+		return nil, errors.New("Could not get all workspaces")
 	}
 
 	if clusterCursor.RemainingBatchLength() == 0 {

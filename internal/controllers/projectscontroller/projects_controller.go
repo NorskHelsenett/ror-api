@@ -39,6 +39,7 @@ func init() {
 // @Produce		application/json
 // @Success		200				{object}	apicontracts.Project
 // @Failure		403				{object}	rorerror.RorError
+// @Failure		400				{object}	rorerror.RorError
 // @Failure		401				{object}	rorerror.RorError
 // @Failure		500				{object}	rorerror.RorError
 // @Router			/v1/projects	[post]
@@ -62,30 +63,21 @@ func Create() gin.HandlerFunc {
 
 		var project apicontracts.ProjectModel
 		if err := c.BindJSON(&project); err != nil {
-			rlog.Errorc(ctx, "could not bind JSON", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Required fields are missing",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields are missing", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		if err := validate.Struct(&project); err != nil {
-			rlog.Errorc(ctx, "could not validate object", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not validate project object",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate project object", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		createdProject, err := projectService.Create(ctx, &project)
 		if err != nil {
-			rlog.Errorc(ctx, "could not create project", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Unable to create project",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Unable to create project", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -103,6 +95,7 @@ func Create() gin.HandlerFunc {
 // @Produce		application/json
 // @Success		200					{object}	apicontracts.PaginatedResult[apicontracts.Project]
 // @Failure		403					{object}	rorerror.RorError
+// @Failure		400					{object}	rorerror.RorError
 // @Failure		401					{object}	rorerror.RorError
 // @Failure		500					{object}	rorerror.RorError
 // @Router			/v1/projects/filter	[get]
@@ -115,21 +108,16 @@ func GetByFilter() gin.HandlerFunc {
 
 		var filter apicontracts.Filter
 		if err := c.BindJSON(&filter); err != nil {
-			rlog.Errorc(ctx, "could not bind json", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Missing parameter",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&filter); validationErr != nil {
 			rlog.Errorc(ctx, "could validate input", validationErr)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: validationErr.Error(),
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, validationErr.Error())
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -152,6 +140,7 @@ func GetByFilter() gin.HandlerFunc {
 // @Produce		application/json
 // @Success		200									{array}		apicontracts.ClusterInfo
 // @Failure		403									{object}	rorerror.RorError
+// @Failure		400									{object}	rorerror.RorError
 // @Failure		401									{object}	rorerror.RorError
 // @Failure		500									{object}	rorerror.RorError
 // @Router			/v1/projects/{projectId}/clusters	[get]
@@ -164,10 +153,8 @@ func GetClustersByProjectId() gin.HandlerFunc {
 
 		projectId := c.Param("id")
 		if projectId == "" || len(projectId) == 0 {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "invalid id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid id")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -190,6 +177,7 @@ func GetClustersByProjectId() gin.HandlerFunc {
 // @Produce		application/json
 // @Success		200							{object}	apicontracts.Project
 // @Failure		403							{object}	rorerror.RorError
+// @Failure		400							{object}	rorerror.RorError
 // @Failure		401							{object}	rorerror.RorError
 // @Failure		500							{object}	rorerror.RorError
 // @Router			/v1/projects/{projectId}	[get]
@@ -202,19 +190,15 @@ func GetById() gin.HandlerFunc {
 
 		projectId := c.Param("id")
 		if projectId == "" || len(projectId) == 0 {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "invalid id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid id")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		object, err := projectService.GetById(ctx, projectId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "could not get object",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not get object", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -230,6 +214,7 @@ func GetById() gin.HandlerFunc {
 // @Produce		application/json
 // @Success		200							{object}	apicontracts.PaginatedResult[apicontracts.Project]
 // @Failure		403							{object}	rorerror.RorError
+// @Failure		400							{object}	rorerror.RorError
 // @Failure		401							{object}	rorerror.RorError
 // @Failure		500							{object}	rorerror.RorError
 // @Router			/v1/projects/{projectId}	[put]
@@ -246,10 +231,8 @@ func Update() gin.HandlerFunc {
 		projectId := c.Param("id")
 		if projectId == "" || len(projectId) == 0 {
 			rlog.Errorc(ctx, "invalid id", fmt.Errorf("id is zero length"))
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid id")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 		// Access check
@@ -266,40 +249,29 @@ func Update() gin.HandlerFunc {
 		//validate the request body
 		err := c.BindJSON(&input)
 		if err != nil {
-			rlog.Errorc(ctx, "could not bind the request body", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Object is not valid",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Object is not valid", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		err = validate.Struct(&input)
 		if err != nil {
-			rlog.Errorc(ctx, "could not validate the request body", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Required fields missing",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields missing", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		updatedObject, originalObject, err := projectService.Update(ctx, projectId, &input)
 		if err != nil {
-			rlog.Errorc(ctx, "could not update object", err)
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not update object",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not update object", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		if updatedObject == nil {
 			rlog.Errorc(ctx, "Could not update object", fmt.Errorf("object does not exist"))
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not update object, does it exist?!",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not update object, does it exist?!")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -317,6 +289,7 @@ func Update() gin.HandlerFunc {
 // @Produce		application/json
 // @Success		200							{bool}		bool
 // @Failure		403							{object}	rorerror.RorError
+// @Failure		400							{object}	rorerror.RorError
 // @Failure		401							{object}	rorerror.RorError
 // @Failure		500							{object}	rorerror.RorError
 // @Router			/v1/projects/{projectId}	[delete]
@@ -330,10 +303,8 @@ func Delete() gin.HandlerFunc {
 		projectId := c.Param("id")
 		if projectId == "" || len(projectId) == 0 {
 			rlog.Errorc(ctx, "invalid id", fmt.Errorf("id is zero length"))
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid id")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 		// Access check
@@ -349,11 +320,8 @@ func Delete() gin.HandlerFunc {
 
 		result, _, err := projectService.Delete(ctx, projectId)
 		if err != nil {
-			rlog.Errorc(ctx, "could not delete object", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not delete object",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not delete object", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 

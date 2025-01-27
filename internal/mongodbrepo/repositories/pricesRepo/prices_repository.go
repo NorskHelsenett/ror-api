@@ -28,7 +28,7 @@ func GetAll(ctx context.Context) (*[]apicontracts.Price, error) {
 	var query []bson.M
 	cursor, err := db.Collection(CollectionName).Aggregate(ctx, query)
 	if err != nil {
-		return nil, errors.New("could not fetch all prices")
+		return nil, errors.New("Could not get all prices")
 	}
 
 	var prices []apicontracts.Price = make([]apicontracts.Price, 0)

@@ -69,19 +69,14 @@ func GetOperatorConfiguration() gin.HandlerFunc {
 		})
 
 		if err != nil {
-			rlog.Errorc(ctx, "Error when fetching OperatorConfig", err)
-			c.JSON(http.StatusNotFound, rorerror.RorError{
-				Status:  http.StatusNotFound,
-				Message: "Could not find operator config",
-			})
+			rerr := rorerror.NewRorError(http.StatusNotFound, "Could not find operator config", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		if operatorConfigs.DataCount == 0 || operatorConfigs.DataCount >= 2 {
-			c.JSON(http.StatusNotFound, rorerror.RorError{
-				Status:  http.StatusNotFound,
-				Message: "Could not find operator config",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not find operator config")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -126,10 +121,8 @@ func GetTaskConfiguration() gin.HandlerFunc {
 		}
 
 		if name == "" {
-			c.JSON(http.StatusNotFound, rorerror.RorError{
-				Status:  http.StatusNotFound,
-				Message: "Missing name",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing name")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -144,38 +137,28 @@ func GetTaskConfiguration() gin.HandlerFunc {
 		})
 
 		if err != nil {
-			rlog.Errorc(ctx, "Error when fetching Task", err)
-			c.JSON(http.StatusNotFound, rorerror.RorError{
-				Status:  http.StatusNotFound,
-				Message: "Task not found",
-			})
+			rerr := rorerror.NewRorError(http.StatusNotFound, "Task not found", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		if tasks.DataCount == 0 || tasks.DataCount >= 2 {
-			c.JSON(http.StatusNotFound, rorerror.RorError{
-				Status:  http.StatusNotFound,
-				Message: "Task not found",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Task not found")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		task := tasks.Data[0]
 		if len(task.Name) == 0 {
-			c.JSON(http.StatusNotFound, rorerror.RorError{
-				Status:  http.StatusNotFound,
-				Message: "Task not found",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Task not found")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		taskSpec, err := configurationservice.GetTaskConfigByClusterIdAndTaskName(ctx, &task, clusterId)
 		if err != nil {
-			rlog.Errorc(ctx, "Error when fetching Task.Spec", err)
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Error when fetching Task.Spec",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Error when fetching Task.Spec", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 

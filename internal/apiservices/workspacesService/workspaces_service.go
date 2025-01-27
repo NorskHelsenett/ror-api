@@ -24,7 +24,7 @@ import (
 func GetAll(ctx context.Context) (*[]apicontracts.Workspace, error) {
 	workspaces, err := workspacesRepo.GetAllByIdentity(ctx)
 	if err != nil {
-		return nil, errors.New("could not fetch workspaces")
+		return nil, errors.New("Could not get workspaces")
 	}
 
 	return workspaces, nil
@@ -56,7 +56,7 @@ func GetById(ctx context.Context, id string) (*apicontracts.Workspace, error) {
 func GetByName(ctx context.Context, workspaceName string) (*apicontracts.Workspace, error) {
 	workspace, err := workspacesRepo.GetByName(ctx, workspaceName)
 	if err != nil {
-		return nil, errors.New("could not fetch workspace")
+		return nil, errors.New("Could not get workspace")
 	}
 
 	return workspace, nil

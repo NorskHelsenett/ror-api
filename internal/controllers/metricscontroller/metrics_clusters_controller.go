@@ -24,7 +24,7 @@ import (
 //	@Produce		application/json
 //	@Success		200						{object}	apicontracts.MetricList
 //	@Failure		403						{string}	Forbidden
-//	@Failure		401						{string}	Unauthorized
+//	@Failure		401						{object}	rorerror.RorError
 //	@Failure		500						{string}	Failure	message
 //	@Router			/v1/metrics/clusters	[get]
 //	@Security		ApiKey || AccessToken
@@ -35,10 +35,8 @@ func GetForClusters() gin.HandlerFunc {
 
 		metrics, err := metricsservice.GetForClusters(ctx)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not fetch metrics for clusters",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get metrics for clusters", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -62,7 +60,7 @@ func GetForClusters() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200												{object}	apicontracts.MetricList
 //	@Failure		403												{string}	Forbidden
-//	@Failure		401												{string}	Unauthorized
+//	@Failure		401												{object}	rorerror.RorError
 //	@Failure		500												{string}	Failure	message
 //	@Param			workspaceId										path		string	true	"workspaceId"
 //	@Router			/v1/metrics/clusters/workspace/{workspaceId}	[get]
@@ -77,10 +75,8 @@ func GetForClustersByWorkspaceId() gin.HandlerFunc {
 		var _ apicontracts.Datacenter
 		results, err := metricsservice.GetForClustersByWorkspaceId(ctx, workspaceId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not fetch metrics for clusters by workspace",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get metrics for clusters by workspace", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -104,7 +100,7 @@ func GetForClustersByWorkspaceId() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200	{object}	apicontracts.MetricItem
 //	@Failure		403	{string}	Forbidden
-//	@Failure		401	{string}	Unauthorized
+//	@Failure		401	{object}	rorerror.RorError
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/metrics/cluster/{clusterId} [get]
 //	@Param			clusterId	path	string	true	"clusterId"
@@ -117,10 +113,8 @@ func GetByClusterId() gin.HandlerFunc {
 
 		result, err := metricsservice.GetForClusterid(ctx, clusterId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not fetch metrics for clusterid",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get metrics for clusterid", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -144,7 +138,7 @@ func GetByClusterId() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200	{object}	apicontracts.MetricsCustom
 //	@Failure		403	{string}	Forbidden
-//	@Failure		401	{string}	Unauthorized
+//	@Failure		401	{object}	rorerror.RorError
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/metrics/custom/cluster/{property} [get]
 //	@Param			property	path	string	true	"property"
@@ -157,10 +151,8 @@ func MetricsForClustersByProperty() gin.HandlerFunc {
 
 		result, err := metricsservice.ForClustersByProperty(ctx, property)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not fetch custom metrics for clusters by property",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get custom metrics for clusters by property", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 

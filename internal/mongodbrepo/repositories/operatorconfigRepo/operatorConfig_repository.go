@@ -59,12 +59,12 @@ func FindOne(ctx context.Context, property string, propertyValue string) (*apico
 
 // 	totalCountResult, err := collection.Aggregate(ctx, totalCountPipeline)
 // 	if err != nil {
-// 		return nil, 0, fmt.Errorf("could not fetch operatorconfigs: %v", err)
+// 		return nil, 0, fmt.Errorf("Could not get operatorconfigs: %v", err)
 // 	}
 
 // 	var totalCountAcc []bson.M
 // 	if err = totalCountResult.All(ctx, &totalCountAcc); err != nil {
-// 		return nil, 0, fmt.Errorf("could not fetch total count for operatorconfig: %v", err)
+// 		return nil, 0, fmt.Errorf("Could not get total count for operatorconfig: %v", err)
 // 	}
 
 // 	totalCount := len(totalCountAcc)
@@ -96,17 +96,17 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 	configCollection := db.Collection(CollectionName)
 	results, err := db.Collection(CollectionName).Aggregate(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("could not fetch operator configs: %v", err)
+		return nil, fmt.Errorf("Could not get operator configs: %v", err)
 	}
 
 	totalCountResult, err := configCollection.Aggregate(ctx, totalCountQuery)
 	if err != nil {
-		return nil, fmt.Errorf("could not fetch operator configs: %v", err)
+		return nil, fmt.Errorf("Could not get operator configs: %v", err)
 	}
 
 	var totalCountAcc []bson.M
 	if err = totalCountResult.All(ctx, &totalCountAcc); err != nil {
-		return nil, fmt.Errorf("could not fetch total count for operator configs: %v", err)
+		return nil, fmt.Errorf("Could not get total count for operator configs: %v", err)
 	}
 
 	totalCount := len(totalCountAcc)
@@ -125,7 +125,7 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 	for results.Next(ctx) {
 		var element apicontracts.OperatorConfig
 		if err = results.Decode(&element); err != nil {
-			return nil, fmt.Errorf("could not fetch operator configs: %v", err)
+			return nil, fmt.Errorf("Could not get operator configs: %v", err)
 		}
 
 		operatorConfigs = append(operatorConfigs, element)
@@ -199,7 +199,7 @@ func GetAll(ctx context.Context) (*[]apicontracts.OperatorConfig, error) {
 	var query []bson.M
 	cursor, err := db.Collection(CollectionName).Aggregate(ctx, query)
 	if err != nil {
-		return nil, errors.New("could not fetch all operator configs")
+		return nil, errors.New("Could not get all operator configs")
 	}
 
 	var result []apicontracts.OperatorConfig = make([]apicontracts.OperatorConfig, 0)

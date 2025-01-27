@@ -33,19 +33,20 @@ func init() {
 
 // TODO: Describe function
 //
-// // @Summary Create a price
-// // @Schemes
-// // @Description Create a price
-// // @Tags prices
-// // @Accept application/json
-// // @Produce application/json
-// // @Param        price  body      apicontracts.Cluster  true  "Add a price"
-// // @Success 200 {array} apicontracts.Price
-// // @Failure 403  {string}  Forbidden
-// // @Failure 401  {string}  Unauthorized
-// // @Failure 500  {string}  Failure message
-// // @Router	/v1/prices [post]
-// // @Security		ApiKey || AccessToken
+//	@Summary	Create a price
+//	@Schemes
+//	@Description	Create a price
+//	@Tags			prices
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Param			price	body		apicontracts.Cluster	true	"Add a price"
+//	@Success		200		{array}		apicontracts.Price
+//	@Failure		403		{string}	Forbidden
+//	@Failure		400		{object}	rorerror.RorError
+//	@Failure		401		{object}	rorerror.RorError
+//	@Failure		500		{string}	Failure	message
+//	@Router			/v1/prices [post]
+//	@Security		ApiKey || AccessToken
 func Create() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
@@ -65,21 +66,15 @@ func Create() gin.HandlerFunc {
 		var price apicontracts.Price
 		//validate the request body
 		if err := c.BindJSON(&price); err != nil {
-			rlog.Errorc(ctx, "could not bind JSON", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not validate price object",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate price object", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&price); err != nil {
-			rlog.Errorc(ctx, "could not validate object", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Required fields are missing",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields are missing", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -87,17 +82,12 @@ func Create() gin.HandlerFunc {
 		if err != nil {
 			rlog.Errorc(ctx, "could not create price", err)
 			if strings.Contains(err.Error(), "exists") {
-				c.JSON(http.StatusBadRequest, rorerror.RorError{
-					Status:  http.StatusBadRequest,
-					Message: "Already exists",
-				})
+				rerr := rorerror.NewRorError(http.StatusBadRequest, "Already exists")
+				rerr.GinLogErrorAbort(c)
 				return
 			}
-
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Required fields are missing",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields are missing")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -117,7 +107,8 @@ func Create() gin.HandlerFunc {
 //	@Param			providerName	path		string	true	"providerName"
 //	@Success		200				{array}		apicontracts.Price
 //	@Failure		403				{string}	Forbidden
-//	@Failure		401				{string}	Unauthorized
+//	@Failure		400				{object}	rorerror.RorError
+//	@Failure		401				{object}	rorerror.RorError
 //	@Failure		500				{string}	Failure	message
 //	@Router			/v1/prices/provider/{providerName} [get]
 //	@Security		ApiKey || AccessToken
@@ -128,19 +119,15 @@ func GetByProvider() gin.HandlerFunc {
 		defer cancel()
 
 		if providerName == "" || len(providerName) == 0 {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid provider name",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid provider name")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		prices, err := pricesService.GetByProperty(ctx, "provider", strings.ToLower(providerName))
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "could not get prices",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not get prices", err)
+			rerr.GinLogErrorAbort(c)
 		}
 
 		c.JSON(http.StatusOK, prices)
@@ -159,7 +146,8 @@ func GetByProvider() gin.HandlerFunc {
 //	@Param			price	body		apicontracts.Price	true	"Update price"
 //	@Success		200		{object}	apicontracts.Price
 //	@Failure		403		{string}	Forbidden
-//	@Failure		401		{string}	Unauthorized
+//	@Failure		400		{object}	rorerror.RorError
+//	@Failure		401		{object}	rorerror.RorError
 //	@Failure		500		{string}	Failure	message
 //	@Router			/v1/prices/:id [put]
 //	@Security		ApiKey || AccessToken
@@ -171,10 +159,8 @@ func Update() gin.HandlerFunc {
 		priceId := c.Param("priceId")
 		if priceId == "" || len(priceId) == 0 {
 			rlog.Errorc(ctx, "invalid price id", fmt.Errorf("id is zero length"))
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid price id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid price id")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -192,40 +178,30 @@ func Update() gin.HandlerFunc {
 		var priceInput apicontracts.Price
 		//validate the request body
 		if err := c.BindJSON(&priceInput); err != nil {
-			rlog.Errorc(ctx, "object is not valid", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Object is not valid",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Object is not valid", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&priceInput); validationErr != nil {
 			rlog.Errorc(ctx, "could not validate reqired fields", validationErr)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Required fields missing",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields missing")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		updatedprice, originalprice, err := pricesService.Update(ctx, priceId, &priceInput)
 		if err != nil {
-			rlog.Errorc(ctx, "could not update price", err)
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not update price",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not update price", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		if updatedprice == nil {
 			rlog.Errorc(ctx, "Could not update price", fmt.Errorf("object does not exist"))
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not update price, does it exist?!",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not update price, does it exist?!")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -246,7 +222,8 @@ func Update() gin.HandlerFunc {
 //	@Param			id	path		string	true	"id"
 //	@Success		200	{bool}		true
 //	@Failure		403	{string}	Forbidden
-//	@Failure		401	{string}	Unauthorized
+//	@Failure		400	{object}	rorerror.RorError
+//	@Failure		401	{object}	rorerror.RorError
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/prices/:id [delete]
 //	@Security		ApiKey || AccessToken
@@ -258,10 +235,8 @@ func Delete() gin.HandlerFunc {
 		priceId := c.Param("priceId")
 		if priceId == "" || len(priceId) == 0 {
 			rlog.Errorc(ctx, "invalid price id", fmt.Errorf("id is zero length"))
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid price id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid price id")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 		// Access check
@@ -277,11 +252,8 @@ func Delete() gin.HandlerFunc {
 
 		result, deletedPrice, err := pricesService.Delete(ctx, priceId)
 		if err != nil {
-			rlog.Errorc(ctx, "could not delete price", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not delete price",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not delete price", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -300,7 +272,8 @@ func Delete() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200			{array}		apicontracts.Price
 //	@Failure		403			{string}	Forbidden
-//	@Failure		401			{string}	Unauthorized
+//	@Failure		400			{object}	rorerror.RorError
+//	@Failure		401			{object}	rorerror.RorError
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/prices	[get]
 //	@Security		ApiKey || AccessToken
@@ -311,10 +284,8 @@ func GetAll() gin.HandlerFunc {
 
 		prices, err := pricesService.GetAll(ctx)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not find prices ...",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not find prices ...", err)
+			rerr.GinLogErrorAbort(c)
 		}
 
 		c.JSON(http.StatusOK, prices)
@@ -329,10 +300,8 @@ func GetById() gin.HandlerFunc {
 
 		priceId := c.Param("priceId")
 		if priceId == "" || len(priceId) == 0 {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "invalid price id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid price id")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -349,10 +318,8 @@ func GetById() gin.HandlerFunc {
 
 		price, err := pricesService.GetById(ctx, priceId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "could not get price",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not get price", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 

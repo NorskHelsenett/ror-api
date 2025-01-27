@@ -33,7 +33,8 @@ func init() {
 //	@Param			clusterId	path		string	true	"clusterId"
 //	@Success		200			{object}	messages.RulesetModel
 //	@Failure		403			{string}	Forbidden
-//	@Failure		401			{string}	Unauthorized
+//	@Failure		400			{object}	rorerror.RorError
+//	@Failure		401			{object}	rorerror.RorError
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/rulesets/cluster/{clusterId} [get]
 //	@Security		ApiKeyAuth
@@ -46,10 +47,8 @@ func GetByCluster() gin.HandlerFunc {
 		clusterId := c.Param("clusterId")
 
 		if clusterId == "" || len(clusterId) == 0 {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid cluster name",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid cluster name")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -66,10 +65,8 @@ func GetByCluster() gin.HandlerFunc {
 
 		ruleset, err := rulesetsService.FindCluster(ctx, clusterId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "could not get ruleset",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not get ruleset", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -87,7 +84,7 @@ func GetByCluster() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200	{object}	messages.RulesetModel
 //	@Failure		403	{string}	Forbidden
-//	@Failure		401	{string}	Unauthorized
+//	@Failure		401	{object}	rorerror.RorError
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/rulesets/internal [get]
 //	@Security		ApiKeyAuth
@@ -110,10 +107,8 @@ func GetInternal() gin.HandlerFunc {
 
 		ruleset, err := rulesetsService.FindInternal(ctx)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "could not get ruleset",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not get ruleset", err)
+			rerr.GinLogErrorAbort(c)
 		}
 
 		c.JSON(http.StatusOK, ruleset)
@@ -131,7 +126,8 @@ func GetInternal() gin.HandlerFunc {
 //	@Param			rulesetId	path		string	true	"rulesetId"
 //	@Success		200			{object}	messages.RulesetResourceModel
 //	@Failure		403			{string}	Forbidden
-//	@Failure		401			{string}	Unauthorized
+//	@Failure		400			{object}	rorerror.RorError
+//	@Failure		401			{object}	rorerror.RorError
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/rulesets/{rulesetId}/resources [post]
 //	@Security		ApiKeyAuth
@@ -145,21 +141,15 @@ func AddResource() gin.HandlerFunc {
 		var input messages.RulesetResourceInput
 
 		if err := c.BindJSON(&input); err != nil {
-			rlog.Errorc(ctx, "could not bind resource input", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "invalid json",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid json", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		ruleset, err := rulesetsService.Find(ctx, rulesetId)
 		if err != nil {
-			rlog.Errorc(ctx, "could not find ruleset", err)
-			c.JSON(http.StatusNotFound, rorerror.RorError{
-				Status:  http.StatusNotFound,
-				Message: "could not find ruleset",
-			})
+			rerr := rorerror.NewRorError(http.StatusNotFound, "could not find ruleset", err)
+			rerr.GinLogErrorAbort(c)
 		}
 		var accessQuery aclmodels.AclV2QueryAccessScopeSubject
 		if ruleset.Identity.Type == messages.RulesetIdentityTypeInternal {
@@ -184,11 +174,8 @@ func AddResource() gin.HandlerFunc {
 
 		resource, err := rulesetsService.AddResource(ctx, rulesetId, &input)
 		if err != nil {
-			rlog.Errorc(ctx, "could not add resource", err)
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "could not add resource",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not add resource", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -208,7 +195,8 @@ func AddResource() gin.HandlerFunc {
 //	@Param			resourceId	path		string	true	"resourceId"
 //	@Success		200			{bool}		Deleted
 //	@Failure		403			{string}	Forbidden
-//	@Failure		401			{string}	Unauthorized
+//	@Failure		400			{object}	rorerror.RorError
+//	@Failure		401			{object}	rorerror.RorError
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/rulesets/{rulesetId}/resources/{resourceId} [delete]
 //	@Security		ApiKeyAuth
@@ -223,11 +211,8 @@ func DeleteResource() gin.HandlerFunc {
 
 		ruleset, err := rulesetsService.Find(ctx, rulesetId)
 		if err != nil {
-			rlog.Errorc(ctx, "could not find ruleset", err)
-			c.JSON(http.StatusNotFound, rorerror.RorError{
-				Status:  http.StatusNotFound,
-				Message: "could not find ruleset",
-			})
+			rerr := rorerror.NewRorError(http.StatusNotFound, "could not find ruleset", err)
+			rerr.GinLogErrorAbort(c)
 		}
 
 		var accessQuery aclmodels.AclV2QueryAccessScopeSubject
@@ -252,11 +237,8 @@ func DeleteResource() gin.HandlerFunc {
 		}
 
 		if err := rulesetsService.DeleteResource(ctx, rulesetId, resourceId); err != nil {
-			rlog.Errorc(ctx, "could not delete resource", err)
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "could not delete resource",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not delete resource", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -276,7 +258,8 @@ func DeleteResource() gin.HandlerFunc {
 //	@Param			resourceId	path		string	true	"resourceId"
 //	@Success		200			{object}	messages.RulesetRuleModel
 //	@Failure		403			{string}	Forbidden
-//	@Failure		401			{string}	Unauthorized
+//	@Failure		400			{object}	rorerror.RorError
+//	@Failure		401			{object}	rorerror.RorError
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/rulesets/{rulesetId}/resources/{resourceId}/rules [post]
 //	@Security		ApiKeyAuth
@@ -288,22 +271,16 @@ func AddResourceRule() gin.HandlerFunc {
 
 		input := new(messages.RulesetRuleInput)
 		if err := c.BindJSON(input); err != nil {
-			rlog.Errorc(ctx, "could not bind rule input", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "invalid json",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid json", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		rulesetId := c.Param("rulesetId")
 		ruleset, err := rulesetsService.Find(ctx, rulesetId)
 		if err != nil {
-			rlog.Errorc(ctx, "could not find ruleset", err)
-			c.JSON(http.StatusNotFound, rorerror.RorError{
-				Status:  http.StatusNotFound,
-				Message: "could not find ruleset",
-			})
+			rerr := rorerror.NewRorError(http.StatusNotFound, "could not find ruleset", err)
+			rerr.GinLogErrorAbort(c)
 		}
 
 		var accessQuery aclmodels.AclV2QueryAccessScopeSubject
@@ -331,11 +308,8 @@ func AddResourceRule() gin.HandlerFunc {
 
 		event, err := rulesetsService.AddResourceRule(ctx, rulesetId, resourceId, input)
 		if err != nil {
-			rlog.Errorc(ctx, "could not add resource rule", err)
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "could not add resource rule",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not add resource rule", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -356,7 +330,7 @@ func AddResourceRule() gin.HandlerFunc {
 //	@Param			ruleId		path		string	true	"ruleId"
 //	@Success		200			{bool}		Deleted
 //	@Failure		403			{string}	Forbidden
-//	@Failure		401			{string}	Unauthorized
+//	@Failure		401			{object}	rorerror.RorError
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/rulesets/{rulesetId}/resources/{resourceId}/rules/{ruleId} [post]
 //	@Security		ApiKeyAuth
@@ -369,11 +343,8 @@ func DeleteResourceRule() gin.HandlerFunc {
 		rulesetId := c.Param("rulesetId")
 		ruleset, err := rulesetsService.Find(ctx, rulesetId)
 		if err != nil {
-			rlog.Errorc(ctx, "could not find ruleset", err)
-			c.JSON(http.StatusNotFound, rorerror.RorError{
-				Status:  http.StatusNotFound,
-				Message: "could not find ruleset",
-			})
+			rerr := rorerror.NewRorError(http.StatusNotFound, "could not find ruleset", err)
+			rerr.GinLogErrorAbort(c)
 		}
 
 		var accessQuery aclmodels.AclV2QueryAccessScopeSubject
@@ -401,11 +372,8 @@ func DeleteResourceRule() gin.HandlerFunc {
 		ruleId := c.Param("ruleId")
 
 		if err := rulesetsService.DeleteResourceRule(ctx, rulesetId, resourceId, ruleId); err != nil {
-			rlog.Errorc(ctx, "could not delete resource rule", err)
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "could not delete resource rule",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not delete resource rule", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -421,11 +389,8 @@ func GetAll() gin.HandlerFunc {
 
 		rulesets, err := rulesetsService.FindAll(ctx)
 		if err != nil {
-			rlog.Errorc(ctx, "could not find all rulesets", err)
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "could not find rulesets",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not find rulesets", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 

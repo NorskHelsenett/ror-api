@@ -36,7 +36,7 @@ func GetForClusters(ctx context.Context) (*apicontracts.MetricList, error) {
 
 	results, err := db.Collection(CollectionName).Aggregate(ctx, queryCount)
 	if err != nil {
-		return nil, errors.New("could not fetch metrics for clusters")
+		return nil, errors.New("Could not get metrics for clusters")
 	}
 
 	if results.RemainingBatchLength() == 0 {
@@ -47,11 +47,11 @@ func GetForClusters(ctx context.Context) (*apicontracts.MetricList, error) {
 
 	var acc []bson.M
 	if err = results.All(ctx, &acc); err != nil {
-		return nil, errors.New("could not fetch metrics for clusters")
+		return nil, errors.New("Could not get metrics for clusters")
 	}
 
 	if len(acc) == 0 {
-		return nil, errors.New("could not fetch metrics for clusters")
+		return nil, errors.New("Could not get metrics for clusters")
 	}
 
 	for i := 0; i < len(acc); i++ {
@@ -75,7 +75,7 @@ func GetForClusters(ctx context.Context) (*apicontracts.MetricList, error) {
 func GetForClustersByWorkspaceId(ctx context.Context, workspaceId string) (*apicontracts.MetricList, error) {
 	wId, err := primitive.ObjectIDFromHex(workspaceId)
 	if err != nil {
-		return nil, errors.New("could not fetch metrics for clusters by workspace")
+		return nil, errors.New("Could not get metrics for clusters by workspace")
 	}
 
 	db := mongodb.GetMongoDb()
@@ -109,7 +109,7 @@ func GetForClustersByWorkspaceId(ctx context.Context, workspaceId string) (*apic
 
 	results, err := db.Collection(CollectionName).Aggregate(ctx, queryCount)
 	if err != nil {
-		return nil, errors.New("could not fetch metrics for clusters by workspace")
+		return nil, errors.New("Could not get metrics for clusters by workspace")
 	}
 
 	if results.RemainingBatchLength() == 0 {
@@ -120,11 +120,11 @@ func GetForClustersByWorkspaceId(ctx context.Context, workspaceId string) (*apic
 
 	var acc []bson.M
 	if err = results.All(ctx, &acc); err != nil {
-		return nil, errors.New("could not fetch metrics for clusters by workspace")
+		return nil, errors.New("Could not get metrics for clusters by workspace")
 	}
 
 	if len(acc) == 0 {
-		return nil, errors.New("could not fetch metrics for clusters by workspace")
+		return nil, errors.New("Could not get metrics for clusters by workspace")
 	}
 
 	for i := 0; i < len(acc); i++ {
@@ -162,7 +162,7 @@ func GetForClusterid(ctx context.Context, clusterId string) (*apicontracts.Metri
 
 	results, err := db.Collection(CollectionName).Aggregate(ctx, queryCount)
 	if err != nil {
-		return nil, errors.New("could not fetch metrics for clusterid")
+		return nil, errors.New("Could not get metrics for clusterid")
 	}
 
 	if results.RemainingBatchLength() == 0 {
@@ -173,11 +173,11 @@ func GetForClusterid(ctx context.Context, clusterId string) (*apicontracts.Metri
 
 	var acc []bson.M
 	if err = results.All(ctx, &acc); err != nil {
-		return nil, errors.New("could not fetch metrics for clusterid")
+		return nil, errors.New("Could not get metrics for clusterid")
 	}
 
 	if len(acc) > 1 {
-		return nil, errors.New("could not fetch metrics for clusterid")
+		return nil, errors.New("Could not get metrics for clusterid")
 	}
 
 	data := acc[0]
@@ -244,7 +244,7 @@ func ForClustersByProperty(ctx context.Context, property string) (*apicontracts.
 
 	results, err := db.Collection(CollectionName).Aggregate(ctx, query)
 	if err != nil {
-		return nil, errors.New("could not fetch metrics for clusterid")
+		return nil, errors.New("Could not get metrics for clusterid")
 	}
 
 	if results.RemainingBatchLength() == 0 {
@@ -253,7 +253,7 @@ func ForClustersByProperty(ctx context.Context, property string) (*apicontracts.
 
 	var acc []bson.M
 	if err = results.All(ctx, &acc); err != nil {
-		return nil, errors.New("could not fetch metrics for clusterid")
+		return nil, errors.New("Could not get metrics for clusterid")
 	}
 
 	if len(acc) < 1 {

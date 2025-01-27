@@ -23,10 +23,11 @@ import (
 // @Tags			providers
 // @Accept			application/json
 // @Produce		application/json
-// @Success		200				{array}		providers.Provider
-// @Failure		403				{string}	Forbidden
-// @Failure		401				{string}	Unauthorized
-// @Failure		500				{string}	Failure	message
+// @Success		200	{array}		providers.Provider
+// @Failure		403	{string}	Forbidden
+// @Failure		400	{object}	rorerror.RorError
+// @Failure		401	{string}	Unauthorized
+// @Failure		500	{string}	Failure	message
 // @Router			/v1/providers [get]
 // @Security		ApiKey || AccessToken
 func GetAll() gin.HandlerFunc {
@@ -76,11 +77,10 @@ func GetAll() gin.HandlerFunc {
 // @Tags			providers
 // @Accept			application/json
 // @Produce		application/json
-//
-//	@Param			providerType	path		string	true	"providerType"
-//
+// @Param			providerType	path		string	true	"providerType"
 // @Success		200				{array}		providers.Provider
 // @Failure		403				{string}	Forbidden
+// @Failure		400				{object}	rorerror.RorError
 // @Failure		401				{string}	Unauthorized
 // @Failure		500				{string}	Failure	message
 // @Router			/v1/providers/{providerType}/kubernetes/versions [get]
@@ -92,10 +92,8 @@ func GetKubernetesVersionByProvider() gin.HandlerFunc {
 		defer cancel()
 
 		if providerType == "" || len(providerType) == 0 {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid provider",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid provider")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -129,11 +127,10 @@ func GetKubernetesVersionByProvider() gin.HandlerFunc {
 // @Tags			providers
 // @Accept			application/json
 // @Produce		application/json
-//
-//	@Param			providerType	path		string	true	"providerType"
-//
+// @Param			providerType	path		string	true	"providerType"
 // @Success		200				{array}		providers.Provider
 // @Failure		403				{string}	Forbidden
+// @Failure		400				{object}	rorerror.RorError
 // @Failure		401				{string}	Unauthorized
 // @Failure		500				{string}	Failure	message
 // @Router			/v1/providers/{providerType}/configs/params [get]
@@ -145,10 +142,8 @@ func GetConfigParametersByProvider() gin.HandlerFunc {
 		defer cancel()
 
 		if providerType == "" || len(providerType) == 0 {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid provider",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid provider")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 

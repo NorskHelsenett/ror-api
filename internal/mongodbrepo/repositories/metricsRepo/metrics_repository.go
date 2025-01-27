@@ -183,7 +183,7 @@ func GetForDatacenters(ctx context.Context) (*apicontracts.MetricList, error) {
 
 	results, err := db.Collection(CollectionName).Aggregate(ctx, queryCount)
 	if err != nil {
-		return nil, errors.New("could not fetch metrics for datacenters")
+		return nil, errors.New("Could not get metrics for datacenters")
 	}
 
 	if results.RemainingBatchLength() == 0 {
@@ -194,11 +194,11 @@ func GetForDatacenters(ctx context.Context) (*apicontracts.MetricList, error) {
 
 	var acc []bson.M
 	if err = results.All(ctx, &acc); err != nil {
-		return nil, errors.New("could not fetch metrics for datacenters")
+		return nil, errors.New("Could not get metrics for datacenters")
 	}
 
 	if len(acc) == 0 {
-		return nil, errors.New("could not fetch metrics for datacenters")
+		return nil, errors.New("Could not get metrics for datacenters")
 	}
 
 	for i := 0; i < len(acc); i++ {
@@ -222,7 +222,7 @@ func GetForDatacenters(ctx context.Context) (*apicontracts.MetricList, error) {
 func GetForDatacenterId(ctx context.Context, datacenterId string) (*apicontracts.MetricItem, error) {
 	dcId, err := primitive.ObjectIDFromHex(datacenterId)
 	if err != nil {
-		return nil, errors.New("could not fetch metrics for datacenterid")
+		return nil, errors.New("Could not get metrics for datacenterid")
 	}
 	db := mongodb.GetMongoDb()
 	groupQuery := getGroupBaseQuery()
@@ -272,7 +272,7 @@ func GetForDatacenterId(ctx context.Context, datacenterId string) (*apicontracts
 
 	results, err := db.Collection(CollectionName).Aggregate(ctx, queryCount)
 	if err != nil {
-		return nil, errors.New("could not fetch metrics for datacentername")
+		return nil, errors.New("Could not get metrics for datacentername")
 	}
 
 	if results.RemainingBatchLength() == 0 {
@@ -283,11 +283,11 @@ func GetForDatacenterId(ctx context.Context, datacenterId string) (*apicontracts
 
 	var acc []bson.M
 	if err = results.All(ctx, &acc); err != nil {
-		return nil, errors.New("could not fetch metrics for datacentername")
+		return nil, errors.New("Could not get metrics for datacentername")
 	}
 
 	if len(acc) > 1 {
-		return nil, errors.New("could not fetch metrics for datacentername")
+		return nil, errors.New("Could not get metrics for datacentername")
 	}
 
 	data := acc[0]
@@ -368,13 +368,13 @@ func GetForWorkspaces(ctx context.Context, filter *apicontracts.Filter) (*apicon
 	clusterCollection := db.Collection(CollectionName)
 	totalQueryCountCursor, err := clusterCollection.Aggregate(ctx, totalQuery)
 	if err != nil {
-		return nil, errors.New("could not fetch metrics for workspaces")
+		return nil, errors.New("Could not get metrics for workspaces")
 	}
 
 	totalQueryCount := totalQueryCountCursor.RemainingBatchLength()
 	results, err := clusterCollection.Aggregate(ctx, queryCount)
 	if err != nil {
-		return nil, errors.New("could not fetch metrics for workspaces")
+		return nil, errors.New("Could not get metrics for workspaces")
 	}
 
 	if results.RemainingBatchLength() == 0 {
@@ -385,12 +385,12 @@ func GetForWorkspaces(ctx context.Context, filter *apicontracts.Filter) (*apicon
 
 	var agg []bson.M
 	if err = results.All(ctx, &agg); err != nil {
-		return nil, errors.New("could not fetch metrics for workspaces")
+		return nil, errors.New("Could not get metrics for workspaces")
 	}
 
 	lengthAgg := len(agg)
 	if lengthAgg == 0 {
-		return nil, errors.New("could not fetch metrics for workspaces")
+		return nil, errors.New("Could not get metrics for workspaces")
 	}
 
 	for i := 0; i < lengthAgg; i++ {
@@ -420,7 +420,7 @@ func GetForWorkspaces(ctx context.Context, filter *apicontracts.Filter) (*apicon
 func GetForWorkspacesByDatacenterId(ctx context.Context, filter *apicontracts.Filter, datacenterId string) (*apicontracts.PaginatedResult[apicontracts.Metric], error) {
 	dcId, err := primitive.ObjectIDFromHex(datacenterId)
 	if err != nil {
-		return nil, errors.New("could not fetch metrics for workspaces by datacenter")
+		return nil, errors.New("Could not get metrics for workspaces by datacenter")
 	}
 	db := mongodb.GetMongoDb()
 	bsonSort := bson.M{}
@@ -488,14 +488,14 @@ func GetForWorkspacesByDatacenterId(ctx context.Context, filter *apicontracts.Fi
 	clusterCollection := db.Collection(CollectionName)
 	totalQueryCountCursor, err := clusterCollection.Aggregate(ctx, totalQuery)
 	if err != nil {
-		return nil, errors.New("could not fetch metrics for workspaces by datacenter")
+		return nil, errors.New("Could not get metrics for workspaces by datacenter")
 	}
 
 	totalQueryCount := totalQueryCountCursor.RemainingBatchLength()
 
 	results, err := clusterCollection.Aggregate(ctx, queryCount)
 	if err != nil {
-		return nil, errors.New("could not fetch metrics for workspaces by datacenter")
+		return nil, errors.New("Could not get metrics for workspaces by datacenter")
 	}
 
 	if results.RemainingBatchLength() == 0 {
@@ -506,12 +506,12 @@ func GetForWorkspacesByDatacenterId(ctx context.Context, filter *apicontracts.Fi
 
 	var agg []bson.M
 	if err = results.All(ctx, &agg); err != nil {
-		return nil, errors.New("could not fetch metrics for workspaces by datacenter")
+		return nil, errors.New("Could not get metrics for workspaces by datacenter")
 	}
 
 	lengthAgg := len(agg)
 	if lengthAgg == 0 {
-		return nil, errors.New("could not fetch metrics for workspaces by datacenter")
+		return nil, errors.New("Could not get metrics for workspaces by datacenter")
 	}
 
 	for i := 0; i < lengthAgg; i++ {
@@ -541,7 +541,7 @@ func GetForWorkspacesByDatacenterId(ctx context.Context, filter *apicontracts.Fi
 func GetForWorkspaceId(ctx context.Context, workspaceName string) (*apicontracts.MetricItem, error) {
 	wId, err := primitive.ObjectIDFromHex(workspaceName)
 	if err != nil {
-		return nil, errors.New("could not fetch metrics for workspace")
+		return nil, errors.New("Could not get metrics for workspace")
 	}
 	db := mongodb.GetMongoDb()
 	groupQuery := getGroupBaseQuery()
@@ -575,7 +575,7 @@ func GetForWorkspaceId(ctx context.Context, workspaceName string) (*apicontracts
 
 	results, err := db.Collection(CollectionName).Aggregate(ctx, queryCount)
 	if err != nil {
-		return nil, errors.New("could not fetch metrics for workspace")
+		return nil, errors.New("Could not get metrics for workspace")
 	}
 
 	if results.RemainingBatchLength() == 0 {
@@ -586,11 +586,11 @@ func GetForWorkspaceId(ctx context.Context, workspaceName string) (*apicontracts
 
 	var acc []bson.M
 	if err = results.All(ctx, &acc); err != nil {
-		return nil, errors.New("could not fetch metrics for workspace")
+		return nil, errors.New("Could not get metrics for workspace")
 	}
 
 	if len(acc) > 1 {
-		return nil, errors.New("could not fetch metrics for workspace")
+		return nil, errors.New("Could not get metrics for workspace")
 	}
 
 	data := acc[0]

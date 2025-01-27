@@ -23,7 +23,7 @@ type Version struct {
 //	@Produce		application/json
 //	@Success		200					{object}	map[string]interface{}
 //	@Failure		403					{object}	map[string]interface{}
-//	@Failure		401					{object}	map[string]interface{}
+//	@Failure		401					{object}	rorerror.RorError
 //	@Failure		500					{object}	map[string]interface{}
 //	@Router			/v1/info/version	[get]
 func GetVersion() gin.HandlerFunc {

@@ -68,17 +68,17 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 	configCollection := db.Collection(CollectionName)
 	results, err := db.Collection(CollectionName).Aggregate(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("could not fetch tasks: %v", err)
+		return nil, fmt.Errorf("Could not get tasks: %v", err)
 	}
 
 	totalCountResult, err := configCollection.Aggregate(ctx, totalCountQuery)
 	if err != nil {
-		return nil, fmt.Errorf("could not fetch tasks: %v", err)
+		return nil, fmt.Errorf("Could not get tasks: %v", err)
 	}
 
 	var totalCountAcc []bson.M
 	if err = totalCountResult.All(ctx, &totalCountAcc); err != nil {
-		return nil, fmt.Errorf("could not fetch total count for tasks: %v", err)
+		return nil, fmt.Errorf("Could not get total count for tasks: %v", err)
 	}
 
 	totalCount := len(totalCountAcc)
@@ -97,7 +97,7 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 	for results.Next(ctx) {
 		var element apicontracts.Task
 		if err = results.Decode(&element); err != nil {
-			return nil, fmt.Errorf("could not fetch tasks: %v", err)
+			return nil, fmt.Errorf("Could not get tasks: %v", err)
 		}
 
 		tasks = append(tasks, element)
@@ -139,7 +139,7 @@ func GetAll(ctx context.Context) (*[]apicontracts.Task, error) {
 	var query []bson.M
 	cursor, err := db.Collection(CollectionName).Aggregate(ctx, query)
 	if err != nil {
-		return nil, errors.New("could not fetch all tasks")
+		return nil, errors.New("Could not get all tasks")
 	}
 
 	tasks := make([]apicontracts.Task, 0)

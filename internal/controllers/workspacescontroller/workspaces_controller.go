@@ -37,9 +37,9 @@ func init() {
 // @Accept			application/json
 // @Produce		application/json
 // @Success		200				{array}		apicontracts.Workspace
-// @Failure		403				{string}	Forbidden
-// @Failure		401				{string}	Unauthorized
-// @Failure		500				{string}	Failure	message
+// @Failure		401				{object}	rorerror.RorError
+// @Failure		403				{object}	rorerror.RorError
+// @Success		404				{array}		apicontracts.Workspace
 // @Router			/v1/workspaces	[get]
 // @Security		ApiKey || AccessToken
 func GetAll() gin.HandlerFunc {
@@ -52,10 +52,8 @@ func GetAll() gin.HandlerFunc {
 
 		workspaces, err := workspacesservice.GetAll(ctx)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, rorerror.RorError{
-				Status:  http.StatusUnauthorized,
-				Message: "Could not fetch workspaces",
-			})
+			rerr := rorerror.NewRorError(http.StatusForbidden, "Could not get workspaces", err)
+			rerr.GinLogErrorAbort(c)
 		}
 
 		if workspaces == nil {
@@ -77,8 +75,9 @@ func GetAll() gin.HandlerFunc {
 // @Param			name	path		string	true	"name"
 // @Success		200		{object}	apicontracts.Workspace
 // @Failure		403		{string}	Forbidden
-// @Failure		401		{string}	Unauthorized
-// @Failure		500		{string}	Failure	message
+// @Failure		400		{object}	rorerror.RorError
+// @Failure		401		{object}	rorerror.RorError
+// @Failure		500		{object}	rorerror.RorError
 // @Router			/v1/workspaces/{workspaceName} [get]
 // @Security		ApiKey || AccessToken
 func GetByName() gin.HandlerFunc {
@@ -110,10 +109,8 @@ func Update() gin.HandlerFunc {
 		id := c.Param("id")
 		if id == "" || len(id) == 0 {
 			rlog.Errorc(ctx, "invalid id", fmt.Errorf("id is zero length"))
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Invalid id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid id")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 		// Access check
@@ -131,40 +128,29 @@ func Update() gin.HandlerFunc {
 		var input apicontracts.Workspace
 		err := c.BindJSON(&input)
 		if err != nil {
-			rlog.Errorc(ctx, "could not bind the request body", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Object is not valid",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Object is not valid", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		err = validate.Struct(&input)
 		if err != nil {
-			rlog.Errorc(ctx, "could not validate the request body", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Required fields missing",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields missing", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		updatedObject, originalObject, err := workspacesservice.Update(ctx, &input, id)
 		if err != nil {
-			rlog.Errorc(ctx, "could not update object", err)
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not update object",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not update object", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		if updatedObject == nil {
 			rlog.Errorc(ctx, "could not update object", fmt.Errorf("object does not exist"))
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Could not update object, does it exist?!",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not update object, does it exist?!")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -182,10 +168,11 @@ func Update() gin.HandlerFunc {
 // @Accept			application/json
 // @Produce		application/json
 // @Param			id	path		string	true	"id"
-// @Success		200		{object}	apicontracts.Workspace
-// @Failure		403		{string}	Forbidden
-// @Failure		401		{string}	Unauthorized
-// @Failure		500		{string}	Failure	message
+// @Success		200	{object}	apicontracts.Workspace
+// @Failure		403	{string}	Forbidden
+// @Failure		400	{object}	rorerror.RorError
+// @Failure		401	{object}	rorerror.RorError
+// @Failure		500	{object}	rorerror.RorError
 // @Router			/v1/workspaces/id/{workspaceName} [get]
 // @Security		ApiKey || AccessToken
 func GetById() gin.HandlerFunc {
@@ -195,19 +182,15 @@ func GetById() gin.HandlerFunc {
 
 		id := c.Param("id")
 		if id == "" || len(id) == 0 {
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "invalid id",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid id")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		object, err := workspacesservice.GetById(ctx, id)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "could not get object",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not get object", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -224,12 +207,12 @@ func GetById() gin.HandlerFunc {
 //	@Tags			workspaces
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			id	path		string	true	"id"
-//	@Param			credentials				body	apicontracts.KubeconfigCredentials	true	"Credentials"
-//	@Success		200	{object}	apicontracts.ClusterKubeconfig
-//	@Failure		403	{string}	Forbidden
-//	@Failure		401	{string}	Unauthorized
-//	@Failure		500	{string}	Failure	message
+//	@Param			id			path		string								true	"id"
+//	@Param			credentials	body		apicontracts.KubeconfigCredentials	true	"Credentials"
+//	@Success		200			{object}	apicontracts.ClusterKubeconfig
+//	@Failure		403			{string}	Forbidden
+//	@Failure		401			{object}	rorerror.RorError
+//	@Failure		500			{string}	Failure	message
 //	@Router			/v1/workspaces/{workspaceName}/login [post]
 //	@Security		ApiKey || AccessToken
 func GetKubeconfig() gin.HandlerFunc {
@@ -259,21 +242,16 @@ func GetKubeconfig() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&credentialPayload); err != nil {
-			rlog.Errorc(ctx, "error when binding kubeconfig credentials", err)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: "Missing parameter",
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&credentialPayload); validationErr != nil {
 			rlog.Errorc(ctx, "error when validating kubeconfig credentials", validationErr)
-			c.JSON(http.StatusBadRequest, rorerror.RorError{
-				Status:  http.StatusBadRequest,
-				Message: validationErr.Error(),
-			})
+			rerr := rorerror.NewRorError(http.StatusBadRequest, validationErr.Error())
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 

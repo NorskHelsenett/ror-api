@@ -27,7 +27,7 @@ import (
 //	@Produce		application/json
 //	@Success		200			{object}	apicontracts.MetricsTotal
 //	@Failure		403			{string}	Forbidden
-//	@Failure		401			{string}	Unauthorized
+//	@Failure		401			{object}	rorerror.RorError
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/metrics	[get]
 //	@Security		ApiKey || AccessToken
@@ -41,10 +41,8 @@ func GetTotalByUser() gin.HandlerFunc {
 
 		metricsTotal, err := metricsservice.GetTotalByUser(ctx)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, rorerror.RorError{
-				Status:  http.StatusUnauthorized,
-				Message: "Could not fetch user",
-			})
+			rerr := rorerror.NewRorError(http.StatusForbidden, "Could not get user", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -68,7 +66,7 @@ func GetTotalByUser() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200					{object}	apicontracts.MetricsTotal
 //	@Failure		403					{string}	Forbidden
-//	@Failure		401					{string}	Unauthorized
+//	@Failure		401					{object}	rorerror.RorError
 //	@Failure		500					{string}	Failure	message
 //	@Router			/v1/metrics/total	[get]
 //	@Security		ApiKey || AccessToken
@@ -82,10 +80,8 @@ func GetTotal() gin.HandlerFunc {
 
 		metrics, err := metricsservice.GetTotal(ctx)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, rorerror.RorError{
-				Status:  http.StatusInternalServerError,
-				Message: "Could not fetch metrics",
-			})
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get metrics", err)
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -110,7 +106,7 @@ func GetTotal() gin.HandlerFunc {
 //	@Param			metrics		body		apicontracts.MetricsReport	true	"MetricsReport"
 //	@Success		200			{object}	apicontracts.MetricsTotal
 //	@Failure		403			{string}	Forbidden
-//	@Failure		401			{string}	Unauthorized
+//	@Failure		401			{object}	rorerror.RorError
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/metrics	[post]
 //	@Security		ApiKey || AccessToken

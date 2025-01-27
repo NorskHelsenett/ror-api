@@ -82,7 +82,7 @@ func GetAllByUser(ctx context.Context) (*[]apicontracts.Datacenter, error) {
 
 	clusterCursor, err := db.Collection(ClusterCollectionName).Aggregate(ctx, clusterQuery)
 	if err != nil {
-		return nil, errors.New("could not fetch all datacenters")
+		return nil, errors.New("Could not get all datacenters")
 	}
 
 	if clusterCursor.RemainingBatchLength() == 0 {

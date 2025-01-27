@@ -14,8 +14,8 @@ github.com/AzureAD/microsoft-authentication-library-for-go v1.3.2 h1:kYRSnvJju5g
 github.com/AzureAD/microsoft-authentication-library-for-go v1.3.2/go.mod h1:wP83P5OoQ5p6ip3ScPr0BAq0BvuPAvacpEuSzyouqAI=
 github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
-github.com/NorskHelsenett/ror v1.1.0-rc1 h1:zuuMdECjwhOgZw9PlCBu7GDoVkeG+Rs69CpGLbxxjPU=
-github.com/NorskHelsenett/ror v1.1.0-rc1/go.mod h1:pvL3e/ga+PNW4sYH6uJt2btJ/k/2H1wAIYTxolJ3ZCU=
+github.com/NorskHelsenett/ror v1.1.0-rc2 h1:kJI1lv998ziPB++LBeNAsNrKMgiZPh+fQwD8dfCA+uA=
+github.com/NorskHelsenett/ror v1.1.0-rc2/go.mod h1:pvL3e/ga+PNW4sYH6uJt2btJ/k/2H1wAIYTxolJ3ZCU=
 github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa h1:LHTHcTQiSGT7VVbI0o4wBRNQIgn917usHWOd6VAffYI=
 github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa/go.mod h1:cEWa1LVoE5KvSD9ONXsZrj0z6KqySlCCNKHlLzbqAt4=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
