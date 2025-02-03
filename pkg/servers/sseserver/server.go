@@ -27,6 +27,7 @@ type EventMessage struct {
 }
 
 func StartEventServer() {
+	StartListeningRabbitMQ()
 	Server = &EventServer{
 		Message:       make(chan EventMessage),
 		NewClients:    make(chan *EventClient),
