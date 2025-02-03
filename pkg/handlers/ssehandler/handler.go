@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	"github.com/NorskHelsenett/ror-api/pkg/servers/sseserver"
 
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
@@ -89,8 +90,8 @@ func HandleSSE() gin.HandlerFunc {
 
 func Send() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// ctx, cancel := gincontext.GetRorContextFromGinContext(c)
-		// defer cancel()
+		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
+		defer cancel()
 		// // // Access check
 		// // // Scope: ror
 		// // // Subject: global
@@ -111,14 +112,11 @@ func Send() gin.HandlerFunc {
 			return
 		}
 
-		sseserver.Server.Message <- sseserver.EventMessage{
-			Clients: sseserver.Server.Clients.GetBroadcast(),
-			SseEvent: sseserver.SseEvent{
-				Event: input.Event,
-				Data:  input.Data,
-			},
+		err = apiconnections.RabbitMQConnection.SendMessage(ctx, input, sseserver.SSERouteBroadcast, nil)
+		if err != nil {
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not send sse broadcast event", err)
+			rerr.GinLogErrorAbort(c)
 		}
-
 		c.JSON(http.StatusOK, nil)
 	}
 }
