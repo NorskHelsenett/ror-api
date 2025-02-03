@@ -112,7 +112,6 @@ func Send() gin.HandlerFunc {
 			return
 		}
 
-		//message := ssemodels.SseMessage{Event: ssemodels.SseType(input.Event), Data: input.Data}
 		err = apiconnections.RabbitMQConnection.SendMessage(ctx, input, sseserver.SSERouteBroadcast, nil)
 		if err != nil {
 			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not send sse broadcast event", err)
