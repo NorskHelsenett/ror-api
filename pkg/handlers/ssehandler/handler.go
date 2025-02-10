@@ -59,6 +59,7 @@ func HandleSSE() gin.HandlerFunc {
 					}()
 					// Send closed connection to event server
 					sseserver.Server.ClosedClients <- client.Id
+					cancel()
 					return
 				default:
 					time.Sleep(time.Second * 1)
@@ -105,6 +106,39 @@ func Send() gin.HandlerFunc {
 		// }
 
 		var input sseserver.SseEvent
+		err := c.BindJSON(&input)
+		if err != nil {
+			rerr := rorerror.NewRorError(http.StatusBadRequest, "Object is not valid", err)
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		err = apiconnections.RabbitMQConnection.SendMessage(ctx, input, sseserver.SSERouteBroadcast, nil)
+		if err != nil {
+			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not send sse broadcast event", err)
+			rerr.GinLogErrorAbort(c)
+		}
+		c.JSON(http.StatusOK, nil)
+	}
+}
+
+func Subscribe() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
+		defer cancel()
+		// // // Access check
+		// // // Scope: ror
+		// // // Subject: global
+		// // // Access: create
+		// // // TODO: check if this is the right way to do it
+		// accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal)
+		// accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
+		// if !accessObject.Create {
+		// 	c.JSON(http.StatusForbidden, "403: No access")
+		// 	return
+		// }
+
+		var input sseserver.SSESubscribe
 		err := c.BindJSON(&input)
 		if err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Object is not valid", err)

@@ -29,7 +29,7 @@ type EventMessage struct {
 func StartEventServer() {
 	StartListeningRabbitMQ()
 	Server = &EventServer{
-		Message:       make(chan EventMessage),
+		Message:       make(chan EventMessage, 10),
 		NewClients:    make(chan *EventClient),
 		ClosedClients: make(chan EventClientId),
 		Clients:       NewEventClients(),
@@ -48,7 +48,6 @@ func (es *EventServer) listen() {
 		case client := <-es.NewClients:
 			es.Clients.Add(client)
 			rlog.Infof("Added sse client. %d registered clients", es.Clients.Len())
-
 		// Remove closed client
 		case client := <-es.ClosedClients:
 

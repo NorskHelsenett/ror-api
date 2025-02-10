@@ -46,41 +46,43 @@ func StartListeningRabbitMQ() {
 		panic(err)
 	}
 
-	//Create the queue
+	// //Create the queue
 	SSEventsQueueName := fmt.Sprintf("%s-%s", SSEventsQueueNamePrefix, uuid.New().String())
-	apiEventsqueue, err := apiconnections.RabbitMQConnection.GetChannel().QueueDeclare(
-		SSEventsQueueName, // name
-		false,             // durable
-		true,              // delete when unused
-		false,             // exclusive
-		false,             // no-wait
-		nil,               // arguments, non quorum queue
-	)
-	if err != nil {
-		rlog.Fatal("Could not declare queue", err)
-	}
+	// apiEventsqueue, err := apiconnections.RabbitMQConnection.GetChannel().QueueDeclare(
+	// 	SSEventsQueueName, // name
+	// 	false,             // durable
+	// 	true,              // delete when unused
+	// 	false,             // exclusive
+	// 	false,             // no-wait
+	// 	nil,               // arguments, non quorum queue
+	// )
+	// if err != nil {
+	// 	rlog.Fatal("Could not declare queue", err)
+	// }
 
-	err = apiconnections.RabbitMQConnection.GetChannel().QueueBind(
-		apiEventsqueue.Name, // queue name
-		"",                  // routing key
-		SSEventsExchange,    // exchange
-		false,
-		nil,
-	)
-	if err != nil {
-		rlog.Fatal("Could not bind queue to excahnge", err)
-	}
+	// err = apiconnections.RabbitMQConnection.GetChannel().QueueBind(
+	// 	apiEventsqueue.Name, // queue name
+	// 	"",                  // routing key
+	// 	SSEventsExchange,    // exchange
+	// 	false,
+	// 	nil,
+	// )
+	// if err != nil {
+	// 	rlog.Fatal("Could not bind queue to excahnge", err)
+	// }
 
 	go func() {
 		config := rabbitmqhandler.RabbitMQListnerConfig{
-			Client:    apiconnections.RabbitMQConnection,
-			QueueName: apiEventsqueue.Name,
-			Consumer:  "",
-			AutoAck:   false,
-			Exclusive: false,
-			NoLocal:   false,
-			NoWait:    false,
-			Args:      nil,
+			Client:          apiconnections.RabbitMQConnection,
+			QueueName:       SSEventsQueueName,
+			Consumer:        "",
+			AutoAck:         false,
+			QueueAutoDelete: true,
+			Exclusive:       false,
+			NoLocal:         false,
+			NoWait:          false,
+			Args:            nil,
+			Exchange:        SSEventsExchange,
 		}
 		rabbithandler := rabbitmqhandler.New(config, ssemessagehandler{})
 		_ = apiconnections.RabbitMQConnection.RegisterHandler(rabbithandler)

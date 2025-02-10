@@ -11,14 +11,22 @@ type SseEvent struct {
 	Data  string `json:"data" validate:"required"`
 }
 
+type SSESubscribe struct {
+	ClientId EventClientId `json:"clientId" validate:"required"`
+	Topic    Subscription  `json:"topic" validate:"required"`
+}
+
+type Subscription string
+
 type EventClientId string
 
 type EventClientChan chan SseEvent
 
 type EventClient struct {
-	Id         EventClientId
-	Connection EventClientChan
-	Identity   identitymodels.Identity
+	Id            EventClientId
+	Connection    EventClientChan
+	Identity      identitymodels.Identity
+	Subscriptions []Subscription
 }
 
 type EventClients struct {
@@ -65,6 +73,13 @@ func (e *EventClients) Add(client *EventClient) {
 	e.lock.Lock()
 	defer e.lock.Unlock()
 	e.clients = append(e.clients, client)
+	Server.Message <- EventMessage{
+		Clients: []EventClientId{client.Id},
+		SseEvent: SseEvent{
+			Event: "connection.id",
+			Data:  string(client.Id),
+		},
+	}
 }
 
 func (e *EventClients) GetBroadcast() []EventClientId {
@@ -75,4 +90,17 @@ func (e *EventClients) GetBroadcast() []EventClientId {
 		clients = append(clients, client.Id)
 	}
 	return clients
+}
+
+func (e *EventClient) Subscribe(topic Subscription) {
+	e.Subscriptions = append(e.Subscriptions, topic)
+}
+
+func (e *EventClient) Unsubscribe(topic Subscription) {
+	for i, t := range e.Subscriptions {
+		if t == topic {
+			e.Subscriptions = append(e.Subscriptions[:i], e.Subscriptions[i+1:]...)
+			break
+		}
+	}
 }
