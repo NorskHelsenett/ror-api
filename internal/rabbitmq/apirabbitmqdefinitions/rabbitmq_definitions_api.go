@@ -5,24 +5,22 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 
-	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
-
 	"github.com/NorskHelsenett/ror/pkg/messagebuscontracts"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/google/uuid"
-	"github.com/spf13/viper"
 
 	"github.com/rabbitmq/amqp091-go"
 )
 
 var (
-	ApiEventsQueueName string = "sse-events"
-	ApiEventsqueue     amqp091.Queue
+	ApiEventsQueueNamePrefix string = "sse-events"
+	ApiEventsQueueName       string
+	ApiEventsqueue           amqp091.Queue
 )
 
 func init() {
-	ApiEventsQueueName = fmt.Sprintf("%s-%s", ApiEventsQueueName, uuid.New().String())
+	ApiEventsQueueName = fmt.Sprintf("%s-%s", ApiEventsQueueNamePrefix, uuid.New().String())
 
 }
 
@@ -168,14 +166,13 @@ func InitOrDie() {
 		panic(err)
 	}
 
-	automaticallyDelete := !viper.GetBool(configconsts.DEVELOPMENT)
 	ApiEventsqueue, err = apiconnections.RabbitMQConnection.GetChannel().QueueDeclare(
-		ApiEventsQueueName,  // name
-		true,                // durable
-		automaticallyDelete, // delete when unused
-		false,               // exclusive
-		false,               // no-wait
-		queueArgs,           // arguments, non quorum queue
+		ApiEventsQueueName, // name
+		true,               // durable
+		true,               // delete when unused
+		false,              // exclusive
+		false,              // no-wait
+		queueArgs,          // arguments, non quorum queue
 	)
 	if err != nil {
 		args := [...]any{ApiEventsQueueName, err}
