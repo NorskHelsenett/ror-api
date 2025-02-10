@@ -17,8 +17,21 @@ api:
       clientId: "ror.sky.test.nhn.no"
     tracing:
       enabled: true
+      endpoint: "ror-opentelemetry-collector.nhn-ror.svc:4317"
     tanzu:
       tanzuAuthBaseUrl: "http://nhn-ror-ms-tanzu-auth.nhn-ror.svc:8080"
+    rabbitmq:
+      host: "rabbitmq-ror.nhn-ror.svc"
+      port: 5672
+    mongodb:
+      host: "ror-mongodb.nhn-ror.svc"
+      port: 27017
+    vault:
+      host: "ror-vault-active.nhn-ror.svc"
+      port: 8200
+    redis:
+      host: "ror-redis-master.nhn-ror.svc"
+      port: 6379
 replicaCount: 3
 image:
   repository: ghcr.io/norskhelsenett/ror-api

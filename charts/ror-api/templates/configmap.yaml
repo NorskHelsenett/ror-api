@@ -6,17 +6,18 @@ data:
   GIN_MODE: {{.Values.api.http.mode | quote}}
   ALLOW_ORIGINS: {{.Values.api.config.allowOrigins | quote}}
   USE_CORS: {{.Values.api.config.useCors | quote }}
-  RABBITMQ_HOST: "rabbitmq-ror.nhn-ror.svc"
-  MONGODB_HOST: "ror-mongodb.nhn-ror.svc"
-  VAULT_HOST: "ror-vault-active.nhn-ror.svc"
-  VAULT_PORT: "8200"
-  REDIS_HOST: "ror-redis-headless.nhn-ror.svc"
-  REDIS_PORT: "6379"
-  STARTUP_SLEEP_TIME: "0"
+  RABBITMQ_HOST: {{.Values.api.config.rabbitmq.host | quote}}
+  RABBITMQ_PORT: {{.Values.api.config.rabbitmq.port | quote}}
+  MONGODB_HOST: {{.Values.api.config.mongodb.host | quote}}
+  MONGODB_PORT: {{.Values.api.config.mongodb.port | quote}}
+  VAULT_HOST: {{.Values.api.config.vault.host | quote}}
+  VAULT_PORT: {{.Values.api.config.vault.port | quote}}
+  REDIS_HOST: {{.Values.api.config.redis.host | quote}}
+  REDIS_PORT: {{.Values.api.config.redis.port | quote}}
   LOG_LEVEL: {{.Values.api.config.logLevel | quote}}
   OIDC_PROVIDER: {{.Values.api.config.oidc.provider | quote}}
   OIDC_CLIENT_ID: {{.Values.api.config.oidc.clientId | quote}}
-  OPENTELEMETRY_COLLECTOR_ENDPOINT: "ror-opentelemetry-collector.nhn-ror.svc:4317"
+  OPENTELEMETRY_COLLECTOR_ENDPOINT: {{.Values.api.config.tracing.endpoint | quote}}
   ENABLE_TRACING: {{.Values.api.config.tracing.enabled | quote}}
   HTTP_TIMEOUT: {{.Values.api.http.timeout | quote}}
   LDAP_CERT_FOLDER: "/ldap-certs"
