@@ -511,6 +511,7 @@ func GetControlPlanesMetadata() gin.HandlerFunc {
 func GetKubeconfig() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
+		defer cancel()
 		clusterid := c.Param("clusterid")
 		if clusterid == "" {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "clusterid must be provided")
@@ -546,7 +547,6 @@ func GetKubeconfig() gin.HandlerFunc {
 		}
 
 		var clusterKubeConfigPayload apicontracts.KubeconfigCredentials
-		defer cancel()
 
 		//validate the request body
 		if err := c.BindJSON(&clusterKubeConfigPayload); err != nil {
