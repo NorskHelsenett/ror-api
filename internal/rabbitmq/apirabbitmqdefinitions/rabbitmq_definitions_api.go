@@ -97,7 +97,6 @@ func init() {
 // It is called from the main function
 // and it is blocking
 func InitOrDie() {
-	queueArgs := amqp091.Table{}
 
 	err := apiconnections.RabbitMQConnection.GetChannel().ExchangeDeclare(
 		messagebuscontracts.ExchangeRor, // name
@@ -164,32 +163,5 @@ func InitOrDie() {
 	)
 	if err != nil {
 		panic(err)
-	}
-
-	ApiEventsqueue, err = apiconnections.RabbitMQConnection.GetChannel().QueueDeclare(
-		ApiEventsQueueName, // name
-		true,               // durable
-		true,               // delete when unused
-		false,              // exclusive
-		false,              // no-wait
-		queueArgs,          // arguments, non quorum queue
-	)
-	if err != nil {
-		args := [...]any{ApiEventsQueueName, err}
-		msg := fmt.Sprintf("could not declare exchange  %s,", args)
-		rlog.Fatal(msg, err)
-	}
-
-	err = apiconnections.RabbitMQConnection.GetChannel().QueueBind(
-		ApiEventsQueueName,                    // queue name
-		"",                                    // routing key
-		messagebuscontracts.ExchangeRorEvents, // exchange
-		false,
-		nil,
-	)
-	if err != nil {
-		args := [...]any{ApiEventsQueueName, err}
-		msg := fmt.Sprintf("could not bind queue  %s,", args)
-		rlog.Fatal(msg, err)
 	}
 }

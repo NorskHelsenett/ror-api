@@ -21,14 +21,16 @@ import (
 func StartListening() {
 	go func() {
 		config := rabbitmqhandler.RabbitMQListnerConfig{
-			Client:    apiconnections.RabbitMQConnection,
-			QueueName: apirabbitmqdefinitions.ApiEventsQueueName,
-			Consumer:  "",
-			AutoAck:   false,
-			Exclusive: false,
-			NoLocal:   false,
-			NoWait:    false,
-			Args:      nil,
+			Client:          apiconnections.RabbitMQConnection,
+			QueueName:       apirabbitmqdefinitions.ApiEventsQueueName,
+			Consumer:        "",
+			AutoAck:         false,
+			Exclusive:       false,
+			NoLocal:         false,
+			NoWait:          false,
+			Args:            nil,
+			QueueAutoDelete: true,
+			Exchange:        messagebuscontracts.ExchangeRorEvents,
 		}
 		rabbithandler := rabbitmqhandler.New(config, apimessagehandler{})
 		_ = apiconnections.RabbitMQConnection.RegisterHandler(rabbithandler)
