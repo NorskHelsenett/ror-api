@@ -30,7 +30,6 @@
                 "CONTAINER_REG_IMAGE_PATH": "nhnsdi/",
                 "CONTAINER_REG_HELM_PATH": "nhnhelm/",
                 "LOCAL_KUBERNETES_ROR_BASE_URL": "http://host.docker.internal:10000",
-                "HEALTHCHECK_ENDPOINT": "localhost:9999"
             }
         },
         {
