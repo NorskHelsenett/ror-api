@@ -1,7 +1,6 @@
 package webserver
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiconfig"
@@ -54,7 +53,7 @@ func InitHttpServer() {
 	}
 	_ = router.SetTrustedProxies([]string{"localhost"})
 	routes.SetupRoutes(router)
-	rlog.Fatal("router failing", router.Run(fmt.Sprintf("%s:%s", viper.GetString(configconsts.HTTP_HOST), viper.GetString(configconsts.HTTP_PORT))))
+	rlog.Fatal("router failing", router.Run(apiconfig.GetHTTPEndpoint()))
 }
 
 func headersMiddleware() gin.HandlerFunc {
