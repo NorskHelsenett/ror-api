@@ -93,7 +93,7 @@ func main() {
 	}()
 	sseserver.StartEventServer()
 	rlog.Infoc(ctx, "Initializing health server")
-	_ = healthserver.Start(healthserver.ServerString(viper.GetString(configconsts.HEALTH_ENDPOINT)))
+	_ = healthserver.Start(healthserver.ServerString(apiconfig.GetHealthEndpoint()))
 
 	if apiconnections.RabbitMQConnection.Ping() {
 		switchboard.PublishStarted(ctx)

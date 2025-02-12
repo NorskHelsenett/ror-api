@@ -33,8 +33,11 @@ func InitViper() {
 	// Remove we dont set env in variables.
 	viper.SetDefault(configconsts.DEVELOPMENT, false)
 	//Remove used in gin.go
+	viper.SetDefault(configconsts.HTTP_HOST, "0.0.0.0")
 	viper.SetDefault(configconsts.HTTP_PORT, "8080")
 	viper.SetDefault(configconsts.HTTP_TIMEOUT, "15s")
+
+	viper.SetDefault(configconsts.HTTP_HEALTH_PORT, "9999")
 
 	viper.SetDefault(configconsts.PROFILER_ENABLED, false)
 	viper.SetDefault(configconsts.ENABLE_TRACING, true)
@@ -65,9 +68,20 @@ func InitViper() {
 	viper.SetDefault(configconsts.OPENTELEMETRY_COLLECTOR_ENDPOINT, "opentelemetry-collector:4317")
 	viper.SetDefault(configconsts.HELSEGITLAB_BASE_URL, "https://helsegitlab.nhn.no/api/v4/projects/")
 
-	viper.SetDefault(configconsts.HEALTH_ENDPOINT, "0.0.0.0:9999")
 }
 
 func GetRorVersion() rorversion.RorVersion {
 	return RorVersion
+}
+
+func GetHTTPEndpoint() string {
+	return fmt.Sprintf("%s:%s", viper.GetString(configconsts.HTTP_HOST), viper.GetString(configconsts.HTTP_PORT))
+}
+
+func GetHealthEndpoint() string {
+	if viper.IsSet(configconsts.HEALTH_ENDPOINT) {
+		rlog.Info("Using deprecated HEALTH_ENDPOINT configuration. Please use HTTP_HEALTH_HOST and HTTP_HEALTH_PORT instead")
+		return viper.GetString(configconsts.HEALTH_ENDPOINT)
+	}
+	return fmt.Sprintf("%s:%s", viper.GetString(configconsts.HTTP_HEALTH_HOST), viper.GetString(configconsts.HTTP_HEALTH_PORT))
 }
