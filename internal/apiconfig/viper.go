@@ -33,6 +33,7 @@ func InitViper() {
 	// Remove we dont set env in variables.
 	viper.SetDefault(configconsts.DEVELOPMENT, false)
 	//Remove used in gin.go
+	viper.SetDefault(configconsts.HTTP_HOST, "0.0.0.0")
 	viper.SetDefault(configconsts.HTTP_PORT, "8080")
 	viper.SetDefault(configconsts.HTTP_TIMEOUT, "15s")
 
