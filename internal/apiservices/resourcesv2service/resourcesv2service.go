@@ -172,6 +172,10 @@ func DeleteResource(ctx context.Context, resource *rorresources.Resource) error 
 	//cache := GetResourceCache()
 	//cache.Remove(ctx, resource.GetUID())
 	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
+	err := sendToMessageBus(ctx, resource, rortypes.K8sActionDelete)
+	if err != nil {
+		rlog.Errorc(ctx, "unable to send delete action on rabbit queue", err)
+	}
 	return databaseHelpers.Del(ctx, resource)
 }
 
@@ -245,6 +249,11 @@ func sendToMessageBus(ctx context.Context, resource *rorresources.Resource, acti
 		_ = apiconnections.RabbitMQConnection.SendMessage(ctx,
 			payload,
 			messagebuscontracts.Route_ResourceUpdated,
+			map[string]interface{}{"apiVersion": payload.ApiVersion, "kind": payload.Kind})
+	case rortypes.K8sActionDelete:
+		_ = apiconnections.RabbitMQConnection.SendMessage(ctx,
+			payload,
+			messagebuscontracts.Route_ResourceDeleted,
 			map[string]interface{}{"apiVersion": payload.ApiVersion, "kind": payload.Kind})
 	}
 	return nil
