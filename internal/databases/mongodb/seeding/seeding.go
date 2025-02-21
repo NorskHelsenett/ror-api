@@ -569,6 +569,16 @@ func seedAclv2Items(ctx context.Context) {
 		},
 		aclmodels.AclV2ListItem{
 			Version:    2,
+			Group:      "service-tanzu-agent@ror.system",
+			Scope:      aclmodels.Acl2ScopeRor,
+			Subject:    aclmodels.Acl2Subject(aclmodels.Acl2RorSubjectGlobal),
+			Access:     aclmodels.AclV2ListItemAccess{Read: true, Create: true, Update: true, Delete: true, Owner: false},
+			Kubernetes: aclmodels.AclV2ListItemKubernetes{Logon: false},
+			IssuedBy:   "system@ror.dev",
+			Created:    time.Now(),
+		},
+		aclmodels.AclV2ListItem{
+			Version:    2,
 			Group:      "service-mskind@ror.system",
 			Scope:      aclmodels.Acl2ScopeRor,
 			Subject:    aclmodels.Acl2Subject(aclmodels.Acl2RorSubjectGlobal),
@@ -641,6 +651,16 @@ func seedApiKeys(ctx context.Context) {
 		LastUsed:    time.Time{},
 		Hash:        "246bd9a1958f8a52e5c31f0b832d2243a72d210472e3daa19449d21bed25664cbd4076864b5ea1c8732a4aeaf81d82c24653eb4cb593d6e8e876f6d2a996c629",
 	}
+	tanzuAgentKey := apicontracts.ApiKey{
+		Identifier:  "tanzu-agent",
+		DisplayName: "Tanzu Agent",
+		Type:        "Service",
+		ReadOnly:    false,
+		Expires:     time.Time{},
+		Created:     time.Now(),
+		LastUsed:    time.Time{},
+		Hash:        "b410f9228c062580de16657e7ce715aa2b843ee46b0bc38e81c7bb3d21b7cc2b29527a4bb4c571b9f21aaedd4ece293bd1d245dc0fd05736af38dcc55785bebb",
+	}
 	talosKey := apicontracts.ApiKey{
 		Identifier:  "mstalos",
 		DisplayName: "mstalos",
@@ -695,6 +715,7 @@ func seedApiKeys(ctx context.Context) {
 	if totalCount == 0 {
 		insertResult, err := collection.InsertMany(ctx, []interface{}{
 			tanzuKey,
+			tanzuAgentKey,
 			kindKey,
 			talosKey,
 			msvulnerabilityKey,
@@ -724,6 +745,22 @@ func seedApiKeys(ctx context.Context) {
 			}
 		} else {
 			rlog.Errorc(ctx, "could not find mstanzu key", err)
+			return
+		}
+	}
+
+	var tanzuAgentResult apicontracts.ApiKey
+	err = collection.FindOne(ctx, bson.M{"identifier": "tanzu-agent"}).Decode(&tanzuAgentResult)
+
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			_, err = collection.InsertOne(ctx, tanzuAgentKey)
+			if err != nil {
+				rlog.Errorc(ctx, "could not insert tanzu-agent key", err)
+				panic(err)
+			}
+		} else {
+			rlog.Errorc(ctx, "could not find tanzu-agent key", err)
 			return
 		}
 	}
