@@ -20,7 +20,10 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
 )
 
-var getTimeout = 500 * time.Millisecond
+var (
+	getTimeout = 500 * time.Millisecond
+	setTimeout = 500 * time.Millisecond
+)
 
 func HandleResourceUpdate(ctx context.Context, resource *rorresources.Resource) rorresources.ResourceUpdateResults {
 	switch resource.GetRorMeta().Action {
@@ -94,7 +97,7 @@ func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) r
 	//cache := GetResourceCache()
 	//cache.Set(ctx, resource)
 
-	mongoCtx, cancel := context.WithTimeout(ctx, getTimeout)
+	mongoCtx, cancel := context.WithTimeout(ctx, setTimeout)
 	defer cancel()
 
 	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
