@@ -50,7 +50,7 @@ func Create(ctx context.Context, desiredversion apicontracts.DesiredVersion) (*a
 	if !identity.IsUser() {
 		errMsg := "must be a user to create"
 		rlog.Errorc(ctx, errMsg, nil)
-		return nil, fmt.Errorf(errMsg)
+		return nil, fmt.Errorf("%s", errMsg)
 	}
 
 	creationresult, err := desiredversionrepo.Create(ctx, desiredversion)
