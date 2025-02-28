@@ -131,7 +131,7 @@ func (rj rorResourceJson) getResource(resourceReturn *rorResource) error {
 		return err
 	}
 
-	if resourceReturn.ApiVersion == "run.tanzu.vmware.com/v1alpha2" && resourceReturn.Kind == "TanzuKubernetesCluster" {
+	if resourceReturn.ApiVersion == "run.tanzu.vmware.com/v1alpha3" && resourceReturn.Kind == "TanzuKubernetesCluster" {
 		payload, err := prepareResourcePayload[apiresourcecontracts.ResourceTanzuKubernetesCluster](bytes)
 		resourceReturn.Resource = payload
 		return err

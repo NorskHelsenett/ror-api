@@ -500,7 +500,7 @@ func GetTanzuKubernetesClusterByUid(ctx context.Context, ownerref apiresourcecon
 	query := apiresourcecontracts.ResourceQuery{
 		Owner:      ownerref,
 		Kind:       "TanzuKubernetesCluster",
-		ApiVersion: "run.tanzu.vmware.com/v1alpha2",
+		ApiVersion: "run.tanzu.vmware.com/v1alpha3",
 		Internal:   true,
 		Uid:        uid,
 	}
@@ -1266,7 +1266,7 @@ func GetTanzukubernetesclusters(ctx context.Context, ownerref apiresourcecontrac
 	query := apiresourcecontracts.ResourceQuery{
 		Owner:      ownerref,
 		Kind:       "TanzuKubernetesCluster",
-		ApiVersion: "run.tanzu.vmware.com/v1alpha2",
+		ApiVersion: "run.tanzu.vmware.com/v1alpha3",
 	}
 	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceTanzuKubernetesCluster](ctx, query)
 	resources.Owner = ownerref
@@ -1809,7 +1809,7 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 		}
 	}
 
-	if resourceUpdate.ApiVersion == "run.tanzu.vmware.com/v1alpha2" && resourceUpdate.Kind == "TanzuKubernetesCluster" {
+	if resourceUpdate.ApiVersion == "run.tanzu.vmware.com/v1alpha3" && resourceUpdate.Kind == "TanzuKubernetesCluster" {
 		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceTanzuKubernetesCluster]](resourceUpdate)
 		resource = filterInTanzuKubernetesCluster(resource)
 		err = resourcesmongodbrepo.CreateResourceTanzuKubernetesCluster(resource, ctx)
@@ -2266,7 +2266,7 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 		}
 	}
 
-	if resourceUpdate.ApiVersion == "run.tanzu.vmware.com/v1alpha2" && resourceUpdate.Kind == "TanzuKubernetesCluster" {
+	if resourceUpdate.ApiVersion == "run.tanzu.vmware.com/v1alpha3" && resourceUpdate.Kind == "TanzuKubernetesCluster" {
 		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceTanzuKubernetesCluster]](resourceUpdate)
 		resource = filterInTanzuKubernetesCluster(resource)
 		err = resourcesmongodbrepo.UpdateResourceTanzuKubernetesCluster(resource, ctx)
