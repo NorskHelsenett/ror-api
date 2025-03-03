@@ -215,7 +215,7 @@ func GetResources() gin.HandlerFunc {
 			}
 			c.JSON(http.StatusOK, resources)
 		}
-		if query.ApiVersion == "run.tanzu.vmware.com/v1alpha2" && query.Kind == "TanzuKubernetesRelease" {
+		if query.ApiVersion == "run.tanzu.vmware.com/v1alpha3" && query.Kind == "TanzuKubernetesRelease" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceTanzuKubernetesRelease](ctx, query)
 			if err != nil {
 				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
@@ -223,7 +223,7 @@ func GetResources() gin.HandlerFunc {
 			}
 			c.JSON(http.StatusOK, resources)
 		}
-		if query.ApiVersion == "vmoperator.vmware.com/v1alpha1" && query.Kind == "VirtualMachineClass" {
+		if query.ApiVersion == "vmoperator.vmware.com/v1alpha2" && query.Kind == "VirtualMachineClass" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceVirtualMachineClass](ctx, query)
 			if err != nil {
 				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
@@ -231,7 +231,7 @@ func GetResources() gin.HandlerFunc {
 			}
 			c.JSON(http.StatusOK, resources)
 		}
-		if query.ApiVersion == "vmoperator.vmware.com/v1alpha1" && query.Kind == "VirtualMachineClassBinding" {
+		if query.ApiVersion == "vmoperator.vmware.com/v1alpha2" && query.Kind == "VirtualMachineClassBinding" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceVirtualMachineClassBinding](ctx, query)
 			if err != nil {
 				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
@@ -559,7 +559,7 @@ func GetResource() gin.HandlerFunc {
 			}
 			c.JSON(http.StatusOK, resources)
 		}
-		if query.ApiVersion == "run.tanzu.vmware.com/v1alpha2" && query.Kind == "TanzuKubernetesRelease" {
+		if query.ApiVersion == "run.tanzu.vmware.com/v1alpha3" && query.Kind == "TanzuKubernetesRelease" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceTanzuKubernetesRelease](ctx, query)
 			if err != nil {
 				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
@@ -567,7 +567,7 @@ func GetResource() gin.HandlerFunc {
 			}
 			c.JSON(http.StatusOK, resources)
 		}
-		if query.ApiVersion == "vmoperator.vmware.com/v1alpha1" && query.Kind == "VirtualMachineClass" {
+		if query.ApiVersion == "vmoperator.vmware.com/v1alpha2" && query.Kind == "VirtualMachineClass" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceVirtualMachineClass](ctx, query)
 			if err != nil {
 				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
@@ -575,7 +575,7 @@ func GetResource() gin.HandlerFunc {
 			}
 			c.JSON(http.StatusOK, resources)
 		}
-		if query.ApiVersion == "vmoperator.vmware.com/v1alpha1" && query.Kind == "VirtualMachineClassBinding" {
+		if query.ApiVersion == "vmoperator.vmware.com/v1alpha2" && query.Kind == "VirtualMachineClassBinding" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceVirtualMachineClassBinding](ctx, query)
 			if err != nil {
 				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
