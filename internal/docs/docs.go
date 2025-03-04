@@ -6799,6 +6799,59 @@ const docTemplate = `{
                 }
             }
         },
+        "/v2/events/listen": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Listen to server sent events",
+                "consumes": [
+                    "text/event-stream"
+                ],
+                "produces": [
+                    "text/event-stream"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "Server sent events",
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.RorError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.RorError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.RorError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.RorError"
+                        }
+                    }
+                }
+            }
+        },
         "/v2/resource/uid/{uid}": {
             "get": {
                 "security": [
@@ -10432,9 +10485,6 @@ const docTemplate = `{
                 "virtualmachineclass": {
                     "$ref": "#/definitions/rortypes.ResourceVirtualMachineClass"
                 },
-                "virtualmachineclassbinding": {
-                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineClassBinding"
-                },
                 "vulnerabilityevent": {
                     "$ref": "#/definitions/rortypes.ResourceVulnerabilityEvent"
                 },
@@ -10792,18 +10842,14 @@ const docTemplate = `{
         "rortypes.ResourceBackupDestination": {
             "type": "object",
             "properties": {
-                "Status": {
-                    "description": "Status spesific to the destination - remote being unavailable",
-                    "type": "string"
-                },
-                "expiryTime": {
-                    "description": "ExpiryTime is defined per destination",
-                    "type": "string"
-                },
                 "id": {
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status spesific to the destination - remote being unavailable",
                     "type": "string"
                 },
                 "type": {
@@ -10815,6 +10861,15 @@ const docTemplate = `{
         "rortypes.ResourceBackupJob": {
             "type": "object",
             "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "provider": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
                 "spec": {
                     "$ref": "#/definitions/rortypes.ResourceBackupJobSpec"
                 },
@@ -10826,30 +10881,25 @@ const docTemplate = `{
         "rortypes.ResourceBackupJobSpec": {
             "type": "object",
             "properties": {
-                "backupDestination": {
+                "activeTargets": {
+                    "description": "Direct targets for this backup job",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceBackupTarget"
+                    }
+                },
+                "backupDestinations": {
+                    "description": "Any destination defined by this backup job",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/rortypes.ResourceBackupDestination"
                     }
                 },
-                "directBackupTarget": {
+                "indirectBackupTargets": {
+                    "description": "Indirect targets for this backup job",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/rortypes.ResourceIndirectBackupTarget"
-                    }
-                },
-                "endTime": {
-                    "description": "Some backup systems allow EndTime to be defined per backupJob, while some use policies",
-                    "type": "string"
-                },
-                "expiryTime": {
-                    "description": "Some backup systems allow ExpiryTime to be defined per backupJob, while some use policies",
-                    "type": "string"
-                },
-                "indirectBackupTarget": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.ResourceDirectBackupTarget"
                     }
                 },
                 "name": {
@@ -10857,20 +10907,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "policyId": {
-                    "description": "Defines the policy id at the local system that defines the rules for the data, how long it's stored\nwhere's it's stored, and other options",
+                    "description": "Defines the policy if applicable at the local system\nIf policies are not used these can be left as blank",
                     "type": "string"
                 },
-                "sourceId": {
-                    "description": "Defines the id of the system the run originates from",
-                    "type": "string"
-                },
-                "sourceName": {
-                    "description": "Defines the name of the system the run originates from",
-                    "type": "string"
-                },
-                "startTime": {
-                    "description": "Some backup systems allow StartTime to be defined per backupJob, while some use policies",
-                    "type": "string"
+                "schedules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceBackupSchedule"
+                    }
                 },
                 "status": {
                     "description": "Status of the backup job, active, paused, etc.",
@@ -10881,54 +10925,168 @@ const docTemplate = `{
         "rortypes.ResourceBackupJobStatus": {
             "type": "object",
             "properties": {
-                "backupDestination": {
+                "activeTargets": {
+                    "description": "Direct targets for this backup job",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceBackupTarget"
+                    }
+                },
+                "backupDestinations": {
+                    "description": "Any destination defined by this backup job",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/rortypes.ResourceBackupDestination"
                     }
                 },
-                "directBackupTarget": {
+                "indirectBackupTargets": {
+                    "description": "Indirect targets for this backup job",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/rortypes.ResourceIndirectBackupTarget"
                     }
                 },
-                "endTime": {
-                    "description": "Some backup systems allow EndTime to be defined per backupJob, while some use policies",
+                "lastUpdated": {
                     "type": "string"
                 },
-                "expiryTime": {
-                    "description": "Some backup systems allow ExpiryTime to be defined per backupJob, while some use policies",
+                "location": {
                     "type": "string"
-                },
-                "indirectBackupTarget": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.ResourceDirectBackupTarget"
-                    }
                 },
                 "name": {
                     "description": "The name of the job",
                     "type": "string"
                 },
                 "policyId": {
-                    "description": "Defines the policy id at the local system that defines the rules for the data, how long it's stored\nwhere's it's stored, and other options",
+                    "description": "Defines the policy if applicable at the local system\nIf policies are not used these can be left as blank",
                     "type": "string"
                 },
-                "sourceId": {
-                    "description": "Defines the id of the system the run originates from",
+                "policyName": {
                     "type": "string"
                 },
-                "sourceName": {
-                    "description": "Defines the name of the system the run originates from",
-                    "type": "string"
+                "runs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceBackupRun"
+                    }
                 },
-                "startTime": {
-                    "description": "Some backup systems allow StartTime to be defined per backupJob, while some use policies",
-                    "type": "string"
+                "schedules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceBackupSchedule"
+                    }
                 },
                 "status": {
                     "description": "Status of the backup job, active, paused, etc.",
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceBackupRetention": {
+            "type": "object",
+            "properties": {
+                "duration": {
+                    "type": "integer"
+                },
+                "unit": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceBackupRun": {
+            "type": "object",
+            "properties": {
+                "backupDestinations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceBackupRunDestination"
+                    }
+                },
+                "backupStorage": {
+                    "$ref": "#/definitions/rortypes.ResourceBackupStorage"
+                },
+                "backupTargets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceBackupTarget"
+                    }
+                },
+                "endTime": {
+                    "description": "When the run was finished",
+                    "type": "string"
+                },
+                "expiryTime": {
+                    "description": "When the run will expire and be deleted",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "When the run was started",
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceBackupRunDestination": {
+            "type": "object",
+            "properties": {
+                "expiryTime": {
+                    "description": "ExpiryTime is defined per destination",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status spesific to the destination - remote being unavailable",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Local, remote, archive, etc.",
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceBackupSchedule": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "description": "When will the job be forcibly stopped, if empty it will continue indefinitely",
+                    "type": "string"
+                },
+                "frequency": {
+                    "description": "How many time per unit will this backup run",
+                    "type": "integer"
+                },
+                "retention": {
+                    "$ref": "#/definitions/rortypes.ResourceBackupRetention"
+                },
+                "startTime": {
+                    "description": "When will the job start",
+                    "type": "string"
+                },
+                "unit": {
+                    "description": "What unit of time is this schedule going to run in",
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceBackupSource": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "uuid": {
                     "type": "string"
                 }
             }
@@ -10949,6 +11107,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "unit": {
+                    "description": "What unit are the sizes in",
                     "type": "string"
                 }
             }
@@ -10956,12 +11115,9 @@ const docTemplate = `{
         "rortypes.ResourceBackupTarget": {
             "type": "object",
             "properties": {
-                "externalIds": {
-                    "description": "Defines any external ids by the backup system(s)",
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
+                "externalId": {
+                    "description": "Defines any external id",
+                    "type": "string"
                 },
                 "id": {
                     "description": "Defines the object's id",
@@ -10970,6 +11126,14 @@ const docTemplate = `{
                 "name": {
                     "description": "Defines the object's name",
                     "type": "string"
+                },
+                "source": {
+                    "description": "Defines the source of this object to the backup system",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/rortypes.ResourceBackupSource"
+                        }
+                    ]
                 }
             }
         },
@@ -11428,36 +11592,6 @@ const docTemplate = `{
                 },
                 "updatedReplicas": {
                     "type": "integer"
-                }
-            }
-        },
-        "rortypes.ResourceDirectBackupTarget": {
-            "type": "object",
-            "properties": {
-                "backupDestination": {
-                    "description": "A run can have multiple destinations defined into a single job",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.ResourceBackupDestination"
-                    }
-                },
-                "backupStorage": {
-                    "$ref": "#/definitions/rortypes.ResourceBackupStorage"
-                },
-                "backupTargets": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.ResourceBackupTarget"
-                    }
-                },
-                "endTime": {
-                    "type": "string"
-                },
-                "expiryTime": {
-                    "type": "string"
-                },
-                "startTime": {
-                    "type": "string"
                 }
             }
         },
@@ -13521,7 +13655,7 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "name": {
+                "provider": {
                     "type": "string"
                 },
                 "spec": {
@@ -13543,28 +13677,6 @@ const docTemplate = `{
                     "additionalProperties": {
                         "type": "string"
                     }
-                }
-            }
-        },
-        "rortypes.ResourceVirtualMachineClassBinding": {
-            "type": "object",
-            "properties": {
-                "classRef": {
-                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineClassBindingClassRef"
-                }
-            }
-        },
-        "rortypes.ResourceVirtualMachineClassBindingClassRef": {
-            "type": "object",
-            "properties": {
-                "apiVersion": {
-                    "type": "string"
-                },
-                "kind": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
                 }
             }
         },
@@ -13610,9 +13722,6 @@ const docTemplate = `{
                     "description": "cores per socket",
                     "type": "integer"
                 },
-                "id": {
-                    "type": "string"
-                },
                 "sockets": {
                     "type": "integer"
                 }
@@ -13621,15 +13730,19 @@ const docTemplate = `{
         "rortypes.ResourceVirtualMachineCpuStatus": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "string"
+                "coresPerSocket": {
+                    "description": "cores per socket",
+                    "type": "integer"
+                },
+                "sockets": {
+                    "type": "integer"
                 },
                 "unit": {
                     "description": "describes what unit the usage is given in",
                     "type": "string"
                 },
                 "usage": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
@@ -13656,17 +13769,27 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "usageBytes": {
+                "isMounted": {
+                    "description": "is this disk mounted by the os? A disk might be attached to the vm but\nnot mounted by the OS, it can also be unknown because the vm might not report\nthis or may not have tools installed, false can mean we dont know or that\nit is actually not mounted.",
+                    "type": "boolean"
+                },
+                "name": {
                     "type": "string"
+                },
+                "sizeBytes": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "usageBytes": {
+                    "type": "integer"
                 }
             }
         },
         "rortypes.ResourceVirtualMachineMemorySpec": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "string"
-                },
                 "sizeBytes": {
                     "type": "integer"
                 }
@@ -13675,19 +13798,19 @@ const docTemplate = `{
         "rortypes.ResourceVirtualMachineMemoryStatus": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "string"
+                "sizeBytes": {
+                    "type": "integer"
                 },
                 "unit": {
                     "description": "describes what unit the usage is given in",
                     "type": "string"
                 },
                 "usage": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
-        "rortypes.ResourceVirtualMachineNetworkSpec": {
+        "rortypes.ResourceVirtualMachineNetworkStatus": {
             "type": "object",
             "properties": {
                 "dns": {
@@ -13705,23 +13828,10 @@ const docTemplate = `{
                 "ipv6": {
                     "type": "string"
                 },
+                "mac": {
+                    "type": "string"
+                },
                 "mask": {
-                    "type": "string"
-                }
-            }
-        },
-        "rortypes.ResourceVirtualMachineNetworkStatus": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                }
-            }
-        },
-        "rortypes.ResourceVirtualMachineOperatingSystemSpec": {
-            "type": "object",
-            "properties": {
-                "id": {
                     "type": "string"
                 }
             }
@@ -13730,6 +13840,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "architecture": {
+                    "type": "string"
+                },
+                "family": {
                     "type": "string"
                 },
                 "hostName": {
@@ -13767,20 +13880,22 @@ const docTemplate = `{
                 "memory": {
                     "$ref": "#/definitions/rortypes.ResourceVirtualMachineMemorySpec"
                 },
-                "networks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.ResourceVirtualMachineNetworkSpec"
-                    }
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceVirtualMachineState": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string"
                 },
-                "operatingSystem": {
-                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineOperatingSystemSpec"
+                "state": {
+                    "type": "string"
                 },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.ResourceVirtualMachineTagSpec"
-                    }
+                "time": {
+                    "type": "string"
                 }
             }
         },
@@ -13796,6 +13911,12 @@ const docTemplate = `{
                         "$ref": "#/definitions/rortypes.ResourceVirtualMachineDiskStatus"
                     }
                 },
+                "lastUpdated": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
                 "memory": {
                     "$ref": "#/definitions/rortypes.ResourceVirtualMachineMemoryStatus"
                 },
@@ -13807,10 +13928,19 @@ const docTemplate = `{
                 },
                 "operatingSystem": {
                     "$ref": "#/definitions/rortypes.ResourceVirtualMachineOperatingSystemStatus"
+                },
+                "state": {
+                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineState"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceVirtualMachineTag"
+                    }
                 }
             }
         },
-        "rortypes.ResourceVirtualMachineTagSpec": {
+        "rortypes.ResourceVirtualMachineTag": {
             "type": "object",
             "properties": {
                 "description": {

@@ -31,7 +31,6 @@ go get ./...
 go run main.go
 ```
 
-
 # Generate swagger docs:
 
 Foreach endpoint function, you must add comments for it to show in generated openapi spec
@@ -73,7 +72,7 @@ go install github.com/swaggo/swag/cmd/swag@latest
 And run this command from `ror-api` root:
 
 ```bash
- swag init -g cmd/api/main.go --parseDependency --output cmd/api/docs
+ swag init -g cmd/api/main.go --parseDependency --output internal/docs --parseInternal
 ```
 
 the folder `docs` and `docs\swagger.json` and `docs\swagger.yaml` is updated/created

@@ -2013,8 +2013,6 @@ definitions:
         $ref: '#/definitions/rortypes.ResourceVirtualMachine'
       virtualmachineclass:
         $ref: '#/definitions/rortypes.ResourceVirtualMachineClass'
-      virtualmachineclassbinding:
-        $ref: '#/definitions/rortypes.ResourceVirtualMachineClassBinding'
       vulnerabilityevent:
         $ref: '#/definitions/rortypes.ResourceVulnerabilityEvent'
       vulnerabilityreport:
@@ -2255,15 +2253,12 @@ definitions:
     type: object
   rortypes.ResourceBackupDestination:
     properties:
-      Status:
-        description: Status spesific to the destination - remote being unavailable
-        type: string
-      expiryTime:
-        description: ExpiryTime is defined per destination
-        type: string
       id:
         type: string
       name:
+        type: string
+      status:
+        description: Status spesific to the destination - remote being unavailable
         type: string
       type:
         description: Local, remote, archive, etc.
@@ -2271,6 +2266,12 @@ definitions:
     type: object
   rortypes.ResourceBackupJob:
     properties:
+      id:
+        type: string
+      provider:
+        type: string
+      source:
+        type: string
       spec:
         $ref: '#/definitions/rortypes.ResourceBackupJobSpec'
       status:
@@ -2278,90 +2279,154 @@ definitions:
     type: object
   rortypes.ResourceBackupJobSpec:
     properties:
-      backupDestination:
+      activeTargets:
+        description: Direct targets for this backup job
+        items:
+          $ref: '#/definitions/rortypes.ResourceBackupTarget'
+        type: array
+      backupDestinations:
+        description: Any destination defined by this backup job
         items:
           $ref: '#/definitions/rortypes.ResourceBackupDestination'
         type: array
-      directBackupTarget:
+      indirectBackupTargets:
+        description: Indirect targets for this backup job
         items:
           $ref: '#/definitions/rortypes.ResourceIndirectBackupTarget'
-        type: array
-      endTime:
-        description: Some backup systems allow EndTime to be defined per backupJob,
-          while some use policies
-        type: string
-      expiryTime:
-        description: Some backup systems allow ExpiryTime to be defined per backupJob,
-          while some use policies
-        type: string
-      indirectBackupTarget:
-        items:
-          $ref: '#/definitions/rortypes.ResourceDirectBackupTarget'
         type: array
       name:
         description: The name of the job
         type: string
       policyId:
         description: |-
-          Defines the policy id at the local system that defines the rules for the data, how long it's stored
-          where's it's stored, and other options
+          Defines the policy if applicable at the local system
+          If policies are not used these can be left as blank
         type: string
-      sourceId:
-        description: Defines the id of the system the run originates from
-        type: string
-      sourceName:
-        description: Defines the name of the system the run originates from
-        type: string
-      startTime:
-        description: Some backup systems allow StartTime to be defined per backupJob,
-          while some use policies
-        type: string
+      schedules:
+        items:
+          $ref: '#/definitions/rortypes.ResourceBackupSchedule'
+        type: array
       status:
         description: Status of the backup job, active, paused, etc.
         type: string
     type: object
   rortypes.ResourceBackupJobStatus:
     properties:
-      backupDestination:
+      activeTargets:
+        description: Direct targets for this backup job
+        items:
+          $ref: '#/definitions/rortypes.ResourceBackupTarget'
+        type: array
+      backupDestinations:
+        description: Any destination defined by this backup job
         items:
           $ref: '#/definitions/rortypes.ResourceBackupDestination'
         type: array
-      directBackupTarget:
+      indirectBackupTargets:
+        description: Indirect targets for this backup job
         items:
           $ref: '#/definitions/rortypes.ResourceIndirectBackupTarget'
         type: array
-      endTime:
-        description: Some backup systems allow EndTime to be defined per backupJob,
-          while some use policies
+      lastUpdated:
         type: string
-      expiryTime:
-        description: Some backup systems allow ExpiryTime to be defined per backupJob,
-          while some use policies
+      location:
         type: string
-      indirectBackupTarget:
-        items:
-          $ref: '#/definitions/rortypes.ResourceDirectBackupTarget'
-        type: array
       name:
         description: The name of the job
         type: string
       policyId:
         description: |-
-          Defines the policy id at the local system that defines the rules for the data, how long it's stored
-          where's it's stored, and other options
+          Defines the policy if applicable at the local system
+          If policies are not used these can be left as blank
         type: string
-      sourceId:
-        description: Defines the id of the system the run originates from
+      policyName:
         type: string
-      sourceName:
-        description: Defines the name of the system the run originates from
-        type: string
-      startTime:
-        description: Some backup systems allow StartTime to be defined per backupJob,
-          while some use policies
-        type: string
+      runs:
+        items:
+          $ref: '#/definitions/rortypes.ResourceBackupRun'
+        type: array
+      schedules:
+        items:
+          $ref: '#/definitions/rortypes.ResourceBackupSchedule'
+        type: array
       status:
         description: Status of the backup job, active, paused, etc.
+        type: string
+    type: object
+  rortypes.ResourceBackupRetention:
+    properties:
+      duration:
+        type: integer
+      unit:
+        type: string
+    type: object
+  rortypes.ResourceBackupRun:
+    properties:
+      backupDestinations:
+        items:
+          $ref: '#/definitions/rortypes.ResourceBackupRunDestination'
+        type: array
+      backupStorage:
+        $ref: '#/definitions/rortypes.ResourceBackupStorage'
+      backupTargets:
+        items:
+          $ref: '#/definitions/rortypes.ResourceBackupTarget'
+        type: array
+      endTime:
+        description: When the run was finished
+        type: string
+      expiryTime:
+        description: When the run will expire and be deleted
+        type: string
+      id:
+        type: string
+      startTime:
+        description: When the run was started
+        type: string
+    type: object
+  rortypes.ResourceBackupRunDestination:
+    properties:
+      expiryTime:
+        description: ExpiryTime is defined per destination
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      status:
+        description: Status spesific to the destination - remote being unavailable
+        type: string
+      type:
+        description: Local, remote, archive, etc.
+        type: string
+    type: object
+  rortypes.ResourceBackupSchedule:
+    properties:
+      endTime:
+        description: When will the job be forcibly stopped, if empty it will continue
+          indefinitely
+        type: string
+      frequency:
+        description: How many time per unit will this backup run
+        type: integer
+      retention:
+        $ref: '#/definitions/rortypes.ResourceBackupRetention'
+      startTime:
+        description: When will the job start
+        type: string
+      unit:
+        description: What unit of time is this schedule going to run in
+        type: string
+    type: object
+  rortypes.ResourceBackupSource:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      type:
+        type: string
+      uuid:
         type: string
     type: object
   rortypes.ResourceBackupStorage:
@@ -2378,21 +2443,24 @@ definitions:
           space
         type: integer
       unit:
+        description: What unit are the sizes in
         type: string
     type: object
   rortypes.ResourceBackupTarget:
     properties:
-      externalIds:
-        additionalProperties:
-          type: string
-        description: Defines any external ids by the backup system(s)
-        type: object
+      externalId:
+        description: Defines any external id
+        type: string
       id:
         description: Defines the object's id
         type: string
       name:
         description: Defines the object's name
         type: string
+      source:
+        allOf:
+        - $ref: '#/definitions/rortypes.ResourceBackupSource'
+        description: Defines the source of this object to the backup system
     type: object
   rortypes.ResourceCertificate:
     properties:
@@ -2693,26 +2761,6 @@ definitions:
         type: integer
       updatedReplicas:
         type: integer
-    type: object
-  rortypes.ResourceDirectBackupTarget:
-    properties:
-      backupDestination:
-        description: A run can have multiple destinations defined into a single job
-        items:
-          $ref: '#/definitions/rortypes.ResourceBackupDestination'
-        type: array
-      backupStorage:
-        $ref: '#/definitions/rortypes.ResourceBackupStorage'
-      backupTargets:
-        items:
-          $ref: '#/definitions/rortypes.ResourceBackupTarget'
-        type: array
-      endTime:
-        type: string
-      expiryTime:
-        type: string
-      startTime:
-        type: string
     type: object
   rortypes.ResourceEndpointSpecSubsets:
     properties:
@@ -4052,7 +4100,7 @@ definitions:
     properties:
       id:
         type: string
-      name:
+      provider:
         type: string
       spec:
         $ref: '#/definitions/rortypes.ResourceVirtualMachineSpec'
@@ -4067,20 +4115,6 @@ definitions:
         additionalProperties:
           type: string
         type: object
-    type: object
-  rortypes.ResourceVirtualMachineClassBinding:
-    properties:
-      classRef:
-        $ref: '#/definitions/rortypes.ResourceVirtualMachineClassBindingClassRef'
-    type: object
-  rortypes.ResourceVirtualMachineClassBindingClassRef:
-    properties:
-      apiVersion:
-        type: string
-      kind:
-        type: string
-      name:
-        type: string
     type: object
   rortypes.ResourceVirtualMachineClassSpec:
     properties:
@@ -4108,20 +4142,21 @@ definitions:
       coresPerSocket:
         description: cores per socket
         type: integer
-      id:
-        type: string
       sockets:
         type: integer
     type: object
   rortypes.ResourceVirtualMachineCpuStatus:
     properties:
-      id:
-        type: string
+      coresPerSocket:
+        description: cores per socket
+        type: integer
+      sockets:
+        type: integer
       unit:
         description: describes what unit the usage is given in
         type: string
       usage:
-        type: string
+        type: integer
     type: object
   rortypes.ResourceVirtualMachineDiskSpec:
     properties:
@@ -4138,27 +4173,38 @@ definitions:
     properties:
       id:
         type: string
-      usageBytes:
+      isMounted:
+        description: |-
+          is this disk mounted by the os? A disk might be attached to the vm but
+          not mounted by the OS, it can also be unknown because the vm might not report
+          this or may not have tools installed, false can mean we dont know or that
+          it is actually not mounted.
+        type: boolean
+      name:
         type: string
+      sizeBytes:
+        type: integer
+      type:
+        type: string
+      usageBytes:
+        type: integer
     type: object
   rortypes.ResourceVirtualMachineMemorySpec:
     properties:
-      id:
-        type: string
       sizeBytes:
         type: integer
     type: object
   rortypes.ResourceVirtualMachineMemoryStatus:
     properties:
-      id:
-        type: string
+      sizeBytes:
+        type: integer
       unit:
         description: describes what unit the usage is given in
         type: string
       usage:
-        type: string
+        type: integer
     type: object
-  rortypes.ResourceVirtualMachineNetworkSpec:
+  rortypes.ResourceVirtualMachineNetworkStatus:
     properties:
       dns:
         type: string
@@ -4170,22 +4216,16 @@ definitions:
         type: string
       ipv6:
         type: string
+      mac:
+        type: string
       mask:
-        type: string
-    type: object
-  rortypes.ResourceVirtualMachineNetworkStatus:
-    properties:
-      id:
-        type: string
-    type: object
-  rortypes.ResourceVirtualMachineOperatingSystemSpec:
-    properties:
-      id:
         type: string
     type: object
   rortypes.ResourceVirtualMachineOperatingSystemStatus:
     properties:
       architecture:
+        type: string
+      family:
         type: string
       hostName:
         type: string
@@ -4210,16 +4250,17 @@ definitions:
         type: array
       memory:
         $ref: '#/definitions/rortypes.ResourceVirtualMachineMemorySpec'
-      networks:
-        items:
-          $ref: '#/definitions/rortypes.ResourceVirtualMachineNetworkSpec'
-        type: array
-      operatingSystem:
-        $ref: '#/definitions/rortypes.ResourceVirtualMachineOperatingSystemSpec'
-      tags:
-        items:
-          $ref: '#/definitions/rortypes.ResourceVirtualMachineTagSpec'
-        type: array
+      name:
+        type: string
+    type: object
+  rortypes.ResourceVirtualMachineState:
+    properties:
+      reason:
+        type: string
+      state:
+        type: string
+      time:
+        type: string
     type: object
   rortypes.ResourceVirtualMachineStatus:
     properties:
@@ -4229,6 +4270,10 @@ definitions:
         items:
           $ref: '#/definitions/rortypes.ResourceVirtualMachineDiskStatus'
         type: array
+      lastUpdated:
+        type: string
+      location:
+        type: string
       memory:
         $ref: '#/definitions/rortypes.ResourceVirtualMachineMemoryStatus'
       networks:
@@ -4237,8 +4282,14 @@ definitions:
         type: array
       operatingSystem:
         $ref: '#/definitions/rortypes.ResourceVirtualMachineOperatingSystemStatus'
+      state:
+        $ref: '#/definitions/rortypes.ResourceVirtualMachineState'
+      tags:
+        items:
+          $ref: '#/definitions/rortypes.ResourceVirtualMachineTag'
+        type: array
     type: object
-  rortypes.ResourceVirtualMachineTagSpec:
+  rortypes.ResourceVirtualMachineTag:
     properties:
       description:
         type: string
@@ -9019,6 +9070,40 @@ paths:
       summary: Get a workspace by id
       tags:
       - workspaces
+  /v2/events/listen:
+    get:
+      consumes:
+      - text/event-stream
+      description: Listen to server sent events
+      produces:
+      - text/event-stream
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Server sent events
+      tags:
+      - events
   /v2/resource/uid/{uid}:
     get:
       consumes:

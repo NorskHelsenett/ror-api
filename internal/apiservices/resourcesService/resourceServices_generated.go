@@ -563,30 +563,6 @@ func GetVirtualMachineClassByUid(ctx context.Context, ownerref apiresourcecontra
 
 }
 
-// Functions to get Virtualmachineclassbindings by uid,ownerref
-// The function is intended for use by internal functions
-func GetVirtualMachineClassBindingByUid(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerReference, uid string) (apiresourcecontracts.ResourceVirtualMachineClassBinding, error) {
-	if uid == "" {
-		return apiresourcecontracts.ResourceVirtualMachineClassBinding{}, errors.New("uid is empty")
-	}
-	query := apiresourcecontracts.ResourceQuery{
-		Owner:      ownerref,
-		Kind:       "VirtualMachineClassBinding",
-		ApiVersion: "vmoperator.vmware.com/v1alpha2",
-		Internal:   true,
-		Uid:        uid,
-	}
-
-	resource, err := GetResource[apiresourcecontracts.ResourceVirtualMachineClassBinding](ctx, query)
-	if err != nil {
-		rlog.Errorc(ctx, "could not get resource", err)
-		return apiresourcecontracts.ResourceVirtualMachineClassBinding{}, errors.New("could not get resource")
-	}
-
-	return resource, nil
-
-}
-
 // Functions to get Kubernetesclusters by uid,ownerref
 // The function is intended for use by internal functions
 func GetKubernetesClusterByUid(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerReference, uid string) (apiresourcecontracts.ResourceKubernetesCluster, error) {
@@ -1313,24 +1289,6 @@ func GetVirtualmachineclasses(ctx context.Context, ownerref apiresourcecontracts
 	return resources, nil
 }
 
-// Functions to get Virtualmachineclassbindings by ownerref
-// The function is intended for use by internal functions
-func GetVirtualmachineclassbindings(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerReference) (apiresourcecontracts.ResourceListVirtualmachineclassbindings, error) {
-	var resources apiresourcecontracts.ResourceListVirtualmachineclassbindings
-	query := apiresourcecontracts.ResourceQuery{
-		Owner:      ownerref,
-		Kind:       "VirtualMachineClassBinding",
-		ApiVersion: "vmoperator.vmware.com/v1alpha2",
-	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceVirtualMachineClassBinding](ctx, query)
-	resources.Owner = ownerref
-	resources.Virtualmachineclassbindings = resourceset
-	if err != nil {
-		return resources, errors.New("Could not get resource VirtualMachineClassBinding")
-	}
-	return resources, nil
-}
-
 // Functions to get Kubernetesclusters by ownerref
 // The function is intended for use by internal functions
 func GetKubernetesclusters(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerReference) (apiresourcecontracts.ResourceListKubernetesclusters, error) {
@@ -1845,18 +1803,6 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 		}
 	}
 
-	if resourceUpdate.ApiVersion == "vmoperator.vmware.com/v1alpha2" && resourceUpdate.Kind == "VirtualMachineClassBinding" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVirtualMachineClassBinding]](resourceUpdate)
-		resource = filterInVirtualMachineClassBinding(resource)
-		err = resourcesmongodbrepo.CreateResourceVirtualMachineClassBinding(resource, ctx)
-		if err == nil {
-			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
-			if err != nil {
-				rlog.Errorc(ctx, "could not send to message bus", err)
-			}
-		}
-	}
-
 	if resourceUpdate.ApiVersion == "general.ror.internal/v1alpha1" && resourceUpdate.Kind == "KubernetesCluster" {
 		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceKubernetesCluster]](resourceUpdate)
 		resource = filterInKubernetesCluster(resource)
@@ -2294,18 +2240,6 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVirtualMachineClass]](resourceUpdate)
 		resource = filterInVirtualMachineClass(resource)
 		err = resourcesmongodbrepo.UpdateResourceVirtualMachineClass(resource, ctx)
-		if err == nil {
-			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
-			if err != nil {
-				rlog.Errorc(ctx, "could not send to message bus", err)
-			}
-		}
-	}
-
-	if resourceUpdate.ApiVersion == "vmoperator.vmware.com/v1alpha2" && resourceUpdate.Kind == "VirtualMachineClassBinding" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVirtualMachineClassBinding]](resourceUpdate)
-		resource = filterInVirtualMachineClassBinding(resource)
-		err = resourcesmongodbrepo.UpdateResourceVirtualMachineClassBinding(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {

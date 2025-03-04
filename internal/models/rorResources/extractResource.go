@@ -149,12 +149,6 @@ func (rj rorResourceJson) getResource(resourceReturn *rorResource) error {
 		return err
 	}
 
-	if resourceReturn.ApiVersion == "vmoperator.vmware.com/v1alpha2" && resourceReturn.Kind == "VirtualMachineClassBinding" {
-		payload, err := prepareResourcePayload[apiresourcecontracts.ResourceVirtualMachineClassBinding](bytes)
-		resourceReturn.Resource = payload
-		return err
-	}
-
 	if resourceReturn.ApiVersion == "general.ror.internal/v1alpha1" && resourceReturn.Kind == "KubernetesCluster" {
 		payload, err := prepareResourcePayload[apiresourcecontracts.ResourceKubernetesCluster](bytes)
 		resourceReturn.Resource = payload
