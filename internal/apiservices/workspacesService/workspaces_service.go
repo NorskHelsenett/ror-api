@@ -56,7 +56,8 @@ func GetById(ctx context.Context, id string) (*apicontracts.Workspace, error) {
 func GetByName(ctx context.Context, workspaceName string) (*apicontracts.Workspace, error) {
 	workspace, err := workspacesRepo.GetByName(ctx, workspaceName)
 	if err != nil {
-		return nil, errors.New("Could not get workspace")
+		rlog.Error("could not get workspace", err)
+		return nil, errors.New("could not get workspace")
 	}
 
 	return workspace, nil
