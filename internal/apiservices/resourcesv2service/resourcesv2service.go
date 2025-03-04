@@ -20,6 +20,11 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
 )
 
+var (
+	getTimeout = 500 * time.Millisecond
+	setTimeout = 500 * time.Millisecond
+)
+
 func HandleResourceUpdate(ctx context.Context, resource *rorresources.Resource) rorresources.ResourceUpdateResults {
 	switch resource.GetRorMeta().Action {
 	case rortypes.K8sActionAdd:
@@ -92,8 +97,11 @@ func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) r
 	//cache := GetResourceCache()
 	//cache.Set(ctx, resource)
 
+	mongoCtx, cancel := context.WithTimeout(ctx, setTimeout)
+	defer cancel()
+
 	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
-	err = databaseHelpers.Set(ctx, resource)
+	err = databaseHelpers.Set(mongoCtx, resource)
 	if err != nil {
 		rlog.Errorc(ctx, "Failed to set resource", err)
 		return rorresources.ResourceUpdateResults{
@@ -130,8 +138,10 @@ func GetResourceByUID(ctx context.Context, uid string) *rorresources.ResourceSet
 	// 	rlog.Debug("Resource found in cache", rlog.String("uid", uid), rlog.Any("duration", time.Since(start)))
 	// } else {
 	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
+	mongoCtx, cancel := context.WithTimeout(ctx, getTimeout)
+	defer cancel()
 	var err error
-	returnrs, err = databaseHelpers.Get(ctx, rorresources.NewResourceQuery().WithUID(uid))
+	returnrs, err = databaseHelpers.Get(mongoCtx, rorresources.NewResourceQuery().WithUID(uid))
 	if err != nil {
 		rlog.Error("Could not get resource by uid", err, rlog.String("uid", uid), rlog.Any("error", err))
 		return nil
@@ -169,6 +179,7 @@ func DeleteResource(ctx context.Context, resource *rorresources.Resource) error 
 		err := fmt.Errorf("403: No access to uid %s", resource.GetUID())
 		return err
 	}
+
 	//cache := GetResourceCache()
 	//cache.Remove(ctx, resource.GetUID())
 	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
@@ -182,7 +193,9 @@ func DeleteResource(ctx context.Context, resource *rorresources.Resource) error 
 func GetResourceByQuery(ctx context.Context, query *rorresources.ResourceQuery) *rorresources.ResourceSet {
 	start := time.Now()
 	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
-	rs, err := databaseHelpers.Get(ctx, query)
+	mongoCtx, cancel := context.WithTimeout(ctx, getTimeout)
+	defer cancel()
+	rs, err := databaseHelpers.Get(mongoCtx, query)
 	if err != nil {
 		rlog.Error("Could not get resource by query", err, rlog.Any("error", err))
 		return nil
@@ -264,7 +277,8 @@ func ResourceGetHashlist(ctx context.Context, owner rorresourceowner.RorResource
 		OwnerRefs: []rorresourceowner.RorResourceOwnerReference{owner},
 		Limit:     -1,
 	}
-
+	mongoCtx, cancel := context.WithTimeout(ctx, getTimeout)
+	defer cancel()
 	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
-	return databaseHelpers.GetHashlistByQuery(ctx, &query)
+	return databaseHelpers.GetHashlistByQuery(mongoCtx, &query)
 }
