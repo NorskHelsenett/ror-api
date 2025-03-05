@@ -28,6 +28,7 @@ import (
 	ctrlUsers "github.com/NorskHelsenett/ror-api/internal/controllers/userscontroller"
 	v2resourcescontroller "github.com/NorskHelsenett/ror-api/internal/controllers/v2/resourcescontroller"
 	ctrlWorkspaces "github.com/NorskHelsenett/ror-api/internal/controllers/workspacescontroller"
+	"github.com/NorskHelsenett/ror-api/internal/webserver/ratelimiter"
 
 	"github.com/NorskHelsenett/ror-api/pkg/handlers/ssehandler"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/ssemiddleware"
@@ -338,8 +339,9 @@ func SetupRoutes(router *gin.Engine) {
 	docs.SwaggerInfo.Version = apiconfig.RorVersion.GetVersion()
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
+	resourceRateLimiter := ratelimiter.NewRorRateLimiter(500, 1000)
 	resourceRoute := v2.Group("resources")
-
+	resourceRoute.Use(resourceRateLimiter.RateLimiter)
 	resourceRoute.GET("", v2resourcescontroller.GetResources())
 	resourceRoute.POST("", v2resourcescontroller.NewResource())
 	resourceRoute.DELETE("/uid/:uid", v2resourcescontroller.DeleteResource())
