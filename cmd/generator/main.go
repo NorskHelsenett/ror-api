@@ -18,116 +18,26 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"os"
-	"os/exec"
-	"path"
-	"strings"
-	"text/template"
-
 	"github.com/NorskHelsenett/ror/pkg/rorresources/rordefs"
+	"github.com/NorskHelsenett/ror/pkg/rorresources/rorgenerator"
 )
 
 func main() {
 
+	generator := rorgenerator.NewGenerator()
 	// Resource controller - api
 	//   - internal/controllers/resourcescontroller/resources_controller_read_generated.go
-	templateFile("internal/controllers/resourcescontroller/resources_controller_read_generated.go.tmpl", rordefs.Resourcedefs.GetResourcesByVersion(rordefs.ApiVersionV1))
+	generator.TemplateFile("internal/controllers/resourcescontroller/resources_controller_read_generated.go.tmpl", rordefs.Resourcedefs.GetResourcesByVersion(rordefs.ApiVersionV1))
 
 	// Resource services - api
 	//   - internal/apiservices/resourcesService/resourceServices_generated.go
-	templateFile("internal/apiservices/resourcesService/resourceServices_generated.go.tmpl", rordefs.Resourcedefs.GetResourcesByVersion(rordefs.ApiVersionV1))
+	generator.TemplateFile("internal/apiservices/resourcesService/resourceServices_generated.go.tmpl", rordefs.Resourcedefs.GetResourcesByVersion(rordefs.ApiVersionV1))
 
 	// Internal - models
 	//   - internal/models/rorResources/extractResource.go
-	templateFile("internal/models/rorResources/extractResource.go.tmpl", rordefs.Resourcedefs.GetResourcesByVersion(rordefs.ApiVersionV1))
+	generator.TemplateFile("internal/models/rorResources/extractResource.go.tmpl", rordefs.Resourcedefs.GetResourcesByVersion(rordefs.ApiVersionV1))
 
 	// Internal - mongorepo
 	//   - internal/mongodbrepo/repositories/resourcesmongodbrepo/resourcesinsertupdate_generated.go
-	templateFile("internal/mongodbrepo/repositories/resourcesmongodbrepo/resourcesinsertupdate_generated.go.tmpl", rordefs.Resourcedefs.GetResourcesByVersion(rordefs.ApiVersionV1))
-}
-
-func templateFileOnce(filepath string, templatePath string, data any) {
-
-	if fileExists(filepath) {
-		fmt.Println("File exists: ", filepath)
-		return
-	}
-	templateToFile(filepath, templatePath, data)
-}
-
-func folderExists(folderPath string) bool {
-	fileInfo, err := os.Stat(folderPath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return false
-		}
-		// Handle other errors if needed
-	}
-	return fileInfo.IsDir()
-}
-
-func fileExists(filePath string) bool {
-	fileInfo, err := os.Stat(filePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return false
-		}
-		// Handle other errors if needed
-	}
-	return !fileInfo.IsDir()
-}
-
-func templateFile(filepath string, data any) {
-
-	outfile := strings.TrimSuffix(filepath, path.Ext(filepath))
-	templateToFile(outfile, filepath, data)
-}
-
-func templateToFile(filepath string, templatePath string, data any) {
-
-	t, err := os.ReadFile(templatePath) // #nosec G304 - This is a generator and the files are under control
-
-	if err != nil {
-		log.Print(err)
-		return
-	}
-	funcMap := template.FuncMap{
-		"lower": strings.ToLower,
-	}
-	tmpl, err := template.New("Template").Funcs(funcMap).Parse(string(t))
-	if err != nil {
-		panic(err)
-	}
-
-	f, err := os.Create(filepath) // #nosec G304 - This is a generator and the files are under control
-
-	if err != nil {
-		panic(err)
-	}
-	defer func(f *os.File) {
-		_ = f.Close()
-	}(f)
-	err = tmpl.Execute(f, data)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmtcmd := exec.Command("go", "fmt", filepath)
-	_, err = fmtcmd.Output()
-	if err != nil {
-		_, _ = fmt.Println("go formater failed with err: ", err.Error())
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	fmt.Println("Generated file: ", filepath)
-}
-
-func touchFile(filePath string) error {
-	file, err := os.OpenFile(filePath, os.O_RDONLY|os.O_CREATE, 0600) // #nosec G304 - This is a generator and the files are under control
-	if err != nil {
-		return err
-	}
-	return file.Close()
+	generator.TemplateFile("internal/mongodbrepo/repositories/resourcesmongodbrepo/resourcesinsertupdate_generated.go.tmpl", rordefs.Resourcedefs.GetResourcesByVersion(rordefs.ApiVersionV1))
 }

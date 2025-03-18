@@ -131,26 +131,20 @@ func (rj rorResourceJson) getResource(resourceReturn *rorResource) error {
 		return err
 	}
 
-	if resourceReturn.ApiVersion == "run.tanzu.vmware.com/v1alpha2" && resourceReturn.Kind == "TanzuKubernetesCluster" {
+	if resourceReturn.ApiVersion == "run.tanzu.vmware.com/v1alpha3" && resourceReturn.Kind == "TanzuKubernetesCluster" {
 		payload, err := prepareResourcePayload[apiresourcecontracts.ResourceTanzuKubernetesCluster](bytes)
 		resourceReturn.Resource = payload
 		return err
 	}
 
-	if resourceReturn.ApiVersion == "run.tanzu.vmware.com/v1alpha2" && resourceReturn.Kind == "TanzuKubernetesRelease" {
+	if resourceReturn.ApiVersion == "run.tanzu.vmware.com/v1alpha3" && resourceReturn.Kind == "TanzuKubernetesRelease" {
 		payload, err := prepareResourcePayload[apiresourcecontracts.ResourceTanzuKubernetesRelease](bytes)
 		resourceReturn.Resource = payload
 		return err
 	}
 
-	if resourceReturn.ApiVersion == "vmoperator.vmware.com/v1alpha1" && resourceReturn.Kind == "VirtualMachineClass" {
+	if resourceReturn.ApiVersion == "vmoperator.vmware.com/v1alpha2" && resourceReturn.Kind == "VirtualMachineClass" {
 		payload, err := prepareResourcePayload[apiresourcecontracts.ResourceVirtualMachineClass](bytes)
-		resourceReturn.Resource = payload
-		return err
-	}
-
-	if resourceReturn.ApiVersion == "vmoperator.vmware.com/v1alpha1" && resourceReturn.Kind == "VirtualMachineClassBinding" {
-		payload, err := prepareResourcePayload[apiresourcecontracts.ResourceVirtualMachineClassBinding](bytes)
 		resourceReturn.Resource = payload
 		return err
 	}
