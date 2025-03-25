@@ -90,13 +90,13 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/microsoft/kiota-abstractions-go v1.9.1 // indirect
 	github.com/microsoft/kiota-authentication-azure-go v1.2.1 // indirect
-	github.com/microsoft/kiota-http-go v1.5.0 // indirect
+	github.com/microsoft/kiota-http-go v1.5.1 // indirect
 	github.com/microsoft/kiota-serialization-form-go v1.1.1 // indirect
 	github.com/microsoft/kiota-serialization-json-go v1.1.1 // indirect
 	github.com/microsoft/kiota-serialization-multipart-go v1.1.1 // indirect
-	github.com/microsoft/kiota-serialization-text-go v1.1.0 // indirect
-	github.com/microsoftgraph/msgraph-sdk-go v1.66.0 // indirect
-	github.com/microsoftgraph/msgraph-sdk-go-core v1.3.0 // indirect
+	github.com/microsoft/kiota-serialization-text-go v1.1.1 // indirect
+	github.com/microsoftgraph/msgraph-sdk-go v1.66.1 // indirect
+	github.com/microsoftgraph/msgraph-sdk-go-core v1.3.1 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/hashstructure/v2 v2.0.2 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -150,8 +150,8 @@ require (
 	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
 	golang.org/x/tools v0.31.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250313205543-e70fdf4c4cb4 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250313205543-e70fdf4c4cb4 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20250324211829-b45e905df463 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463 // indirect
 	google.golang.org/grpc v1.71.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
