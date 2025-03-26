@@ -95,7 +95,7 @@ require (
 	github.com/microsoft/kiota-serialization-json-go v1.1.1 // indirect
 	github.com/microsoft/kiota-serialization-multipart-go v1.1.1 // indirect
 	github.com/microsoft/kiota-serialization-text-go v1.1.1 // indirect
-	github.com/microsoftgraph/msgraph-sdk-go v1.66.1 // indirect
+	github.com/microsoftgraph/msgraph-sdk-go v1.67.0 // indirect
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.3.1 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/hashstructure/v2 v2.0.2 // indirect
