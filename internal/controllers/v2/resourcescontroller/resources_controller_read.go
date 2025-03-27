@@ -7,11 +7,14 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"net/http"
+
+
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
 
+
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
-	"github.com/NorskHelsenett/ror/pkg/rorresources"
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/rorresources"
 
 	"github.com/gin-gonic/gin"
 )

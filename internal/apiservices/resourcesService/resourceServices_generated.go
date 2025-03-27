@@ -500,7 +500,7 @@ func GetTanzuKubernetesClusterByUid(ctx context.Context, ownerref apiresourcecon
 	query := apiresourcecontracts.ResourceQuery{
 		Owner:      ownerref,
 		Kind:       "TanzuKubernetesCluster",
-		ApiVersion: "run.tanzu.vmware.com/v1alpha2",
+		ApiVersion: "run.tanzu.vmware.com/v1alpha3",
 		Internal:   true,
 		Uid:        uid,
 	}
@@ -524,7 +524,7 @@ func GetTanzuKubernetesReleaseByUid(ctx context.Context, ownerref apiresourcecon
 	query := apiresourcecontracts.ResourceQuery{
 		Owner:      ownerref,
 		Kind:       "TanzuKubernetesRelease",
-		ApiVersion: "run.tanzu.vmware.com/v1alpha2",
+		ApiVersion: "run.tanzu.vmware.com/v1alpha3",
 		Internal:   true,
 		Uid:        uid,
 	}
@@ -548,7 +548,7 @@ func GetVirtualMachineClassByUid(ctx context.Context, ownerref apiresourcecontra
 	query := apiresourcecontracts.ResourceQuery{
 		Owner:      ownerref,
 		Kind:       "VirtualMachineClass",
-		ApiVersion: "vmoperator.vmware.com/v1alpha1",
+		ApiVersion: "vmoperator.vmware.com/v1alpha2",
 		Internal:   true,
 		Uid:        uid,
 	}
@@ -557,30 +557,6 @@ func GetVirtualMachineClassByUid(ctx context.Context, ownerref apiresourcecontra
 	if err != nil {
 		rlog.Errorc(ctx, "could not get resource", err)
 		return apiresourcecontracts.ResourceVirtualMachineClass{}, errors.New("could not get resource")
-	}
-
-	return resource, nil
-
-}
-
-// Functions to get Virtualmachineclassbindings by uid,ownerref
-// The function is intended for use by internal functions
-func GetVirtualMachineClassBindingByUid(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerReference, uid string) (apiresourcecontracts.ResourceVirtualMachineClassBinding, error) {
-	if uid == "" {
-		return apiresourcecontracts.ResourceVirtualMachineClassBinding{}, errors.New("uid is empty")
-	}
-	query := apiresourcecontracts.ResourceQuery{
-		Owner:      ownerref,
-		Kind:       "VirtualMachineClassBinding",
-		ApiVersion: "vmoperator.vmware.com/v1alpha1",
-		Internal:   true,
-		Uid:        uid,
-	}
-
-	resource, err := GetResource[apiresourcecontracts.ResourceVirtualMachineClassBinding](ctx, query)
-	if err != nil {
-		rlog.Errorc(ctx, "could not get resource", err)
-		return apiresourcecontracts.ResourceVirtualMachineClassBinding{}, errors.New("could not get resource")
 	}
 
 	return resource, nil
@@ -1266,7 +1242,7 @@ func GetTanzukubernetesclusters(ctx context.Context, ownerref apiresourcecontrac
 	query := apiresourcecontracts.ResourceQuery{
 		Owner:      ownerref,
 		Kind:       "TanzuKubernetesCluster",
-		ApiVersion: "run.tanzu.vmware.com/v1alpha2",
+		ApiVersion: "run.tanzu.vmware.com/v1alpha3",
 	}
 	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceTanzuKubernetesCluster](ctx, query)
 	resources.Owner = ownerref
@@ -1284,7 +1260,7 @@ func GetTanzukubernetesreleases(ctx context.Context, ownerref apiresourcecontrac
 	query := apiresourcecontracts.ResourceQuery{
 		Owner:      ownerref,
 		Kind:       "TanzuKubernetesRelease",
-		ApiVersion: "run.tanzu.vmware.com/v1alpha2",
+		ApiVersion: "run.tanzu.vmware.com/v1alpha3",
 	}
 	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceTanzuKubernetesRelease](ctx, query)
 	resources.Owner = ownerref
@@ -1302,31 +1278,13 @@ func GetVirtualmachineclasses(ctx context.Context, ownerref apiresourcecontracts
 	query := apiresourcecontracts.ResourceQuery{
 		Owner:      ownerref,
 		Kind:       "VirtualMachineClass",
-		ApiVersion: "vmoperator.vmware.com/v1alpha1",
+		ApiVersion: "vmoperator.vmware.com/v1alpha2",
 	}
 	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceVirtualMachineClass](ctx, query)
 	resources.Owner = ownerref
 	resources.Virtualmachineclasses = resourceset
 	if err != nil {
 		return resources, errors.New("Could not get resource VirtualMachineClass")
-	}
-	return resources, nil
-}
-
-// Functions to get Virtualmachineclassbindings by ownerref
-// The function is intended for use by internal functions
-func GetVirtualmachineclassbindings(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerReference) (apiresourcecontracts.ResourceListVirtualmachineclassbindings, error) {
-	var resources apiresourcecontracts.ResourceListVirtualmachineclassbindings
-	query := apiresourcecontracts.ResourceQuery{
-		Owner:      ownerref,
-		Kind:       "VirtualMachineClassBinding",
-		ApiVersion: "vmoperator.vmware.com/v1alpha1",
-	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceVirtualMachineClassBinding](ctx, query)
-	resources.Owner = ownerref
-	resources.Virtualmachineclassbindings = resourceset
-	if err != nil {
-		return resources, errors.New("Could not get resource VirtualMachineClassBinding")
 	}
 	return resources, nil
 }
@@ -1809,7 +1767,7 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 		}
 	}
 
-	if resourceUpdate.ApiVersion == "run.tanzu.vmware.com/v1alpha2" && resourceUpdate.Kind == "TanzuKubernetesCluster" {
+	if resourceUpdate.ApiVersion == "run.tanzu.vmware.com/v1alpha3" && resourceUpdate.Kind == "TanzuKubernetesCluster" {
 		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceTanzuKubernetesCluster]](resourceUpdate)
 		resource = filterInTanzuKubernetesCluster(resource)
 		err = resourcesmongodbrepo.CreateResourceTanzuKubernetesCluster(resource, ctx)
@@ -1821,7 +1779,7 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 		}
 	}
 
-	if resourceUpdate.ApiVersion == "run.tanzu.vmware.com/v1alpha2" && resourceUpdate.Kind == "TanzuKubernetesRelease" {
+	if resourceUpdate.ApiVersion == "run.tanzu.vmware.com/v1alpha3" && resourceUpdate.Kind == "TanzuKubernetesRelease" {
 		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceTanzuKubernetesRelease]](resourceUpdate)
 		resource = filterInTanzuKubernetesRelease(resource)
 		err = resourcesmongodbrepo.CreateResourceTanzuKubernetesRelease(resource, ctx)
@@ -1833,22 +1791,10 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 		}
 	}
 
-	if resourceUpdate.ApiVersion == "vmoperator.vmware.com/v1alpha1" && resourceUpdate.Kind == "VirtualMachineClass" {
+	if resourceUpdate.ApiVersion == "vmoperator.vmware.com/v1alpha2" && resourceUpdate.Kind == "VirtualMachineClass" {
 		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVirtualMachineClass]](resourceUpdate)
 		resource = filterInVirtualMachineClass(resource)
 		err = resourcesmongodbrepo.CreateResourceVirtualMachineClass(resource, ctx)
-		if err == nil {
-			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
-			if err != nil {
-				rlog.Errorc(ctx, "could not send to message bus", err)
-			}
-		}
-	}
-
-	if resourceUpdate.ApiVersion == "vmoperator.vmware.com/v1alpha1" && resourceUpdate.Kind == "VirtualMachineClassBinding" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVirtualMachineClassBinding]](resourceUpdate)
-		resource = filterInVirtualMachineClassBinding(resource)
-		err = resourcesmongodbrepo.CreateResourceVirtualMachineClassBinding(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -2266,7 +2212,7 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 		}
 	}
 
-	if resourceUpdate.ApiVersion == "run.tanzu.vmware.com/v1alpha2" && resourceUpdate.Kind == "TanzuKubernetesCluster" {
+	if resourceUpdate.ApiVersion == "run.tanzu.vmware.com/v1alpha3" && resourceUpdate.Kind == "TanzuKubernetesCluster" {
 		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceTanzuKubernetesCluster]](resourceUpdate)
 		resource = filterInTanzuKubernetesCluster(resource)
 		err = resourcesmongodbrepo.UpdateResourceTanzuKubernetesCluster(resource, ctx)
@@ -2278,7 +2224,7 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 		}
 	}
 
-	if resourceUpdate.ApiVersion == "run.tanzu.vmware.com/v1alpha2" && resourceUpdate.Kind == "TanzuKubernetesRelease" {
+	if resourceUpdate.ApiVersion == "run.tanzu.vmware.com/v1alpha3" && resourceUpdate.Kind == "TanzuKubernetesRelease" {
 		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceTanzuKubernetesRelease]](resourceUpdate)
 		resource = filterInTanzuKubernetesRelease(resource)
 		err = resourcesmongodbrepo.UpdateResourceTanzuKubernetesRelease(resource, ctx)
@@ -2290,22 +2236,10 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 		}
 	}
 
-	if resourceUpdate.ApiVersion == "vmoperator.vmware.com/v1alpha1" && resourceUpdate.Kind == "VirtualMachineClass" {
+	if resourceUpdate.ApiVersion == "vmoperator.vmware.com/v1alpha2" && resourceUpdate.Kind == "VirtualMachineClass" {
 		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVirtualMachineClass]](resourceUpdate)
 		resource = filterInVirtualMachineClass(resource)
 		err = resourcesmongodbrepo.UpdateResourceVirtualMachineClass(resource, ctx)
-		if err == nil {
-			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
-			if err != nil {
-				rlog.Errorc(ctx, "could not send to message bus", err)
-			}
-		}
-	}
-
-	if resourceUpdate.ApiVersion == "vmoperator.vmware.com/v1alpha1" && resourceUpdate.Kind == "VirtualMachineClassBinding" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVirtualMachineClassBinding]](resourceUpdate)
-		resource = filterInVirtualMachineClassBinding(resource)
-		err = resourcesmongodbrepo.UpdateResourceVirtualMachineClassBinding(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {

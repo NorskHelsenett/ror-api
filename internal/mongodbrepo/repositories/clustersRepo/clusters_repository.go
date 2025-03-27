@@ -135,6 +135,102 @@ func GetByClusterId(ctx context.Context, clusterId string) (*apicontracts.Cluste
 	return &cluster, nil
 }
 
+func GetByClusterId2(ctx context.Context, clusterId string) (*apicontracts.Cluster, error) {
+	db := mongodb.GetMongoDb()
+
+	query := []bson.M{
+		{
+			"$match": bson.M{
+				"clusterid": clusterId,
+			},
+		},
+		{
+			"$project": bson.M{"state": 0},
+		},
+		{
+			"$lookup": bson.M{
+				"from":         "workspaces",
+				"localField":   "workspaceid",
+				"foreignField": "_id",
+				"as":           "workspaces",
+			},
+		},
+		{
+			"$set": bson.M{
+				"workspace": bson.M{
+					"$first": "$workspaces",
+				},
+			},
+		},
+		{
+			"$lookup": bson.M{
+				"from":         "datacenters",
+				"localField":   "workspaces.datacenterid",
+				"foreignField": "_id",
+				"as":           "datacenters",
+			},
+		},
+		{
+			"$set": bson.M{
+				"workspace": bson.M{
+					"datacenter": bson.M{
+						"$first": "$datacenters",
+					},
+				},
+			},
+		},
+		{
+			"$lookup": bson.M{
+				"from":         "projects",
+				"localField":   "metadata.projectid",
+				"foreignField": "_id",
+				"as":           "projects",
+			},
+		},
+		{
+			"$set": bson.M{
+				"metadata": bson.M{
+					"project": bson.M{
+						"$first": "$projects",
+					},
+				},
+			},
+		},
+	}
+
+	mongoCol := db.Collection(CollectionName)
+	results, err := mongoCol.Aggregate(ctx, query)
+	if err != nil {
+		return nil, errors.New("could not get cluster")
+	}
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
+	}(results, ctx)
+
+	if results.RemainingBatchLength() == 0 {
+		return nil, nil
+	}
+
+	var clusters []apicontracts.Cluster
+	if err = results.All(ctx, &clusters); err != nil {
+		return nil, errors.New("could not get error")
+	}
+
+	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
+		_ = cursor.Close(databaseCtx)
+	}(results, ctx)
+
+	if len(clusters) > 1 {
+		rlog.Error("could not get cluster", fmt.Errorf("multiple clusters with same id"), rlog.String("clusterid", clusterId))
+		return nil, errors.New("could not get cluster")
+	}
+
+	cluster := clusters[0]
+	clusterhelper.SetStatus(&cluster)
+
+	return &cluster, nil
+}
+
 // GetByFilter Get cluster by filter  *apicontracts.Filter
 func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontracts.PaginatedResult[*apicontracts.Cluster], error) {
 	db := mongodb.GetMongoDb()
