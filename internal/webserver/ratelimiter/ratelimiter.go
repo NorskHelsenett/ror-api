@@ -7,8 +7,6 @@ import (
 	"golang.org/x/time/rate"
 )
 
-var limiter = rate.NewLimiter(1, 5)
-
 type RorRateLimiter struct {
 	Limiter *rate.Limiter
 	Rate    rate.Limit
@@ -25,7 +23,7 @@ func (r *RorRateLimiter) RateLimiter(c *gin.Context) {
 }
 
 func (r *RorRateLimiter) GetRate() int {
-	return r.Rate
+	return int(r.Rate)
 }
 
 func (r *RorRateLimiter) GetBurst() int {
@@ -46,7 +44,7 @@ func NewRorRateLimiter(requestRate, burst int) *RorRateLimiter {
 	limiter := rate.NewLimiter(rate.Limit(requestRate), burst)
 	return &RorRateLimiter{
 		Limiter: limiter,
-		Rate:    requestRate,
+		Rate:    rate.Limit(requestRate),
 		Burst:   burst,
 	}
 }

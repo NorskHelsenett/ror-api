@@ -256,8 +256,9 @@ func SetupRoutes(router *gin.Engine) {
 			projectsRoute.PUT("/:id", ctrlProjects.Update())
 			projectsRoute.DELETE(":id", ctrlProjects.Delete())
 		}
-
+		resourceV1RateLimiter := ratelimiter.NewRorRateLimiter(5000, 10000)
 		resourceRoute := v1.Group("resources")
+		resourceRoute.Use(resourceV1RateLimiter.RateLimiter)
 		{
 			resourceRoute.GET("", resourcescontroller.GetResources())
 			resourceRoute.POST("", resourcescontroller.NewResource())
@@ -339,9 +340,9 @@ func SetupRoutes(router *gin.Engine) {
 	docs.SwaggerInfo.Version = apiconfig.RorVersion.GetVersion()
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
-	resourceRateLimiter := ratelimiter.NewRorRateLimiter(500, 1000)
+	resourceV2RateLimiter := ratelimiter.NewRorRateLimiter(50, 100)
 	resourceRoute := v2.Group("resources")
-	resourceRoute.Use(resourceRateLimiter.RateLimiter)
+	resourceRoute.Use(resourceV2RateLimiter.RateLimiter)
 	resourceRoute.GET("", v2resourcescontroller.GetResources())
 	resourceRoute.POST("", v2resourcescontroller.NewResource())
 	resourceRoute.DELETE("/uid/:uid", v2resourcescontroller.DeleteResource())
