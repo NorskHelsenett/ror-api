@@ -3,7 +3,7 @@ module github.com/NorskHelsenett/ror-api
 go 1.24.2
 
 require (
-	github.com/NorskHelsenett/ror v1.2.0-rc1
+	github.com/NorskHelsenett/ror v1.2.0-rc2
 	github.com/blang/semver/v4 v4.0.0
 	github.com/coreos/go-oidc/v3 v3.14.1
 	github.com/evanphx/json-patch/v5 v5.9.11
