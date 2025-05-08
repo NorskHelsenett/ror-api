@@ -26,4 +26,5 @@ data:
   CONTAINER_REG_IMAGE_PATH: "github.com/NorskHelsenett/ror/"
   CONTAINER_REG_HELM_PATH: "nhn-helm/"
   ROR_URL: {{.Values.api.config.rorUrl | quote}}
-  HEALTHCHECK_ENDPOINT: "0.0.0.0:9999"
+  HTTP_HEALTH_HOST: {{.Values.api.http.health.host | quote}}
+  HTTP_HEALTH_PORT: {{.Values.api.http.health.port | quote}}
