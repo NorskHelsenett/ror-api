@@ -16,7 +16,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
-	newhealth "github.com/dotse/go-health"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorhealth"
 	"github.com/spf13/viper"
 )
 
@@ -42,9 +42,9 @@ func InitConnections() {
 		rlog.Error("Failed to load domain resolvers", err)
 	}
 	DomainResolvers.RegisterHealthChecks()
-	newhealth.Register("vault", VaultClient)
-	newhealth.Register("redis", RedisDB)
-	newhealth.Register("rabbitmq", RabbitMQConnection)
+	rorhealth.Register("vault", VaultClient)
+	rorhealth.Register("redis", RedisDB)
+	rorhealth.Register("rabbitmq", RabbitMQConnection)
 }
 
 func LoadDomainResolvers() (*userauth.DomainResolvers, error) {
