@@ -91,3 +91,8 @@ nodeSelector: {}
 tolerations: []
 affinity: {}
 
+serviceMonitor:
+  enabled: true
+grafanaDashboard:
+  enabled: true
+  namespace: prometheus-operator
