@@ -62,7 +62,7 @@ func main() {
 
 	_, _ = maxprocs.Set(maxprocs.Logger(rlog.Infof))
 
-	apiconnections.InitConnections()
+	apiconnections.InitConnections(ctx)
 
 	utils.GetCredsFromVault()
 

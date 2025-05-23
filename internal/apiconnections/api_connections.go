@@ -1,6 +1,7 @@
 package apiconnections
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -27,7 +28,7 @@ var (
 	DomainResolvers    *userauth.DomainResolvers
 )
 
-func InitConnections() {
+func InitConnections(ctx context.Context) {
 	VaultClient = vaultclient.NewVaultClient(viper.GetString(configconsts.ROLE), viper.GetString(configconsts.VAULT_URL))
 
 	redisdatabasecredhelper := databasecredhelper.NewVaultDBCredentials(VaultClient, fmt.Sprintf("redis-%v-role", viper.GetString(configconsts.ROLE)), "")
@@ -39,25 +40,32 @@ func InitConnections() {
 	var err error
 	DomainResolvers, err = LoadDomainResolvers()
 	if err != nil {
-		rlog.Error("Failed to load domain resolvers", err)
+		rlog.Fatal("Failed to load domain resolvers", err)
 	}
 	DomainResolvers.RegisterHealthChecks()
-	newhealth.Register("vault", VaultClient)
-	newhealth.Register("redis", RedisDB)
-	newhealth.Register("rabbitmq", RabbitMQConnection)
+
+	newhealth.RegisterFunc(ctx, "vault", func(c context.Context) []newhealth.Check {
+		return VaultClient.CheckHealth()
+	})
+	newhealth.RegisterFunc(ctx, "redis", func(c context.Context) []newhealth.Check {
+		return RedisDB.CheckHealth()
+	})
+	newhealth.RegisterFunc(ctx, "rabbitmq", func(c context.Context) []newhealth.Check {
+		return RabbitMQConnection.CheckHealth()
+	})
 }
 
 func LoadDomainResolvers() (*userauth.DomainResolvers, error) {
 	vaultconfig, err := VaultClient.GetSecret("secret/data/v1.0/ror/config/auth")
 	if err != nil {
-		rorerror := rorerror.NewRorError(500, "error getting domain resolvers config from secret provider", err)
-		return nil, rorerror
+		rerr := rorerror.NewRorError(500, "error getting domain resolvers config from secret provider", err)
+		return nil, rerr
 	}
 	data := vaultconfig["data"]
 	drconfig, err := json.Marshal(data)
 	if err != nil {
-		rorerror := rorerror.NewRorError(500, "error marshaling secret value to json", err)
-		return nil, rorerror
+		rerr := rorerror.NewRorError(500, "error marshaling secret value to json", err)
+		return nil, rerr
 	}
 
 	return userauth.NewDomainResolversFromJson(drconfig)
