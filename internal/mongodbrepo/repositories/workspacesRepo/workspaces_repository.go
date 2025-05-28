@@ -82,7 +82,7 @@ func GetAllByIdentity(ctx context.Context) (*[]apicontracts.Workspace, error) {
 	defer func(results *mongo.Cursor, ctx context.Context) {
 		_ = results.Close(ctx)
 	}(results, ctx)
-	var workspaces []apicontracts.Workspace = make([]apicontracts.Workspace, 0)
+	var workspaces = make([]apicontracts.Workspace, 0)
 
 	if results.RemainingBatchLength() == 0 {
 		return &workspaces, nil

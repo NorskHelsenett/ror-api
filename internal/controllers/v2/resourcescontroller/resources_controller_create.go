@@ -57,8 +57,8 @@ func NewResource() gin.HandlerFunc {
 		returnArray.Results = make(map[string]rorresources.ResourceUpdateResult, len(rs.Resources))
 
 		for _, resource := range rs.Resources {
-			go func(resource *rorresources.Resource, returnChan chan rorresources.ResourceUpdateResults) {
-				returnChannel <- resourcesv2service.HandleResourceUpdate(ctx, resource)
+			go func(res *rorresources.Resource, returnChan chan rorresources.ResourceUpdateResults) {
+				returnChannel <- resourcesv2service.HandleResourceUpdate(ctx, res)
 			}(resource, returnChannel)
 		}
 

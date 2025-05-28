@@ -114,7 +114,9 @@ func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) r
 		}
 	}
 
-	sendToMessageBus(ctx, resource, resource.RorMeta.Action)
+	if err := sendToMessageBus(ctx, resource, resource.RorMeta.Action); err != nil {
+		rlog.Errorc(ctx, "Failed to send message to bus", err)
+	}
 
 	//rlog.Debug("Resource created", rlog.Any("resource", resource.GetAPIVersion()), rlog.Any("kind", resource.GetKind()), rlog.Any("name", resource.GetName()))
 	return rorresources.ResourceUpdateResults{
