@@ -6,13 +6,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/NorskHelsenett/ror-api/internal/apiservices/rulesetsService"
 	"github.com/NorskHelsenett/ror-api/internal/mongodbrepo/mongoTypes"
 
 	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/apicontracts/messages"
 
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
@@ -40,108 +38,6 @@ func CheckAndSeed(ctx context.Context) {
 	//seedInternalRuleset(ctx)
 	seedTasks(ctx)
 	seedOperatorConfigs(ctx)
-}
-
-func seedInternalRuleset(ctx context.Context) {
-	db := mongodb.GetMongoDb()
-	collection := db.Collection("messagerulesets")
-
-	switchboardCount, err := collection.CountDocuments(ctx, bson.D{{Key: "identity.type", Value: messages.RulesetIdentityTypeInternal}, {Key: "identity.id", Value: "internal-primary"}})
-	if err != nil {
-		rlog.Errorc(ctx, "could not check switchboard doc count", err)
-		return
-	}
-
-	if switchboardCount != 0 {
-		return
-	}
-
-	channelId := "C03U5CGFYQ6"
-
-	if viper.GetBool(configconsts.DEVELOPMENT) {
-		channelId = "C059W2B3Y4F"
-	}
-
-	switchboard, err := rulesetsService.CreateInternal(ctx)
-	if err != nil {
-		rlog.Errorc(ctx, "could not create internal switchboard", err)
-		return
-	}
-
-	{
-		input := messages.RulesetResourceInput{
-			Uid: "ror-api",
-		}
-
-		resource, err := rulesetsService.AddResource(ctx, switchboard.ID, &input)
-		if err != nil {
-			rlog.Errorc(ctx, "could not add resource", err)
-			return
-		}
-
-		if _, err := rulesetsService.AddResourceRule(ctx, switchboard.ID, resource.Id, &messages.RulesetRuleInput{
-			Service:  messages.RulesetServiceTypeSlack,
-			Lifetime: messages.RulesetLifetimeTypeRegular,
-			Type:     messages.RulesetRuleTypeCrashed,
-
-			Slack: messages.RulesetSlackModel{
-				ChannelId: channelId,
-			},
-		}); err != nil {
-			rlog.Errorc(ctx, "could not add resource event", err)
-			return
-		}
-
-		if _, err := rulesetsService.AddResourceRule(ctx, switchboard.ID, resource.Id, &messages.RulesetRuleInput{
-			Service:  messages.RulesetServiceTypeIgnore,
-			Lifetime: messages.RulesetLifetimeTypeRegular,
-			Type:     messages.RulesetRuleTypeCreated,
-		}); err != nil {
-			rlog.Errorc(ctx, "could not add resource event", err)
-			return
-		}
-
-		if _, err := rulesetsService.AddResourceRule(ctx, switchboard.ID, resource.Id, &messages.RulesetRuleInput{
-			Service:  messages.RulesetServiceTypeSlack,
-			Lifetime: messages.RulesetLifetimeTypeRegular,
-			Type:     messages.RulesetRuleTypeStarted,
-
-			Slack: messages.RulesetSlackModel{
-				ChannelId: channelId,
-			},
-		}); err != nil {
-			rlog.Errorc(ctx, "could not add resource event", err)
-			return
-		}
-	}
-
-	{
-		input := messages.RulesetResourceInput{
-			Uid: "ror-ms-nhn",
-		}
-
-		resource, err := rulesetsService.AddResource(ctx, switchboard.ID, &input)
-		if err != nil {
-			rlog.Errorc(ctx, "could not add resource", err)
-			return
-		}
-
-		_ = resource
-	}
-
-	{
-		input := messages.RulesetResourceInput{
-			Uid: "ror-ms-switchboard",
-		}
-
-		resource, err := rulesetsService.AddResource(ctx, switchboard.ID, &input)
-		if err != nil {
-			rlog.Errorc(ctx, "could not add resource", err)
-			return
-		}
-
-		_ = resource
-	}
 }
 
 func seedDevelopmentRulesets(ctx context.Context) {

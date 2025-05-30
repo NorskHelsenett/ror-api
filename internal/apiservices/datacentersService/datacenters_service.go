@@ -18,7 +18,7 @@ import (
 func GetAllByUser(ctx context.Context) (*[]apicontracts.Datacenter, error) {
 	datacenters, err := datacentersRepo.GetAllByUser(ctx)
 	if err != nil {
-		return nil, errors.New("Could not get datacenters")
+		return nil, errors.New("could not get datacenters")
 	}
 
 	return datacenters, nil

@@ -254,10 +254,7 @@ func CreateForAgent(ctx context.Context, input *apicontracts.AgentApiKeyModel) (
 		return "", err
 	}
 
-	clusterExist := false
-	if existingCluster != nil && existingCluster.ClusterId != "" {
-		clusterExist = true
-	}
+	clusterExist := existingCluster != nil && existingCluster.ClusterId != ""
 
 	var clusterId string
 	if !clusterExist {
@@ -342,6 +339,9 @@ func CreateOrRenew(ctx context.Context, req *apicontractsv2self.CreateOrRenewApi
 		newkey.Expires = expires
 
 		_, err = auditlog.Create(ctx, "Apikey updated", models.AuditCategoryApikey, models.AuditActionUpdate, identity.User, existing, newkey)
+		if err != nil {
+			rlog.Errorc(ctx, "Failed to create audit log for API key update", err)
+		}
 	} else {
 
 		newkey := apicontracts.ApiKey{
@@ -357,6 +357,9 @@ func CreateOrRenew(ctx context.Context, req *apicontractsv2self.CreateOrRenewApi
 			return nil, err
 		}
 		_, err = auditlog.Create(ctx, "Apikey created", models.AuditCategoryApikey, models.AuditActionCreate, identity.User, newkey, nil)
+		if err != nil {
+			rlog.Errorc(ctx, "Failed to create audit log for API key creation", err)
+		}
 	}
 
 	resp.Token = token.String()
