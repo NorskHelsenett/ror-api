@@ -68,12 +68,12 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 	configCollection := db.Collection(CollectionName)
 	results, err := db.Collection(CollectionName).Aggregate(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("Could not get tasks: %v", err)
+		return nil, fmt.Errorf("could not get tasks: %v", err)
 	}
 
 	totalCountResult, err := configCollection.Aggregate(ctx, totalCountQuery)
 	if err != nil {
-		return nil, fmt.Errorf("Could not get tasks: %v", err)
+		return nil, fmt.Errorf("could not get tasks: %v", err)
 	}
 
 	var totalCountAcc []bson.M

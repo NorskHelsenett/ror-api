@@ -168,7 +168,7 @@ func GetHashList(ctx context.Context, owner apiresourcecontracts.ResourceOwnerRe
 	}(results, ctx)
 
 	if results.RemainingBatchLength() == 0 {
-		var hashItems []apiresourcecontracts.HashItem = make([]apiresourcecontracts.HashItem, 0)
+		var hashItems = make([]apiresourcecontracts.HashItem, 0)
 		hashList.Items = hashItems
 		return hashList, nil
 	}

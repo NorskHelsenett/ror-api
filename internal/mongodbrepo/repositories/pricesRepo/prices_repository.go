@@ -31,7 +31,7 @@ func GetAll(ctx context.Context) (*[]apicontracts.Price, error) {
 		return nil, errors.New("Could not get all prices")
 	}
 
-	var prices []apicontracts.Price = make([]apicontracts.Price, 0)
+	var prices = make([]apicontracts.Price, 0)
 	if cursor.RemainingBatchLength() == 0 {
 		return &prices, nil
 	}

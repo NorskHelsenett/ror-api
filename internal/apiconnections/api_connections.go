@@ -17,7 +17,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
-	newhealth "github.com/dotse/go-health"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorhealth"
 	"github.com/spf13/viper"
 )
 

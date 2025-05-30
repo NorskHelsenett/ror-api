@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
+	"github.com/NorskHelsenett/ror/pkg/handlers/ginresourcequeryhandler"
 
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
@@ -40,16 +41,30 @@ func GetResources() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		q := c.Query("query")
+		var rsQuery *rorresources.ResourceQuery
 
-		rsQuery := rorresources.NewResourceQuery()
-		base64Query, err := base64.StdEncoding.DecodeString(q)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, "400: Invalid base64 query")
-			return
+
+		testQuery := c.Query("query") == ""
+		if testQuery {
+			rsQuery = ginresourcequeryhandler.ParseResourceQuery(c)
+		} 
+		
+		if !testQuery {
+			// Decode the base64 query
+			base64Query, err := base64.StdEncoding.DecodeString(c.Query("query"))
+			if err != nil {
+				c.JSON(http.StatusBadRequest, "400: Invalid base64 query")
+				return
+			}
+
+			rsQuery = rorresources.NewResourceQuery()
+			err = json.Unmarshal(base64Query, rsQuery)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, "400: Invalid query")
+				return
+			}
 		}
-		err = json.Unmarshal(base64Query, rsQuery)
-		if err != nil {
+		if rsQuery == nil {
 			c.JSON(http.StatusBadRequest, "400: Invalid query")
 			return
 		}

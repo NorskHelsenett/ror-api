@@ -1,13 +1,5 @@
 package m2m
 
 import (
-	"github.com/go-playground/validator/v10"
+	_ "github.com/go-playground/validator/v10" // imported for future use
 )
-
-var (
-	validate *validator.Validate
-)
-
-func init() {
-	validate = validator.New()
-}
