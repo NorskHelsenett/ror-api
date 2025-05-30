@@ -43,16 +43,9 @@ func InitConnections(ctx context.Context) {
 		rlog.Fatal("Failed to load domain resolvers", err)
 	}
 	DomainResolvers.RegisterHealthChecks()
-
-	newhealth.RegisterFunc(ctx, "vault", func(c context.Context) []newhealth.Check {
-		return VaultClient.CheckHealth()
-	})
-	newhealth.RegisterFunc(ctx, "redis", func(c context.Context) []newhealth.Check {
-		return RedisDB.CheckHealth()
-	})
-	newhealth.RegisterFunc(ctx, "rabbitmq", func(c context.Context) []newhealth.Check {
-		return RabbitMQConnection.CheckHealth()
-	})
+	rorhealth.Register("vault", VaultClient)
+	rorhealth.Register("redis", RedisDB)
+	rorhealth.Register("rabbitmq", RabbitMQConnection)
 }
 
 func LoadDomainResolvers() (*userauth.DomainResolvers, error) {
