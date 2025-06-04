@@ -11,6 +11,12 @@ jobs:
   helm-test:
     runs-on: ubuntu-latest
     steps:
+      - name: install-yq
+        run: |
+          wget https://github.com/mikefarah/yq/releases/download/${VERSION}/${BINARY}.tar.gz -O - | tar xz && mv ${BINARY} yq && chmod +x yq
+        env:
+          VERSION: v4.44.5
+          BINARY: yq_linux_amd64
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -39,7 +45,7 @@ jobs:
 
       - name: Run chart-testing (lint)
         if: steps.list-changed.outputs.changed == 'true'
-        run: ct lint --target-branch ${{ github.event.repository.default_branch }}
+        run: ct lint ct lint --config hacks/lint/yt.yaml --target-branch ${{ github.event.repository.default_branch }}
 
       - name: Create kind cluster
         if: steps.list-changed.outputs.changed == 'true'
