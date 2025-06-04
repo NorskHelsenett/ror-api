@@ -67,7 +67,7 @@ func Create(ctx context.Context, taskInput *apicontracts.Task) (*apicontracts.Ta
 		return exists, fmt.Errorf("task already exists")
 	}
 
-	if !(strings.HasPrefix(taskInput.Config.Version, "sha") && strings.Contains(taskInput.Config.Version, ":")) {
+	if !strings.HasPrefix(taskInput.Config.Version, "sha") || !strings.Contains(taskInput.Config.Version, ":") {
 		version, err := semverv4.Parse(taskInput.Config.Version)
 		rlog.Debugc(ctx, "version", rlog.Any("version", version))
 		if err != nil {
@@ -91,7 +91,7 @@ func Create(ctx context.Context, taskInput *apicontracts.Task) (*apicontracts.Ta
 func Update(ctx context.Context, taskId string, taskInput *apicontracts.Task) (*apicontracts.Task, *apicontracts.Task, error) {
 	identity := rorcontext.GetIdentityFromRorContext(ctx)
 
-	if !(strings.HasPrefix(taskInput.Config.Version, "sha") && strings.Contains(taskInput.Config.Version, ":")) {
+	if !strings.HasPrefix(taskInput.Config.Version, "sha") || !strings.Contains(taskInput.Config.Version, ":") {
 		_, err := semverv4.Parse(taskInput.Config.Version)
 		if err != nil {
 			return nil, nil, fmt.Errorf("task.version is not valid: %s", taskInput.Config.Version)

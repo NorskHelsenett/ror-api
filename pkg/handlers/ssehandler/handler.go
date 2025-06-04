@@ -64,7 +64,7 @@ func HandleSSE() gin.HandlerFunc {
 				default:
 					time.Sleep(time.Second * 1)
 					writeLock.Lock()
-					c.Writer.Write([]byte(":keepalive\n"))
+					_, _ = c.Writer.Write([]byte(":keepalive\n"))
 					c.Writer.Flush()
 					writeLock.Unlock()
 				}

@@ -127,8 +127,8 @@ func ValidateOrder(ctx context.Context, order apiresourcecontracts.ResourceClust
 		specClusterName := strings.ToLower(clusterOrder.Spec.Cluster)
 		clusterName := strings.ToLower(order.Cluster)
 		if specClusterName == clusterName &&
-			!(clusterOrder.Status.Phase == apiresourcecontracts.ResourceClusterOrderStatusPhaseCompleted ||
-				clusterOrder.Status.Phase == apiresourcecontracts.ResourceClusterOrderStatusPhaseFailed) {
+			clusterOrder.Status.Phase != apiresourcecontracts.ResourceClusterOrderStatusPhaseCompleted &&
+			clusterOrder.Status.Phase != apiresourcecontracts.ResourceClusterOrderStatusPhaseFailed {
 			return errors.New("clusterOrder with clusterName is already running")
 		}
 	}

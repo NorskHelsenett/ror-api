@@ -85,7 +85,7 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) ([]apicontrac
 
 	totalCount, err := mongodb.CountWithQuery(ctx, collectionName, aggregationPipeline)
 	if err != nil {
-		return nil, 0, fmt.Errorf("Could not get total count for apikey: %v", err)
+		return nil, 0, fmt.Errorf("could not get total count for apikey: %v", err)
 	}
 	return results, totalCount, nil
 }
