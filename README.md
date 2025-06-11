@@ -1,3 +1,5 @@
+[![Dependabot Updates](https://github.com/NorskHelsenett/ror-api/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/NorskHelsenett/ror-api/actions/workflows/dependabot/dependabot-updates)
+
 # ROR-API
 
 WebAPI made with Golang and Gin WebAPI framework
