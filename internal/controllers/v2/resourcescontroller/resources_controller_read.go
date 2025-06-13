@@ -24,7 +24,7 @@ import (
 //	@Accept			application/json
 //	@Produce		application/json
 //
-// @Param q query string false "A general query string"
+// @Param q query string false "A general query string (NOT IMPLEMENTED YET)"
 // @Param apiversion query string false "The API version for the resource (e.g., 'v1' or 'apps/v1')"
 // @Param kind query string false "The kind of resource"
 // @Param ownerrefs query string false "JSON array of owner references [{'scope': '...', 'subject': '...'}]"
@@ -34,7 +34,7 @@ import (
 // @Param filters query string false "JSON array of filter objects [{'field':'field1','value':'value1','type':'string','operator':'eq'}]"
 // @Param offset query int false "Starting offset for pagination"
 // @Param limit query int false "Maximum number of results to return"
-// @Success		200				{array}		rorresources.ResourceSet
+// @Success		200				{object}		rorresources.ResourceSet
 // @Failure		403				{string}	Forbidden
 // @Failure		400				{object}	rorerror.RorError
 // @Failure		401				{object}	rorerror.RorError
