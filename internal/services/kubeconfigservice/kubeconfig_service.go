@@ -89,7 +89,11 @@ func getKubeconfig(configPayload apicontracts.TanzuKubeConfigPayload) (string, e
 		rlog.Error("failed to get kubeconfig", err)
 		return "", err
 	}
-	defer response.Body.Close()
+	defer func() {
+		if closeErr := response.Body.Close(); closeErr != nil {
+			rlog.Error("Failed to close response body", closeErr)
+		}
+	}()
 
 	if response.StatusCode != http.StatusOK {
 		err = fmt.Errorf("failed to get kubeconfig, status code: %d", response.StatusCode)

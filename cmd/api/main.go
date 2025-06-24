@@ -92,8 +92,13 @@ func main() {
 		done <- struct{}{}
 	}()
 	sseserver.StartEventServer()
-	rlog.Infoc(ctx, "Initializing health server")
-	_ = healthserver.Start(healthserver.ServerString(apiconfig.GetHealthEndpoint()))
+	rlog.Infoc(ctx, "Initializing health server", rlog.String("endpoint", apiconfig.GetHealthEndpoint()))
+	err := healthserver.Start(healthserver.ServerString(apiconfig.GetHealthEndpoint()))
+
+	if err != nil {
+		rlog.Error("Failed to start health server", err)
+		os.Exit(1)
+	}
 
 	if apiconnections.RabbitMQConnection.Ping() {
 		switchboard.PublishStarted(ctx)

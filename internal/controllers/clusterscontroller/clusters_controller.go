@@ -533,7 +533,7 @@ func GetKubeconfig() gin.HandlerFunc {
 
 		//aclModel := aclmodels.NewAclV2QueryAccessScopeSubject(scope, clusterId)
 		access := aclrepository.CheckAcl2ByCluster(ctx, accessQuery)
-		var hasAccess bool = false
+		var hasAccess = false
 		for _, acl := range access {
 			if acl.Kubernetes.Logon {
 				hasAccess = true

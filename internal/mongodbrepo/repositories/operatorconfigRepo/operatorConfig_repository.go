@@ -96,17 +96,17 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 	configCollection := db.Collection(CollectionName)
 	results, err := db.Collection(CollectionName).Aggregate(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("Could not get operator configs: %v", err)
+		return nil, fmt.Errorf("could not get operator configs: %v", err)
 	}
 
 	totalCountResult, err := configCollection.Aggregate(ctx, totalCountQuery)
 	if err != nil {
-		return nil, fmt.Errorf("Could not get operator configs: %v", err)
+		return nil, fmt.Errorf("could not get operator configs: %v", err)
 	}
 
 	var totalCountAcc []bson.M
 	if err = totalCountResult.All(ctx, &totalCountAcc); err != nil {
-		return nil, fmt.Errorf("Could not get total count for operator configs: %v", err)
+		return nil, fmt.Errorf("could not get total count for operator configs: %v", err)
 	}
 
 	totalCount := len(totalCountAcc)
@@ -120,7 +120,7 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 		return &emptyResult, nil
 	}
 
-	var operatorConfigs []apicontracts.OperatorConfig = make([]apicontracts.OperatorConfig, 0)
+	var operatorConfigs = make([]apicontracts.OperatorConfig, 0)
 	paginatedResult := apicontracts.PaginatedResult[apicontracts.OperatorConfig]{}
 	for results.Next(ctx) {
 		var element apicontracts.OperatorConfig
@@ -202,7 +202,7 @@ func GetAll(ctx context.Context) (*[]apicontracts.OperatorConfig, error) {
 		return nil, errors.New("Could not get all operator configs")
 	}
 
-	var result []apicontracts.OperatorConfig = make([]apicontracts.OperatorConfig, 0)
+	var result = make([]apicontracts.OperatorConfig, 0)
 	if cursor.RemainingBatchLength() == 0 {
 		return &result, nil
 	}

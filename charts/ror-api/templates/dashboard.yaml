@@ -1,8 +1,9 @@
+{{- if (eq .Values.grafanaDashboard.enabled true) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: ror-api-dashboard
-  namespace: prometheus-operator
+  namespace: {{ .Values.grafanaDashboard.namespace }}
   labels:
     grafana_dashboard: "1"
 data:
@@ -1121,3 +1122,4 @@ data:
       "version": 1,
       "weekStart": ""
     }
+{{- end }}

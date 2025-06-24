@@ -13,15 +13,75 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+coverage.html
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# Dependency directories
+vendor/
 
 # Go workspace file
 go.work
 go.work.sum
 
-# env file
+# Build artifacts
+dist/
+tmp/
+
+# Environment files
 .env
+.env.local
+.env.*.local
+
+# Debug binaries
 cmd/api/__debug_bin*
+__debug_bin*
+
+# IDE files
 .vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Log files
+*.log
+build-errors.log
+
+# Profiling files
+*.prof
+*.pprof
+
+# Air live reload
+tmp/
+
+# Kubernetes
+*.kubeconfig
+
+# Helm
+charts/*.tgz
+
+# Temporary files
+*.tmp
+*.temp
+
+# Certificate files
+*.pem
+*.key
+*.crt
+*.csr
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Cache directories
+.cache/

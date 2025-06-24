@@ -6799,6 +6799,59 @@ const docTemplate = `{
                 }
             }
         },
+        "/v2/events/listen": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Listen to server sent events",
+                "consumes": [
+                    "text/event-stream"
+                ],
+                "produces": [
+                    "text/event-stream"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "Server sent events",
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.RorError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.RorError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.RorError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.RorError"
+                        }
+                    }
+                }
+            }
+        },
         "/v2/resource/uid/{uid}": {
             "get": {
                 "security": [
@@ -6825,42 +6878,6 @@ const docTemplate = `{
                         "name": "uid",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "enum": [
-                            "",
-                            "ror",
-                            "cluster",
-                            "project",
-                            "datacenter",
-                            "virtualmachine"
-                        ],
-                        "type": "string",
-                        "description": "The kind of the owner, currently only support 'Cluster'",
-                        "name": "ownerScope",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "The name og the owner",
-                        "name": "ownerSubject",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "ApiVersion",
-                        "name": "apiversion",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Kind",
-                        "name": "kind",
-                        "in": "query",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -6869,7 +6886,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/apiresourcecontracts.ResourceNode"
+                                "$ref": "#/definitions/rorresources.Resource"
                             }
                         }
                     },
@@ -6915,50 +6932,71 @@ const docTemplate = `{
                 "summary": "Get resources",
                 "parameters": [
                     {
-                        "enum": [
-                            "",
-                            "ror",
-                            "cluster",
-                            "project",
-                            "datacenter",
-                            "virtualmachine"
-                        ],
                         "type": "string",
-                        "description": "The kind of the owner, currently only support 'Cluster'",
-                        "name": "ownerScope",
-                        "in": "query",
-                        "required": true
+                        "description": "A general query string (NOT IMPLEMENTED YET)",
+                        "name": "q",
+                        "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "The name og the owner",
-                        "name": "ownerSubject",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "ApiVersion",
+                        "description": "The API version for the resource (e.g., 'v1' or 'apps/v1')",
                         "name": "apiversion",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Kind",
+                        "description": "The kind of resource",
                         "name": "kind",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "JSON array of owner references [{'scope': '...', 'subject': '...'}]",
+                        "name": "ownerrefs",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated list of UIDs",
+                        "name": "uids",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated list of fields to include",
+                        "name": "fields",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated list of fields to sort by (+field for ascending, -field for descending)",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "JSON array of filter objects [{'field':'field1','value':'value1','type':'string','operator':'eq'}]",
+                        "name": "filters",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Starting offset for pagination",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum number of results to return",
+                        "name": "limit",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/apiresourcecontracts.ResourceNode"
-                            }
+                            "$ref": "#/definitions/rorresources.ResourceSet"
                         }
                     },
                     "400": {
@@ -10432,9 +10470,6 @@ const docTemplate = `{
                 "virtualmachineclass": {
                     "$ref": "#/definitions/rortypes.ResourceVirtualMachineClass"
                 },
-                "virtualmachineclassbinding": {
-                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineClassBinding"
-                },
                 "vulnerabilityevent": {
                     "$ref": "#/definitions/rortypes.ResourceVulnerabilityEvent"
                 },
@@ -10485,6 +10520,129 @@ const docTemplate = `{
                 },
                 "total": {
                     "type": "integer"
+                }
+            }
+        },
+        "rortypes.Autoscaling": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "maxReplicas": {
+                    "type": "integer"
+                },
+                "minReplicas": {
+                    "type": "integer"
+                },
+                "scalingRules": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "rortypes.ClusterDetails": {
+            "type": "object",
+            "properties": {
+                "controlplane": {
+                    "$ref": "#/definitions/rortypes.ControlPlaneStatus"
+                },
+                "externalId": {
+                    "type": "string"
+                },
+                "resources": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.Resource"
+                    }
+                },
+                "workers": {
+                    "$ref": "#/definitions/rortypes.WorkerStatus"
+                }
+            }
+        },
+        "rortypes.ClusterState": {
+            "type": "object",
+            "properties": {
+                "cluster": {
+                    "$ref": "#/definitions/rortypes.ClusterDetails"
+                },
+                "controlplaneendpoint": {
+                    "type": "string"
+                },
+                "created": {
+                    "type": "string"
+                },
+                "egressIP": {
+                    "type": "string"
+                },
+                "lastUpdated": {
+                    "type": "string"
+                },
+                "lastUpdatedBy": {
+                    "type": "string"
+                },
+                "versions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.Version"
+                    }
+                }
+            }
+        },
+        "rortypes.Condition": {
+            "type": "object",
+            "properties": {
+                "lastTransitionTime": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ControlPlane": {
+            "type": "object",
+            "properties": {
+                "machineClass": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/rortypes.MetadataDetails"
+                },
+                "provider": {
+                    "type": "string"
+                },
+                "replicas": {
+                    "type": "integer"
+                },
+                "storage": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.Storage"
+                    }
+                }
+            }
+        },
+        "rortypes.ControlPlaneStatus": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },
@@ -10556,6 +10714,135 @@ const docTemplate = `{
                 "EnvironmentProduction"
             ]
         },
+        "rortypes.KubernetesClusterSpec": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/rortypes.KubernetesClusterSpecData"
+                },
+                "topology": {
+                    "$ref": "#/definitions/rortypes.KubernetesClusterSpecTopology"
+                }
+            }
+        },
+        "rortypes.KubernetesClusterSpecData": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "type": "string"
+                },
+                "datacenter": {
+                    "type": "string"
+                },
+                "environment": {
+                    "type": "string"
+                },
+                "project": {
+                    "type": "string"
+                },
+                "provider": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "workorder": {
+                    "type": "string"
+                },
+                "workspace": {
+                    "type": "string"
+                },
+                "zone": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.KubernetesClusterSpecTopology": {
+            "type": "object",
+            "properties": {
+                "controlplane": {
+                    "$ref": "#/definitions/rortypes.ControlPlane"
+                },
+                "version": {
+                    "type": "string"
+                },
+                "workers": {
+                    "$ref": "#/definitions/rortypes.Workers"
+                }
+            }
+        },
+        "rortypes.KubernetesClusterStatus": {
+            "type": "object",
+            "properties": {
+                "conditions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.Condition"
+                    }
+                },
+                "phase": {
+                    "description": "Provisioning, Running, Deleting, Failed, Updating",
+                    "type": "string"
+                },
+                "state": {
+                    "$ref": "#/definitions/rortypes.ClusterState"
+                }
+            }
+        },
+        "rortypes.MetadataDetails": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "rortypes.NodePool": {
+            "type": "object",
+            "properties": {
+                "autoscaling": {
+                    "$ref": "#/definitions/rortypes.Autoscaling"
+                },
+                "machineClass": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/rortypes.MetadataDetails"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "provider": {
+                    "type": "string"
+                },
+                "replicas": {
+                    "type": "integer"
+                }
+            }
+        },
+        "rortypes.NodePoolStatus": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "rortypes.ProviderType": {
             "type": "string",
             "enum": [
@@ -10570,6 +10857,20 @@ const docTemplate = `{
                 "ProviderTypeAzure",
                 "ProviderTypeK3d"
             ]
+        },
+        "rortypes.Resource": {
+            "type": "object",
+            "properties": {
+                "allocated": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "usage": {
+                    "type": "string"
+                }
+            }
         },
         "rortypes.ResourceAction": {
             "type": "string",
@@ -10792,18 +11093,14 @@ const docTemplate = `{
         "rortypes.ResourceBackupDestination": {
             "type": "object",
             "properties": {
-                "Status": {
-                    "description": "Status spesific to the destination - remote being unavailable",
-                    "type": "string"
-                },
-                "expiryTime": {
-                    "description": "ExpiryTime is defined per destination",
-                    "type": "string"
-                },
                 "id": {
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status spesific to the destination - remote being unavailable",
                     "type": "string"
                 },
                 "type": {
@@ -10815,6 +11112,15 @@ const docTemplate = `{
         "rortypes.ResourceBackupJob": {
             "type": "object",
             "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "provider": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
                 "spec": {
                     "$ref": "#/definitions/rortypes.ResourceBackupJobSpec"
                 },
@@ -10826,30 +11132,25 @@ const docTemplate = `{
         "rortypes.ResourceBackupJobSpec": {
             "type": "object",
             "properties": {
-                "backupDestination": {
+                "activeTargets": {
+                    "description": "Direct targets for this backup job",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceBackupTarget"
+                    }
+                },
+                "backupDestinations": {
+                    "description": "Any destination defined by this backup job",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/rortypes.ResourceBackupDestination"
                     }
                 },
-                "directBackupTarget": {
+                "indirectBackupTargets": {
+                    "description": "Indirect targets for this backup job",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/rortypes.ResourceIndirectBackupTarget"
-                    }
-                },
-                "endTime": {
-                    "description": "Some backup systems allow EndTime to be defined per backupJob, while some use policies",
-                    "type": "string"
-                },
-                "expiryTime": {
-                    "description": "Some backup systems allow ExpiryTime to be defined per backupJob, while some use policies",
-                    "type": "string"
-                },
-                "indirectBackupTarget": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.ResourceDirectBackupTarget"
                     }
                 },
                 "name": {
@@ -10857,20 +11158,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "policyId": {
-                    "description": "Defines the policy id at the local system that defines the rules for the data, how long it's stored\nwhere's it's stored, and other options",
+                    "description": "Defines the policy if applicable at the local system\nIf policies are not used these can be left as blank",
                     "type": "string"
                 },
-                "sourceId": {
-                    "description": "Defines the id of the system the run originates from",
-                    "type": "string"
-                },
-                "sourceName": {
-                    "description": "Defines the name of the system the run originates from",
-                    "type": "string"
-                },
-                "startTime": {
-                    "description": "Some backup systems allow StartTime to be defined per backupJob, while some use policies",
-                    "type": "string"
+                "schedules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceBackupSchedule"
+                    }
                 },
                 "status": {
                     "description": "Status of the backup job, active, paused, etc.",
@@ -10881,54 +11176,168 @@ const docTemplate = `{
         "rortypes.ResourceBackupJobStatus": {
             "type": "object",
             "properties": {
-                "backupDestination": {
+                "activeTargets": {
+                    "description": "Direct targets for this backup job",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceBackupTarget"
+                    }
+                },
+                "backupDestinations": {
+                    "description": "Any destination defined by this backup job",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/rortypes.ResourceBackupDestination"
                     }
                 },
-                "directBackupTarget": {
+                "indirectBackupTargets": {
+                    "description": "Indirect targets for this backup job",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/rortypes.ResourceIndirectBackupTarget"
                     }
                 },
-                "endTime": {
-                    "description": "Some backup systems allow EndTime to be defined per backupJob, while some use policies",
+                "lastUpdated": {
                     "type": "string"
                 },
-                "expiryTime": {
-                    "description": "Some backup systems allow ExpiryTime to be defined per backupJob, while some use policies",
+                "location": {
                     "type": "string"
-                },
-                "indirectBackupTarget": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.ResourceDirectBackupTarget"
-                    }
                 },
                 "name": {
                     "description": "The name of the job",
                     "type": "string"
                 },
                 "policyId": {
-                    "description": "Defines the policy id at the local system that defines the rules for the data, how long it's stored\nwhere's it's stored, and other options",
+                    "description": "Defines the policy if applicable at the local system\nIf policies are not used these can be left as blank",
                     "type": "string"
                 },
-                "sourceId": {
-                    "description": "Defines the id of the system the run originates from",
+                "policyName": {
                     "type": "string"
                 },
-                "sourceName": {
-                    "description": "Defines the name of the system the run originates from",
-                    "type": "string"
+                "runs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceBackupRun"
+                    }
                 },
-                "startTime": {
-                    "description": "Some backup systems allow StartTime to be defined per backupJob, while some use policies",
-                    "type": "string"
+                "schedules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceBackupSchedule"
+                    }
                 },
                 "status": {
                     "description": "Status of the backup job, active, paused, etc.",
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceBackupRetention": {
+            "type": "object",
+            "properties": {
+                "duration": {
+                    "type": "integer"
+                },
+                "unit": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceBackupRun": {
+            "type": "object",
+            "properties": {
+                "backupDestinations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceBackupRunDestination"
+                    }
+                },
+                "backupStorage": {
+                    "$ref": "#/definitions/rortypes.ResourceBackupStorage"
+                },
+                "backupTargets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceBackupTarget"
+                    }
+                },
+                "endTime": {
+                    "description": "When the run was finished",
+                    "type": "string"
+                },
+                "expiryTime": {
+                    "description": "When the run will expire and be deleted",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "When the run was started",
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceBackupRunDestination": {
+            "type": "object",
+            "properties": {
+                "expiryTime": {
+                    "description": "ExpiryTime is defined per destination",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status spesific to the destination - remote being unavailable",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Local, remote, archive, etc.",
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceBackupSchedule": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "description": "When will the job be forcibly stopped, if empty it will continue indefinitely",
+                    "type": "string"
+                },
+                "frequency": {
+                    "description": "How many time per unit will this backup run",
+                    "type": "integer"
+                },
+                "retention": {
+                    "$ref": "#/definitions/rortypes.ResourceBackupRetention"
+                },
+                "startTime": {
+                    "description": "When will the job start",
+                    "type": "string"
+                },
+                "unit": {
+                    "description": "What unit of time is this schedule going to run in",
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceBackupSource": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "uuid": {
                     "type": "string"
                 }
             }
@@ -10949,6 +11358,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "unit": {
+                    "description": "What unit are the sizes in",
                     "type": "string"
                 }
             }
@@ -10956,12 +11366,9 @@ const docTemplate = `{
         "rortypes.ResourceBackupTarget": {
             "type": "object",
             "properties": {
-                "externalIds": {
-                    "description": "Defines any external ids by the backup system(s)",
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
+                "externalId": {
+                    "description": "Defines any external id",
+                    "type": "string"
                 },
                 "id": {
                     "description": "Defines the object's id",
@@ -10970,6 +11377,14 @@ const docTemplate = `{
                 "name": {
                     "description": "Defines the object's name",
                     "type": "string"
+                },
+                "source": {
+                    "description": "Defines the source of this object to the backup system",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/rortypes.ResourceBackupSource"
+                        }
+                    ]
                 }
             }
         },
@@ -11193,7 +11608,7 @@ const docTemplate = `{
                 "conditions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/rortypes.ResourceKubernetesClusterStatusCondition"
+                        "$ref": "#/definitions/rortypes.ResourceKubernetesClusterOrderStatusCondition"
                     }
                 },
                 "createdTime": {
@@ -11428,36 +11843,6 @@ const docTemplate = `{
                 },
                 "updatedReplicas": {
                     "type": "integer"
-                }
-            }
-        },
-        "rortypes.ResourceDirectBackupTarget": {
-            "type": "object",
-            "properties": {
-                "backupDestination": {
-                    "description": "A run can have multiple destinations defined into a single job",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.ResourceBackupDestination"
-                    }
-                },
-                "backupStorage": {
-                    "$ref": "#/definitions/rortypes.ResourceBackupStorage"
-                },
-                "backupTargets": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.ResourceBackupTarget"
-                    }
-                },
-                "endTime": {
-                    "type": "string"
-                },
-                "expiryTime": {
-                    "type": "string"
-                },
-                "startTime": {
-                    "type": "string"
                 }
             }
         },
@@ -11836,185 +12221,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "spec": {
-                    "$ref": "#/definitions/rortypes.ResourceKubernetesClusterSpec"
+                    "$ref": "#/definitions/rortypes.KubernetesClusterSpec"
                 },
                 "status": {
-                    "$ref": "#/definitions/rortypes.ResourceKubernetesClusterStatus"
+                    "$ref": "#/definitions/rortypes.KubernetesClusterStatus"
                 }
             }
         },
-        "rortypes.ResourceKubernetesClusterSpec": {
-            "type": "object",
-            "properties": {
-                "clusterId": {
-                    "type": "string"
-                },
-                "clusterName": {
-                    "type": "string"
-                },
-                "createdBy": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "endpoints": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.ResourceKubernetesClusterSpecEndpoint"
-                    }
-                },
-                "environment": {
-                    "type": "string"
-                },
-                "project": {
-                    "type": "string"
-                },
-                "provider": {
-                    "type": "string"
-                },
-                "providerSpec": {
-                    "$ref": "#/definitions/rortypes.ResourceKubernetesClusterSpecProviderSpec"
-                },
-                "toolingConfig": {
-                    "$ref": "#/definitions/rortypes.ResourceKubernetesClusterSpecToolingConfig"
-                },
-                "topology": {
-                    "$ref": "#/definitions/rortypes.ResourceKubernetesClusterSpecTopology"
-                }
-            }
-        },
-        "rortypes.ResourceKubernetesClusterSpecEndpoint": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "rortypes.ResourceKubernetesClusterSpecProviderSpec": {
-            "type": "object",
-            "properties": {
-                "azureSpec": {
-                    "$ref": "#/definitions/rortypes.ResourceKubernetesClusterSpecProviderSpecAzureSpec"
-                },
-                "tanzuSpec": {
-                    "$ref": "#/definitions/rortypes.ResourceKubernetesClusterSpecProviderSpecTanzuSpec"
-                }
-            }
-        },
-        "rortypes.ResourceKubernetesClusterSpecProviderSpecAzureSpec": {
-            "type": "object",
-            "properties": {
-                "resourceGroup": {
-                    "type": "string"
-                },
-                "subscriptionId": {
-                    "type": "string"
-                }
-            }
-        },
-        "rortypes.ResourceKubernetesClusterSpecProviderSpecTanzuSpec": {
-            "type": "object",
-            "properties": {
-                "namespace": {
-                    "type": "string"
-                },
-                "supervisorClusterName": {
-                    "type": "string"
-                }
-            }
-        },
-        "rortypes.ResourceKubernetesClusterSpecToolingConfig": {
-            "type": "object",
-            "properties": {
-                "splunkIndex": {
-                    "type": "string"
-                }
-            }
-        },
-        "rortypes.ResourceKubernetesClusterSpecTopology": {
-            "type": "object",
-            "properties": {
-                "controlPlane": {
-                    "$ref": "#/definitions/rortypes.ResourceKubernetesClusterSpecTopologyControlPlane"
-                },
-                "workers": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.ResourceKubernetesClusterSpecTopologyWorkers"
-                    }
-                }
-            }
-        },
-        "rortypes.ResourceKubernetesClusterSpecTopologyControlPlane": {
-            "type": "object",
-            "properties": {
-                "machineClass": {
-                    "type": "string"
-                },
-                "replicas": {
-                    "type": "integer"
-                },
-                "version": {
-                    "type": "string"
-                }
-            }
-        },
-        "rortypes.ResourceKubernetesClusterSpecTopologyWorkers": {
-            "type": "object",
-            "properties": {
-                "machineClass": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "replicas": {
-                    "type": "integer"
-                },
-                "version": {
-                    "type": "string"
-                }
-            }
-        },
-        "rortypes.ResourceKubernetesClusterStatus": {
-            "type": "object",
-            "properties": {
-                "conditions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.ResourceKubernetesClusterStatusCondition"
-                    }
-                },
-                "createdTime": {
-                    "type": "string"
-                },
-                "kubernetesVersion": {
-                    "type": "string"
-                },
-                "lastObservedTime": {
-                    "type": "string"
-                },
-                "phase": {
-                    "type": "string"
-                },
-                "providerStatus": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "status": {
-                    "type": "string"
-                },
-                "updatedTime": {
-                    "type": "string"
-                }
-            }
-        },
-        "rortypes.ResourceKubernetesClusterStatusCondition": {
+        "rortypes.ResourceKubernetesClusterOrderStatusCondition": {
             "type": "object",
             "properties": {
                 "lastTransitionTime": {
@@ -13518,10 +13732,11 @@ const docTemplate = `{
         "rortypes.ResourceVirtualMachine": {
             "type": "object",
             "properties": {
-                "id": {
+                "externalId": {
+                    "description": "This is the ID of the vm in the hypervisor layer",
                     "type": "string"
                 },
-                "name": {
+                "provider": {
                     "type": "string"
                 },
                 "spec": {
@@ -13543,28 +13758,6 @@ const docTemplate = `{
                     "additionalProperties": {
                         "type": "string"
                     }
-                }
-            }
-        },
-        "rortypes.ResourceVirtualMachineClassBinding": {
-            "type": "object",
-            "properties": {
-                "classRef": {
-                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineClassBindingClassRef"
-                }
-            }
-        },
-        "rortypes.ResourceVirtualMachineClassBindingClassRef": {
-            "type": "object",
-            "properties": {
-                "apiVersion": {
-                    "type": "string"
-                },
-                "kind": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
                 }
             }
         },
@@ -13610,9 +13803,6 @@ const docTemplate = `{
                     "description": "cores per socket",
                     "type": "integer"
                 },
-                "id": {
-                    "type": "string"
-                },
                 "sockets": {
                     "type": "integer"
                 }
@@ -13621,15 +13811,19 @@ const docTemplate = `{
         "rortypes.ResourceVirtualMachineCpuStatus": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "string"
+                "coresPerSocket": {
+                    "description": "cores per socket",
+                    "type": "integer"
+                },
+                "sockets": {
+                    "type": "integer"
                 },
                 "unit": {
                     "description": "describes what unit the usage is given in",
                     "type": "string"
                 },
                 "usage": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
@@ -13656,17 +13850,27 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "usageBytes": {
+                "isMounted": {
+                    "description": "is this disk mounted by the os? A disk might be attached to the vm but\nnot mounted by the OS, it can also be unknown because the vm might not report\nthis or may not have tools installed, false can mean we dont know or that\nit is actually not mounted.",
+                    "type": "boolean"
+                },
+                "name": {
                     "type": "string"
+                },
+                "sizeBytes": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "usageBytes": {
+                    "type": "integer"
                 }
             }
         },
         "rortypes.ResourceVirtualMachineMemorySpec": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "string"
-                },
                 "sizeBytes": {
                     "type": "integer"
                 }
@@ -13675,19 +13879,19 @@ const docTemplate = `{
         "rortypes.ResourceVirtualMachineMemoryStatus": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "string"
+                "sizeBytes": {
+                    "type": "integer"
                 },
                 "unit": {
                     "description": "describes what unit the usage is given in",
                     "type": "string"
                 },
                 "usage": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
-        "rortypes.ResourceVirtualMachineNetworkSpec": {
+        "rortypes.ResourceVirtualMachineNetworkStatus": {
             "type": "object",
             "properties": {
                 "dns": {
@@ -13705,23 +13909,10 @@ const docTemplate = `{
                 "ipv6": {
                     "type": "string"
                 },
+                "mac": {
+                    "type": "string"
+                },
                 "mask": {
-                    "type": "string"
-                }
-            }
-        },
-        "rortypes.ResourceVirtualMachineNetworkStatus": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                }
-            }
-        },
-        "rortypes.ResourceVirtualMachineOperatingSystemSpec": {
-            "type": "object",
-            "properties": {
-                "id": {
                     "type": "string"
                 }
             }
@@ -13730,6 +13921,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "architecture": {
+                    "type": "string"
+                },
+                "family": {
                     "type": "string"
                 },
                 "hostName": {
@@ -13767,20 +13961,22 @@ const docTemplate = `{
                 "memory": {
                     "$ref": "#/definitions/rortypes.ResourceVirtualMachineMemorySpec"
                 },
-                "networks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.ResourceVirtualMachineNetworkSpec"
-                    }
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceVirtualMachineState": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string"
                 },
-                "operatingSystem": {
-                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineOperatingSystemSpec"
+                "state": {
+                    "type": "string"
                 },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.ResourceVirtualMachineTagSpec"
-                    }
+                "time": {
+                    "type": "string"
                 }
             }
         },
@@ -13796,6 +13992,12 @@ const docTemplate = `{
                         "$ref": "#/definitions/rortypes.ResourceVirtualMachineDiskStatus"
                     }
                 },
+                "lastUpdated": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
                 "memory": {
                     "$ref": "#/definitions/rortypes.ResourceVirtualMachineMemoryStatus"
                 },
@@ -13807,10 +14009,19 @@ const docTemplate = `{
                 },
                 "operatingSystem": {
                     "$ref": "#/definitions/rortypes.ResourceVirtualMachineOperatingSystemStatus"
+                },
+                "state": {
+                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineState"
+                },
+                "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/rortypes.ResourceVirtualMachineTag"
+                    }
                 }
             }
         },
-        "rortypes.ResourceVirtualMachineTagSpec": {
+        "rortypes.ResourceVirtualMachineTag": {
             "type": "object",
             "properties": {
                 "description": {
@@ -13934,6 +14145,34 @@ const docTemplate = `{
                 "SensitivityLevelCritical"
             ]
         },
+        "rortypes.Storage": {
+            "type": "object",
+            "properties": {
+                "class": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.Version": {
+            "type": "object",
+            "properties": {
+                "branch": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
         "rortypes.VulnerabilityDismissalReason": {
             "type": "integer",
             "enum": [
@@ -13961,6 +14200,28 @@ const docTemplate = `{
                 "CONFIRMED",
                 "DISMISSED"
             ]
+        },
+        "rortypes.WorkerStatus": {
+            "type": "object",
+            "properties": {
+                "nodepools": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.NodePoolStatus"
+                    }
+                }
+            }
+        },
+        "rortypes.Workers": {
+            "type": "object",
+            "properties": {
+                "nodePools": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.NodePool"
+                    }
+                }
+            }
         },
         "v1.FieldsV1": {
             "type": "object"

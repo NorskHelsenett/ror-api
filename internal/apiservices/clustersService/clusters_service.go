@@ -361,7 +361,7 @@ func GetKubeconfig(ctx context.Context, clusterId string, credentials apicontrac
 	}
 	end := time.Now()
 	duration := end.Sub(now)
-	rlog.Infoc(ctx, "kubeconfig fetched", rlog.String("clusterId", clusterId), rlog.String("duration", fmt.Sprintf("%s", duration)))
+	rlog.Infoc(ctx, "kubeconfig fetched", rlog.String("clusterId", clusterId), rlog.String("duration", duration.String()))
 
 	identity := rorcontext.GetIdentityFromRorContext(ctx)
 	_, err = auditlog.Create(ctx, "Identity fetching kubeconfig for workspace",
