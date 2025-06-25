@@ -52,6 +52,11 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+var (
+	resourceV1RateLimiter = ratelimiter.NewNamedRorRateLimiter("/v1/resource", 5000, 10000)
+	resourceV2RateLimiter = ratelimiter.NewNamedRorRateLimiter("/v2/resource", 50, 100)
+)
+
 func SetupRoutes(router *gin.Engine) {
 
 	timeoutduration, err := time.ParseDuration(viper.GetString(configconsts.HTTP_TIMEOUT))
@@ -256,7 +261,7 @@ func SetupRoutes(router *gin.Engine) {
 			projectsRoute.PUT("/:id", ctrlProjects.Update())
 			projectsRoute.DELETE(":id", ctrlProjects.Delete())
 		}
-		resourceV1RateLimiter := ratelimiter.NewRorRateLimiter(5000, 10000)
+
 		resourceRoute := v1.Group("resources")
 		resourceRoute.Use(resourceV1RateLimiter.RateLimiter)
 		{
@@ -340,7 +345,6 @@ func SetupRoutes(router *gin.Engine) {
 	docs.SwaggerInfo.Version = apiconfig.RorVersion.GetVersion()
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
-	resourceV2RateLimiter := ratelimiter.NewRorRateLimiter(50, 100)
 	resourceRoute := v2.Group("resources")
 	resourceRoute.Use(resourceV2RateLimiter.RateLimiter)
 	resourceRoute.GET("", v2resourcescontroller.GetResources())
