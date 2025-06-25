@@ -3,7 +3,7 @@ module github.com/NorskHelsenett/ror-api
 go 1.24.4
 
 require (
-	github.com/NorskHelsenett/ror v1.2.0-rc14
+	github.com/NorskHelsenett/ror v1.2.0
 	github.com/blang/semver/v4 v4.0.0
 	github.com/coreos/go-oidc/v3 v3.14.1
 	github.com/evanphx/json-patch/v5 v5.9.11
@@ -28,6 +28,7 @@ require (
 	go.opentelemetry.io/otel v1.36.0
 	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/exp v0.0.0-20250606033433-dcc06ee1d476
+	golang.org/x/time v0.12.0
 	k8s.io/apimachinery v0.33.1
 	sigs.k8s.io/yaml v1.4.0
 )
@@ -175,7 +176,6 @@ require (
 	golang.org/x/sync v0.15.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.26.0 // indirect
-	golang.org/x/time v0.12.0 // indirect
 	golang.org/x/tools v0.34.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250603155806-513f23925822 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250603155806-513f23925822 // indirect
