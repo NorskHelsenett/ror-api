@@ -14,8 +14,8 @@ github.com/AzureAD/microsoft-authentication-library-for-go v1.4.2 h1:oygO0locgZJ
 github.com/AzureAD/microsoft-authentication-library-for-go v1.4.2/go.mod h1:wP83P5OoQ5p6ip3ScPr0BAq0BvuPAvacpEuSzyouqAI=
 github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
-github.com/NorskHelsenett/ror v1.2.0 h1:7/eeNf2ABV514iqLLh0irkbPF0cIK51DW7HYZ4eFp2E=
-github.com/NorskHelsenett/ror v1.2.0/go.mod h1:z6Kz43Nlvy+ldf4F/NPUtRmG8aPImiqS4SH/PloGpCY=
+github.com/NorskHelsenett/ror v1.2.1-rc2 h1:Gmm6ftyStwXMvzfxCH0a6HnFzArvkul9UZ36mugU1AQ=
+github.com/NorskHelsenett/ror v1.2.1-rc2/go.mod h1:fpNzUWhehjoa3uZKdEOOimBon3+iFKYp7tsNdr0DUsM=
 github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa h1:LHTHcTQiSGT7VVbI0o4wBRNQIgn917usHWOd6VAffYI=
 github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa/go.mod h1:cEWa1LVoE5KvSD9ONXsZrj0z6KqySlCCNKHlLzbqAt4=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
@@ -221,8 +221,8 @@ github.com/microsoft/kiota-serialization-multipart-go v1.1.2 h1:1pUyA1QgIeKslQwb
 github.com/microsoft/kiota-serialization-multipart-go v1.1.2/go.mod h1:j2K7ZyYErloDu7Kuuk993DsvfoP7LPWvAo7rfDpdPio=
 github.com/microsoft/kiota-serialization-text-go v1.1.2 h1:7OfKFlzdjpPygca/+OtqafkEqCWR7+94efUFGC28cLw=
 github.com/microsoft/kiota-serialization-text-go v1.1.2/go.mod h1:QNTcswkBPFY3QVBFmzfk00UMNViKQtV0AQKCrRw5ibM=
-github.com/microsoftgraph/msgraph-sdk-go v1.74.0 h1:Qp8IQcMbTMwjA8J8MrGab4wgB2qHDUgp04DlKjNJFyk=
-github.com/microsoftgraph/msgraph-sdk-go v1.74.0/go.mod h1:5ncg4aauxM5XKHo/xvAq7Cjl6+Dqu6lOtoihSGKtDt4=
+github.com/microsoftgraph/msgraph-sdk-go v1.75.0 h1:CFlM+aMhoErKBy99X91tf417EImikVWpphfi5agmRwk=
+github.com/microsoftgraph/msgraph-sdk-go v1.75.0/go.mod h1:5ncg4aauxM5XKHo/xvAq7Cjl6+Dqu6lOtoihSGKtDt4=
 github.com/microsoftgraph/msgraph-sdk-go-core v1.3.2 h1:5jCUSosTKaINzPPQXsz7wsHWwknyBmJSu8+ZWxx3kdQ=
 github.com/microsoftgraph/msgraph-sdk-go-core v1.3.2/go.mod h1:iD75MK3LX8EuwjDYCmh0hkojKXK6VKME33u4daCo3cE=
 github.com/mitchellh/go-homedir v1.1.0 h1:lukF9ziXFxDFPkA1vsr5zpc1XuPDn/wFntq5mG+4E0Y=
