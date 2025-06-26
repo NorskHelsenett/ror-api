@@ -22,7 +22,7 @@ import (
 
 var (
 	getTimeout = 500 * time.Millisecond
-	setTimeout = 500 * time.Millisecond
+	setTimeout = 1000 * time.Millisecond
 )
 
 func HandleResourceUpdate(ctx context.Context, resource *rorresources.Resource) rorresources.ResourceUpdateResults {

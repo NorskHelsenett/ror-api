@@ -36,6 +36,8 @@ func NewFromUnstructured(input *unstructured.Unstructured) (rorResource, error) 
 		return returnResource, err
 	}
 
+	bytes = nil
+
 	err = jsonData.removeUnnecessaryData()
 	if err != nil {
 		return returnResource, err
