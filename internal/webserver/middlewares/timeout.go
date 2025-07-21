@@ -16,10 +16,6 @@ func timeoutResponse(c *gin.Context) {
 func TimeoutMiddleware(duration time.Duration) gin.HandlerFunc {
 	return timeout.New(
 		timeout.WithTimeout(duration),
-		timeout.WithHandler(func(c *gin.Context) {
-			c.Set("timeout", duration)
-			c.Next()
-		}),
 		timeout.WithResponse(timeoutResponse),
 	)
 }
