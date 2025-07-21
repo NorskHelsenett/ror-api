@@ -10,7 +10,7 @@ require (
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-contrib/gzip v1.2.3
 	github.com/gin-contrib/pprof v1.5.3
-	github.com/gin-contrib/timeout v1.0.2
+	github.com/gin-contrib/timeout v1.1.0
 	github.com/gin-gonic/gin v1.10.1
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/go-resty/resty/v2 v2.16.5
