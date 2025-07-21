@@ -51,6 +51,12 @@ type RorRateLimiter struct {
 	Name    string // Add name for metrics labeling
 }
 
+// TODO Add method to set retry after header
+// This method can be used to set a Retry-After header in the response
+//
+//	func (r *RorRateLimiter) SetRetryAfterHeader(c *gin.Context, seconds int) {
+//		c.Header("Retry-After", strconv.Itoa(seconds))
+//	}
 func (r *RorRateLimiter) RateLimiter(c *gin.Context) {
 	// Update current token count metric
 	if r.Name != "" {
