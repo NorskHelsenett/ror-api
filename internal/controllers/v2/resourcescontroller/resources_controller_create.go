@@ -1,17 +1,32 @@
 package resourcescontroller
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
 	"github.com/NorskHelsenett/ror-api/internal/responses"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/gin-gonic/gin"
+)
+
+var (
+	// resourcesProcessed is a Prometheus counter for the number of processed resources
+	resourcesProcessed = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "resources_processed_total",
+		Help: "The total number of processed resources",
+	})
+	resourcesRequests = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "resources_requests_total",
+		Help: "The total number of resource requests",
+	})
 )
 
 // Register a new resource, the resource is in the payload.
@@ -68,7 +83,10 @@ func NewResource() gin.HandlerFunc {
 				returnArray.Results[key] = result
 			}
 		}
-		rlog.Infof("%d resources changed in %s", len(rs.Resources), time.Since(start))
+		rlog.Debug(fmt.Sprintf("%d resources changed in %s", len(rs.Resources), time.Since(start)))
+		resourcesProcessed.Add(float64(len(rs.Resources)))
+		resourcesRequests.Inc()
+
 		c.JSON(http.StatusCreated, returnArray)
 	}
 }
