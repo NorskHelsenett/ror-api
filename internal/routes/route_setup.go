@@ -74,7 +74,7 @@ func SetupRoutes(router *gin.Engine) {
 		}
 		clusterloginRoute := v1.Group("clusters")
 		{
-			logintimeoutduration := 60 * time.Second
+			logintimeoutduration := 120 * time.Second
 			clusterloginRoute.Use(middlewares.TimeoutMiddleware(logintimeoutduration))
 			clusterloginRoute.Use(auth.AuthenticationMiddleware)
 			clusterloginRoute.POST("/:clusterid/login", clusterscontroller.GetKubeconfig())
