@@ -24,7 +24,7 @@ func AuditLogMiddleware(msg string, category models.AuditCategory, action models
 		}
 		newObject, _ := c.Get("newObject")
 		oldObject, _ := c.Get("oldObject")
-		err = auditlog.Create(ctx, msg, category, action, user, newObject, oldObject)
+		_, err = auditlog.Create(ctx, msg, category, action, user, newObject, oldObject)
 		if err != nil {
 			rlog.Errorc(ctx, "could not create auditlog", err)
 		}

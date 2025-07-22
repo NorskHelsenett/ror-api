@@ -59,7 +59,7 @@ func Create(ctx context.Context, datacenterInput *apicontracts.DatacenterModel, 
 		return nil, errors.New("Could not get datacenters")
 	}
 
-	err = auditlog.Create(ctx, "New datacenter created", models.AuditCategoryDatacenter, models.AuditActionCreate, user, datacenterResult, nil)
+	_, err = auditlog.Create(ctx, "New datacenter created", models.AuditCategoryDatacenter, models.AuditActionCreate, user, datacenterResult, nil)
 	if err != nil {
 		rlog.Error("failed to create auditlog", err)
 	}
@@ -84,7 +84,7 @@ func Update(ctx context.Context, datacenterId string, datacenterInput *apicontra
 		return nil, errors.New("could not update datacenter")
 	}
 
-	err = auditlog.Create(ctx, "Datacenter updated", models.AuditCategoryDatacenter, models.AuditActionUpdate, user, updated, datacenter)
+	_, err = auditlog.Create(ctx, "Datacenter updated", models.AuditCategoryDatacenter, models.AuditActionUpdate, user, updated, datacenter)
 	if err != nil {
 		rlog.Error("failed to create auditlog", err)
 	}

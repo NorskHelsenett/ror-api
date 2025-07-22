@@ -58,7 +58,7 @@ func Create(ctx context.Context, desiredversion apicontracts.DesiredVersion) (*a
 		return nil, err
 	}
 
-	err = auditlog.Create(ctx, "New desired version created", models.AuditCategoryConfiguration, models.AuditActionCreate, identity.User, creationresult, nil)
+	_, err = auditlog.Create(ctx, "New desired version created", models.AuditCategoryConfiguration, models.AuditActionCreate, identity.User, creationresult, nil)
 	if err != nil {
 		rlog.Errorc(ctx, "failed to create auditlog", err)
 		return nil, err
@@ -95,7 +95,7 @@ func UpdateByKey(ctx context.Context, key string, desiredversion apicontracts.De
 		return nil, err
 	}
 
-	err = auditlog.Create(ctx, "Desired version updated", models.AuditCategoryConfiguration, models.AuditActionUpdate, identity.User, updateResult, nil)
+	_, err = auditlog.Create(ctx, "Desired version updated", models.AuditCategoryConfiguration, models.AuditActionUpdate, identity.User, updateResult, nil)
 	if err != nil {
 		rlog.Errorc(ctx, "failed to create auditlog", err)
 		return nil, err
@@ -120,7 +120,7 @@ func DeleteByKey(ctx context.Context, key string) (int64, error) {
 		return 0, errors.New("must be a user to modify")
 	}
 
-	err = auditlog.Create(ctx, "Desired version deleted", models.AuditCategoryConfiguration, models.AuditActionDelete, identity.User, key, nil)
+	_, err = auditlog.Create(ctx, "Desired version deleted", models.AuditCategoryConfiguration, models.AuditActionDelete, identity.User, key, nil)
 	if err != nil {
 		rlog.Errorc(ctx, "failed to create auditlog", err)
 		return 0, err

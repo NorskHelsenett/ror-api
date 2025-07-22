@@ -100,7 +100,7 @@ func Create(ctx context.Context, projectInput *apicontracts.ProjectModel) (*apic
 		return nil, fmt.Errorf("could not map project from mongotype to apitype: %v", err)
 	}
 
-	err = auditlog.Create(ctx, "Project created", models.AuditCategoryProject, models.AuditActionCreate, identity.User, createdProject, nil)
+	_, err = auditlog.Create(ctx, "Project created", models.AuditCategoryProject, models.AuditActionCreate, identity.User, createdProject, nil)
 	if err != nil {
 		return nil, fmt.Errorf("could not audit log delete action: %v", err)
 	}
@@ -134,7 +134,7 @@ func Update(ctx context.Context, projectId string, input *apicontracts.ProjectMo
 		return nil, nil, fmt.Errorf("could not map original object from apitype to mongotype: %v", err)
 	}
 
-	err = auditlog.Create(ctx, "Project updated", models.AuditCategoryProject, models.AuditActionUpdate, identity.User, newObject, oldObject)
+	_, err = auditlog.Create(ctx, "Project updated", models.AuditCategoryProject, models.AuditActionUpdate, identity.User, newObject, oldObject)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not audit log delete action: %v", err)
 	}
@@ -158,7 +158,7 @@ func Delete(ctx context.Context, projectId string) (bool, *apicontracts.Project,
 		return false, nil, fmt.Errorf("could not delete object: %v", err)
 	}
 
-	err = auditlog.Create(ctx, "Project deleted", models.AuditCategoryProject, models.AuditActionDelete, identity.User, deleted, nil)
+	_, err = auditlog.Create(ctx, "Project deleted", models.AuditCategoryProject, models.AuditActionDelete, identity.User, deleted, nil)
 	if err != nil {
 		return false, nil, fmt.Errorf("could not audit log delete action: %v", err)
 	}

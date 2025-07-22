@@ -12,8 +12,8 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 )
 
-// Create creates a new auditlog entry in the database asynchronously
-func Create(ctx context.Context, msg string, category models.AuditCategory, action models.AuditAction, user *identitymodels.User, newObject any, oldObject any) error {
+// Create creates a new auditlog entry in the database
+func Create(ctx context.Context, msg string, category models.AuditCategory, action models.AuditAction, user *identitymodels.User, newObject any, oldObject any) (any, error) {
 	auditLog := mongoTypes.MongoAuditLog{}
 	auditLogMetadata := mongoTypes.MongoAuditLogMetadata{}
 	auditLogMetadata.Msg = msg
@@ -27,13 +27,10 @@ func Create(ctx context.Context, msg string, category models.AuditCategory, acti
 	data["old_object"] = oldObject
 	auditLog.Data = data
 
-	// Run the audit log creation asynchronously
-	go func() {
-		err := auditlogrepo.Create(ctx, auditLog)
-		if err != nil {
-			rlog.Error("failed to create auditlog", err, rlog.String("msg", msg), rlog.Any("category", category), rlog.Any("action", action))
-		}
-	}()
+	insertedID, err := auditlogrepo.Create(ctx, auditLog)
+	if err != nil {
+		rlog.Error("failed to create auditlog", err, rlog.String("msg", msg), rlog.Any("category", category), rlog.Any("action", action))
+	}
 
-	return nil
+	return insertedID, nil
 }

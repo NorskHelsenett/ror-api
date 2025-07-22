@@ -311,7 +311,7 @@ func UpdateMetadata(ctx context.Context, input *apicontracts.ClusterMetadataMode
 		return fmt.Errorf("could not update cluster with id: %s", existing.ClusterId)
 	}
 
-	err = auditlog.Create(ctx, "New taskcollection deleted", models.AuditCategoryClusterMetadata, models.AuditActionUpdate, identity.User, input, existing.Metadata)
+	_, err = auditlog.Create(ctx, "New taskcollection deleted", models.AuditCategoryClusterMetadata, models.AuditActionUpdate, identity.User, input, existing.Metadata)
 	if err != nil {
 		return fmt.Errorf("could not audit log delete action: %v", err)
 	}
@@ -364,7 +364,7 @@ func GetKubeconfig(ctx context.Context, clusterId string, credentials apicontrac
 	rlog.Infoc(ctx, "kubeconfig fetched", rlog.String("clusterId", clusterId), rlog.String("duration", duration.String()))
 
 	identity := rorcontext.GetIdentityFromRorContext(ctx)
-	err = auditlog.Create(ctx, "Identity fetching kubeconfig for workspace",
+	_, err = auditlog.Create(ctx, "Identity fetching kubeconfig for workspace",
 		models.AuditCategoryKubeconfig,
 		models.AuditActionRead,
 		identity.User,

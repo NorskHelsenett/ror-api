@@ -80,7 +80,7 @@ func Create(ctx context.Context, taskInput *apicontracts.Task) (*apicontracts.Ta
 		return nil, fmt.Errorf("could not create task: %v", err)
 	}
 
-	err = auditlog.Create(ctx, "New task created", models.AuditCategoryConfiguration, models.AuditActionCreate, identity.User, createdTask, nil)
+	_, err = auditlog.Create(ctx, "New task created", models.AuditCategoryConfiguration, models.AuditActionCreate, identity.User, createdTask, nil)
 	if err != nil {
 		rlog.Error("failed to create auditlog", err)
 	}
@@ -103,7 +103,7 @@ func Update(ctx context.Context, taskId string, taskInput *apicontracts.Task) (*
 		return nil, nil, fmt.Errorf("could not update task: %v", err)
 	}
 
-	err = auditlog.Create(ctx, "Task updated", models.AuditCategoryConfiguration, models.AuditActionUpdate, identity.User, newObject, oldObject)
+	_, err = auditlog.Create(ctx, "Task updated", models.AuditCategoryConfiguration, models.AuditActionUpdate, identity.User, newObject, oldObject)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not audit log update action: %v", err)
 	}
@@ -118,7 +118,7 @@ func Delete(ctx context.Context, taskId string) (bool, *apicontracts.Task, error
 		return false, nil, fmt.Errorf("could not delete task: %v", err)
 	}
 
-	err = auditlog.Create(ctx, "Task deleted", models.AuditCategoryConfiguration, models.AuditActionDelete, identity.User, nil, deleted)
+	_, err = auditlog.Create(ctx, "Task deleted", models.AuditCategoryConfiguration, models.AuditActionDelete, identity.User, nil, deleted)
 	if err != nil {
 		return false, nil, fmt.Errorf("could not audit log delete action: %v", err)
 	}
