@@ -2,7 +2,6 @@ package auditlog
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/models"
@@ -10,10 +9,11 @@ import (
 	auditlogrepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/auditlogRepo"
 
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
+	"github.com/NorskHelsenett/ror/pkg/rlog"
 )
 
 // Create creates a new auditlog entry in the database
-func Create(ctx context.Context, msg string, category models.AuditCategory, action models.AuditAction, user *identitymodels.User, newObject any, oldObject any) (*mongoTypes.MongoAuditLog, error) {
+func Create(ctx context.Context, msg string, category models.AuditCategory, action models.AuditAction, user *identitymodels.User, newObject any, oldObject any) (string, error) {
 	auditLog := mongoTypes.MongoAuditLog{}
 	auditLogMetadata := mongoTypes.MongoAuditLogMetadata{}
 	auditLogMetadata.Msg = msg
@@ -26,9 +26,11 @@ func Create(ctx context.Context, msg string, category models.AuditCategory, acti
 	data["new_object"] = newObject
 	data["old_object"] = oldObject
 	auditLog.Data = data
-	result, err := auditlogrepo.Create(ctx, auditLog)
+
+	insertedID, err := auditlogrepo.Create(ctx, auditLog)
 	if err != nil {
-		return nil, fmt.Errorf("could not create auditlog: %v", err)
+		rlog.Error("failed to create auditlog", err, rlog.String("msg", msg), rlog.Any("category", category), rlog.Any("action", action))
 	}
-	return result, nil
+
+	return insertedID, nil
 }
