@@ -2,7 +2,6 @@ package auditlog
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/models"
@@ -10,9 +9,10 @@ import (
 	auditlogrepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/auditlogRepo"
 
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
+	"github.com/NorskHelsenett/ror/pkg/rlog"
 )
 
-// Create creates a new auditlog entry in the database
+// Create creates a new auditlog entry in the database asynchronously
 func Create(ctx context.Context, msg string, category models.AuditCategory, action models.AuditAction, user *identitymodels.User, newObject any, oldObject any) error {
 	auditLog := mongoTypes.MongoAuditLog{}
 	auditLogMetadata := mongoTypes.MongoAuditLogMetadata{}
@@ -26,9 +26,14 @@ func Create(ctx context.Context, msg string, category models.AuditCategory, acti
 	data["new_object"] = newObject
 	data["old_object"] = oldObject
 	auditLog.Data = data
-	err := auditlogrepo.Create(ctx, auditLog)
-	if err != nil {
-		return fmt.Errorf("could not create auditlog: %v", err)
-	}
+
+	// Run the audit log creation asynchronously
+	go func() {
+		err := auditlogrepo.Create(ctx, auditLog)
+		if err != nil {
+			rlog.Error("failed to create auditlog", err, rlog.String("msg", msg), rlog.Any("category", category), rlog.Any("action", action))
+		}
+	}()
+
 	return nil
 }
