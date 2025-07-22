@@ -13,7 +13,7 @@ import (
 )
 
 // Create creates a new auditlog entry in the database
-func Create(ctx context.Context, msg string, category models.AuditCategory, action models.AuditAction, user *identitymodels.User, newObject any, oldObject any) (*mongoTypes.MongoAuditLog, error) {
+func Create(ctx context.Context, msg string, category models.AuditCategory, action models.AuditAction, user *identitymodels.User, newObject any, oldObject any) error {
 	auditLog := mongoTypes.MongoAuditLog{}
 	auditLogMetadata := mongoTypes.MongoAuditLogMetadata{}
 	auditLogMetadata.Msg = msg
@@ -26,9 +26,9 @@ func Create(ctx context.Context, msg string, category models.AuditCategory, acti
 	data["new_object"] = newObject
 	data["old_object"] = oldObject
 	auditLog.Data = data
-	result, err := auditlogrepo.Create(ctx, auditLog)
+	err := auditlogrepo.Create(ctx, auditLog)
 	if err != nil {
-		return nil, fmt.Errorf("could not create auditlog: %v", err)
+		return fmt.Errorf("could not create auditlog: %v", err)
 	}
-	return result, nil
+	return nil
 }

@@ -58,7 +58,7 @@ func Create(ctx context.Context, aclModel *aclmodels.AclV2ListItem, identity *id
 		return nil, fmt.Errorf("could not get object by ID from repository: %v", err)
 	}
 
-	_, err = auditlog.Create(ctx, "ACL created", models.AuditCategoryAcl, models.AuditActionCreate, identity.User, object, nil)
+	err = auditlog.Create(ctx, "ACL created", models.AuditCategoryAcl, models.AuditActionCreate, identity.User, object, nil)
 	if err != nil {
 		return nil, fmt.Errorf("could not audit log create action: %v", err)
 	}
@@ -72,7 +72,7 @@ func Update(ctx context.Context, aclId string, aclModel *aclmodels.AclV2ListItem
 		return nil, fmt.Errorf("could not get object by id from repository: %v", err)
 	}
 
-	_, err = auditlog.Create(ctx, "ACL updated", models.AuditCategoryAcl, models.AuditActionUpdate, identity.User, object, oldObject)
+	err = auditlog.Create(ctx, "ACL updated", models.AuditCategoryAcl, models.AuditActionUpdate, identity.User, object, oldObject)
 	if err != nil {
 		return nil, fmt.Errorf("could not audit log: %v", err)
 	}
@@ -90,7 +90,7 @@ func Delete(ctx context.Context, aclId string, identity *identitymodels.Identity
 		return false, nil, fmt.Errorf("could not delete object: %v", err)
 	}
 
-	_, err = auditlog.Create(ctx, "Acl deleted", models.AuditCategoryAcl, models.AuditActionDelete, identity.User, deleted, nil)
+	err = auditlog.Create(ctx, "Acl deleted", models.AuditCategoryAcl, models.AuditActionDelete, identity.User, deleted, nil)
 	if err != nil {
 		return false, nil, fmt.Errorf("could not audit log delete action: %v", err)
 	}

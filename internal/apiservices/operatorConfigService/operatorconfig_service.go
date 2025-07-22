@@ -67,7 +67,7 @@ func Create(ctx context.Context, input *apicontracts.OperatorConfig) (*apicontra
 		return nil, fmt.Errorf("could not create operatorconfig: %v", err)
 	}
 
-	_, err = auditlog.Create(ctx, "New operator config created", models.AuditCategoryConfiguration, models.AuditActionCreate, identity.User, created, nil)
+	err = auditlog.Create(ctx, "New operator config created", models.AuditCategoryConfiguration, models.AuditActionCreate, identity.User, created, nil)
 	if err != nil {
 		rlog.Error("failed to create auditlog", err)
 	}
@@ -88,7 +88,7 @@ func Update(ctx context.Context, id string, input *apicontracts.OperatorConfig) 
 		return nil, nil, fmt.Errorf("could not update operatorconfig: %v", err)
 	}
 
-	_, err = auditlog.Create(ctx, "New operator config updated", models.AuditCategoryConfiguration, models.AuditActionUpdate, identity.User, newObject, oldObject)
+	err = auditlog.Create(ctx, "New operator config updated", models.AuditCategoryConfiguration, models.AuditActionUpdate, identity.User, newObject, oldObject)
 	if err != nil {
 		rlog.Error("failed to create auditlog", err)
 	}
@@ -115,7 +115,7 @@ func Delete(ctx context.Context, id string) (bool, error) {
 		return false, fmt.Errorf("could not delete operatorconfig: %v", err)
 	}
 
-	_, err = auditlog.Create(ctx, "New operator config updated", models.AuditCategoryConfiguration, models.AuditActionUpdate, identity.User, nil, deleted)
+	err = auditlog.Create(ctx, "New operator config updated", models.AuditCategoryConfiguration, models.AuditActionUpdate, identity.User, nil, deleted)
 	if err != nil {
 		rlog.Error("failed to create auditlog", err)
 	}

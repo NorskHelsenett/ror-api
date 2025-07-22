@@ -89,7 +89,7 @@ func Delete(ctx context.Context, apikeyId string, identity *identitymodels.Ident
 		return false, fmt.Errorf("could not delete object: %v", err)
 	}
 
-	_, err = auditlog.Create(ctx, "Apikey deleted", models.AuditCategoryApikey, models.AuditActionDelete, identity.User, nil, deletedObject)
+	err = auditlog.Create(ctx, "Apikey deleted", models.AuditCategoryApikey, models.AuditActionDelete, identity.User, nil, deletedObject)
 	if err != nil {
 		return false, fmt.Errorf("could not audit log delete action: %v", err)
 	}
@@ -132,7 +132,7 @@ func DeleteForUser(ctx context.Context, apikeyId string, identity *identitymodel
 		return false, fmt.Errorf("could not delete object: %v", err)
 	}
 
-	_, err = auditlog.Create(ctx, "Apikey deleted", models.AuditCategoryApikey, models.AuditActionDelete, identity.User, nil, deletedObject)
+	err = auditlog.Create(ctx, "Apikey deleted", models.AuditCategoryApikey, models.AuditActionDelete, identity.User, nil, deletedObject)
 	if err != nil {
 		return false, fmt.Errorf("could not audit log delete action: %v", err)
 	}
@@ -215,7 +215,7 @@ func Create(ctx context.Context, input *apicontracts.ApiKey, identity *identitym
 		return "", err
 	}
 
-	_, err = auditlog.Create(ctx, "Migration of acl", models.AuditCategoryApikey, models.AuditActionCreate, identity.User, input, nil)
+	err = auditlog.Create(ctx, "Migration of acl", models.AuditCategoryApikey, models.AuditActionCreate, identity.User, input, nil)
 	if err != nil {
 		return "", fmt.Errorf("could not audit log create action: %v", err)
 	}
@@ -338,7 +338,7 @@ func CreateOrRenew(ctx context.Context, req *apicontractsv2self.CreateOrRenewApi
 		newkey.Hash = hash
 		newkey.Expires = expires
 
-		_, err = auditlog.Create(ctx, "Apikey updated", models.AuditCategoryApikey, models.AuditActionUpdate, identity.User, existing, newkey)
+		err = auditlog.Create(ctx, "Apikey updated", models.AuditCategoryApikey, models.AuditActionUpdate, identity.User, existing, newkey)
 		if err != nil {
 			rlog.Errorc(ctx, "Failed to create audit log for API key update", err)
 		}
@@ -356,7 +356,7 @@ func CreateOrRenew(ctx context.Context, req *apicontractsv2self.CreateOrRenewApi
 		if err != nil {
 			return nil, err
 		}
-		_, err = auditlog.Create(ctx, "Apikey created", models.AuditCategoryApikey, models.AuditActionCreate, identity.User, newkey, nil)
+		err = auditlog.Create(ctx, "Apikey created", models.AuditCategoryApikey, models.AuditActionCreate, identity.User, newkey, nil)
 		if err != nil {
 			rlog.Errorc(ctx, "Failed to create audit log for API key creation", err)
 		}
