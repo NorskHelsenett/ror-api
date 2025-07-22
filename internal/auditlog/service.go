@@ -13,7 +13,7 @@ import (
 )
 
 // Create creates a new auditlog entry in the database
-func Create(ctx context.Context, msg string, category models.AuditCategory, action models.AuditAction, user *identitymodels.User, newObject any, oldObject any) (any, error) {
+func Create(ctx context.Context, msg string, category models.AuditCategory, action models.AuditAction, user *identitymodels.User, newObject any, oldObject any) (string, error) {
 	auditLog := mongoTypes.MongoAuditLog{}
 	auditLogMetadata := mongoTypes.MongoAuditLogMetadata{}
 	auditLogMetadata.Msg = msg

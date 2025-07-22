@@ -21,20 +21,20 @@ const (
 	collectionName = "auditlogs"
 )
 
-func Create(ctx context.Context, auditLog mongoTypes.MongoAuditLog) (any, error) {
+func Create(ctx context.Context, auditLog mongoTypes.MongoAuditLog) (string, error) {
 	db := mongodb.GetMongoDb()
 	collection := db.Collection(collectionName)
 
 	insertResult, err := collection.InsertOne(ctx, auditLog)
 	if err != nil {
-		return nil, fmt.Errorf("unable to save auditlog: %v", err)
+		return "", fmt.Errorf("unable to save auditlog: %v", err)
 	}
 
 	if insertResult.InsertedID == nil {
-		return nil, fmt.Errorf("unable to get id of saved auditlog")
+		return "", fmt.Errorf("unable to get id of saved auditlog")
 	}
 
-	return insertResult.InsertedID, nil
+	return insertResult.InsertedID.(primitive.ObjectID).String(), nil
 }
 
 func GetByFilter(ctx context.Context, filter *apicontracts.Filter) ([]mongoTypes.MongoAuditLog, int, error) {
