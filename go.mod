@@ -5,7 +5,7 @@ go 1.24.4
 require (
 	github.com/NorskHelsenett/ror v1.2.1
 	github.com/blang/semver/v4 v4.0.0
-	github.com/coreos/go-oidc/v3 v3.14.1
+	github.com/coreos/go-oidc/v3 v3.15.0
 	github.com/evanphx/json-patch/v5 v5.9.11
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-contrib/gzip v1.2.3
