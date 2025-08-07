@@ -20,7 +20,7 @@ jobs:
       shortsha: ${{ steps.env.outputs.SHA_SHORT }}
       libver: ${{ steps.env.outputs.LIB_VER }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - id: env
         name: Set env
         run: |
@@ -34,11 +34,11 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: "1.23"
+          go-version: "1.24"
       - name: Start build
         run: |
           echo "Building ${{ env.APP }} ${{ needs.setenv.outputs.rorversion}} (${{ needs.setenv.outputs.shortsha}})"
@@ -162,9 +162,9 @@ jobs:
         run: |
           echo "Building helm chart for ${{ env.APP }} ${{ needs.setenv.outputs.rorversion }} (${{ needs.setenv.outputs.shortsha}})"
       - name: Install helm
-        uses: azure/setup-helm@v1
+        uses: azure/setup-helm@v4
         with:
-          version: v3.15.0
+          version: v3.17.0
       - name: install-yq
         run: |
           wget https://github.com/mikefarah/yq/releases/download/${VERSION}/${BINARY}.tar.gz -O - | tar xz && mv ${BINARY} yq && chmod +x yq
