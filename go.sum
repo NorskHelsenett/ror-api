@@ -341,8 +341,8 @@ go.opentelemetry.io/contrib/bridges/prometheus v0.61.0 h1:RyrtJzu5MAmIcbRrwg75b+
 go.opentelemetry.io/contrib/bridges/prometheus v0.61.0/go.mod h1:tirr4p9NXbzjlbruiRGp53IzlYrDk5CO2fdHj0sSSaY=
 go.opentelemetry.io/contrib/exporters/autoexport v0.61.0 h1:XfzKtKSrbtYk9TNCF8dkO0Y9M7IOfb4idCwBOTwGBiI=
 go.opentelemetry.io/contrib/exporters/autoexport v0.61.0/go.mod h1:N6otC+qXTD5bAnbK2O1f/1SXq3cX+3KYSWrkBUqG0cw=
-go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.56.0 h1:0nTRpaCaILLdooXAQnfktlL6Zw1ECKEW9DZGH2byi2c=
-go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.56.0/go.mod h1:A7aFlp4WSLmeOnFRZwf2dMU+40THPc+rsr6KOwZLOcg=
+go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.62.0 h1:fZNpsQuTwFFSGC96aJexNOBrCD7PjD9Tm/HyHtXhmnk=
+go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.62.0/go.mod h1:+NFxPSeYg0SoiRUO4k0ceJYMCY9FiRbYFmByUpm7GJY=
 go.opentelemetry.io/contrib/instrumentation/go.mongodb.org/mongo-driver/mongo/otelmongo v0.62.0 h1:IDI0wUpSFq/RUr1rRTHT7nF/Mr3V4kENTn05P39fH7k=
 go.opentelemetry.io/contrib/instrumentation/go.mongodb.org/mongo-driver/mongo/otelmongo v0.62.0/go.mod h1:PxUlDgXfAHM+OrUrqs3pbc2OR59ZLDSe9r5NiS0B/4E=
 go.opentelemetry.io/contrib/instrumentation/host v0.61.0 h1:apz8f6hish67DFuDuBr0erPSmTVO3aN7CPNICiF57o8=
@@ -353,8 +353,8 @@ go.opentelemetry.io/contrib/propagators/autoprop v0.61.0 h1:cxOVDJ30qfzV27G5p9WM
 go.opentelemetry.io/contrib/propagators/autoprop v0.61.0/go.mod h1:Y+xiUbWetg65vAroDZcIzJ5wyPNWRH32EoIV9rIaa0g=
 go.opentelemetry.io/contrib/propagators/aws v1.36.0 h1:Txhy/1LZIbbnutftc5pdU8Y9vOQuAkuIOFXuLsdDejs=
 go.opentelemetry.io/contrib/propagators/aws v1.36.0/go.mod h1:M3A0491jGFPNHU8b3zEW7r/gtsMpGOsFUO3WL+SZ1xw=
-go.opentelemetry.io/contrib/propagators/b3 v1.36.0 h1:xrAb/G80z/l5JL6XlmUMSD1i6W8vXkWrLfmkD3w/zZo=
-go.opentelemetry.io/contrib/propagators/b3 v1.36.0/go.mod h1:UREJtqioFu5awNaCR8aEx7MfJROFlAWb6lPaJFbHaG0=
+go.opentelemetry.io/contrib/propagators/b3 v1.37.0 h1:0aGKdIuVhy5l4GClAjl72ntkZJhijf2wg1S7b5oLoYA=
+go.opentelemetry.io/contrib/propagators/b3 v1.37.0/go.mod h1:nhyrxEJEOQdwR15zXrCKI6+cJK60PXAkJ/jRyfhr2mg=
 go.opentelemetry.io/contrib/propagators/jaeger v1.36.0 h1:SoCgXYF4ISDtNyfLUzsGDaaudZVTx2yJhOyBO0+/GYk=
 go.opentelemetry.io/contrib/propagators/jaeger v1.36.0/go.mod h1:VHu48l0YTRKSObdPQ+Sb8xMZvdnJlN7yhHuHoPgNqHM=
 go.opentelemetry.io/contrib/propagators/ot v1.36.0 h1:UBoZjbx483GslNKYK2YpfvePTJV4BHGeFd8+b7dexiM=
@@ -381,8 +381,8 @@ go.opentelemetry.io/otel/exporters/stdout/stdoutlog v0.13.0 h1:yEX3aC9KDgvYPhuKE
 go.opentelemetry.io/otel/exporters/stdout/stdoutlog v0.13.0/go.mod h1:/GXR0tBmmkxDaCUGahvksvp66mx4yh5+cFXgSlhg0vQ=
 go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.36.0 h1:rixTyDGXFxRy1xzhKrotaHy3/KXdPhlWARrCgK+eqUY=
 go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.36.0/go.mod h1:dowW6UsM9MKbJq5JTz2AMVp3/5iW5I/TStsk8S+CfHw=
-go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.36.0 h1:G8Xec/SgZQricwWBJF/mHZc7A02YHedfFDENwJEdRA0=
-go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.36.0/go.mod h1:PD57idA/AiFD5aqoxGxCvT/ILJPeHy3MjqU/NS7KogY=
+go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.37.0 h1:SNhVp/9q4Go/XHBkQ1/d5u9P/U+L1yaGPoi0x+mStaI=
+go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.37.0/go.mod h1:tx8OOlGH6R4kLV67YaYO44GFXloEjGPZuMjEkaaqIp4=
 go.opentelemetry.io/otel/log v0.13.0 h1:yoxRoIZcohB6Xf0lNv9QIyCzQvrtGZklVbdCoyb7dls=
 go.opentelemetry.io/otel/log v0.13.0/go.mod h1:INKfG4k1O9CL25BaM1qLe0zIedOpvlS5Z7XgSbmN83E=
 go.opentelemetry.io/otel/metric v1.37.0 h1:mvwbQS5m0tbmqML4NqK+e3aDiO02vsf/WgbsdpcPoZE=
