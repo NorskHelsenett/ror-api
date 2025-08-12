@@ -166,7 +166,7 @@ func FindByNameProvider(ctx context.Context, name string, provider providers.Pro
 	db := mongodb.GetMongoDb()
 	var datacenterResult mongoTypes.MongoDatacenter
 	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{"name": name, "provider": provider.String()}).Decode(&datacenterResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
-		msg := "could not find datacenter"
+		msg := "could not find datacenter " + name + " for provider " + provider.String()
 		rlog.Error(msg, err)
 		return nil, errors.New(msg)
 	}
