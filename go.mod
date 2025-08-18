@@ -29,7 +29,7 @@ require (
 	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/exp v0.0.0-20250718183923-645b1fa84792
 	golang.org/x/time v0.12.0
-	k8s.io/apimachinery v0.33.3
+	k8s.io/apimachinery v0.33.4
 	sigs.k8s.io/yaml v1.6.0
 )
 
