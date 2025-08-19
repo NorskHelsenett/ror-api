@@ -12,8 +12,8 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/factories/storagefactory"
 
 	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
 
-	"github.com/NorskHelsenett/ror/pkg/models/providers"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/spf13/viper"
 
@@ -151,7 +151,7 @@ func getClusterAgentInstallerConfig(job *apicontracts.OperatorJob, cluster *apic
 		"CONTAINER_REG_PREFIX": "docker.io/",
 	}
 
-	if cluster.Workspace.Datacenter.Provider == providers.ProviderTypeK3d || cluster.Workspace.Datacenter.Provider == providers.ProviderTypeKind {
+	if cluster.Workspace.Datacenter.Provider == providermodels.ProviderTypeK3d || cluster.Workspace.Datacenter.Provider == providermodels.ProviderTypeKind {
 		data["NAMESPACE"] = "ror"
 		data["OCI_URL"] = "oci://docker.io/nhnhelm/cluster-agent"
 		data["CONTAINER_REG_PREFIX"] = "docker.io/"

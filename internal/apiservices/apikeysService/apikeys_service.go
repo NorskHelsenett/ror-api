@@ -14,11 +14,11 @@ import (
 	datacenterRepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/datacentersRepo"
 
 	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
 
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
-	"github.com/NorskHelsenett/ror/pkg/models/providers"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/v2/apicontractsv2self"
@@ -259,7 +259,7 @@ func CreateForAgent(ctx context.Context, input *apicontracts.AgentApiKeyModel) (
 	var clusterId string
 	if !clusterExist {
 		var datacenter *apicontracts.Datacenter
-		if input.Provider == providers.ProviderTypeK3d || input.Provider == providers.ProviderTypeKind {
+		if input.Provider == providermodels.ProviderTypeK3d || input.Provider == providermodels.ProviderTypeKind {
 			input.DatacenterName = fmt.Sprintf("local-%s", input.Provider)
 		}
 		datacenter, err = datacenterRepo.FindByNameProvider(mongoctx, input.DatacenterName, input.Provider)
