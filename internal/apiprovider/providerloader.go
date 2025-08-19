@@ -6,7 +6,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/apiprovider/tanzu"
 	providertypes "github.com/NorskHelsenett/ror-api/internal/apiprovider/types"
 
-	"github.com/NorskHelsenett/ror/pkg/models/providers"
+	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 )
 
@@ -15,14 +15,14 @@ const (
 )
 
 type providerLoader struct {
-	modules  []providers.ProviderType
-	Provider map[providers.ProviderType]providertypes.Provider
+	modules  []providermodels.ProviderType
+	Provider map[providermodels.ProviderType]providertypes.Provider
 }
 
-func NewProviderloader(modules []providers.ProviderType) *providerLoader {
+func NewProviderloader(modules []providermodels.ProviderType) *providerLoader {
 	providerloader := &providerLoader{
 		modules:  modules,
-		Provider: make(map[providers.ProviderType]providertypes.Provider),
+		Provider: make(map[providermodels.ProviderType]providertypes.Provider),
 	}
 
 	if len(modules) == 0 {
@@ -30,25 +30,25 @@ func NewProviderloader(modules []providers.ProviderType) *providerLoader {
 		return providerloader
 	}
 
-	if slices.Contains(modules, providers.ProviderTypeTanzu) {
-		providerloader.Provider[providers.ProviderTypeTanzu] = tanzu.NewTanzuProvider()
-		rlog.Info("loading provider", rlog.Any("provider", providerloader.Provider[providers.ProviderTypeTanzu].GetName()), rlog.Any("providerId", providers.ProviderTypeTanzu))
+	if slices.Contains(modules, providermodels.ProviderTypeTanzu) {
+		providerloader.Provider[providermodels.ProviderTypeTanzu] = tanzu.NewTanzuProvider()
+		rlog.Info("loading provider", rlog.Any("provider", providerloader.Provider[providermodels.ProviderTypeTanzu].GetName()), rlog.Any("providerId", providermodels.ProviderTypeTanzu))
 	}
 
 	return providerloader
 }
 
-func (pl *providerLoader) GetProvider(providerType providers.ProviderType) (providertypes.Provider, bool) {
+func (pl *providerLoader) GetProvider(providerType providermodels.ProviderType) (providertypes.Provider, bool) {
 	provider, ok := pl.Provider[providerType]
 	return provider, ok
 }
 
-func (pl *providerLoader) GetProviders() map[providers.ProviderType]providertypes.Provider {
+func (pl *providerLoader) GetProviders() map[providermodels.ProviderType]providertypes.Provider {
 	return pl.Provider
 }
-func (pl *providerLoader) GetProviderIds() []providers.ProviderType {
+func (pl *providerLoader) GetProviderIds() []providermodels.ProviderType {
 	return pl.modules
 }
-func (pl *providerLoader) IsProviderLoaded(module providers.ProviderType) bool {
+func (pl *providerLoader) IsProviderLoaded(module providermodels.ProviderType) bool {
 	return slices.Contains(pl.modules, module)
 }

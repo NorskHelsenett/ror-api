@@ -9,6 +9,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/mongodbrepo/mongoTypes"
 
 	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -16,7 +17,6 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
-	"github.com/NorskHelsenett/ror/pkg/models/providers"
 
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
@@ -70,7 +70,7 @@ func seedPrices(ctx context.Context) {
 	insertResult, err := collection.InsertMany(ctx, []interface{}{
 		mongoTypes.MongoPrice{
 			ID:           primitive.NewObjectID(),
-			Provider:     providers.ProviderTypeTanzu,
+			Provider:     providermodels.ProviderTypeTanzu,
 			MachineClass: "best-effort-medium",
 			Cpu:          2,
 			Memory:       int64(8),
@@ -80,7 +80,7 @@ func seedPrices(ctx context.Context) {
 		},
 		mongoTypes.MongoPrice{
 			ID:           primitive.NewObjectID(),
-			Provider:     providers.ProviderTypeTanzu,
+			Provider:     providermodels.ProviderTypeTanzu,
 			MachineClass: "best-effort-large",
 			Cpu:          4,
 			Memory:       int64(16),
@@ -90,7 +90,7 @@ func seedPrices(ctx context.Context) {
 		},
 		mongoTypes.MongoPrice{
 			ID:           primitive.NewObjectID(),
-			Provider:     providers.ProviderTypeTanzu,
+			Provider:     providermodels.ProviderTypeTanzu,
 			MachineClass: "best-effort-xlarge",
 			Cpu:          4,
 			Memory:       int64(32),
@@ -122,7 +122,7 @@ func seedDatacenters(ctx context.Context) {
 	datacenters := []mongoTypes.MongoDatacenter{
 		{
 			ID:       primitive.NewObjectID(),
-			Provider: providers.ProviderTypeUnknown,
+			Provider: providermodels.ProviderTypeUnknown,
 			Location: mongoTypes.MongoDatacenterLocation{
 				Country: "Norway",
 				Region:  "Trøndelag",
@@ -132,7 +132,7 @@ func seedDatacenters(ctx context.Context) {
 		},
 		{
 			ID:       primitive.NewObjectID(),
-			Provider: providers.ProviderTypeK3d,
+			Provider: providermodels.ProviderTypeK3d,
 			Location: mongoTypes.MongoDatacenterLocation{
 				Country: "Norway",
 				Region:  "Trøndelag",
@@ -142,7 +142,7 @@ func seedDatacenters(ctx context.Context) {
 		},
 		{
 			ID:       primitive.NewObjectID(),
-			Provider: providers.ProviderTypeKind,
+			Provider: providermodels.ProviderTypeKind,
 			Location: mongoTypes.MongoDatacenterLocation{
 				Country: "Norway",
 				Region:  "Trøndelag",
@@ -152,7 +152,7 @@ func seedDatacenters(ctx context.Context) {
 		},
 		{
 			ID:       primitive.NewObjectID(),
-			Provider: providers.ProviderTypeTalos,
+			Provider: providermodels.ProviderTypeTalos,
 			Location: mongoTypes.MongoDatacenterLocation{
 				Country: "Norway",
 				Region:  "Trøndelag",
@@ -162,7 +162,7 @@ func seedDatacenters(ctx context.Context) {
 		},
 		{
 			ID:       primitive.NewObjectID(),
-			Provider: providers.ProviderTypeTanzu,
+			Provider: providermodels.ProviderTypeTanzu,
 			Location: mongoTypes.MongoDatacenterLocation{
 				Country: "Norway",
 				Region:  "Trøndelag",
@@ -172,7 +172,7 @@ func seedDatacenters(ctx context.Context) {
 		},
 		{
 			ID:       primitive.NewObjectID(),
-			Provider: providers.ProviderTypeTanzu,
+			Provider: providermodels.ProviderTypeTanzu,
 			Location: mongoTypes.MongoDatacenterLocation{
 				Country: "Norway",
 				Region:  "Trøndelag",
@@ -182,7 +182,7 @@ func seedDatacenters(ctx context.Context) {
 		},
 		{
 			ID:       primitive.NewObjectID(),
-			Provider: providers.ProviderTypeTanzu,
+			Provider: providermodels.ProviderTypeTanzu,
 			Location: mongoTypes.MongoDatacenterLocation{
 				Country: "Norway",
 				Region:  "Trøndelag",
@@ -192,7 +192,7 @@ func seedDatacenters(ctx context.Context) {
 		},
 		{
 			ID:       primitive.NewObjectID(),
-			Provider: providers.ProviderTypeTanzu,
+			Provider: providermodels.ProviderTypeTanzu,
 			Location: mongoTypes.MongoDatacenterLocation{
 				Country: "Norway",
 				Region:  "Oslo",
