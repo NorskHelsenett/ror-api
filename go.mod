@@ -3,7 +3,7 @@ module github.com/NorskHelsenett/ror-api
 go 1.24.4
 
 require (
-	github.com/NorskHelsenett/ror v1.3.0-rc1
+	github.com/NorskHelsenett/ror v1.4.1
 	github.com/blang/semver/v4 v4.0.0
 	github.com/coreos/go-oidc/v3 v3.15.0
 	github.com/evanphx/json-patch/v5 v5.9.11
@@ -29,13 +29,13 @@ require (
 	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/exp v0.0.0-20250718183923-645b1fa84792
 	golang.org/x/time v0.12.0
-	k8s.io/apimachinery v0.33.3
+	k8s.io/apimachinery v0.33.4
 	sigs.k8s.io/yaml v1.6.0
 )
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.18.2 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.10.1 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.11.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.11.2 // indirect
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.4.2 // indirect
@@ -98,7 +98,7 @@ require (
 	github.com/microsoft/kiota-serialization-json-go v1.1.2 // indirect
 	github.com/microsoft/kiota-serialization-multipart-go v1.1.2 // indirect
 	github.com/microsoft/kiota-serialization-text-go v1.1.2 // indirect
-	github.com/microsoftgraph/msgraph-sdk-go v1.82.0 // indirect
+	github.com/microsoftgraph/msgraph-sdk-go v1.83.0 // indirect
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.3.2 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/hashstructure/v2 v2.0.2 // indirect
@@ -117,7 +117,7 @@ require (
 	github.com/prometheus/procfs v0.17.0 // indirect
 	github.com/redis/go-redis/extra/rediscmd/v9 v9.11.0 // indirect
 	github.com/redis/go-redis/extra/redisotel/v9 v9.11.0 // indirect
-	github.com/redis/go-redis/v9 v9.11.0 // indirect
+	github.com/redis/go-redis/v9 v9.12.1 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/sagikazarmark/locafero v0.10.0 // indirect
