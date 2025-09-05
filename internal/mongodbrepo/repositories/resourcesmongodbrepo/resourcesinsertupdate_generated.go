@@ -609,23 +609,6 @@ func CreateResourceNetworkPolicy(input apiresourcecontracts.ResourceModel[apires
 	return nil
 }
 
-// Creates resource entry of type apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceBackupJob]
-func CreateResourceBackupJob(input apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceBackupJob], ctx context.Context) error {
-	rlog.Debug("inserting resource",
-		rlog.String("action", "insert"),
-		rlog.String("apiverson", input.ApiVersion),
-		rlog.String("kind", input.Kind),
-		rlog.String("uid", input.Uid),
-	)
-	_, err := mongodb.InsertOne(ctx, ResourceCollectionName, input)
-	if err != nil {
-		msg := fmt.Sprintf("could not create resource %s/%s with uid %s", input.ApiVersion, input.Kind, input.Uid)
-		rlog.Error(msg, err)
-		return errors.New(msg)
-	}
-	return nil
-}
-
 // Updates resource entry of type apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceNamespace] by uid
 func UpdateResourceNamespace(input apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceNamespace], ctx context.Context) error {
 	rlog.Debug("updating resource",
@@ -1308,26 +1291,6 @@ func UpdateResourceEndpoints(input apiresourcecontracts.ResourceModel[apiresourc
 
 // Updates resource entry of type apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceNetworkPolicy] by uid
 func UpdateResourceNetworkPolicy(input apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceNetworkPolicy], ctx context.Context) error {
-	rlog.Debug("updating resource",
-		rlog.String("action", "update"),
-		rlog.String("api version", input.ApiVersion),
-		rlog.String("kind", input.Kind),
-		rlog.String("uid", input.Uid),
-	)
-
-	filter := bson.M{"uid": input.Uid}
-	update := bson.M{"$set": input}
-	_, err := mongodb.UpdateOne(ctx, ResourceCollectionName, filter, update)
-	if err != nil {
-		msg := fmt.Sprintf("could not update resource %s/%s with uid %s", input.ApiVersion, input.Kind, input.Uid)
-		rlog.Error(msg, err)
-		return errors.New(msg)
-	}
-	return nil
-}
-
-// Updates resource entry of type apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceBackupJob] by uid
-func UpdateResourceBackupJob(input apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceBackupJob], ctx context.Context) error {
 	rlog.Debug("updating resource",
 		rlog.String("action", "update"),
 		rlog.String("api version", input.ApiVersion),
