@@ -8,8 +8,8 @@ import (
 	mongoHelper "github.com/NorskHelsenett/ror-api/internal/helpers/mongoHelper"
 	"github.com/NorskHelsenett/ror-api/internal/mongodbrepo/mongoTypes"
 
+	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
-	"github.com/NorskHelsenett/ror/pkg/models/providers"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -162,7 +162,7 @@ func FindByName(ctx context.Context, name string) (*apicontracts.Datacenter, err
 	return &mapped, nil
 }
 
-func FindByNameProvider(ctx context.Context, name string, provider providers.ProviderType) (*apicontracts.Datacenter, error) {
+func FindByNameProvider(ctx context.Context, name string, provider providermodels.ProviderType) (*apicontracts.Datacenter, error) {
 	db := mongodb.GetMongoDb()
 	var datacenterResult mongoTypes.MongoDatacenter
 	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{"name": name, "provider": provider.String()}).Decode(&datacenterResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {

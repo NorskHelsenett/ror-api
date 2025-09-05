@@ -11,6 +11,10 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
 )
 
+const (
+	RESOURCECOLLECTION = "resourcesv2"
+)
+
 type ResourceDBProvider interface {
 	Set(ctx context.Context, resource *rorresources.Resource) error
 	Get(ctx context.Context, rorResourceQuery *rorresources.ResourceQuery) (*rorresources.ResourceSet, error)
@@ -31,7 +35,7 @@ func NewResourceMongoDB(db *mongodb.MongodbCon) ResourceDBProvider {
 func (r *ResourceMongoDB) Set(ctx context.Context, resource *rorresources.Resource) error {
 	filter := bson.M{"uid": resource.GetUID()}
 	update := bson.M{"$set": resource}
-	_, err := r.db.UpsertOne(ctx, "resourcesv2", filter, update)
+	_, err := r.db.UpsertOne(ctx, RESOURCECOLLECTION, filter, update)
 	if err != nil {
 		rlog.Errorc(ctx, "Failed to upsert resource", err)
 		return err
@@ -42,7 +46,7 @@ func (r *ResourceMongoDB) Set(ctx context.Context, resource *rorresources.Resour
 func (r *ResourceMongoDB) Get(ctx context.Context, rorResourceQuery *rorresources.ResourceQuery) (*rorresources.ResourceSet, error) {
 	query := r.db.GenerateAggregateQuery(rorResourceQuery)
 	var resources = make([]rorresources.Resource, 0)
-	err := r.db.Aggregate(ctx, "resourcesv2", query, &resources)
+	err := r.db.Aggregate(ctx, RESOURCECOLLECTION, query, &resources)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +62,7 @@ func (r *ResourceMongoDB) Get(ctx context.Context, rorResourceQuery *rorresource
 
 func (r *ResourceMongoDB) Del(ctx context.Context, resource *rorresources.Resource) error {
 	filter := bson.M{"uid": resource.GetUID()}
-	_, err := r.db.DeleteOne(ctx, "resourcesv2", filter)
+	_, err := r.db.DeleteOne(ctx, RESOURCECOLLECTION, filter)
 	if err != nil {
 		return err
 	}
@@ -75,10 +79,10 @@ func (r *ResourceMongoDB) GetHashlistByQuery(ctx context.Context, rorResourceQue
 	query = append(query, bson.M{"$project": project})
 
 	//mongodb.NewMongodbQuery(query).PrettyPrint()
-	mongodb.NewMongodbQuery(query).MongoshPrint("resourcev2")
+	mongodb.NewMongodbQuery(query).MongoshPrint(RESOURCECOLLECTION)
 
 	hashItems := []apiresourcecontracts.HashItem{}
-	err := r.db.Aggregate(ctx, "resourcesv2", query, &hashItems)
+	err := r.db.Aggregate(ctx, RESOURCECOLLECTION, query, &hashItems)
 	if err != nil {
 		return hashList, err
 	}

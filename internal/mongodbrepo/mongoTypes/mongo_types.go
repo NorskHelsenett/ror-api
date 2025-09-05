@@ -5,8 +5,8 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/internal/models"
 
+	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
-	"github.com/NorskHelsenett/ror/pkg/models/providers"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -14,11 +14,11 @@ import (
 )
 
 type MongoDatacenter struct {
-	ID          primitive.ObjectID      `json:"id" bson:"_id,omitempty"`
-	Name        string                  `json:"name"`
-	Provider    providers.ProviderType  `json:"provider"`
-	Location    MongoDatacenterLocation `json:"location"`
-	APIEndpoint string                  `json:"apiEndpoint"`
+	ID          primitive.ObjectID          `json:"id" bson:"_id,omitempty"`
+	Name        string                      `json:"name"`
+	Provider    providermodels.ProviderType `json:"provider"`
+	Location    MongoDatacenterLocation     `json:"location"`
+	APIEndpoint string                      `json:"apiEndpoint"`
 }
 
 type MongoDatacenterLocation struct {
@@ -239,15 +239,15 @@ type MongoMetrics struct {
 }
 
 type MongoPrice struct {
-	ID           primitive.ObjectID     `json:"id" bson:"_id,omitempty"`
-	Provider     providers.ProviderType `json:"provider"`
-	MachineClass string                 `json:"machineClass"`
-	Cpu          int                    `json:"cpu"`
-	Memory       int64                  `json:"memory"`
-	MemoryBytes  int64                  `json:"memoryBytes"`
-	Price        int                    `json:"price"`
-	From         time.Time              `json:"from"`
-	To           time.Time              `json:"to,omitempty"`
+	ID           primitive.ObjectID          `json:"id" bson:"_id,omitempty"`
+	Provider     providermodels.ProviderType `json:"provider"`
+	MachineClass string                      `json:"machineClass"`
+	Cpu          int                         `json:"cpu"`
+	Memory       int64                       `json:"memory"`
+	MemoryBytes  int64                       `json:"memoryBytes"`
+	Price        int                         `json:"price"`
+	From         time.Time                   `json:"from"`
+	To           time.Time                   `json:"to,omitempty"`
 }
 
 type MongoAuditLogMetadata struct {

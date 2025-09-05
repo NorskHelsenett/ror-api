@@ -13,9 +13,9 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
+	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
-	"github.com/NorskHelsenett/ror/pkg/models/providers"
 
 	"strings"
 
@@ -82,7 +82,7 @@ func GetOperatorConfiguration() gin.HandlerFunc {
 
 		config := operatorConfigs.Data[0]
 		cluster, _ := clustersservice.GetByClusterId(ctx, clusterId)
-		if cluster.Workspace.Datacenter.Provider == providers.ProviderTypeKind {
+		if cluster.Workspace.Datacenter.Provider == providermodels.ProviderTypeKind {
 			c.JSON(http.StatusOK, config)
 			return
 		} else if cluster == nil || cluster.Config.Versions == nil {

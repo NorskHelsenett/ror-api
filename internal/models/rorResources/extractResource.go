@@ -221,11 +221,5 @@ func (rj rorResourceJson) getResource(resourceReturn *rorResource) error {
 		return err
 	}
 
-	if resourceReturn.ApiVersion == "backupjob.ror.internal/v1alpha1" && resourceReturn.Kind == "BackupJob" {
-		payload, err := prepareResourcePayload[apiresourcecontracts.ResourceBackupJob](bytes)
-		resourceReturn.Resource = payload
-		return err
-	}
-
 	return fmt.Errorf("no handler found for %s/%s", resourceReturn.ApiVersion, resourceReturn.Kind)
 }

@@ -4,7 +4,7 @@ import (
 	"math"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/models/providers"
+	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
 )
 
 func CpuPercentage(cpuCount int64, cpuConsumed int64) int64 {
@@ -27,7 +27,7 @@ func MemoryPercentage(memoryTotal int64, memoryConsumed int64) int64 {
 	return result
 }
 
-func FindMachineClass(memoryAllocatedBytes int64, cpuAllocated int64, provider providers.ProviderType, prices []apicontracts.Price) (int64, string) {
+func FindMachineClass(memoryAllocatedBytes int64, cpuAllocated int64, provider providermodels.ProviderType, prices []apicontracts.Price) (int64, string) {
 	pricesCount := len(prices)
 	if pricesCount == 0 {
 		return -1, "Unknown"

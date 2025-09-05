@@ -9,8 +9,7 @@ import (
 	"time"
 
 	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
-
-	"github.com/NorskHelsenett/ror/pkg/models/providers"
+	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -22,7 +21,7 @@ var httpClient = http.Client{Timeout: 55 * time.Second}
 
 func GetKubeconfig(cluster *apicontracts.Cluster, credentials apicontracts.KubeconfigCredentials) (string, error) {
 	switch cluster.Workspace.Datacenter.Provider {
-	case providers.ProviderTypeTanzu:
+	case providermodels.ProviderTypeTanzu:
 		return getKubeconfigForTanzuCluster(cluster, credentials)
 	default:
 		return "", fmt.Errorf("provider %s is not supported", cluster.Workspace.Datacenter.Provider)
@@ -31,7 +30,7 @@ func GetKubeconfig(cluster *apicontracts.Cluster, credentials apicontracts.Kubec
 
 func GetKubeconfigForWorkspace(workspace *apicontracts.Workspace, credentials apicontracts.KubeconfigCredentials) (string, error) {
 	switch workspace.Datacenter.Provider {
-	case providers.ProviderTypeTanzu:
+	case providermodels.ProviderTypeTanzu:
 		return getKubeconfigForTanzuWorkspace(workspace, credentials)
 	default:
 		return "", fmt.Errorf("provider %s is not supported", workspace.Datacenter.Provider)

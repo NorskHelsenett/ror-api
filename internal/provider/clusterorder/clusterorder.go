@@ -12,7 +12,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/provider/clusterorder/tanzuclusterorder"
 
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
-	providersconsts "github.com/NorskHelsenett/ror/pkg/models/providers"
+	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 )
@@ -50,7 +50,7 @@ func NewClusterOrder(ctx context.Context, orderspec apiresourcecontracts.Resourc
 		}
 	}
 
-	if providersconsts.ProviderType(orderspec.Provider) == "" {
+	if providermodels.ProviderType(orderspec.Provider) == "" {
 		return nil, errors.New("provider not supported")
 	}
 
@@ -63,13 +63,13 @@ func NewClusterOrder(ctx context.Context, orderspec apiresourcecontracts.Resourc
 // NewClusterOrderFromResource returns the interface ClusterOrder based on the provider specified in the apiresourcecontracts.ResourceClusterOrder
 func newClusterOrder(ctx context.Context, order apiresourcecontracts.ResourceClusterOrder) (ClusterOrder, error) {
 	switch order.Spec.Provider {
-	case providersconsts.ProviderTypeTanzu:
+	case providermodels.ProviderTypeTanzu:
 		tanzuOrder, err := tanzuclusterorder.NewClusterOrderTanzu(ctx, order)
 		return &tanzuOrder, err
-	case providersconsts.ProviderTypeKind:
+	case providermodels.ProviderTypeKind:
 		kindOrder, err := kindclusterorder.NewClusterOrderKind(ctx, order)
 		return &kindOrder, err
-	case providersconsts.ProviderTypeTalos:
+	case providermodels.ProviderTypeTalos:
 		kindOrder, err := talosclusterorder.NewClusterOrderTalos(ctx, order)
 		return &kindOrder, err
 	default:
