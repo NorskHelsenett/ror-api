@@ -264,7 +264,9 @@ func CreateForAgent(ctx context.Context, input *apicontracts.AgentApiKeyModel) (
 		}
 		datacenter, err = datacenterRepo.FindByNameProvider(mongoctx, input.DatacenterName, input.Provider)
 		if err != nil || datacenter == nil {
-			return "could not find datacenter", err
+			msg := fmt.Sprintf("could not find datacenter %s for provider %s", input.DatacenterName, input.Provider)
+			rlog.Errorc(mongoctx, msg, err)
+			return msg, err
 		}
 
 		clusterId, err = clustersservice.Create(ctx, &apicontracts.Cluster{
