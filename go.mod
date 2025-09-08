@@ -28,7 +28,7 @@ require (
 	go.opentelemetry.io/otel v1.38.0
 	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/exp v0.0.0-20250819193227-8b4c13bb791b
-	golang.org/x/time v0.12.0
+	golang.org/x/time v0.13.0
 	k8s.io/apimachinery v0.34.0
 	sigs.k8s.io/yaml v1.6.0
 )
