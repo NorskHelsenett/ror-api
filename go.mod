@@ -3,7 +3,7 @@ module github.com/NorskHelsenett/ror-api
 go 1.25.0
 
 require (
-	github.com/NorskHelsenett/ror v1.4.19
+	github.com/NorskHelsenett/ror v1.4.20
 	github.com/blang/semver/v4 v4.0.0
 	github.com/coreos/go-oidc/v3 v3.15.0
 	github.com/evanphx/json-patch/v5 v5.9.11
@@ -29,7 +29,7 @@ require (
 	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/exp v0.0.0-20250819193227-8b4c13bb791b
 	golang.org/x/time v0.13.0
-	k8s.io/apimachinery v0.34.0
+	k8s.io/apimachinery v0.34.1
 	sigs.k8s.io/yaml v1.6.0
 )
 
@@ -117,7 +117,7 @@ require (
 	github.com/prometheus/procfs v0.17.0 // indirect
 	github.com/redis/go-redis/extra/rediscmd/v9 v9.12.1 // indirect
 	github.com/redis/go-redis/extra/redisotel/v9 v9.12.1 // indirect
-	github.com/redis/go-redis/v9 v9.13.0 // indirect
+	github.com/redis/go-redis/v9 v9.14.0 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/sagikazarmark/locafero v0.10.0 // indirect
@@ -158,7 +158,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.37.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.37.0 // indirect
 	go.opentelemetry.io/otel/exporters/prometheus v0.60.0 // indirect
-	go.opentelemetry.io/otel/exporters/stdout/stdoutlog v0.13.0 // indirect
+	go.opentelemetry.io/otel/exporters/stdout/stdoutlog v0.14.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.37.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.38.0 // indirect
 	go.opentelemetry.io/otel/log v0.14.0 // indirect
