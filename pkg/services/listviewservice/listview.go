@@ -6,15 +6,15 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/v2/apilistview"
 )
 
-type ListViewType string
+type ListViews string
 
 type ListViewGenerator interface {
 	GenerateListView(ctx context.Context, metadataOnly bool, extraFields []string) (apilistview.ListView, error)
 }
 
-type ListviewGenerators map[ListViewType]ListViewGenerator
+type ListviewGenerators map[ListViews]ListViewGenerator
 
-func (lv *ListviewGenerators) RegisterListViewGenerator(listType ListViewType, generator ListViewGenerator) {
+func (lv *ListviewGenerators) RegisterListViewGenerator(listType ListViews, generator ListViewGenerator) {
 	(*lv)[listType] = generator
 }
 

@@ -9,7 +9,7 @@ import (
 type clusterlistgenerator struct{}
 
 const (
-	ClusterListView ListViewType = "clusterlist"
+	ClusterListView ListViews = "clusterlist"
 )
 
 func init() {

@@ -7,6 +7,8 @@ import (
 	"github.com/NorskHelsenett/ror-api/pkg/services/listviewservice"
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	"github.com/gin-gonic/gin"
+
+	"github.com/NorskHelsenett/ror/pkg/apicontracts/v2/apilistview"
 )
 
 // GetListView handles the HTTP GET request to retrieve a listview.
@@ -17,20 +19,21 @@ import (
 // @Tags			listview
 // @Accept			application/json
 // @Produce		application/json
-// @Success		200	{object}	apilistview.Listview
+// @Success		200	{object}	apilistview.ListView
 // @Failure		403	{string}	Forbidden
 // @Failure		401	{string}	Unauthorized
 // @Failure		500	{string}	Failure	message
 // @Router			/v2/listview [get]
-// @Param			list				query	ListViewType	true	"The list to generate"
-// @Param			metadataOnly		query	bool			false	"Set to true to only get metadata (no items)"
-// @Param			extraFields			query	string			false	"Comma separated list of extra fields to include in the response (e.g. workorder,branch,testfield1)"
+// @Param			list			query	string	true	"The list to generate must exist in listviewservice.ListViews"
+// @Param			metadataOnly	query	bool							false	"Set to true to only get metadata (no items)"
+// @Param			extraFields		query	string							false	"Comma separated list of extra fields to include in the response (e.g. workorder,branch,testfield1)"
 // @Security		ApiKey || AccessToken
 func GetListView() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, _ := gincontext.GetRorContextFromGinContext(c)
+		_ = apilistview.ListView{} // Ensure apilistview is imported
 
-		list := listviewservice.ListViewType(c.Query("list"))
+		list := listviewservice.ListViews(c.Query("list"))
 		metadataOnly := c.Query("metadataOnly") == "true"
 		extraFields := strings.Split(c.Query("extraFields"), ",")
 
