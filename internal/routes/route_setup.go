@@ -26,6 +26,7 @@ import (
 	ctrlRulesets "github.com/NorskHelsenett/ror-api/internal/controllers/rulesetscontroller"
 	ctrlTasks "github.com/NorskHelsenett/ror-api/internal/controllers/taskscontroller"
 	ctrlUsers "github.com/NorskHelsenett/ror-api/internal/controllers/userscontroller"
+	"github.com/NorskHelsenett/ror-api/internal/controllers/v2/listviewcontroller"
 	v2resourcescontroller "github.com/NorskHelsenett/ror-api/internal/controllers/v2/resourcescontroller"
 	ctrlWorkspaces "github.com/NorskHelsenett/ror-api/internal/controllers/workspacescontroller"
 	"github.com/NorskHelsenett/ror-api/internal/webserver/ratelimiter"
@@ -356,4 +357,10 @@ func SetupRoutes(router *gin.Engine) {
 	//deprecated: let client deal with special cases
 	resourceRoute.GET("/uid/:uid", v2resourcescontroller.GetResource())
 	resourceRoute.PUT("/uid/:uid", v2resourcescontroller.UpdateResource())
+
+	listviewRoute := v2.Group("listview")
+	{
+		listviewRoute.GET("", listviewcontroller.GetListView())
+	}
+
 }

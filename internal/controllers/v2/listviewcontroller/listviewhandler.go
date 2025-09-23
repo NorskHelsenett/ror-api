@@ -6,6 +6,7 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/pkg/services/listviewservice"
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
 	"github.com/gin-gonic/gin"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/v2/apilistview"
@@ -20,9 +21,9 @@ import (
 // @Accept			application/json
 // @Produce		application/json
 // @Success		200	{object}	apilistview.ListView
-// @Failure		403	{string}	Forbidden
-// @Failure		401	{string}	Unauthorized
-// @Failure		500	{string}	Failure	message
+// @Failure		403	{object}	rorerror.RorError
+// @Failure		401	{object}	rorerror.RorError
+// @Failure		500	{object}	rorerror.RorError
 // @Router			/v2/listview [get]
 // @Param			list			query	string	true	"The list to generate must exist in listviewservice.ListViews"
 // @Param			metadataOnly	query	bool							false	"Set to true to only get metadata (no items)"
@@ -45,8 +46,8 @@ func GetListView() gin.HandlerFunc {
 
 		apilistview, err := generator.GenerateListView(ctx, metadataOnly, extraFields)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
+			rerr := rorerror.NewRorErrorFromError(http.StatusInternalServerError, err)
+			rerr.GinLogErrorAbort(c)
 		}
 
 		// Return the generated list view
