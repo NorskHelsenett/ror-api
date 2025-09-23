@@ -139,29 +139,4 @@ func InitOrDie() {
 		panic(err)
 	}
 
-	err = apiconnections.RabbitMQConnection.GetChannel().ExchangeDeclare(
-		messagebuscontracts.ExchangeRorEvents, // name
-		"fanout",                              // kind
-		true,                                  // durable
-		false,                                 // autoDelete -> delete when unused
-		false,                                 // internal
-		false,                                 // no-wait
-		nil,                                   // arguments
-	)
-	if err != nil {
-		args := [...]any{messagebuscontracts.ExchangeRorEvents, err}
-		msg := fmt.Sprintf("could not declare exchange  %s,", args)
-		rlog.Fatal(msg, err)
-	}
-
-	err = apiconnections.RabbitMQConnection.GetChannel().ExchangeBind(
-		messagebuscontracts.ExchangeRorEvents, //destination
-		"event.#",                             // key
-		messagebuscontracts.ExchangeRor,       // source
-		false,                                 // noWait
-		nil,                                   // arguments
-	)
-	if err != nil {
-		panic(err)
-	}
 }
