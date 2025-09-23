@@ -1162,82 +1162,6 @@ definitions:
       name:
         type: string
     type: object
-  apilistview.ListData:
-    properties:
-      name:
-        description: Clustername
-        type: string
-      resourceuid:
-        description: dfafasdf-sdafasf-asdfadsf-dasf-sfasdf
-        type: string
-      value:
-        description: '"test-001"'
-        type: string
-    type: object
-  apilistview.ListField:
-    properties:
-      default:
-        type: boolean
-      name:
-        description: Clustername
-        type: string
-      order:
-        description: "1"
-        type: integer
-      possible_values:
-        items:
-          type: string
-        type: array
-      resource_field_ref:
-        description: '"spec.clusterdata.clustername"'
-        type: string
-      resource_type:
-        $ref: '#/definitions/v1.TypeMeta'
-      type:
-        $ref: '#/definitions/apilistview.ListFieldType'
-      writeable:
-        description: "true"
-        type: boolean
-    type: object
-  apilistview.ListFieldType:
-    enum:
-    - string
-    - number
-    - date
-    - datetime
-    - boolean
-    - enum
-    type: string
-    x-enum-varnames:
-    - ListFieldTypeString
-    - ListFieldTypeNumber
-    - ListFieldTypeDate
-    - ListFieldTypeDateTime
-    - ListFieldTypeBoolean
-    - ListFieldTypeEnum
-  apilistview.ListType:
-    enum:
-    - grid
-    - table
-    - chart
-    type: string
-    x-enum-varnames:
-    - ListTypeGrid
-    - ListTypeTable
-    - ListTypeChart
-  apilistview.ListView:
-    properties:
-      columns:
-        items:
-          $ref: '#/definitions/apilistview.ListField'
-        type: array
-      rows:
-        items:
-          $ref: '#/definitions/apilistview.ListData'
-        type: array
-      type:
-        $ref: '#/definitions/apilistview.ListType'
-    type: object
   apiresourcecontracts.CriticalityLevel:
     enum:
     - 0
@@ -1672,6 +1596,93 @@ definitions:
     - SensitivityLevelModerate
     - SensitivityLevelHigh
     - SensitivityLevelCritical
+  apiview.View:
+    properties:
+      columns:
+        items:
+          $ref: '#/definitions/apiview.ViewField'
+        type: array
+      rows:
+        items:
+          items:
+            $ref: '#/definitions/apiview.ViewData'
+          type: array
+        type: array
+      type:
+        $ref: '#/definitions/apiview.ViewType'
+    type: object
+  apiview.ViewData:
+    properties:
+      description:
+        type: string
+      fieldName:
+        type: string
+      fieldValue:
+        type: string
+      resourceUid:
+        type: string
+    type: object
+  apiview.ViewField:
+    properties:
+      default:
+        type: boolean
+      description:
+        type: string
+      name:
+        type: string
+      order:
+        type: integer
+      possibleValues:
+        items:
+          type: string
+        type: array
+      resourceFieldRef:
+        description: '"spec.clusterdata.clustername"'
+        type: string
+      resourceType:
+        $ref: '#/definitions/v1.TypeMeta'
+      type:
+        $ref: '#/definitions/apiview.ViewFieldType'
+      writeable:
+        type: boolean
+    type: object
+  apiview.ViewFieldType:
+    enum:
+    - string
+    - number
+    - date
+    - datetime
+    - boolean
+    - enum
+    type: string
+    x-enum-varnames:
+    - ViewFieldTypeString
+    - ViewFieldTypeNumber
+    - ViewFieldTypeDate
+    - ViewFieldTypeDateTime
+    - ViewFieldTypeBoolean
+    - ViewFieldTypeEnum
+  apiview.ViewMetadata:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      version:
+        type: string
+    type: object
+  apiview.ViewType:
+    enum:
+    - grid
+    - table
+    - chart
+    type: string
+    x-enum-varnames:
+    - ViewTypeGrid
+    - ViewTypeTable
+    - ViewTypeChart
   github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReport:
     properties:
       clusterid:
@@ -9572,51 +9583,6 @@ paths:
       summary: Server sent events
       tags:
       - events
-  /v2/listview:
-    get:
-      consumes:
-      - application/json
-      description: Get listview
-      parameters:
-      - description: The list to generate must exist in listviewservice.ListViews
-        in: query
-        name: list
-        required: true
-        type: string
-      - description: Set to true to only get metadata (no items)
-        in: query
-        name: metadataOnly
-        type: boolean
-      - description: Comma separated list of extra fields to include in the response
-          (e.g. workorder,branch,testfield1)
-        in: query
-        name: extraFields
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/apilistview.ListView'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/rorerror.RorError'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/rorerror.RorError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/rorerror.RorError'
-      security:
-      - AccessToken: []
-        ApiKey: []
-      summary: Get listview
-      tags:
-      - listview
   /v2/resource/uid/{uid}:
     get:
       consumes:
@@ -10056,6 +10022,96 @@ paths:
       summary: Delete api key for user
       tags:
       - user
+  /v2/views:
+    get:
+      consumes:
+      - application/json
+      description: Get view
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/apiview.ViewMetadata'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Get view
+      tags:
+      - view
+  /v2/views/{viewid}:
+    get:
+      consumes:
+      - application/json
+      description: Get view
+      parameters:
+      - description: The ID of the view to retrieve
+        in: path
+        name: viewid
+        required: true
+        type: string
+      - description: Number of items to return, if set to -1, only metadata is returned
+        in: query
+        name: limit
+        type: integer
+      - description: Number of items to skip before starting to collect the result
+          set
+        in: query
+        name: offset
+        type: integer
+      - description: Comma separated list of fields to sort by (e.g. name,-date)
+        in: query
+        name: sortby
+        type: string
+      - description: Filter expression (e.g. name==example*,date>2020-01-01)
+        in: query
+        name: filter
+        type: string
+      - description: Comma separated list of extra fields to include in the response
+          (e.g. workorder,branch,testfield1)
+        in: query
+        name: extraFields
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiview.View'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Get view
+      tags:
+      - view
 securityDefinitions:
   AccessToken:
     in: header

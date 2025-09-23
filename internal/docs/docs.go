@@ -6852,74 +6852,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/v2/listview": {
-            "get": {
-                "security": [
-                    {
-                        "AccessToken": [],
-                        "ApiKey": []
-                    }
-                ],
-                "description": "Get listview",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "listview"
-                ],
-                "summary": "Get listview",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The list to generate must exist in listviewservice.ListViews",
-                        "name": "list",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Set to true to only get metadata (no items)",
-                        "name": "metadataOnly",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Comma separated list of extra fields to include in the response (e.g. workorder,branch,testfield1)",
-                        "name": "extraFields",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/apilistview.ListView"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
-                        }
-                    }
-                }
-            }
-        },
         "/v2/resource/uid/{uid}": {
             "get": {
                 "security": [
@@ -7566,6 +7498,142 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/rorerror.RorError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.RorError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.RorError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.RorError"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/views": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Get view",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "view"
+                ],
+                "summary": "Get view",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/apiview.ViewMetadata"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.RorError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.RorError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.RorError"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/views/{viewid}": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Get view",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "view"
+                ],
+                "summary": "Get view",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The ID of the view to retrieve",
+                        "name": "viewid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of items to return, if set to -1, only metadata is returned",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of items to skip before starting to collect the result set",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma separated list of fields to sort by (e.g. name,-date)",
+                        "name": "sortby",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter expression (e.g. name==example*,date\u003e2020-01-01)",
+                        "name": "filter",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma separated list of extra fields to include in the response (e.g. workorder,branch,testfield1)",
+                        "name": "extraFields",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apiview.View"
                         }
                     },
                     "401": {
@@ -9309,111 +9377,6 @@ const docTemplate = `{
                 }
             }
         },
-        "apilistview.ListData": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "description": "Clustername",
-                    "type": "string"
-                },
-                "resourceuid": {
-                    "description": "dfafasdf-sdafasf-asdfadsf-dasf-sfasdf",
-                    "type": "string"
-                },
-                "value": {
-                    "description": "\"test-001\"",
-                    "type": "string"
-                }
-            }
-        },
-        "apilistview.ListField": {
-            "type": "object",
-            "properties": {
-                "default": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "description": "Clustername",
-                    "type": "string"
-                },
-                "order": {
-                    "description": "1",
-                    "type": "integer"
-                },
-                "possible_values": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "resource_field_ref": {
-                    "description": "\"spec.clusterdata.clustername\"",
-                    "type": "string"
-                },
-                "resource_type": {
-                    "$ref": "#/definitions/v1.TypeMeta"
-                },
-                "type": {
-                    "$ref": "#/definitions/apilistview.ListFieldType"
-                },
-                "writeable": {
-                    "description": "true",
-                    "type": "boolean"
-                }
-            }
-        },
-        "apilistview.ListFieldType": {
-            "type": "string",
-            "enum": [
-                "string",
-                "number",
-                "date",
-                "datetime",
-                "boolean",
-                "enum"
-            ],
-            "x-enum-varnames": [
-                "ListFieldTypeString",
-                "ListFieldTypeNumber",
-                "ListFieldTypeDate",
-                "ListFieldTypeDateTime",
-                "ListFieldTypeBoolean",
-                "ListFieldTypeEnum"
-            ]
-        },
-        "apilistview.ListType": {
-            "type": "string",
-            "enum": [
-                "grid",
-                "table",
-                "chart"
-            ],
-            "x-enum-varnames": [
-                "ListTypeGrid",
-                "ListTypeTable",
-                "ListTypeChart"
-            ]
-        },
-        "apilistview.ListView": {
-            "type": "object",
-            "properties": {
-                "columns": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/apilistview.ListField"
-                    }
-                },
-                "rows": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/apilistview.ListData"
-                    }
-                },
-                "type": {
-                    "$ref": "#/definitions/apilistview.ListType"
-                }
-            }
-        },
         "apiresourcecontracts.CriticalityLevel": {
             "type": "integer",
             "enum": [
@@ -10040,6 +10003,131 @@ const docTemplate = `{
                 "SensitivityLevelModerate",
                 "SensitivityLevelHigh",
                 "SensitivityLevelCritical"
+            ]
+        },
+        "apiview.View": {
+            "type": "object",
+            "properties": {
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/apiview.ViewField"
+                    }
+                },
+                "rows": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/apiview.ViewData"
+                        }
+                    }
+                },
+                "type": {
+                    "$ref": "#/definitions/apiview.ViewType"
+                }
+            }
+        },
+        "apiview.ViewData": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "fieldName": {
+                    "type": "string"
+                },
+                "fieldValue": {
+                    "type": "string"
+                },
+                "resourceUid": {
+                    "type": "string"
+                }
+            }
+        },
+        "apiview.ViewField": {
+            "type": "object",
+            "properties": {
+                "default": {
+                    "type": "boolean"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "order": {
+                    "type": "integer"
+                },
+                "possibleValues": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "resourceFieldRef": {
+                    "description": "\"spec.clusterdata.clustername\"",
+                    "type": "string"
+                },
+                "resourceType": {
+                    "$ref": "#/definitions/v1.TypeMeta"
+                },
+                "type": {
+                    "$ref": "#/definitions/apiview.ViewFieldType"
+                },
+                "writeable": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "apiview.ViewFieldType": {
+            "type": "string",
+            "enum": [
+                "string",
+                "number",
+                "date",
+                "datetime",
+                "boolean",
+                "enum"
+            ],
+            "x-enum-varnames": [
+                "ViewFieldTypeString",
+                "ViewFieldTypeNumber",
+                "ViewFieldTypeDate",
+                "ViewFieldTypeDateTime",
+                "ViewFieldTypeBoolean",
+                "ViewFieldTypeEnum"
+            ]
+        },
+        "apiview.ViewMetadata": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "apiview.ViewType": {
+            "type": "string",
+            "enum": [
+                "grid",
+                "table",
+                "chart"
+            ],
+            "x-enum-varnames": [
+                "ViewTypeGrid",
+                "ViewTypeTable",
+                "ViewTypeChart"
             ]
         },
         "github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReport": {
