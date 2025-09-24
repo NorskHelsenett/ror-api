@@ -2,7 +2,6 @@ package viewcontroller
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/NorskHelsenett/ror-api/pkg/services/viewservice"
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
@@ -41,16 +40,14 @@ func GetView() gin.HandlerFunc {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid or unsupported view", err)
 			rerr.GinLogErrorAbort(c)
 		}
-		metadataOnly := c.Query("metadataOnly") == "true"
-		extraFields := strings.Split(c.Query("fields"), ",")
+		options := viewservice.ParseOptionsFromGinContext(c)
 
-		apiview, err := generator.GenerateView(ctx, metadataOnly, extraFields)
+		apiview, err := generator.GenerateView(ctx, options...)
 		if err != nil {
 			rerr := rorerror.NewRorErrorFromError(http.StatusInternalServerError, err)
 			rerr.GinLogErrorAbort(c)
 		}
 
-		// Return the generated list view
 		c.JSON(http.StatusOK, apiview)
 	}
 }
@@ -69,23 +66,11 @@ func GetView() gin.HandlerFunc {
 // @Security		ApiKey || AccessToken
 func GetViews() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ctx, _ := gincontext.GetRorContextFromGinContext(c)
-		_ = apiview.View{} // Ensure apiview is imported
-		generator, err := viewservice.Generators.GetGenerator(c.Query("list"))
-		if err == viewservice.ErrViewNotRegistered {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid or unsupported view", err)
-			rerr.GinLogErrorAbort(c)
+		_ = apiview.ViewMetadata{} // Ensure apiview is imported
+		ret := make([]apiview.ViewMetadata, 0, len(viewservice.Generators))
+		for _, generator := range viewservice.Generators {
+			ret = append(ret, generator.GetMetadata())
 		}
-		metadataOnly := c.Query("metadataOnly") == "true"
-		extraFields := strings.Split(c.Query("extraFields"), ",")
-
-		apiview, err := generator.GenerateView(ctx, metadataOnly, extraFields)
-		if err != nil {
-			rerr := rorerror.NewRorErrorFromError(http.StatusInternalServerError, err)
-			rerr.GinLogErrorAbort(c)
-		}
-
-		// Return the generated list view
-		c.JSON(http.StatusOK, apiview)
+		c.JSON(http.StatusOK, ret)
 	}
 }

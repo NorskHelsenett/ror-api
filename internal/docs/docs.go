@@ -7613,7 +7613,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Comma separated list of fields to sort by (e.g. name,-date)",
-                        "name": "sortby",
+                        "name": "sort",
                         "in": "query"
                     },
                     {
@@ -7625,7 +7625,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Comma separated list of extra fields to include in the response (e.g. workorder,branch,testfield1)",
-                        "name": "extraFields",
+                        "name": "fields",
                         "in": "query"
                     }
                 ],

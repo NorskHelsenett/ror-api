@@ -17,7 +17,7 @@ func init() {
 }
 
 // Implement the ListViewGenerator interface for clusterlistgenerator
-func (g *clusterlistgenerator) GenerateView(ctx context.Context, metadataOnly bool, extraFields []string) (apiview.View, error) {
+func (g *clusterlistgenerator) GenerateView(ctx context.Context, opts ...ViewGeneratorsOption) (apiview.View, error) {
 	// Placeholder implementation
 	return apiview.View{}, nil
 }
