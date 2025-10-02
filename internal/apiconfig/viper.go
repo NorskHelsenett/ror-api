@@ -12,8 +12,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-var RorVersion rorversion.RorVersion
-
 func InitViper() {
 	rlog.Info("initializing configuration")
 
@@ -60,6 +58,10 @@ func InitViper() {
 	viper.SetDefault(configconsts.OPENTELEMETRY_COLLECTOR_ENDPOINT, "opentelemetry-collector:4317")
 	viper.SetDefault(configconsts.HELSEGITLAB_BASE_URL, "https://helsegitlab.nhn.no/api/v4/projects/")
 
+}
+
+func GetRorVersion() rorversion.RorVersion {
+	return rorversion.GetRorVersion()
 }
 
 func GetHTTPEndpoint() string {

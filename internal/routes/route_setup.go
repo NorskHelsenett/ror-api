@@ -3,7 +3,6 @@ package routes
 import (
 	"time"
 
-	"github.com/NorskHelsenett/ror-api/internal/apiconfig"
 	"github.com/NorskHelsenett/ror-api/internal/auth"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/aclcontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/apikeyscontroller"
@@ -40,6 +39,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/webserver/sse"
 
 	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/config/rorversion"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
 	"github.com/NorskHelsenett/ror-api/internal/docs"
@@ -343,7 +343,7 @@ func SetupRoutes(router *gin.Engine) {
 	router.GET("/metrics", gin.WrapH(promhttp.HandlerFor(prometheus.DefaultGatherer, promhttp.HandlerOpts{EnableOpenMetrics: true})))
 
 	docs.SwaggerInfo.BasePath = "/"
-	docs.SwaggerInfo.Version = apiconfig.RorVersion.GetVersion()
+	docs.SwaggerInfo.Version = rorversion.GetRorVersion().GetVersion()
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	resourceRoute := v2.Group("resources")
