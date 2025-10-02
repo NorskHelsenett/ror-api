@@ -17,14 +17,6 @@ type ViewGenerator interface {
 	GetMetadata() apiview.ViewMetadata
 }
 
-// @Router			/v2/views/{viewid} [get]
-// @Param			viewid		path	string							true	"The ID of the view to retrieve"
-// @Param			limit	query	int							false	"Number of items to return, if set to -1, only metadata is returned"
-// @Param			offset		query	int							false	"Number of items to skip before starting to collect the result set"
-// @Param			sort		query	string							false	"Comma separated list of fields to sort by (e.g. name,-date)"
-// @Param			filter		query	string							false	"Filter expression (e.g. name==example*,date>2020-01-01)"
-// @Param			fields		query	string							false	"Comma separated list of extra fields to include in the response (e.g. workorder,branch,testfield1)"
-
 type ViewGenerators map[string]ViewGenerator
 
 var Generators = ViewGenerators{}
