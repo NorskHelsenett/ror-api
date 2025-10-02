@@ -12,20 +12,12 @@ import (
 	"github.com/spf13/viper"
 )
 
-var defaultVersion string = "0.0.1-develop"
-var defaultCommit string = "FFFFFFF"
-
 var RorVersion rorversion.RorVersion
 
 func InitViper() {
 	rlog.Info("initializing configuration")
 
 	viper.AutomaticEnv()
-
-	viper.SetDefault(configconsts.VERSION, defaultVersion)
-	viper.SetDefault(configconsts.COMMIT, defaultCommit)
-
-	RorVersion = rorversion.NewRorVersion(viper.GetString(configconsts.VERSION), viper.GetString(configconsts.COMMIT))
 
 	viper.SetDefault(configconsts.API_KEY_SALT, "")
 	viper.SetDefault(configconsts.ROLE, "ror-api")
@@ -68,10 +60,6 @@ func InitViper() {
 	viper.SetDefault(configconsts.OPENTELEMETRY_COLLECTOR_ENDPOINT, "opentelemetry-collector:4317")
 	viper.SetDefault(configconsts.HELSEGITLAB_BASE_URL, "https://helsegitlab.nhn.no/api/v4/projects/")
 
-}
-
-func GetRorVersion() rorversion.RorVersion {
-	return RorVersion
 }
 
 func GetHTTPEndpoint() string {

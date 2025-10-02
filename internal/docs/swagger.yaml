@@ -2,7 +2,7 @@ basePath: /
 definitions:
   aclmodels.Acl2Scope:
     enum:
-    - ""
+    - UNKNOWN
     - ror
     - cluster
     - project
@@ -289,6 +289,8 @@ definitions:
         type: array
       sensitivity:
         $ref: '#/definitions/apicontracts.SensitivityLevel'
+      serviceId:
+        type: string
       serviceTags:
         additionalProperties:
           type: string
@@ -389,7 +391,7 @@ definitions:
       name:
         type: string
       provider:
-        $ref: '#/definitions/providers.ProviderType'
+        $ref: '#/definitions/providermodels.ProviderType'
     type: object
   apicontracts.DatacenterLocation:
     properties:
@@ -843,7 +845,7 @@ definitions:
       price:
         type: integer
       provider:
-        $ref: '#/definitions/providers.ProviderType'
+        $ref: '#/definitions/providermodels.ProviderType'
       to:
         type: string
     type: object
@@ -1274,7 +1276,7 @@ definitions:
       projectId:
         type: string
       provider:
-        $ref: '#/definitions/providers.ProviderType'
+        $ref: '#/definitions/providermodels.ProviderType'
       providerConfig:
         additionalProperties: true
         type: object
@@ -1345,14 +1347,31 @@ definitions:
   apiresourcecontracts.ResourceKubernetesClusterStatusCondition:
     properties:
       lastTransitionTime:
+        description: LastTransitionTime is the last time the condition transitioned
+          from one status to another.
         type: string
       message:
+        description: Message is a human-readable message indicating details about
+          the condition.
         type: string
       reason:
+        description: Reason is a brief reason for the condition's last transition.
         type: string
       status:
+        description: 'Status is the status of the condition. Valid vales are: ok,
+          warning, error, working, unknown.'
+        enum:
+        - ok
+        - warning
+        - error
+        - working
+        - unknown
+        example: ok
         type: string
       type:
+        description: Type is the type of the condition. For example, "ready", "available",
+          etc.
+        example: ClusterReady
         type: string
     type: object
   apiresourcecontracts.ResourceListClusterorders:
@@ -1577,6 +1596,93 @@ definitions:
     - SensitivityLevelModerate
     - SensitivityLevelHigh
     - SensitivityLevelCritical
+  apiview.View:
+    properties:
+      columns:
+        items:
+          $ref: '#/definitions/apiview.ViewField'
+        type: array
+      rows:
+        items:
+          items:
+            $ref: '#/definitions/apiview.ViewData'
+          type: array
+        type: array
+      type:
+        $ref: '#/definitions/apiview.ViewType'
+    type: object
+  apiview.ViewData:
+    properties:
+      description:
+        type: string
+      fieldName:
+        type: string
+      fieldValue:
+        type: string
+      resourceUid:
+        type: string
+    type: object
+  apiview.ViewField:
+    properties:
+      default:
+        type: boolean
+      description:
+        type: string
+      name:
+        type: string
+      order:
+        type: integer
+      possibleValues:
+        items:
+          type: string
+        type: array
+      resourceFieldRef:
+        description: '"spec.clusterdata.clustername"'
+        type: string
+      resourceType:
+        $ref: '#/definitions/v1.TypeMeta'
+      type:
+        $ref: '#/definitions/apiview.ViewFieldType'
+      writeable:
+        type: boolean
+    type: object
+  apiview.ViewFieldType:
+    enum:
+    - string
+    - number
+    - date
+    - datetime
+    - boolean
+    - enum
+    type: string
+    x-enum-varnames:
+    - ViewFieldTypeString
+    - ViewFieldTypeNumber
+    - ViewFieldTypeDate
+    - ViewFieldTypeDateTime
+    - ViewFieldTypeBoolean
+    - ViewFieldTypeEnum
+  apiview.ViewMetadata:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      version:
+        type: string
+    type: object
+  apiview.ViewType:
+    enum:
+    - grid
+    - table
+    - chart
+    type: string
+    x-enum-varnames:
+    - ViewTypeGrid
+    - ViewTypeTable
+    - ViewTypeChart
   github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReport:
     properties:
       clusterid:
@@ -1872,16 +1978,16 @@ definitions:
       channelId:
         type: string
     type: object
-  providers.Provider:
+  providermodels.Provider:
     properties:
       disabled:
         type: boolean
       name:
         type: string
       type:
-        $ref: '#/definitions/providers.ProviderType'
+        $ref: '#/definitions/providermodels.ProviderType'
     type: object
-  providers.ProviderType:
+  providermodels.ProviderType:
     enum:
     - unknown
     - tanzu
@@ -1890,6 +1996,7 @@ definitions:
     - kind
     - gke
     - talos
+    - vitistack
     type: string
     x-enum-varnames:
     - ProviderTypeUnknown
@@ -1899,6 +2006,7 @@ definitions:
     - ProviderTypeKind
     - ProviderTypeGke
     - ProviderTypeTalos
+    - ProviderTypeVitistack
   rorerror.RorError:
     properties:
       message:
@@ -1936,6 +2044,8 @@ definitions:
         $ref: '#/definitions/rortypes.ResourceAppProject'
       backupjob:
         $ref: '#/definitions/rortypes.ResourceBackupJob'
+      backuprun:
+        $ref: '#/definitions/rortypes.ResourceBackupRun'
       certificate:
         $ref: '#/definitions/rortypes.ResourceCertificate'
       clustercompliancereport:
@@ -1973,6 +2083,8 @@ definitions:
         type: string
       kubernetescluster:
         $ref: '#/definitions/rortypes.ResourceKubernetesCluster'
+      kubernetesmachineclass:
+        $ref: '#/definitions/rortypes.ResourceKubernetesMachineClass'
       metadata:
         $ref: '#/definitions/v1.ObjectMeta'
       namespace:
@@ -1989,6 +2101,8 @@ definitions:
         $ref: '#/definitions/rortypes.ResourcePolicyReport'
       project:
         $ref: '#/definitions/rortypes.ResourceProject'
+      provider:
+        $ref: '#/definitions/rortypes.ResourceProvider'
       rbacassessmentreport:
         $ref: '#/definitions/rortypes.ResourceRbacAssessmentReport'
       replicaset:
@@ -2009,6 +2123,8 @@ definitions:
         $ref: '#/definitions/rortypes.ResourceTanzuKubernetesCluster'
       tanzukubernetesrelease:
         $ref: '#/definitions/rortypes.ResourceTanzuKubernetesRelease'
+      unknown:
+        $ref: '#/definitions/rortypes.ResourceUnknown'
       virtualmachine:
         $ref: '#/definitions/rortypes.ResourceVirtualMachine'
       virtualmachineclass:
@@ -2017,6 +2133,8 @@ definitions:
         $ref: '#/definitions/rortypes.ResourceVulnerabilityEvent'
       vulnerabilityreport:
         $ref: '#/definitions/rortypes.ResourceVulnerabilityReport'
+      workspace:
+        $ref: '#/definitions/rortypes.ResourceWorkspace'
     type: object
   rorresources.ResourceSet:
     properties:
@@ -2047,86 +2165,6 @@ definitions:
       total:
         type: integer
     type: object
-  rortypes.Autoscaling:
-    properties:
-      enabled:
-        type: boolean
-      maxReplicas:
-        type: integer
-      minReplicas:
-        type: integer
-      scalingRules:
-        items:
-          type: string
-        type: array
-    type: object
-  rortypes.ClusterDetails:
-    properties:
-      controlplane:
-        $ref: '#/definitions/rortypes.ControlPlaneStatus'
-      externalId:
-        type: string
-      resources:
-        items:
-          $ref: '#/definitions/rortypes.Resource'
-        type: array
-      workers:
-        $ref: '#/definitions/rortypes.WorkerStatus'
-    type: object
-  rortypes.ClusterState:
-    properties:
-      cluster:
-        $ref: '#/definitions/rortypes.ClusterDetails'
-      controlplaneendpoint:
-        type: string
-      created:
-        type: string
-      egressIP:
-        type: string
-      lastUpdated:
-        type: string
-      lastUpdatedBy:
-        type: string
-      versions:
-        items:
-          $ref: '#/definitions/rortypes.Version'
-        type: array
-    type: object
-  rortypes.Condition:
-    properties:
-      lastTransitionTime:
-        type: string
-      message:
-        type: string
-      reason:
-        type: string
-      status:
-        type: string
-      type:
-        type: string
-    type: object
-  rortypes.ControlPlane:
-    properties:
-      machineClass:
-        type: string
-      metadata:
-        $ref: '#/definitions/rortypes.MetadataDetails'
-      provider:
-        type: string
-      replicas:
-        type: integer
-      storage:
-        items:
-          $ref: '#/definitions/rortypes.Storage'
-        type: array
-    type: object
-  rortypes.ControlPlaneStatus:
-    properties:
-      message:
-        type: string
-      status:
-        type: string
-    type: object
   rortypes.CriticalityLevel:
     enum:
     - 0
@@ -2152,7 +2190,7 @@ definitions:
       name:
         type: string
       provider:
-        $ref: '#/definitions/providers.ProviderType'
+        $ref: '#/definitions/providermodels.ProviderType'
     type: object
   rortypes.DatacenterLocation:
     properties:
@@ -2177,6 +2215,184 @@ definitions:
     - EnvironmentTesting
     - EnvironmentQA
     - EnvironmentProduction
+  rortypes.KubernetesClusterAutoscalingConfig:
+    properties:
+      enabled:
+        type: boolean
+      maxReplicas:
+        type: integer
+      minReplicas:
+        type: integer
+    type: object
+  rortypes.KubernetesClusterAutoscalingSpec:
+    properties:
+      enabled:
+        type: boolean
+      maxReplicas:
+        type: integer
+      minReplicas:
+        type: integer
+      scalingRules:
+        items:
+          type: string
+        type: array
+    type: object
+  rortypes.KubernetesClusterClusterDetails:
+    properties:
+      controlplane:
+        $ref: '#/definitions/rortypes.KubernetesClusterControlPlaneStatus'
+      externalId:
+        type: string
+      nodepools:
+        description: TODO
+        items:
+          $ref: '#/definitions/rortypes.KubernetesClusterNodePoolStatus'
+        type: array
+      price:
+        allOf:
+        - $ref: '#/definitions/rortypes.KubernetesClusterStatusPrice'
+        description: Price is the price of the cluster, e.g., "1000 NOK/month"
+      resources:
+        $ref: '#/definitions/rortypes.KubernetesClusterStatusClusterStatusResources'
+    type: object
+  rortypes.KubernetesClusterClusterState:
+    properties:
+      cluster:
+        $ref: '#/definitions/rortypes.KubernetesClusterClusterDetails'
+      created:
+        type: string
+      egressIP:
+        type: string
+      endpoints:
+        items:
+          $ref: '#/definitions/rortypes.KubernetesClusterEndpoint'
+        type: array
+      lastUpdated:
+        type: string
+      lastUpdatedBy:
+        type: string
+      versions:
+        items:
+          $ref: '#/definitions/rortypes.KubernetesClusterVersion'
+        type: array
+    type: object
+  rortypes.KubernetesClusterCondition:
+    properties:
+      lastTransitionTime:
+        description: LastTransitionTime is the last time the condition transitioned
+          from one status to another.
+        type: string
+      message:
+        description: Message is a human-readable message indicating details about
+          the condition.
+        type: string
+      reason:
+        description: Reason is a brief reason for the condition's last transition.
+        type: string
+      status:
+        description: 'Status is the status of the condition. Valid vales are: ok,
+          warning, error, working, unknown.'
+        enum:
+        - ok
+        - warning
+        - error
+        - working
+        - unknown
+        example: ok
+        type: string
+      type:
+        description: Type is the type of the condition. For example, "ready", "available",
+          etc.
+        example: ClusterReady
+        type: string
+    type: object
+  rortypes.KubernetesClusterControlPlaneStatus:
+    properties:
+      machineClass:
+        description: MachineClass is the machine class of the control plane, e.g.,
+          "c5.large", "m5.xlarge"
+        type: string
+      message:
+        type: string
+      nodes:
+        description: Nodes is the list of the uuids of the nodes in the control plane
+        items:
+          type: string
+        type: array
+      resources:
+        allOf:
+        - $ref: '#/definitions/rortypes.KubernetesClusterStatusClusterStatusResources'
+        description: Resources is the resources of the control plane, e.g., CPU, Memory,
+          Disk, GPU
+      scale:
+        description: Scale is the number of replicas of the control plane.
+        type: integer
+      status:
+        type: string
+    type: object
+  rortypes.KubernetesClusterEndpoint:
+    properties:
+      address:
+        description: Address is the address of the endpoint, e.g., "https://api.example.com",
+          "http://dashboard.example.com"
+        type: string
+      name:
+        description: Name is the name of the endpoint, e.g., "controllplane", "kubernetes",
+          "api", "dashboard, grafana, argocd", "datacenter"
+        type: string
+    type: object
+  rortypes.KubernetesClusterNodePool:
+    properties:
+      autoscaling:
+        $ref: '#/definitions/rortypes.KubernetesClusterAutoscalingSpec'
+      machineClass:
+        type: string
+      metadata:
+        $ref: '#/definitions/rortypes.KubernetesClusterSpecMetadataDetails'
+      name:
+        type: string
+      provider:
+        type: string
+      replicas:
+        type: integer
+      taint:
+        items:
+          $ref: '#/definitions/rortypes.KubernetesClusterTaint'
+        type: array
+      version:
+        description: Kubernetes version, e.g., "1.23.0"
+        type: string
+    type: object
+  rortypes.KubernetesClusterNodePoolStatus:
+    properties:
+      autoscaling:
+        allOf:
+        - $ref: '#/definitions/rortypes.KubernetesClusterAutoscalingConfig'
+        description: Autoscaling is the autoscaling configuration of the node pool.
+      machineClass:
+        description: MachineClass is the machine class of the nodepool, e.g., "c5.large",
+          "m5.xlarge"
+        type: string
+      message:
+        type: string
+      name:
+        type: string
+      nodes:
+        description: Nodes is the list of the uuids of the nodes in the node pool
+        items:
+          type: string
+        type: array
+      resources:
+        allOf:
+        - $ref: '#/definitions/rortypes.KubernetesClusterStatusClusterStatusResources'
+        description: Resources is the resources of the node pool, e.g., CPU, Memory,
+          Disk, GPU
+      scale:
+        description: Scale is the number of replicas of the nodepool.
+        type: integer
+      status:
+        type: string
+    type: object
   rortypes.KubernetesClusterSpec:
     properties:
       data:
@@ -2184,9 +2400,30 @@ definitions:
       topology:
         $ref: '#/definitions/rortypes.KubernetesClusterSpecTopology'
     type: object
+  rortypes.KubernetesClusterSpecControlPlane:
+    properties:
+      machineClass:
+        type: string
+      metadata:
+        $ref: '#/definitions/rortypes.KubernetesClusterSpecMetadataDetails'
+      provider:
+        type: string
+      replicas:
+        type: integer
+      storage:
+        items:
+          $ref: '#/definitions/rortypes.KubernetesClusterStorage'
+        type: array
+      version:
+        description: Kubernetes version, e.g., "1.23.0"
+        type: string
+    type: object
   rortypes.KubernetesClusterSpecData:
     properties:
       clusterId:
+        type: string
+      clusterUid:
+        description: ClusterUID is a unique identifier for the cluster, e.g., "12345678-1234-1234-1234-123456789012"
         type: string
       datacenter:
         type: string
@@ -2205,28 +2442,7 @@ definitions:
       zone:
         type: string
     type: object
-  rortypes.KubernetesClusterSpecTopology:
-    properties:
-      controlplane:
-        $ref: '#/definitions/rortypes.ControlPlane'
-      version:
-        type: string
-      workers:
-        $ref: '#/definitions/rortypes.Workers'
-    type: object
-  rortypes.KubernetesClusterStatus:
-    properties:
-      conditions:
-        items:
-          $ref: '#/definitions/rortypes.Condition'
-        type: array
-      phase:
-        description: Provisioning, Running, Deleting, Failed, Updating
-        type: string
-      state:
-        $ref: '#/definitions/rortypes.ClusterState'
-    type: object
-  rortypes.MetadataDetails:
+  rortypes.KubernetesClusterSpecMetadataDetails:
     properties:
       annotations:
         additionalProperties:
@@ -2237,29 +2453,113 @@ definitions:
           type: string
         type: object
     type: object
-  rortypes.NodePool:
+  rortypes.KubernetesClusterSpecTopology:
     properties:
-      autoscaling:
-        $ref: '#/definitions/rortypes.Autoscaling'
-      machineClass:
+      controlplane:
+        allOf:
+        - $ref: '#/definitions/rortypes.KubernetesClusterSpecControlPlane'
+        description: ControlPlane contains the control plane configuration.
+      version:
+        description: Kubernetes version, e.g., "1.23.0"
         type: string
-      metadata:
-        $ref: '#/definitions/rortypes.MetadataDetails'
-      name:
+      workers:
+        allOf:
+        - $ref: '#/definitions/rortypes.KubernetesClusterWorkers'
+        description: Workers contains the worker nodes configuration.
+    type: object
+  rortypes.KubernetesClusterStatus:
+    properties:
+      conditions:
+        items:
+          $ref: '#/definitions/rortypes.KubernetesClusterCondition'
+        type: array
+      phase:
+        description: Provisioning, Running, Deleting, Failed, Updating
         type: string
-      provider:
-        type: string
-      replicas:
+      state:
+        $ref: '#/definitions/rortypes.KubernetesClusterClusterState'
+    type: object
+  rortypes.KubernetesClusterStatusClusterStatusResource:
+    properties:
+      capacity:
+        allOf:
+        - $ref: '#/definitions/rortypes.Quantity'
+        description: Capacity is the total capacity of the resource."
+      percentage:
+        description: Percentage is the percentage of the resource that is currently
+          used as an int.
+        type: integer
+      used:
+        allOf:
+        - $ref: '#/definitions/rortypes.Quantity'
+        description: Used is the amount of the resource that is currently used."
+    type: object
+  rortypes.KubernetesClusterStatusClusterStatusResources:
+    properties:
+      cpu:
+        allOf:
+        - $ref: '#/definitions/rortypes.KubernetesClusterStatusClusterStatusResource'
+        description: CPU is the total CPU capacity of the cluster, if not specified
+          in millicores, e.g., "16 cores", "8000 millicores"
+      disk:
+        allOf:
+        - $ref: '#/definitions/rortypes.KubernetesClusterStatusClusterStatusResource'
+        description: Disk is the total disk capacity of the cluster, if not specified
+          in bytes"
+      gpu:
+        allOf:
+        - $ref: '#/definitions/rortypes.KubernetesClusterStatusClusterStatusResource'
+        description: GPU is the total GPU capacity of the cluster, if not specified
+          in number of GPUs"
+      memory:
+        allOf:
+        - $ref: '#/definitions/rortypes.KubernetesClusterStatusClusterStatusResource'
+        description: Memory is the total memory capacity of the cluster, if not specified
+          in bytes, e.g., "64 GB", "128000 MB", "25600000000 bytes"
+    type: object
+  rortypes.KubernetesClusterStatusPrice:
+    properties:
+      monthly:
+        description: Monthly is the monthly price of the cluster in your currency,
+          e.g., "1000"
+        type: integer
+      yearly:
+        description: Yearly is the yearly price of the cluster, e.g., "12000"
         type: integer
     type: object
-  rortypes.NodePoolStatus:
+  rortypes.KubernetesClusterStorage:
     properties:
-      message:
+      class:
+        type: string
+      path:
+        type: string
+      size:
+        type: string
+    type: object
+  rortypes.KubernetesClusterTaint:
+    properties:
+      effect:
+        type: string
+      key:
+        type: string
+      value:
+        type: string
+    type: object
+  rortypes.KubernetesClusterVersion:
+    properties:
+      branch:
         type: string
       name:
         type: string
-      status:
+      version:
         type: string
+    type: object
+  rortypes.KubernetesClusterWorkers:
+    properties:
+      nodePools:
+        items:
+          $ref: '#/definitions/rortypes.KubernetesClusterNodePool'
+        type: array
     type: object
   rortypes.ProviderType:
     enum:
@@ -2273,14 +2573,22 @@ definitions:
     - ProviderTypeTanzu
     - ProviderTypeAzure
     - ProviderTypeK3d
-  rortypes.Resource:
+  rortypes.Quantity:
     properties:
-      allocated:
+      Format:
+        enum:
+        - DecimalExponent
+        - BinarySI
+        - DecimalSI
         type: string
-      name:
-        type: string
-      usage:
-        type: string
+        x-enum-comments:
+          BinarySI: e.g., 12Mi (12 * 2^20)
+          DecimalExponent: e.g., 12e6
+          DecimalSI: e.g., 12M  (12 * 10^6)
+        x-enum-varnames:
+        - DecimalExponent
+        - BinarySI
+        - DecimalSI
     type: object
   rortypes.ResourceAction:
     enum:
@@ -2485,60 +2793,41 @@ definitions:
     type: object
   rortypes.ResourceBackupJobStatus:
     properties:
-      activeTargets:
-        description: Direct targets for this backup job
+      backupRunIds:
+        description: Any runs connected to this backup job
         items:
-          $ref: '#/definitions/rortypes.ResourceBackupTarget'
-        type: array
-      backupDestinations:
-        description: Any destination defined by this backup job
-        items:
-          $ref: '#/definitions/rortypes.ResourceBackupDestination'
-        type: array
-      indirectBackupTargets:
-        description: Indirect targets for this backup job
-        items:
-          $ref: '#/definitions/rortypes.ResourceIndirectBackupTarget'
+          type: string
         type: array
       lastUpdated:
         type: string
       location:
         type: string
-      name:
-        description: The name of the job
-        type: string
-      policyId:
-        description: |-
-          Defines the policy if applicable at the local system
-          If policies are not used these can be left as blank
-        type: string
       policyName:
         type: string
-      runs:
-        items:
-          $ref: '#/definitions/rortypes.ResourceBackupRun'
-        type: array
-      schedules:
-        items:
-          $ref: '#/definitions/rortypes.ResourceBackupSchedule'
-        type: array
-      status:
-        description: Status of the backup job, active, paused, etc.
-        type: string
-    type: object
-  rortypes.ResourceBackupRetention:
-    properties:
-      duration:
-        type: integer
-      unit:
-        type: string
+      resourceBackupJobSpec:
+        $ref: '#/definitions/rortypes.ResourceBackupJobSpec'
     type: object
   rortypes.ResourceBackupRun:
     properties:
+      id:
+        type: string
+      provider:
+        type: string
+      source:
+        type: string
+      spec:
+        $ref: '#/definitions/rortypes.ResourceBackupJobSpec'
+      status:
+        $ref: '#/definitions/rortypes.ResourceBackupRunStatus'
+    type: object
+  rortypes.ResourceBackupRunStatus:
+    properties:
       backupDestinations:
         items:
-          $ref: '#/definitions/rortypes.ResourceBackupRunDestination'
+          $ref: '#/definitions/rortypes.ResourceBackupDestination'
         type: array
+      backupJobId:
+        type: string
       backupStorage:
         $ref: '#/definitions/rortypes.ResourceBackupStorage'
       backupTargets:
@@ -2553,24 +2842,10 @@ definitions:
         type: string
       id:
         type: string
+      lastUpdated:
+        type: string
       startTime:
         description: When the run was started
-        type: string
-    type: object
-  rortypes.ResourceBackupRunDestination:
-    properties:
-      expiryTime:
-        description: ExpiryTime is defined per destination
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-      status:
-        description: Status spesific to the destination - remote being unavailable
-        type: string
-      type:
-        description: Local, remote, archive, etc.
         type: string
     type: object
   rortypes.ResourceBackupSchedule:
@@ -2583,12 +2858,19 @@ definitions:
         description: How many time per unit will this backup run
         type: integer
       retention:
-        $ref: '#/definitions/rortypes.ResourceBackupRetention'
+        $ref: '#/definitions/rortypes.ResourceBackupScheduleRetention'
       startTime:
         description: When will the job start
         type: string
       unit:
         description: What unit of time is this schedule going to run in
+        type: string
+    type: object
+  rortypes.ResourceBackupScheduleRetention:
+    properties:
+      duration:
+        type: integer
+      unit:
         type: string
     type: object
   rortypes.ResourceBackupSource:
@@ -2630,6 +2912,10 @@ definitions:
       name:
         description: Defines the object's name
         type: string
+      size:
+        allOf:
+        - $ref: '#/definitions/rortypes.ResourceBackupStorage'
+        description: Defines the size of the snapshots of the target
       source:
         allOf:
         - $ref: '#/definitions/rortypes.ResourceBackupSource'
@@ -2917,7 +3203,27 @@ definitions:
       legacy:
         $ref: '#/definitions/rortypes.Datacenter'
       spec:
-        $ref: '#/definitions/rortypes.ResourceDaemonSetStatus'
+        $ref: '#/definitions/rortypes.ResourceDatacenterSpec'
+      status:
+        $ref: '#/definitions/rortypes.ResourceDatacenterStatus'
+    type: object
+  rortypes.ResourceDatacenterSpec:
+    properties:
+      workspaces:
+        items:
+          $ref: '#/definitions/rortypes.ResourceWorkspace'
+        type: array
+    type: object
+  rortypes.ResourceDatacenterStatus:
+    properties:
+      apiEndpoint:
+        type: string
+      location:
+        $ref: '#/definitions/rortypes.DatacenterLocation'
+      workspaces:
+        items:
+          $ref: '#/definitions/rortypes.ResourceWorkspace'
+        type: array
     type: object
   rortypes.ResourceDeployment:
     properties:
@@ -3195,6 +3501,35 @@ definitions:
       status:
         type: string
       type:
+        type: string
+    type: object
+  rortypes.ResourceKubernetesMachineClass:
+    properties:
+      spec:
+        $ref: '#/definitions/rortypes.ResourceKubernetesMachineClassSpec'
+      status:
+        $ref: '#/definitions/rortypes.ResourceKubernetesMachineClassStatus'
+    type: object
+  rortypes.ResourceKubernetesMachineClassSpec:
+    properties:
+      cpu:
+        type: string
+      gpu:
+        type: boolean
+      memory:
+        type: string
+      name:
+        type: string
+    type: object
+  rortypes.ResourceKubernetesMachineClassStatus:
+    properties:
+      cpu:
+        type: string
+      gpu:
+        type: boolean
+      memory:
+        type: string
+      name:
         type: string
     type: object
   rortypes.ResourceNamespace:
@@ -3616,6 +3951,8 @@ definitions:
         type: string
       upn:
         type: string
+    type: object
+  rortypes.ResourceProvider:
     type: object
   rortypes.ResourceRbacAssessmentReport:
     properties:
@@ -4158,6 +4495,8 @@ definitions:
       type:
         type: string
     type: object
+  rortypes.ResourceUnknown:
+    type: object
   rortypes.ResourceVirtualMachine:
     properties:
       externalId:
@@ -4421,6 +4760,63 @@ definitions:
       vulnerabilityID:
         type: string
     type: object
+  rortypes.ResourceWorkspace:
+    properties:
+      spec:
+        $ref: '#/definitions/rortypes.ResourceWorkspaceSpec'
+      status:
+        $ref: '#/definitions/rortypes.ResourceWorkspaceStatus'
+    type: object
+  rortypes.ResourceWorkspaceMachineClass:
+    properties:
+      name:
+        type: string
+    type: object
+  rortypes.ResourceWorkspaceSpec:
+    properties:
+      availableMachineClasses:
+        items:
+          $ref: '#/definitions/rortypes.ResourceWorkspaceMachineClass'
+        type: array
+      availableStorageClasses:
+        items:
+          $ref: '#/definitions/rortypes.ResourceWorkspaceStorageClass'
+        type: array
+      defaultMachineClass:
+        $ref: '#/definitions/rortypes.ResourceWorkspaceMachineClass'
+      defaultStorageClass:
+        $ref: '#/definitions/rortypes.ResourceWorkspaceStorageClass'
+      kubernetesClusters:
+        items:
+          $ref: '#/definitions/rortypes.ResourceKubernetesCluster'
+        type: array
+    type: object
+  rortypes.ResourceWorkspaceStatus:
+    properties:
+      availableMachineClasses:
+        items:
+          $ref: '#/definitions/rortypes.ResourceWorkspaceMachineClass'
+        type: array
+      availableStorageClasses:
+        items:
+          $ref: '#/definitions/rortypes.ResourceWorkspaceStorageClass'
+        type: array
+      datacenterId:
+        type: string
+      defaultMachineClass:
+        $ref: '#/definitions/rortypes.ResourceWorkspaceMachineClass'
+      defaultStorageClass:
+        $ref: '#/definitions/rortypes.ResourceWorkspaceStorageClass'
+      kubernetesClusters:
+        items:
+          $ref: '#/definitions/rortypes.ResourceKubernetesCluster'
+        type: array
+    type: object
+  rortypes.ResourceWorkspaceStorageClass:
+    properties:
+      name:
+        type: string
+    type: object
   rortypes.SensitivityLevel:
     enum:
     - 0
@@ -4435,24 +4831,6 @@ definitions:
     - SensitivityLevelModerate
     - SensitivityLevelHigh
     - SensitivityLevelCritical
-  rortypes.Storage:
-    properties:
-      class:
-        type: string
-      path:
-        type: string
-      size:
-        type: string
-    type: object
-  rortypes.Version:
-    properties:
-      branch:
-        type: string
-      name:
-        type: string
-      version:
-        type: string
-    type: object
   rortypes.VulnerabilityDismissalReason:
     enum:
     - 0
@@ -4475,20 +4853,6 @@ definitions:
     - NEEDS_TRIAGE
     - CONFIRMED
     - DISMISSED
-  rortypes.WorkerStatus:
-    properties:
-      nodepools:
-        items:
-          $ref: '#/definitions/rortypes.NodePoolStatus'
-        type: array
-    type: object
-  rortypes.Workers:
-    properties:
-      nodePools:
-        items:
-          $ref: '#/definitions/rortypes.NodePool'
-        type: array
-    type: object
   v1.FieldsV1:
     type: object
   v1.ManagedFieldsEntry:
@@ -4773,6 +5137,26 @@ definitions:
         description: |-
           UID of the referent.
           More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids
+        type: string
+    type: object
+  v1.TypeMeta:
+    properties:
+      apiVersion:
+        description: |-
+          APIVersion defines the versioned schema of this representation of an object.
+          Servers should convert recognized schemas to the latest internal value, and
+          may reject unrecognized values.
+          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+          +optional
+        type: string
+      kind:
+        description: |-
+          Kind is a string value representing the REST resource this object represents.
+          Servers may infer this from the endpoint the client submits requests to.
+          Cannot be updated.
+          In CamelCase.
+          More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+          +optional
         type: string
     type: object
 info:
@@ -7941,7 +8325,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/providers.Provider'
+              $ref: '#/definitions/providermodels.Provider'
             type: array
         "400":
           description: Bad Request
@@ -7983,7 +8367,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/providers.Provider'
+              $ref: '#/definitions/providermodels.Provider'
             type: array
         "400":
           description: Bad Request
@@ -8025,7 +8409,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/providers.Provider'
+              $ref: '#/definitions/providermodels.Provider'
             type: array
         "400":
           description: Bad Request
@@ -8062,7 +8446,7 @@ paths:
         type: string
       - description: The kind of the owner, currently only support 'Cluster'
         enum:
-        - ""
+        - UNKNOWN
         - ror
         - cluster
         - project
@@ -8122,7 +8506,7 @@ paths:
       parameters:
       - description: The kind of the owner, currently only support 'Cluster'
         enum:
-        - ""
+        - UNKNOWN
         - ror
         - cluster
         - project
@@ -8218,7 +8602,7 @@ paths:
       parameters:
       - description: The kind of the owner, currently only support 'Cluster'
         enum:
-        - ""
+        - UNKNOWN
         - ror
         - cluster
         - project
@@ -8303,7 +8687,7 @@ paths:
       parameters:
       - description: The kind of the owner, currently only support 'Cluster'
         enum:
-        - ""
+        - UNKNOWN
         - ror
         - cluster
         - project
@@ -9358,7 +9742,7 @@ paths:
       parameters:
       - description: The kind of the owner, currently only support 'Cluster'
         enum:
-        - ""
+        - UNKNOWN
         - ror
         - cluster
         - project
@@ -9443,7 +9827,7 @@ paths:
       parameters:
       - description: The kind of the owner, currently only support 'Cluster'
         enum:
-        - ""
+        - UNKNOWN
         - ror
         - cluster
         - project
@@ -9638,6 +10022,96 @@ paths:
       summary: Delete api key for user
       tags:
       - user
+  /v2/views:
+    get:
+      consumes:
+      - application/json
+      description: Get view
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/apiview.ViewMetadata'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Get view
+      tags:
+      - view
+  /v2/views/{viewid}:
+    get:
+      consumes:
+      - application/json
+      description: Get view
+      parameters:
+      - description: The ID of the view to retrieve
+        in: path
+        name: viewid
+        required: true
+        type: string
+      - description: Number of items to return, if set to -1, only metadata is returned
+        in: query
+        name: limit
+        type: integer
+      - description: Number of items to skip before starting to collect the result
+          set
+        in: query
+        name: offset
+        type: integer
+      - description: Comma separated list of fields to sort by (e.g. name,-date)
+        in: query
+        name: sort
+        type: string
+      - description: Filter expression (e.g. name==example*,date>2020-01-01)
+        in: query
+        name: filter
+        type: string
+      - description: Comma separated list of extra fields to include in the response
+          (e.g. workorder,branch,testfield1)
+        in: query
+        name: fields
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiview.View'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rorerror.RorError'
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Get view
+      tags:
+      - view
 securityDefinitions:
   AccessToken:
     in: header

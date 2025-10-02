@@ -27,6 +27,7 @@ import (
 	ctrlTasks "github.com/NorskHelsenett/ror-api/internal/controllers/taskscontroller"
 	ctrlUsers "github.com/NorskHelsenett/ror-api/internal/controllers/userscontroller"
 	v2resourcescontroller "github.com/NorskHelsenett/ror-api/internal/controllers/v2/resourcescontroller"
+	viewcontroller "github.com/NorskHelsenett/ror-api/internal/controllers/v2/viewcontroller"
 	ctrlWorkspaces "github.com/NorskHelsenett/ror-api/internal/controllers/workspacescontroller"
 	"github.com/NorskHelsenett/ror-api/internal/webserver/ratelimiter"
 
@@ -356,4 +357,11 @@ func SetupRoutes(router *gin.Engine) {
 	//deprecated: let client deal with special cases
 	resourceRoute.GET("/uid/:uid", v2resourcescontroller.GetResource())
 	resourceRoute.PUT("/uid/:uid", v2resourcescontroller.UpdateResource())
+
+	viewsRoute := v2.Group("views")
+	{
+		viewsRoute.GET("", viewcontroller.GetViews())
+		viewsRoute.GET("/:viewid", viewcontroller.GetView())
+	}
+
 }
