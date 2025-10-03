@@ -41,6 +41,7 @@ __debug_bin*
 *.swp
 *.swo
 *~
+debug.sh
 
 # OS generated files
 .DS_Store
