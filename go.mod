@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/NorskHelsenett/ror v1.4.25
 	github.com/blang/semver/v4 v4.0.0
-	github.com/coreos/go-oidc/v3 v3.15.0
+	github.com/coreos/go-oidc/v3 v3.16.0
 	github.com/dotse/go-health v1.0.1
 	github.com/evanphx/json-patch/v5 v5.9.11
 	github.com/gin-contrib/cors v1.7.6
@@ -13,7 +13,7 @@ require (
 	github.com/gin-contrib/pprof v1.5.3
 	github.com/gin-contrib/timeout v1.1.0
 	github.com/gin-gonic/gin v1.11.0
-	github.com/go-playground/validator/v10 v10.27.0
+	github.com/go-playground/validator/v10 v10.28.0
 	github.com/go-resty/resty/v2 v2.16.5
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
@@ -58,7 +58,7 @@ require (
 	github.com/go-co-op/gocron v1.37.0 // indirect
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a // indirect
 	github.com/go-http-utils/negotiator v1.0.0 // indirect
-	github.com/go-jose/go-jose/v4 v4.1.2 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.3 // indirect
 	github.com/go-ldap/ldap/v3 v3.4.12 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -178,12 +178,12 @@ require (
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/arch v0.20.0 // indirect
-	golang.org/x/crypto v0.41.0 // indirect
+	golang.org/x/crypto v0.42.0 // indirect
 	golang.org/x/mod v0.27.0 // indirect
 	golang.org/x/net v0.43.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
-	golang.org/x/sys v0.35.0 // indirect
+	golang.org/x/sys v0.36.0 // indirect
 	golang.org/x/text v0.29.0 // indirect
 	golang.org/x/tools v0.36.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250826171959-ef028d996bc1 // indirect
