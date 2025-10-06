@@ -22,11 +22,12 @@ import (
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200	{object}	health.Response
-//	@Failure		500	{object}	Failure	message
+//	@Failure		500	{object}	rorerror.RorError
 //	@Router			/health [get]
 func GetHealthStatus() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var healthstatus *health.Response
+		var _ rorerror.RorError
 		var err error
 		healthstatus, err = health.CheckHealth(context.Background())
 		if err != nil {
