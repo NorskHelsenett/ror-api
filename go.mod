@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/NorskHelsenett/ror v1.4.25
 	github.com/blang/semver/v4 v4.0.0
-	github.com/coreos/go-oidc/v3 v3.15.0
+	github.com/coreos/go-oidc/v3 v3.16.0
 	github.com/evanphx/json-patch/v5 v5.9.11
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-contrib/gzip v1.2.3
@@ -58,7 +58,7 @@ require (
 	github.com/go-co-op/gocron v1.37.0 // indirect
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a // indirect
 	github.com/go-http-utils/negotiator v1.0.0 // indirect
-	github.com/go-jose/go-jose/v4 v4.1.2 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.3 // indirect
 	github.com/go-ldap/ldap/v3 v3.4.12 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
