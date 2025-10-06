@@ -8,10 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Version struct {
-	Version string `json:"version"`
-}
-
 // TODO: Describe
 //
 //	@Summary	Get version
@@ -20,13 +16,12 @@ type Version struct {
 //	@Tags			info
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200					{object}	map[string]interface{}
-//	@Failure		403					{object}	map[string]interface{}
-//	@Failure		401					{object}	rorerror.RorError
+//	@Success		200					{object}	rorversion.RorVersion
 //	@Failure		500					{object}	map[string]interface{}
 //	@Router			/v1/info/version	[get]
 func GetVersion() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var _ rorversion.RorVersion
 		res := rorversion.GetRorVersion()
 		output, err := json.Marshal(res)
 		if err != nil {
