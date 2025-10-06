@@ -25,8 +25,9 @@ func (g *clusterlistgenerator) GenerateView(ctx context.Context, opts ...ViewGen
 func (g *clusterlistgenerator) GetMetadata() apiview.ViewMetadata {
 	return apiview.ViewMetadata{
 		Id:          ClusterListView,
+		Type:        apiview.ViewTypeList,
 		Description: "A list view of clusters",
 		Name:        "Cluster List View",
-		Version:     "1.0.0",
+		Version:     1,
 	}
 }
