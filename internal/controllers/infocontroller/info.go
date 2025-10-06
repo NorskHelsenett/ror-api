@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/NorskHelsenett/ror-api/internal/apiconfig"
-
+	"github.com/NorskHelsenett/ror/pkg/config/rorversion"
 	"github.com/gin-gonic/gin"
 )
 
@@ -28,7 +27,7 @@ type Version struct {
 //	@Router			/v1/info/version	[get]
 func GetVersion() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		res := apiconfig.RorVersion
+		res := rorversion.GetRorVersion()
 		output, err := json.Marshal(res)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, "500: Could not marshal json")

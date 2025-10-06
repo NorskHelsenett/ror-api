@@ -19,6 +19,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/webserver"
 
 	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/config/rorversion"
 
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
 	"github.com/NorskHelsenett/ror/pkg/clients/vaultclient/databasecredhelper"
@@ -58,7 +59,7 @@ func main() {
 	apiconfig.InitViper()
 
 	rlog.Infoc(ctx, "ROR Api startup ")
-	rlog.Infof("API-version: %s (%s) Library-version: %s", apiconfig.RorVersion.Version, apiconfig.RorVersion.Commit, apiconfig.RorVersion.GetLibVer())
+	rlog.Infof("API-version: %s (%s) Library-version: %s", rorversion.GetRorVersion().GetVersion(), rorversion.GetRorVersion().GetCommit(), rorversion.GetRorVersion().GetLibVer())
 
 	_, _ = maxprocs.Set(maxprocs.Logger(rlog.Infof))
 
