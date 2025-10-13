@@ -30,7 +30,6 @@ func StartListening(sigs chan os.Signal, done chan struct{}) {
 }
 
 func InitHttpServer() {
-
 	useCors := rorconfig.GetBool(rorconfig.GIN_USE_CORS)
 	allowOrigins := rorconfig.GetString(rorconfig.GIN_ALLOW_ORIGINS)
 	rlog.Info("Starting web server", rlog.Any("useCors", useCors), rlog.Any("allowedOrigins", allowOrigins))
