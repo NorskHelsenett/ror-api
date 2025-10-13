@@ -9,7 +9,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/auditlog"
 	"github.com/NorskHelsenett/ror-api/internal/models"
 
-	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 
@@ -22,7 +22,6 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	"go.opentelemetry.io/otel"
 )
 
@@ -100,7 +99,7 @@ func Delete(ctx context.Context, aclId string, identity *identitymodels.Identity
 
 // Gets ACL2 Access model for user/scope/subject returns aclmodels.AclV2ListItemAccess
 func CheckAccessByContextScopeSubject(ctx context.Context, scope any, subject any) aclmodels.AclV2ListItemAccess {
-	ctx, span := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "aclService.CheckAccessByContextScopeSubject")
+	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "aclService.CheckAccessByContextScopeSubject")
 	defer span.End()
 	_, ok := ctx.(*gin.Context)
 	if ok {
@@ -111,7 +110,7 @@ func CheckAccessByContextScopeSubject(ctx context.Context, scope any, subject an
 	return aclrepository.CheckAcl2ByIdentityQuery(ctx, aclModel)
 }
 func CheckAccessByContextAclQuery(ctx context.Context, query aclmodels.AclV2QueryAccessScopeSubject) aclmodels.AclV2ListItemAccess {
-	ctx, span := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "aclService.CheckAccessByContextScopeSubject")
+	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "aclService.CheckAccessByContextScopeSubject")
 	defer span.End()
 	_, ok := ctx.(*gin.Context)
 	if ok {
@@ -128,7 +127,7 @@ func CheckAccessByContextAclQuery(ctx context.Context, query aclmodels.AclV2Quer
 // Deprecated: use CheckAccessByRorOwnerref
 // Gets ACL2 Access model for user/scope/subject returns aclmodels.AclV2ListItemAccess
 func CheckAccessByOwnerref(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerReference) aclmodels.AclV2ListItemAccess {
-	ctx, span := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "aclService.CheckAccessByContextScopeSubject")
+	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "aclService.CheckAccessByContextScopeSubject")
 	defer span.End()
 	_, ok := ctx.(*gin.Context)
 	if ok {
@@ -141,7 +140,7 @@ func CheckAccessByOwnerref(ctx context.Context, ownerref apiresourcecontracts.Re
 }
 
 func CheckAccessByRorOwnerref(ctx context.Context, ownerref rorresourceowner.RorResourceOwnerReference) aclmodels.AclV2ListItemAccess {
-	ctx, span := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "aclService.CheckAccessByContextScopeSubject")
+	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "aclService.CheckAccessByContextScopeSubject")
 	defer span.End()
 	_, ok := ctx.(*gin.Context)
 	if ok {

@@ -6,7 +6,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/apiconfig"
 	"github.com/NorskHelsenett/ror-api/internal/routes"
 
-	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/config/rorversion"
 
 	"github.com/NorskHelsenett/ror/pkg/telemetry/metric"
@@ -17,24 +17,23 @@ import (
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
 func InitHttpServer() {
-	useCors := viper.GetBool(configconsts.GIN_USE_CORS)
-	allowOrigins := viper.GetString(configconsts.GIN_ALLOW_ORIGINS)
+	useCors := rorconfig.GetBool(rorconfig.GIN_USE_CORS)
+	allowOrigins := rorconfig.GetString(rorconfig.GIN_ALLOW_ORIGINS)
 	rlog.Info("Starting web server", rlog.Any("useCors", useCors), rlog.Any("allowedOrigins", allowOrigins))
 
 	router := gin.New()
-	if viper.GetBool(configconsts.PROFILER_ENABLED) {
+	if rorconfig.GetBool(rorconfig.PROFILER_ENABLED) {
 		rlog.Debug("profiler enabled")
 		pprof.Register(router)
 	}
 
 	router.Use(gzip.Gzip(gzip.DefaultCompression, gzip.WithExcludedPaths([]string{"/metrics"})))
 	router.Use(gin.Recovery())
-	if viper.GetBool(configconsts.ENABLE_TRACING) {
+	if rorconfig.GetBool(rorconfig.ENABLE_TRACING) {
 		router.Use(otelgin.Middleware("ror-api"))
 	}
 

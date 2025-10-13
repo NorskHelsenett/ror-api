@@ -18,7 +18,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/utils"
 	"github.com/NorskHelsenett/ror-api/internal/webserver"
 
-	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/config/rorversion"
 
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
@@ -29,7 +29,6 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/telemetry/trace"
 
 	healthserver "github.com/NorskHelsenett/ror/pkg/helpers/rorhealth/server"
-	"github.com/spf13/viper"
 
 	"go.uber.org/automaxprocs/maxprocs"
 )
@@ -55,7 +54,7 @@ func main() {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	done := make(chan struct{})
-
+	rorconfig.InitConfig()
 	apiconfig.InitViper()
 
 	rlog.Infoc(ctx, "ROR Api startup ")
@@ -67,21 +66,24 @@ func main() {
 
 	utils.GetCredsFromVault()
 
-	mongocredshelper := databasecredhelper.NewVaultDBCredentials(apiconnections.VaultClient, viper.GetString(configconsts.ROLE), "mongodb")
-	mongodb.Init(mongocredshelper, viper.GetString(configconsts.MONGODB_HOST), viper.GetString(configconsts.MONGODB_PORT), viper.GetString(configconsts.MONGO_DATABASE))
+	mongocredshelper := databasecredhelper.NewVaultDBCredentials(apiconnections.VaultClient, rorconfig.GetString(rorconfig.ROLE), "mongodb")
+	mongodb.Init(mongocredshelper, rorconfig.GetString(rorconfig.MONGODB_HOST), rorconfig.GetString(rorconfig.MONGODB_PORT), rorconfig.GetString(rorconfig.MONGO_DATABASE))
 
 	apirabbitmqdefinitions.InitOrDie()
 	mongodbseeding.CheckAndSeed(ctx)
 	sse.Init()
 
-	if viper.GetBool(configconsts.OIDC_SKIP_ISSUER_VERIFY) {
+	rorconfig.SetDefault(rorconfig.ROLE, "ror-api")
+	rorconfig.SetWithProvider(rorconfig.API_KEY_SALT, apiconnections.VaultClient.GetSecretProvider("secret/data/v1.0/ror/config/common", "apikeySalt"))
+
+	if rorconfig.GetBool(rorconfig.OIDC_SKIP_ISSUER_VERIFY) {
 		rlog.Error("skipping OIDC issuer verification. THIS IS UNSAFE IN PRODUCTION!!!", nil)
 	}
 
-	if viper.GetBool(configconsts.ENABLE_TRACING) {
+	if rorconfig.GetBool(rorconfig.ENABLE_TRACING) {
 
 		go func() {
-			trace.ConnectTracer(done, viper.GetString(configconsts.TRACER_ID), viper.GetString(configconsts.OPENTELEMETRY_COLLECTOR_ENDPOINT))
+			trace.ConnectTracer(done, rorconfig.GetString(rorconfig.TRACER_ID), rorconfig.GetString(rorconfig.OPENTELEMETRY_COLLECTOR_ENDPOINT))
 			<-sigs
 			done <- struct{}{}
 		}()
