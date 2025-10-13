@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
-	"github.com/NorskHelsenett/ror/pkg/config/rorversion"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 )
@@ -55,10 +54,6 @@ func InitViper() {
 	rorconfig.SetDefault(rorconfig.OPENTELEMETRY_COLLECTOR_ENDPOINT, "opentelemetry-collector:4317")
 	rorconfig.SetDefault(rorconfig.HELSEGITLAB_BASE_URL, "https://helsegitlab.nhn.no/api/v4/projects/")
 
-}
-
-func GetRorVersion() rorversion.RorVersion {
-	return rorversion.GetRorVersion()
 }
 
 func GetHTTPEndpoint() string {
