@@ -5,12 +5,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,8 +18,8 @@ func init() {
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	viper.Set(configconsts.OIDC_PROVIDER, testServer.URL)
-	viper.Set(configconsts.VAULT_URL, testServer.URL)
+	rorconfig.Set(rorconfig.OIDC_PROVIDER, testServer.URL)
+	rorconfig.Set(rorconfig.VAULT_URL, testServer.URL)
 
 	// mtest.Setup()
 }

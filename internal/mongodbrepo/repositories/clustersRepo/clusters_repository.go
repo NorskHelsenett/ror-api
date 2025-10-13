@@ -11,7 +11,7 @@ import (
 	mongoHelper "github.com/NorskHelsenett/ror-api/internal/helpers/mongoHelper"
 	"github.com/NorskHelsenett/ror-api/internal/mongodbrepo/mongoTypes"
 
-	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -24,7 +24,6 @@ import (
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
-	"github.com/spf13/viper"
 	"go.opentelemetry.io/otel"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -138,10 +137,10 @@ func GetByClusterId(ctx context.Context, clusterId string) (*apicontracts.Cluste
 // GetByFilter Get cluster by filter  *apicontracts.Filter
 func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontracts.PaginatedResult[*apicontracts.Cluster], error) {
 	db := mongodb.GetMongoDb()
-	ctx, span := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "datacenterRepo.GetByFilter")
+	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "datacenterRepo.GetByFilter")
 	defer span.End()
 
-	_, span2 := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "BuildQuery")
+	_, span2 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "BuildQuery")
 	defer span2.End()
 
 	aggregationPipeline := mongoHelper.CreateAggregationPipeline(filter, apicontracts.SortMetadata{SortField: "clusterid", SortOrder: 1}, []string{"workspace", "workspace.datacenter"})
@@ -215,7 +214,7 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 	totalCountQuery = append(totalCountQuery, bson.M{"$project": bson.M{"_id": 1}})
 	span2.End()
 
-	_, span3 := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "Run query data")
+	_, span3 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Run query data")
 	defer span3.End()
 
 	clusterCollection := db.Collection(CollectionName)
@@ -227,7 +226,7 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 	}
 	span3.End()
 
-	_, span4 := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "Run query total")
+	_, span4 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Run query total")
 	defer span4.End()
 
 	totalCountResult, err := clusterCollection.Aggregate(ctx, totalCountQuery)
@@ -243,7 +242,7 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 	totalCount := len(totalCountAcc)
 	span4.End()
 
-	_, span5 := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "Read data from db")
+	_, span5 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Read data from db")
 	defer span5.End()
 
 	defer func(cursor *mongo.Cursor, databaseCtx context.Context) {
@@ -574,14 +573,14 @@ func Create(ctx context.Context, clusterInput *apicontracts.Cluster) error {
 }
 
 func Update(ctx context.Context, clusterInput *apicontracts.Cluster) error {
-	ctx, span := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "Repository: clustersrepo.Update")
+	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Repository: clustersrepo.Update")
 	defer span.End()
-	_, span1 := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "Get mongoclient")
+	_, span1 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Get mongoclient")
 	defer span1.End()
 	db := mongodb.GetMongoDb()
 	span1.End()
 
-	_, span2 := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "Prepare data for mongo")
+	_, span2 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Prepare data for mongo")
 	defer span2.End()
 	mongoInput, err := mapToMongo(clusterInput)
 	if err != nil {
@@ -606,7 +605,7 @@ func Update(ctx context.Context, clusterInput *apicontracts.Cluster) error {
 	}
 	span2.End()
 
-	_, span3 := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "Update data in mongo")
+	_, span3 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Update data in mongo")
 	defer span3.End()
 	result, err := db.Collection(CollectionName).UpdateOne(ctx, bson.M{"clusterid": clusterInput.ClusterId}, bson.M{"$set": mongoInput})
 	if err != nil {

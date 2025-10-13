@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
 
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
@@ -16,7 +16,6 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 )
 
 func DexMiddleware(c *gin.Context) {
@@ -27,9 +26,9 @@ func DexMiddleware(c *gin.Context) {
 		return
 	}
 
-	skipVerificationCheck := viper.GetBool(configconsts.OIDC_SKIP_ISSUER_VERIFY)
+	skipVerificationCheck := rorconfig.GetBool(rorconfig.OIDC_SKIP_ISSUER_VERIFY)
 
-	oicdProvider := viper.GetString(configconsts.OIDC_PROVIDER)
+	oicdProvider := rorconfig.GetString(rorconfig.OIDC_PROVIDER)
 
 	var provider *oidc.Provider
 	var err error
@@ -58,7 +57,7 @@ func DexMiddleware(c *gin.Context) {
 	}
 
 	idTokenVerifier := provider.Verifier(&oidc.Config{
-		ClientID:                   viper.GetString(configconsts.OIDC_CLIENT_ID),
+		ClientID:                   rorconfig.GetString(rorconfig.OIDC_CLIENT_ID),
 		SkipIssuerCheck:            skipVerificationCheck,
 		InsecureSkipSignatureCheck: skipVerificationCheck,
 	})
@@ -66,7 +65,7 @@ func DexMiddleware(c *gin.Context) {
 	flowKind := c.Request.Header.Get("Flow")
 	if len(flowKind) > 0 && flowKind == "device" {
 		idTokenVerifier = provider.Verifier(&oidc.Config{
-			ClientID:                   viper.GetString(configconsts.OIDC_DEVICE_CLIENT_ID),
+			ClientID:                   rorconfig.GetString(rorconfig.OIDC_DEVICE_CLIENT_ID),
 			SkipIssuerCheck:            skipVerificationCheck,
 			InsecureSkipSignatureCheck: skipVerificationCheck,
 		})

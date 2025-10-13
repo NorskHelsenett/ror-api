@@ -8,13 +8,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
-	"github.com/spf13/viper"
 )
 
 var httpClient = http.Client{Timeout: 55 * time.Second}
@@ -73,7 +72,7 @@ func getKubeconfig(configPayload apicontracts.TanzuKubeConfigPayload) (string, e
 		return "", err
 	}
 
-	serviceUrl := viper.GetString(configconsts.TANZU_AUTH_BASE_URL)
+	serviceUrl := rorconfig.GetString(rorconfig.TANZU_AUTH_BASE_URL)
 	httpposturl := fmt.Sprintf("%s/v1/kubeconfig", serviceUrl)
 	request, err := http.NewRequest("POST", httpposturl, &payload)
 	if err != nil {

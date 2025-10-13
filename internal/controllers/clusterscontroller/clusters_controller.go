@@ -13,7 +13,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/customvalidators"
 	"github.com/NorskHelsenett/ror-api/internal/responses"
 
-	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 
@@ -26,7 +26,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/spf13/viper"
 	"go.opentelemetry.io/otel"
 )
 
@@ -400,11 +399,11 @@ func RegisterHeartbeat() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
-		ctx, span := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "Heartbeat controller")
+		ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Heartbeat controller")
 		defer span.End()
 		var input apicontracts.Cluster
 
-		_, span1 := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "Validate request")
+		_, span1 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Validate request")
 		defer span1.End()
 
 		//TODO: return rorerror.RorError
@@ -432,7 +431,7 @@ func RegisterHeartbeat() gin.HandlerFunc {
 		}
 		span1.End()
 
-		_, span1 = otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "clustersservice.CreateOrUpdate")
+		_, span1 = otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "clustersservice.CreateOrUpdate")
 		defer span1.End()
 		err := clustersservice.CreateOrUpdate(ctx, &input, input.ClusterId)
 		if err != nil {
@@ -440,7 +439,7 @@ func RegisterHeartbeat() gin.HandlerFunc {
 			return
 		}
 		span1.End()
-		_, span1 = otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "Sending reply")
+		_, span1 = otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Sending reply")
 		defer span1.End()
 
 		c.JSON(http.StatusCreated, responses.Cluster{Status: http.StatusCreated, Message: "success", Data: nil})

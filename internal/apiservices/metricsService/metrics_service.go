@@ -8,11 +8,10 @@ import (
 	metricsrepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/metricsRepo"
 	workspacesrepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/workspacesRepo"
 
-	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
-	"github.com/spf13/viper"
 	"go.opentelemetry.io/otel"
 )
 
@@ -36,10 +35,10 @@ func GetTotal(ctx context.Context) (*apicontracts.MetricsTotal, error) {
 }
 
 func GetTotalByUser(ctx context.Context) (*apicontracts.MetricsTotal, error) {
-	ctx, span := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "metricsservice.GetTotalByUser")
+	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "metricsservice.GetTotalByUser")
 	defer span.End()
 
-	ctx, span1 := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "metricsrepo.GetTotalByUser")
+	ctx, span1 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "metricsrepo.GetTotalByUser")
 	defer span1.End()
 
 	metrics, err := metricsrepo.GetTotalByUser(ctx)
@@ -49,17 +48,17 @@ func GetTotalByUser(ctx context.Context) (*apicontracts.MetricsTotal, error) {
 
 	span1.End()
 
-	ctx, span2 := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "datacentersrepo.GetAllByUser")
+	ctx, span2 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "datacentersrepo.GetAllByUser")
 	defer span2.End()
 	datacenters, _ := datacentersrepo.GetAllByUser(ctx)
 	span2.End()
 
-	ctx, span3 := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "workspacesrepo.GetAllByUser")
+	ctx, span3 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "workspacesrepo.GetAllByUser")
 	defer span3.End()
 	workspaces, _ := workspacesrepo.GetAllByIdentity(ctx)
 	span3.End()
 
-	_, span4 := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "Return data")
+	_, span4 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Return data")
 	defer span4.End()
 	metrics.DatacenterCount = int64(len(*datacenters))
 	metrics.WorkspaceCount = int64(len(*workspaces))

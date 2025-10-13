@@ -11,11 +11,10 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/configuration"
 	"github.com/NorskHelsenett/ror-api/internal/factories/storagefactory"
 
-	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
-	"github.com/spf13/viper"
 
 	"time"
 
@@ -43,7 +42,7 @@ func GetTaskConfigByClusterIdAndTaskName(ctx context.Context, task *apicontracts
 	}
 
 	operatorJob := apicontracts.OperatorJob{
-		ImageName:        fmt.Sprintf("%s%s", viper.GetString(configconsts.CONTAINER_REG_IMAGE_PATH), task.Config.ImageName),
+		ImageName:        fmt.Sprintf("%s%s", rorconfig.GetString(rorconfig.CONTAINER_REG_IMAGE_PATH), task.Config.ImageName),
 		ImageTag:         task.Config.Version,
 		Cmd:              task.Config.Cmd,
 		BackOffLimit:     task.Config.BackOffLimit,
@@ -147,7 +146,7 @@ func getClusterAgentInstallerConfig(job *apicontracts.OperatorJob, cluster *apic
 		"NAMESPACE":            "nhn-ror",
 		"CHART_VERSION":        CHART_VERSION,
 		"OCI_URL":              "oci://registry-1.docker.io/nhnhelm/cluster-agent",
-		"ROR_URL":              viper.GetString(configconsts.LOCAL_KUBERNETES_ROR_BASE_URL),
+		"ROR_URL":              rorconfig.GetString(rorconfig.LOCAL_KUBERNETES_ROR_BASE_URL),
 		"CONTAINER_REG_PREFIX": "docker.io/",
 	}
 
@@ -155,7 +154,7 @@ func getClusterAgentInstallerConfig(job *apicontracts.OperatorJob, cluster *apic
 		data["NAMESPACE"] = "ror"
 		data["OCI_URL"] = "oci://docker.io/nhnhelm/cluster-agent"
 		data["CONTAINER_REG_PREFIX"] = "docker.io/"
-		data["MORE_SETS"] = "--set image.repository=docker.io/nhnsdi/cluster-agent --set api=" + viper.GetString(configconsts.LOCAL_KUBERNETES_ROR_BASE_URL)
+		data["MORE_SETS"] = "--set image.repository=docker.io/nhnsdi/cluster-agent --set api=" + rorconfig.GetString(rorconfig.LOCAL_KUBERNETES_ROR_BASE_URL)
 	}
 
 	config2 := apicontracts.OperatorJobConfig{

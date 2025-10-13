@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 
 	"github.com/NorskHelsenett/ror/pkg/clients/vaultclient"
 
@@ -15,7 +15,6 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/helpers/stringhelper"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/spf13/viper"
 )
 
 var client *resty.Client
@@ -31,7 +30,7 @@ func GetFileContent(projectId int, filePath string, branch string, vaultClient *
 	urlencodeFilePath := url.QueryEscape(filePath)
 	urlencodeBranch := url.QueryEscape(branch)
 
-	repourl := fmt.Sprintf("%s%d/repository/files/%s/raw?ref=%s", viper.GetString(configconsts.HELSEGITLAB_BASE_URL), projectId, urlencodeFilePath, urlencodeBranch)
+	repourl := fmt.Sprintf("%s%d/repository/files/%s/raw?ref=%s", rorconfig.GetString(rorconfig.HELSEGITLAB_BASE_URL), projectId, urlencodeFilePath, urlencodeBranch)
 	response, err := gitlabRequest.Get(repourl)
 	if err != nil {
 		return nil, errors.New("could not get a response from helsegitlab client")
