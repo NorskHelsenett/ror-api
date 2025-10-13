@@ -54,7 +54,13 @@ type MongoCluster struct {
 	SplunkIndex   string                 `json:"splunkIndex"`
 	Config        MongoClusterConfig     `json:"config"`
 	Metadata      ClusterMetadata        `json:"metadata"`
+	KubeApi       ClusterKubeApi         `json:"kubeApi"`
 	Status        MongoClusterStatus     `json:"status"`
+}
+
+type ClusterKubeApi struct {
+	EndpointAddress string `json:"endpointAddress" bson:"endpointaddress"`
+	Certificate     string `json:"certificate"`
 }
 
 type MongoClusterStatus struct {
