@@ -1,9 +1,10 @@
 package webserver
 
 import (
+	"fmt"
+	"os"
 	"strings"
 
-	"github.com/NorskHelsenett/ror-api/internal/apiconfig"
 	"github.com/NorskHelsenett/ror-api/internal/routes"
 
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
@@ -20,7 +21,16 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
+func StartListening(sigs chan os.Signal, done chan struct{}) {
+	go func(sigs chan os.Signal, done chan struct{}) {
+		InitHttpServer()
+		<-sigs
+		done <- struct{}{}
+	}(sigs, done)
+}
+
 func InitHttpServer() {
+
 	useCors := rorconfig.GetBool(rorconfig.GIN_USE_CORS)
 	allowOrigins := rorconfig.GetString(rorconfig.GIN_ALLOW_ORIGINS)
 	rlog.Info("Starting web server", rlog.Any("useCors", useCors), rlog.Any("allowedOrigins", allowOrigins))
@@ -53,7 +63,7 @@ func InitHttpServer() {
 	}
 	_ = router.SetTrustedProxies([]string{"localhost"})
 	routes.SetupRoutes(router)
-	rlog.Fatal("router failing", router.Run(apiconfig.GetHTTPEndpoint()))
+	rlog.Fatal("router failing", router.Run(getHTTPEndpoint()))
 }
 
 func headersMiddleware() gin.HandlerFunc {
@@ -62,4 +72,8 @@ func headersMiddleware() gin.HandlerFunc {
 		c.Header("x-ror-libver", rorversion.GetRorVersion().GetLibVer())
 		c.Next()
 	}
+}
+
+func getHTTPEndpoint() string {
+	return fmt.Sprintf("%s:%s", rorconfig.GetString(rorconfig.HTTP_HOST), rorconfig.GetString(rorconfig.HTTP_PORT))
 }

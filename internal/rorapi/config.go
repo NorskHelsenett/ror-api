@@ -1,14 +1,23 @@
-package apiconfig
+package rorapi
 
 import (
+	"context"
 	"fmt"
+	"os"
 
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 )
 
-func InitViper() {
+var (
+	sigs chan os.Signal
+	done chan struct{}
+	ctx  context.Context
+)
+
+func InitConfig() {
+	rorconfig.InitConfig()
 	rlog.Info("initializing configuration")
 
 	rorconfig.AutomaticEnv()
@@ -54,13 +63,13 @@ func InitViper() {
 	rorconfig.SetDefault(rorconfig.OPENTELEMETRY_COLLECTOR_ENDPOINT, "opentelemetry-collector:4317")
 	rorconfig.SetDefault(rorconfig.HELSEGITLAB_BASE_URL, "https://helsegitlab.nhn.no/api/v4/projects/")
 
+	if rorconfig.GetBool(rorconfig.OIDC_SKIP_ISSUER_VERIFY) {
+		rlog.Error("skipping OIDC issuer verification. THIS IS UNSAFE IN PRODUCTION!!!", nil)
+	}
+
 }
 
-func GetHTTPEndpoint() string {
-	return fmt.Sprintf("%s:%s", rorconfig.GetString(rorconfig.HTTP_HOST), rorconfig.GetString(rorconfig.HTTP_PORT))
-}
-
-func GetHealthEndpoint() string {
+func getHealthEndpoint() string {
 	if rorconfig.IsSet(rorconfig.HEALTH_ENDPOINT) {
 		rlog.Info("Using deprecated HEALTH_ENDPOINT configuration. Please use HTTP_HEALTH_HOST and HTTP_HEALTH_PORT instead")
 		return rorconfig.GetString(rorconfig.HEALTH_ENDPOINT)

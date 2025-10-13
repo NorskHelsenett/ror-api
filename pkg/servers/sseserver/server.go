@@ -1,6 +1,7 @@
 package sseserver
 
 import (
+	"github.com/NorskHelsenett/ror/pkg/clients/rabbitmqclient"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/google/uuid"
 )
@@ -26,8 +27,8 @@ type EventMessage struct {
 	SseEvent
 }
 
-func StartEventServer() {
-	StartListeningRabbitMQ()
+func StartEventServer(rabbitMQConnection rabbitmqclient.RabbitMQConnection) {
+	StartListeningRabbitMQ(rabbitMQConnection)
 	Server = &EventServer{
 		Message:       make(chan EventMessage, 10),
 		NewClients:    make(chan *EventClient),
