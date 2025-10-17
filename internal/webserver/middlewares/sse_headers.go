@@ -3,10 +3,9 @@ package middlewares
 import (
 	"strings"
 
-	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 )
 
 func HeadersMiddleware() gin.HandlerFunc {
@@ -18,7 +17,7 @@ func HeadersMiddleware() gin.HandlerFunc {
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET")
 		requestOrigin := c.Request.Header.Get("Origin")
-		allowOrigins := viper.GetString(configconsts.GIN_ALLOW_ORIGINS)
+		allowOrigins := rorconfig.GetString(rorconfig.GIN_ALLOW_ORIGINS)
 		origins := strings.Split(allowOrigins, ";")
 		for _, origin := range origins {
 			if strings.Contains(requestOrigin, origin) {

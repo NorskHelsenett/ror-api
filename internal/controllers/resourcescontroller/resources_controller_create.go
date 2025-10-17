@@ -7,7 +7,7 @@ import (
 	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
 	"github.com/NorskHelsenett/ror-api/internal/responses"
 
-	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 
@@ -16,7 +16,6 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	"go.opentelemetry.io/otel"
 )
 
@@ -41,11 +40,11 @@ func NewResource() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		ctx, span := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "Resource create controller")
+		ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Resource create controller")
 		defer span.End()
 		var input apiresourcecontracts.ResourceUpdateModel
 
-		_, span1 := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "Validate request")
+		_, span1 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Validate request")
 		defer span1.End()
 
 		//validate the request body
@@ -61,7 +60,7 @@ func NewResource() gin.HandlerFunc {
 
 		span1.AddEvent("Request validated")
 		span1.End()
-		_, span2 := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "Check access")
+		_, span2 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Check access")
 		defer span2.End()
 		scope := aclmodels.Acl2Scope(input.Owner.Scope)
 		subject := input.Owner.Subject
@@ -84,7 +83,7 @@ func NewResource() gin.HandlerFunc {
 
 		span2.AddEvent("Access checked")
 		span2.End()
-		_, span3 := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "Run service: resourceservice.ResourceNewCreateService")
+		_, span3 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Run service: resourceservice.ResourceNewCreateService")
 		defer span3.End()
 
 		err := resourcesservice.ResourceNewCreateService(ctx, input)
@@ -95,7 +94,7 @@ func NewResource() gin.HandlerFunc {
 
 		span3.AddEvent("Resource created")
 		span3.End()
-		_, span4 := otel.GetTracerProvider().Tracer(viper.GetString(configconsts.TRACER_ID)).Start(ctx, "Return response")
+		_, span4 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Return response")
 		defer span4.End()
 
 		c.JSON(http.StatusCreated, nil)

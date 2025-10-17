@@ -8,11 +8,9 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	"github.com/NorskHelsenett/ror-api/internal/models/ldapmodels"
 
-	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
-
-	"github.com/spf13/viper"
 )
 
 func GetCredsFromVault() {
@@ -42,7 +40,7 @@ func GetApikeySalt() (string, error) {
 		panic("missing apikey salt")
 	}
 
-	viper.Set(configconsts.API_KEY_SALT, salt)
+	rorconfig.Set(rorconfig.API_KEY_SALT, salt)
 	return salt, err
 }
 
@@ -72,6 +70,6 @@ func GetLdapConfigs() (ldapmodels.LdapConfigs, error) {
 		return ldapmodels.LdapConfigs{}, errors.New("could not convert from json to ldapConfigs")
 	}
 
-	viper.Set(configconsts.LDAP_CONFIGS, ldapConfigs)
+	rorconfig.Set(rorconfig.LDAP_CONFIGS, ldapConfigs)
 	return ldapConfigs, nil
 }

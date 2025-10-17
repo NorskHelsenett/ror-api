@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 
 	"github.com/NorskHelsenett/ror/pkg/auth/userauth"
 	"github.com/NorskHelsenett/ror/pkg/clients/rabbitmqclient"
@@ -17,7 +17,6 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorhealth"
-	"github.com/spf13/viper"
 )
 
 var (
@@ -28,13 +27,13 @@ var (
 )
 
 func InitConnections() {
-	VaultClient = vaultclient.NewVaultClient(viper.GetString(configconsts.ROLE), viper.GetString(configconsts.VAULT_URL))
+	VaultClient = vaultclient.NewVaultClient(rorconfig.GetString(rorconfig.ROLE), rorconfig.GetString(rorconfig.VAULT_URL))
 
-	redisdatabasecredhelper := databasecredhelper.NewVaultDBCredentials(VaultClient, fmt.Sprintf("redis-%v-role", viper.GetString(configconsts.ROLE)), "")
-	RedisDB = redisdb.New(redisdatabasecredhelper, viper.GetString(configconsts.REDIS_HOST), viper.GetString(configconsts.REDIS_PORT))
+	redisdatabasecredhelper := databasecredhelper.NewVaultDBCredentials(VaultClient, fmt.Sprintf("redis-%v-role", rorconfig.GetString(rorconfig.ROLE)), "")
+	RedisDB = redisdb.New(redisdatabasecredhelper, rorconfig.GetString(rorconfig.REDIS_HOST), rorconfig.GetString(rorconfig.REDIS_PORT))
 
-	rmqcredhelper := rabbitmqcredhelper.NewVaultRMQCredentials(VaultClient, viper.GetString(configconsts.ROLE))
-	RabbitMQConnection = rabbitmqclient.NewRabbitMQConnection(rmqcredhelper, viper.GetString(configconsts.RABBITMQ_HOST), viper.GetString(configconsts.RABBITMQ_PORT), viper.GetString(configconsts.RABBITMQ_BROADCAST_NAME))
+	rmqcredhelper := rabbitmqcredhelper.NewVaultRMQCredentials(VaultClient, rorconfig.GetString(rorconfig.ROLE))
+	RabbitMQConnection = rabbitmqclient.NewRabbitMQConnection(rmqcredhelper, rorconfig.GetString(rorconfig.RABBITMQ_HOST), rorconfig.GetString(rorconfig.RABBITMQ_PORT), rorconfig.GetString(rorconfig.RABBITMQ_BROADCAST_NAME))
 
 	var err error
 	DomainResolvers, err = LoadDomainResolvers()

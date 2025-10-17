@@ -3,9 +3,7 @@ package apikeysservice
 import (
 	"testing"
 
-	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
-
-	"github.com/spf13/viper"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 )
 
 func Test_mustGetApikeySalt(t *testing.T) {
@@ -21,7 +19,7 @@ func Test_mustGetApikeySalt(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		viper.Set(configconsts.API_KEY_SALT, tt.salt)
+		rorconfig.Set(rorconfig.API_KEY_SALT, tt.salt)
 		t.Run(tt.name, func(t *testing.T) {
 			if got := mustGetApikeySalt(); got != tt.want {
 				t.Errorf("mustGetApikeySalt() = %v, want %v", got, tt.want)
@@ -29,7 +27,7 @@ func Test_mustGetApikeySalt(t *testing.T) {
 		})
 	}
 	// test panic
-	viper.Set(configconsts.API_KEY_SALT, "")
+	rorconfig.Set(rorconfig.API_KEY_SALT, "")
 	defer func() { _ = recover() }()
 	mustGetApikeySalt()
 	t.Errorf("did not panic")

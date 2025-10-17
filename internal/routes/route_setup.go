@@ -39,7 +39,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/webserver/middlewares"
 	"github.com/NorskHelsenett/ror-api/internal/webserver/sse"
 
-	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/config/rorversion"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -48,7 +48,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/spf13/viper"
 
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -61,7 +60,7 @@ var (
 
 func SetupRoutes(router *gin.Engine) {
 
-	timeoutduration, err := time.ParseDuration(viper.GetString(configconsts.HTTP_TIMEOUT))
+	timeoutduration, err := time.ParseDuration(rorconfig.GetString(rorconfig.HTTP_TIMEOUT))
 	if err != nil {
 		rlog.Error("Could not parse timeout duration", err)
 		timeoutduration = 15 * time.Second
@@ -306,7 +305,7 @@ func SetupRoutes(router *gin.Engine) {
 
 		rulesetsRoute := v1.Group("rulesetsController")
 		{
-			if viper.GetBool(configconsts.DEVELOPMENT) {
+			if rorconfig.GetBool(rorconfig.DEVELOPMENT) {
 				rulesetsRoute.GET("", ctrlRulesets.GetAll())
 			}
 

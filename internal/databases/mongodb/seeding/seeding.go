@@ -8,7 +8,7 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/internal/mongodbrepo/mongoTypes"
 
-	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
@@ -18,7 +18,6 @@ import (
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
-	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -27,7 +26,7 @@ import (
 func CheckAndSeed(ctx context.Context) {
 	seedPrices(ctx)
 
-	if viper.GetBool(configconsts.DEVELOPMENT) {
+	if rorconfig.GetBool(rorconfig.DEVELOPMENT) {
 		seedDatacenters(ctx)
 		seedAclv2Items(ctx)
 		seedDevelopmentRulesets(ctx)
@@ -115,7 +114,7 @@ func seedDatacenters(ctx context.Context) {
 	db := mongodb.GetMongoDb()
 	collection := db.Collection("datacenters")
 
-	if !viper.GetBool(configconsts.DEVELOPMENT) {
+	if !rorconfig.GetBool(rorconfig.DEVELOPMENT) {
 		return
 	}
 

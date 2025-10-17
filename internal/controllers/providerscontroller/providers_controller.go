@@ -5,7 +5,7 @@ import (
 
 	provider "github.com/NorskHelsenett/ror-api/internal/apiprovider"
 
-	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 
@@ -14,7 +14,6 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
 
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 )
 
 // @Summary	Get providers
@@ -54,7 +53,7 @@ func GetAll() gin.HandlerFunc {
 			// },
 		)
 
-		if viper.GetBool(configconsts.DEVELOPMENT) {
+		if rorconfig.GetBool(rorconfig.DEVELOPMENT) {
 			providerlist = append(providerlist, providermodels.Provider{
 				Name:     "Kind",
 				Type:     providermodels.ProviderTypeKind,
@@ -111,7 +110,7 @@ func GetKubernetesVersionByProvider() gin.HandlerFunc {
 			c.JSON(http.StatusOK, getTalosVersions())
 			return
 		default:
-			if viper.GetBool(configconsts.DEVELOPMENT) {
+			if rorconfig.GetBool(rorconfig.DEVELOPMENT) {
 				c.JSON(http.StatusOK, getTanzuVersion())
 				return
 			}
@@ -166,7 +165,7 @@ func GetConfigParametersByProvider() gin.HandlerFunc {
 				c.JSON(http.StatusOK, getKindVersions())
 				return
 			default:
-				if viper.GetBool(configconsts.DEVELOPMENT) {
+				if rorconfig.GetBool(rorconfig.DEVELOPMENT) {
 					c.JSON(http.StatusOK, getTanzuVersion())
 					return
 				}

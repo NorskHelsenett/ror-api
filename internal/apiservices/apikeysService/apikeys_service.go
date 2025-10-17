@@ -13,7 +13,7 @@ import (
 	apikeyrepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/apikeysRepo"
 	datacenterRepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/datacentersRepo"
 
-	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
 
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
@@ -28,12 +28,11 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/helpers/stringhelper"
 
 	"github.com/google/uuid"
-	"github.com/spf13/viper"
 )
 
 // TODO: Move and remove duplicate in repo
 func mustGetApikeySalt() string {
-	apisalt := viper.GetString(configconsts.API_KEY_SALT)
+	apisalt := rorconfig.GetString(rorconfig.API_KEY_SALT)
 	if len(apisalt) == 0 {
 		panic("api key salt is missing")
 	}
@@ -190,7 +189,7 @@ func Create(ctx context.Context, input *apicontracts.ApiKey, identity *identitym
 	}
 
 	universalId := uniqueId.String()
-	hash := stringhelper.HashSHA512(universalId, []byte(viper.GetString(configconsts.API_KEY_SALT)))
+	hash := stringhelper.HashSHA512(universalId, []byte(rorconfig.GetString(rorconfig.API_KEY_SALT)))
 
 	if identity.IsCluster() {
 		input.Identifier = identity.GetId()
