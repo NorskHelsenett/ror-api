@@ -1,19 +1,16 @@
 package webserver
 
 import (
-	"strings"
-
 	"github.com/NorskHelsenett/ror-api/internal/apiconfig"
 	"github.com/NorskHelsenett/ror-api/internal/routes"
+	"github.com/NorskHelsenett/ror-api/pkg/middelware/corsmiddleware"
+	"github.com/NorskHelsenett/ror-api/pkg/middelware/headersmiddleware"
 
 	"github.com/NorskHelsenett/ror/pkg/config/configconsts"
-	"github.com/NorskHelsenett/ror/pkg/config/rorversion"
-
 	"github.com/NorskHelsenett/ror/pkg/telemetry/metric"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
@@ -40,27 +37,10 @@ func InitHttpServer() {
 
 	router.Use(rlog.LogMiddleware())
 	router.Use(metric.MetricMiddleware("/metrics"))
-	router.Use(headersMiddleware())
+	router.Use(headersmiddleware.HeadersMiddleware())
+	router.Use(corsmiddleware.CORS())
 
-	if useCors {
-		corsConfig := cors.DefaultConfig()
-		//corsConfig.AllowCredentials = true
-
-		origins := strings.Split(allowOrigins, ";")
-		corsConfig.AllowOrigins = origins
-
-		corsConfig.AddAllowHeaders("authorization")
-		router.Use(cors.New(corsConfig))
-	}
 	_ = router.SetTrustedProxies([]string{"localhost"})
 	routes.SetupRoutes(router)
 	rlog.Fatal("router failing", router.Run(apiconfig.GetHTTPEndpoint()))
-}
-
-func headersMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Header("x-ror-version", rorversion.GetRorVersion().GetVersion())
-		c.Header("x-ror-libver", rorversion.GetRorVersion().GetLibVer())
-		c.Next()
-	}
 }
