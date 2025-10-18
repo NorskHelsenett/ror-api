@@ -3,6 +3,7 @@ package webserver
 import (
 	"os"
 
+	"github.com/NorskHelsenett/ror-api/internal/apiconfig"
 	"github.com/NorskHelsenett/ror-api/internal/routes"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/corsmiddleware"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/headersmiddleware"
@@ -51,5 +52,5 @@ func InitHttpServer() {
 
 	_ = router.SetTrustedProxies([]string{"localhost"})
 	routes.SetupRoutes(router)
-	rlog.Fatal("router failing", router.Run(getHTTPEndpoint()))
+	rlog.Fatal("router failing", router.Run(apiconfig.GetHTTPEndpoint()))
 }
