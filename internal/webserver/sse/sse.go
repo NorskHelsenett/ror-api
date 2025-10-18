@@ -10,9 +10,10 @@ import (
 	"time"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
-	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	"github.com/NorskHelsenett/ror-api/internal/models/ssemodels"
+	"github.com/NorskHelsenett/ror-api/pkg/servers/sseserver"
 
+	"github.com/NorskHelsenett/ror/pkg/clients/rabbitmqclient"
 	"github.com/NorskHelsenett/ror/pkg/messagebuscontracts"
 
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
@@ -46,16 +47,19 @@ type SSEInterface interface {
 }
 
 type SSE struct {
-	Clients []apicontracts.SSEClient
-	lock    sync.RWMutex
+	SSEClients         []apicontracts.SSEClient
+	RabbitMQConnection rabbitmqclient.RabbitMQConnection
+	lock               sync.RWMutex
 }
 
-func Init() {
+func Init(rabbitMQConnection rabbitmqclient.RabbitMQConnection) {
 	Server = &SSE{
-		lock:    sync.RWMutex{},
-		Clients: make([]apicontracts.SSEClient, 0),
+		lock:               sync.RWMutex{},
+		SSEClients:         make([]apicontracts.SSEClient, 0),
+		RabbitMQConnection: rabbitMQConnection,
 	}
 	KeepAlive()
+	sseserver.StartEventServer(rabbitMQConnection)
 }
 
 func (sse *SSE) BroadcastMessage(payload ssemodels.SseMessage) {
@@ -66,7 +70,7 @@ func (sse *SSE) BroadcastMessage(payload ssemodels.SseMessage) {
 	}
 	message := fmt.Sprintf("data: %s\n\n", messageBytes)
 	sse.lock.RLock()
-	for _, client := range sse.Clients {
+	for _, client := range sse.SSEClients {
 		if client.Connection != nil {
 			select {
 			case client.Connection <- message:
@@ -84,7 +88,7 @@ func (sse *SSE) SendToUsersWithGroup(payload ssemodels.SseMessage, group string)
 	}
 
 	var clients []apicontracts.SSEClient
-	for _, client := range sse.Clients {
+	for _, client := range sse.SSEClients {
 		if client.Identity.IsUser() && slices.Contains(client.Identity.User.Groups, group) {
 			clients = append(clients, client)
 		}
@@ -100,7 +104,7 @@ func (sse *SSE) SendToUsersWithGroups(payload ssemodels.SseMessage, groups []str
 	}
 
 	var clients []apicontracts.SSEClient
-	for _, client := range sse.Clients {
+	for _, client := range sse.SSEClients {
 		if client.Identity.IsUser() {
 			for _, group := range groups {
 				if slices.Contains(client.Identity.User.Groups, group) {
@@ -161,23 +165,23 @@ func (sse *SSE) HandleSSE() gin.HandlerFunc {
 			rerr.GinLogErrorAbort(c)
 			return
 		}
-		sse.Clients = append(sse.Clients, client)
+		sse.SSEClients = append(sse.SSEClients, client)
 		SendWelcomeMessage(client)
 
-		rlog.Debugc(ctx, "Listen to sse events", rlog.Any("total clients", len(sse.Clients)))
+		rlog.Debugc(ctx, "Listen to sse events", rlog.Any("total clients", len(sse.SSEClients)))
 
 		defer func() {
 			sse.lock.RLock()
-			for i := 0; i < len(sse.Clients); i++ {
-				cl := sse.Clients[i]
+			for i := 0; i < len(sse.SSEClients); i++ {
+				cl := sse.SSEClients[i]
 				if cl.Identity == client.Identity {
-					sse.Clients = append(sse.Clients[:i], sse.Clients[i+1:]...)
+					sse.SSEClients = append(sse.SSEClients[:i], sse.SSEClients[i+1:]...)
 					close(cl.Connection)
 					break
 				}
 			}
 			sse.lock.RUnlock()
-			rlog.Debugc(ctx, "A client disconnected", rlog.Any("total clients", len(sse.Clients)))
+			rlog.Debugc(ctx, "A client disconnected", rlog.Any("total clients", len(sse.SSEClients)))
 		}()
 
 		c.Stream(func(w io.Writer) bool {
@@ -236,7 +240,7 @@ func (sse *SSE) Send() gin.HandlerFunc {
 		}
 
 		message := ssemodels.SseMessage{Event: ssemodels.SseType(input.Event), Data: input.Data}
-		err = apiconnections.RabbitMQConnection.SendMessage(ctx, message, messagebuscontracts.Event_Broadcast, nil)
+		err = sse.RabbitMQConnection.SendMessage(ctx, message, messagebuscontracts.Event_Broadcast, nil)
 		if err != nil {
 			rlog.Errorc(ctx, "could not send sse broadcast event", err)
 		}
