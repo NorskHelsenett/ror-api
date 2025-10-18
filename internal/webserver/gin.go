@@ -1,7 +1,8 @@
 package webserver
 
 import (
-	"github.com/NorskHelsenett/ror-api/internal/apiconfig"
+	"os"
+
 	"github.com/NorskHelsenett/ror-api/internal/routes"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/corsmiddleware"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/headersmiddleware"
