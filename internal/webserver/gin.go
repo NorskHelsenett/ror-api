@@ -1,6 +1,8 @@
 package webserver
 
 import (
+	"os"
+
 	"github.com/NorskHelsenett/ror-api/internal/apiconfig"
 	"github.com/NorskHelsenett/ror-api/internal/routes"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/corsmiddleware"
@@ -17,6 +19,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
+
+func StartListening(sigs chan os.Signal, done chan struct{}) {
+	go func(sigs chan os.Signal, done chan struct{}) {
+		InitHttpServer()
+		<-sigs
+		done <- struct{}{}
+	}(sigs, done)
+}
 
 func InitHttpServer() {
 	useCors := rorconfig.GetBool(rorconfig.GIN_USE_CORS)

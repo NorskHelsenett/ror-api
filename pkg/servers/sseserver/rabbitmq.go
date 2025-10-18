@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
+	"github.com/NorskHelsenett/ror/pkg/clients/rabbitmqclient"
 	"github.com/NorskHelsenett/ror/pkg/handlers/rabbitmqhandler"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/google/uuid"
@@ -19,14 +19,14 @@ const (
 	SSEventsQueueNamePrefix = "sse-events-v2"
 )
 
-func StartListeningRabbitMQ() {
+func StartListeningRabbitMQ(rabbitMQConnection rabbitmqclient.RabbitMQConnection) {
 
 	// //Create the queue
 	SSEventsQueueName := fmt.Sprintf("%s-%s", SSEventsQueueNamePrefix, uuid.New().String())
 
 	go func() {
 		config := rabbitmqhandler.RabbitMQListnerConfig{
-			Client:             apiconnections.RabbitMQConnection,
+			Client:             rabbitMQConnection,
 			QueueName:          SSEventsQueueName,
 			Consumer:           "",
 			AutoAck:            false,
@@ -41,7 +41,7 @@ func StartListeningRabbitMQ() {
 			ExcahngeDurable:    true,
 		}
 		rabbithandler := rabbitmqhandler.New(config, ssemessagehandler{})
-		_ = apiconnections.RabbitMQConnection.RegisterHandler(rabbithandler)
+		_ = rabbitMQConnection.RegisterHandler(rabbithandler)
 
 	}()
 }

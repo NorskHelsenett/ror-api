@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	"github.com/NorskHelsenett/ror-api/internal/rabbitmq/apirabbitmqdefinitions"
 
+	"github.com/NorskHelsenett/ror/pkg/clients/rabbitmqclient"
 	"github.com/NorskHelsenett/ror/pkg/messagebuscontracts"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
@@ -18,10 +18,10 @@ import (
 	"github.com/rabbitmq/amqp091-go"
 )
 
-func StartListening() {
+func StartListening(rabbitMQConnection rabbitmqclient.RabbitMQConnection) {
 	go func() {
 		config := rabbitmqhandler.RabbitMQListnerConfig{
-			Client:             apiconnections.RabbitMQConnection,
+			Client:             rabbitMQConnection,
 			QueueName:          apirabbitmqdefinitions.ApiEventsQueueName,
 			Consumer:           "",
 			AutoAck:            false,
@@ -37,7 +37,7 @@ func StartListening() {
 			ExcahngeRoutingKey: "event.#",
 		}
 		rabbithandler := rabbitmqhandler.New(config, apimessagehandler{})
-		_ = apiconnections.RabbitMQConnection.RegisterHandler(rabbithandler)
+		_ = rabbitMQConnection.RegisterHandler(rabbithandler)
 	}()
 }
 

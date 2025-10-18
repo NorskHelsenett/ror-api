@@ -3,8 +3,7 @@ package apirabbitmqdefinitions
 import (
 	"fmt"
 
-	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
-
+	"github.com/NorskHelsenett/ror/pkg/clients/rabbitmqclient"
 	"github.com/NorskHelsenett/ror/pkg/messagebuscontracts"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
@@ -96,9 +95,9 @@ func init() {
 // and panics if it fails
 // It is called from the main function
 // and it is blocking
-func InitOrDie() {
+func InitOrDie(rabbitMQConnection rabbitmqclient.RabbitMQConnection) {
 
-	err := apiconnections.RabbitMQConnection.GetChannel().ExchangeDeclare(
+	err := rabbitMQConnection.GetChannel().ExchangeDeclare(
 		messagebuscontracts.ExchangeRor, // name
 		"topic",                         // kind
 		true,                            // durable
@@ -113,7 +112,7 @@ func InitOrDie() {
 		rlog.Fatal(msg, err)
 	}
 
-	err = apiconnections.RabbitMQConnection.GetChannel().ExchangeDeclare(
+	err = rabbitMQConnection.GetChannel().ExchangeDeclare(
 		messagebuscontracts.ExchangeRorResources, // name
 		"headers",                                // kind
 		true,                                     // durable
@@ -128,7 +127,7 @@ func InitOrDie() {
 		rlog.Fatal(msg, err)
 	}
 
-	err = apiconnections.RabbitMQConnection.GetChannel().ExchangeBind(
+	err = rabbitMQConnection.GetChannel().ExchangeBind(
 		messagebuscontracts.ExchangeRorResources, //destination
 		"resource.#",                             // key
 		messagebuscontracts.ExchangeRor,          // source

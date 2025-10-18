@@ -1,12 +1,18 @@
 package apiconnections
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
+	mongodbseeding "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/seeding"
+	"github.com/NorskHelsenett/ror-api/internal/rabbitmq/apirabbitmqdefinitions"
+	"github.com/NorskHelsenett/ror-api/internal/rabbitmq/apirabbitmqhandler"
+	"github.com/NorskHelsenett/ror-api/internal/webserver/sse"
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 
 	"github.com/NorskHelsenett/ror/pkg/auth/userauth"
+	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
 	"github.com/NorskHelsenett/ror/pkg/clients/rabbitmqclient"
 
 	"github.com/NorskHelsenett/ror/pkg/clients/redisdb"
@@ -29,6 +35,9 @@ var (
 func InitConnections() {
 	VaultClient = vaultclient.NewVaultClient(rorconfig.GetString(rorconfig.ROLE), rorconfig.GetString(rorconfig.VAULT_URL))
 
+	mongocredshelper := databasecredhelper.NewVaultDBCredentials(VaultClient, rorconfig.GetString(rorconfig.ROLE), "mongodb")
+	mongodb.Init(mongocredshelper, rorconfig.GetString(rorconfig.MONGODB_HOST), rorconfig.GetString(rorconfig.MONGODB_PORT), rorconfig.GetString(rorconfig.MONGO_DATABASE))
+
 	redisdatabasecredhelper := databasecredhelper.NewVaultDBCredentials(VaultClient, fmt.Sprintf("redis-%v-role", rorconfig.GetString(rorconfig.ROLE)), "")
 	RedisDB = redisdb.New(redisdatabasecredhelper, rorconfig.GetString(rorconfig.REDIS_HOST), rorconfig.GetString(rorconfig.REDIS_PORT))
 
@@ -40,10 +49,21 @@ func InitConnections() {
 	if err != nil {
 		rlog.Error("Failed to load domain resolvers", err)
 	}
+
 	DomainResolvers.RegisterHealthChecks()
 	rorhealth.Register("vault", VaultClient)
 	rorhealth.Register("redis", RedisDB)
 	rorhealth.Register("rabbitmq", RabbitMQConnection)
+
+	apirabbitmqdefinitions.InitOrDie(RabbitMQConnection)
+	mongodbseeding.CheckAndSeed(context.Background())
+
+	rorconfig.SetWithProvider(rorconfig.API_KEY_SALT, VaultClient.GetSecretProvider("secret/data/v1.0/ror/config/common", "apikeySalt"))
+
+	apirabbitmqhandler.StartListening(RabbitMQConnection)
+
+	sse.Init(RabbitMQConnection)
+
 }
 
 func LoadDomainResolvers() (*userauth.DomainResolvers, error) {
