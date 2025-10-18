@@ -26,6 +26,7 @@ import (
 	ctrlTasks "github.com/NorskHelsenett/ror-api/internal/controllers/taskscontroller"
 	ctrlUsers "github.com/NorskHelsenett/ror-api/internal/controllers/userscontroller"
 	v2resourcescontroller "github.com/NorskHelsenett/ror-api/internal/controllers/v2/resourcescontroller"
+	v2tokencontroller "github.com/NorskHelsenett/ror-api/internal/controllers/v2/tokencontroller"
 	viewcontroller "github.com/NorskHelsenett/ror-api/internal/controllers/v2/viewcontroller"
 	ctrlWorkspaces "github.com/NorskHelsenett/ror-api/internal/controllers/workspacescontroller"
 	"github.com/NorskHelsenett/ror-api/internal/webserver/ratelimiter"
@@ -361,6 +362,11 @@ func SetupRoutes(router *gin.Engine) {
 	{
 		viewsRoute.GET("", viewcontroller.GetViews())
 		viewsRoute.GET("/:viewid", viewcontroller.GetView())
+	}
+	tokenroute := v2.Group("/token")
+	{
+		tokenroute.POST("/exchange", v2tokencontroller.ExchangeToken())
+		tokenroute.GET("/jwks", v2tokencontroller.GetJwks())
 	}
 
 }

@@ -262,10 +262,14 @@ func CreateForAgent(ctx context.Context, input *apicontracts.AgentApiKeyModel) (
 			input.DatacenterName = fmt.Sprintf("local-%s", input.Provider)
 		}
 		datacenter, err = datacenterRepo.FindByNameProvider(mongoctx, input.DatacenterName, input.Provider)
-		if err != nil || datacenter == nil {
-			msg := fmt.Sprintf("could not find datacenter %s for provider %s", input.DatacenterName, input.Provider)
-			rlog.Errorc(mongoctx, msg, err)
-			return msg, err
+		if err != nil {
+			return "", err
+		}
+
+		//TODO: should we create the datacenter if it does not exist?
+		if datacenter == nil {
+			msg := fmt.Sprintf("could not find datacenter '%s' for provider '%s'", input.DatacenterName, input.Provider)
+			return "", errors.New(msg)
 		}
 
 		clusterId, err = clustersservice.Create(ctx, &apicontracts.Cluster{
