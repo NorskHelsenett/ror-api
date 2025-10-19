@@ -29,14 +29,14 @@ import (
 	v2tokencontroller "github.com/NorskHelsenett/ror-api/internal/controllers/v2/tokencontroller"
 	viewcontroller "github.com/NorskHelsenett/ror-api/internal/controllers/v2/viewcontroller"
 	ctrlWorkspaces "github.com/NorskHelsenett/ror-api/internal/controllers/workspacescontroller"
-	"github.com/NorskHelsenett/ror-api/internal/webserver/ratelimiter"
-
 	"github.com/NorskHelsenett/ror-api/pkg/handlers/ssehandler"
+	"github.com/NorskHelsenett/ror-api/pkg/middelware/auditmiddleware"
+	"github.com/NorskHelsenett/ror-api/pkg/middelware/rorratelimiter"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/ssemiddleware"
+	"github.com/NorskHelsenett/ror-api/pkg/middelware/timeoutmiddleware"
 
 	"github.com/NorskHelsenett/ror-api/internal/controllers/v2/handlerv2selfcontroller"
 	"github.com/NorskHelsenett/ror-api/internal/models"
-	"github.com/NorskHelsenett/ror-api/internal/webserver/middlewares"
 	"github.com/NorskHelsenett/ror-api/internal/webserver/sse"
 
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
@@ -54,8 +54,8 @@ import (
 )
 
 var (
-	resourceV1RateLimiter = ratelimiter.NewNamedRorRateLimiter("/v1/resource", 5000, 10000)
-	resourceV2RateLimiter = ratelimiter.NewNamedRorRateLimiter("/v2/resource", 50, 100)
+	resourceV1rorratelimiter = rorratelimiter.NewNamedRorRateLimiter("/v1/resource", 5000, 10000)
+	resourceV2rorratelimiter = rorratelimiter.NewNamedRorRateLimiter("/v2/resource", 50, 100)
 )
 
 func SetupRoutes(router *gin.Engine) {
@@ -70,18 +70,18 @@ func SetupRoutes(router *gin.Engine) {
 	{
 		eventsRoute := v1.Group("events", auth.AuthenticationMiddleware)
 		{
-			eventsRoute.GET("listen", middlewares.HeadersMiddleware(), sse.Server.HandleSSE())
+			eventsRoute.GET("listen", ssemiddleware.SSEHeadersMiddlewareV1(), sse.Server.HandleSSE())
 			eventsRoute.POST("send", sse.Server.Send())
 		}
 		clusterloginRoute := v1.Group("clusters")
 		{
 			logintimeoutduration := 120 * time.Second
-			clusterloginRoute.Use(middlewares.TimeoutMiddleware(logintimeoutduration))
+			clusterloginRoute.Use(timeoutmiddleware.TimeoutMiddleware(logintimeoutduration))
 			clusterloginRoute.Use(auth.AuthenticationMiddleware)
 			clusterloginRoute.POST("/:clusterid/login", clusterscontroller.GetKubeconfig())
 		}
 
-		v1.Use(middlewares.TimeoutMiddleware(timeoutduration))
+		v1.Use(timeoutmiddleware.TimeoutMiddleware(timeoutduration))
 		// allow anonymous, for self registrering of agents
 		v1.POST("/clusters/register", apikeyscontroller.CreateForAgent())
 		infoRoute := v1.Group("/info")
@@ -244,8 +244,8 @@ func SetupRoutes(router *gin.Engine) {
 			pricesRoute.GET("", ctrlPrices.GetAll())
 
 			pricesRoute.GET("/:priceId", ctrlPrices.GetById())
-			pricesRoute.POST("", ctrlPrices.Create(), middlewares.AuditLogMiddleware("Price created", models.AuditCategoryPrice, models.AuditActionCreate))
-			pricesRoute.PUT("/:priceId", ctrlPrices.Update(), middlewares.AuditLogMiddleware("Price updated", models.AuditCategoryPrice, models.AuditActionUpdate))
+			pricesRoute.POST("", ctrlPrices.Create(), auditmiddleware.AuditLogMiddleware("Price created", models.AuditCategoryPrice, models.AuditActionCreate))
+			pricesRoute.PUT("/:priceId", ctrlPrices.Update(), auditmiddleware.AuditLogMiddleware("Price updated", models.AuditCategoryPrice, models.AuditActionUpdate))
 			// pricesRoute.DELETE(":id", ctrlPrices.Delete(), middlewares.AuditLogMiddleware("Price deleted", models.Price.String(), models.DELETE.String()))
 
 			pricesRoute.GET("/provider/:providerName", ctrlPrices.GetByProvider())
@@ -264,7 +264,7 @@ func SetupRoutes(router *gin.Engine) {
 		}
 
 		resourceRoute := v1.Group("resources")
-		resourceRoute.Use(resourceV1RateLimiter.RateLimiter)
+		resourceRoute.Use(resourceV1rorratelimiter.RateLimiter)
 		{
 			resourceRoute.GET("", resourcescontroller.GetResources())
 			resourceRoute.POST("", resourcescontroller.NewResource())
@@ -327,12 +327,12 @@ func SetupRoutes(router *gin.Engine) {
 	eventsRoute := v2.Group("events", auth.AuthenticationMiddleware)
 	{
 		eventstimeout := 60 * time.Second
-		eventsRoute.GET("listen", ssemiddleware.SSEHeadersMiddleware(), ssehandler.HandleSSE())
-		eventsRoute.POST("send", middlewares.TimeoutMiddleware(eventstimeout), ssehandler.Send())
+		eventsRoute.GET("listen", ssemiddleware.SSEHeadersMiddlewareV2(), ssehandler.HandleSSE())
+		eventsRoute.POST("send", timeoutmiddleware.TimeoutMiddleware(eventstimeout), ssehandler.Send())
 	}
 
 	v2.Use(auth.AuthenticationMiddleware)
-	v2.Use(middlewares.TimeoutMiddleware(timeoutduration))
+	v2.Use(timeoutmiddleware.TimeoutMiddleware(timeoutduration))
 	// Self
 	selfv2Route := v2.Group("self")
 	selfv2Route.GET("", handlerv2selfcontroller.GetSelf())
@@ -347,7 +347,7 @@ func SetupRoutes(router *gin.Engine) {
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	resourceRoute := v2.Group("resources")
-	resourceRoute.Use(resourceV2RateLimiter.RateLimiter)
+	resourceRoute.Use(resourceV2rorratelimiter.RateLimiter)
 	resourceRoute.GET("", v2resourcescontroller.GetResources())
 	resourceRoute.POST("", v2resourcescontroller.NewResource())
 	resourceRoute.DELETE("/uid/:uid", v2resourcescontroller.DeleteResource())
