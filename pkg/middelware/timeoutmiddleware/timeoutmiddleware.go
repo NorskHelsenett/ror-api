@@ -1,4 +1,4 @@
-package middlewares
+package timeoutmiddleware
 
 import (
 	"net/http"

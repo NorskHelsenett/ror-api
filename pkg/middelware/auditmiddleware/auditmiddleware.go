@@ -1,4 +1,4 @@
-package middlewares
+package auditmiddleware
 
 import (
 	"github.com/NorskHelsenett/ror-api/internal/auditlog"

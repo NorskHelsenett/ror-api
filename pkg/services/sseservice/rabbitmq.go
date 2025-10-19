@@ -1,4 +1,4 @@
-package sseserver
+package sseservice
 
 import (
 	"context"

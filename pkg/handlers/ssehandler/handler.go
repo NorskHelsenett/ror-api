@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
-	"github.com/NorskHelsenett/ror-api/pkg/servers/sseserver"
+	"github.com/NorskHelsenett/ror-api/pkg/services/sseservice"
 
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
 
@@ -38,12 +38,12 @@ func HandleSSE() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 		identity := rorcontext.GetIdentityFromRorContext(ctx)
-		client := &sseserver.EventClient{
-			Id:         sseserver.NewEventClientId(),
+		client := &sseservice.EventClient{
+			Id:         sseservice.NewEventClientId(),
 			Identity:   identity,
-			Connection: make(sseserver.EventClientChan),
+			Connection: make(sseservice.EventClientChan),
 		}
-		sseserver.Server.NewClients <- client
+		sseservice.Server.NewClients <- client
 		// Send new connection to event server
 
 		defer func() {
@@ -58,7 +58,7 @@ func HandleSSE() gin.HandlerFunc {
 						}
 					}()
 					// Send closed connection to event server
-					sseserver.Server.ClosedClients <- client.Id
+					sseservice.Server.ClosedClients <- client.Id
 					cancel()
 					return
 				default:
@@ -105,7 +105,7 @@ func Send() gin.HandlerFunc {
 		// 	return
 		// }
 
-		var input sseserver.SseEvent
+		var input sseservice.SseEvent
 		err := c.BindJSON(&input)
 		if err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Object is not valid", err)
@@ -113,7 +113,7 @@ func Send() gin.HandlerFunc {
 			return
 		}
 
-		err = apiconnections.RabbitMQConnection.SendMessage(ctx, input, sseserver.SSERouteBroadcast, nil)
+		err = apiconnections.RabbitMQConnection.SendMessage(ctx, input, sseservice.SSERouteBroadcast, nil)
 		if err != nil {
 			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not send sse broadcast event", err)
 			rerr.GinLogErrorAbort(c)
@@ -138,7 +138,7 @@ func Subscribe() gin.HandlerFunc {
 		// 	return
 		// }
 
-		var input sseserver.SSESubscribe
+		var input sseservice.SSESubscribe
 		err := c.BindJSON(&input)
 		if err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Object is not valid", err)
@@ -146,7 +146,7 @@ func Subscribe() gin.HandlerFunc {
 			return
 		}
 
-		err = apiconnections.RabbitMQConnection.SendMessage(ctx, input, sseserver.SSERouteBroadcast, nil)
+		err = apiconnections.RabbitMQConnection.SendMessage(ctx, input, sseservice.SSERouteBroadcast, nil)
 		if err != nil {
 			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not send sse broadcast event", err)
 			rerr.GinLogErrorAbort(c)

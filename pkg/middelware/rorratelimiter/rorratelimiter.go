@@ -1,4 +1,4 @@
-package ratelimiter
+package rorratelimiter
 
 import (
 	"net/http"

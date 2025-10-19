@@ -11,7 +11,7 @@ import (
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 	"github.com/NorskHelsenett/ror-api/internal/models/ssemodels"
-	"github.com/NorskHelsenett/ror-api/pkg/servers/sseserver"
+	"github.com/NorskHelsenett/ror-api/pkg/services/sseservice"
 
 	"github.com/NorskHelsenett/ror/pkg/clients/rabbitmqclient"
 	"github.com/NorskHelsenett/ror/pkg/messagebuscontracts"
@@ -59,7 +59,7 @@ func Init(rabbitMQConnection rabbitmqclient.RabbitMQConnection) {
 		RabbitMQConnection: rabbitMQConnection,
 	}
 	KeepAlive()
-	sseserver.StartEventServer(rabbitMQConnection)
+	sseservice.StartEventServer(rabbitMQConnection)
 }
 
 func (sse *SSE) BroadcastMessage(payload ssemodels.SseMessage) {

@@ -1,4 +1,4 @@
-package sseserver
+package sseservice
 
 import (
 	"github.com/NorskHelsenett/ror/pkg/clients/rabbitmqclient"
