@@ -82,6 +82,7 @@ func SetupRoutes(router *gin.Engine) {
 		}
 
 		v1.Use(timeoutmiddleware.TimeoutMiddleware(timeoutduration))
+		v1.GET("/token/jwks", v2tokencontroller.GetJwks())
 		// allow anonymous, for self registrering of agents
 		v1.POST("/clusters/register", apikeyscontroller.CreateForAgent())
 		infoRoute := v1.Group("/info")
@@ -366,7 +367,6 @@ func SetupRoutes(router *gin.Engine) {
 	tokenroute := v2.Group("/token")
 	{
 		tokenroute.POST("/exchange", v2tokencontroller.ExchangeToken())
-		tokenroute.GET("/jwks", v2tokencontroller.GetJwks())
 	}
 
 }
