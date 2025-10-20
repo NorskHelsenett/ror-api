@@ -9,6 +9,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	"github.com/NorskHelsenett/ror-api/internal/utils/switchboard"
 	"github.com/NorskHelsenett/ror-api/internal/webserver"
+	"github.com/NorskHelsenett/ror-api/pkg/services/tokenservice"
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/config/rorversion"
 	healthserver "github.com/NorskHelsenett/ror/pkg/helpers/rorhealth/server"
@@ -41,7 +42,7 @@ func Run() {
 	if apiconnections.RabbitMQConnection.Ping() {
 		switchboard.PublishStarted(ctx)
 	}
-
+	tokenservice.Init()
 	<-done
 	rlog.Infoc(ctx, "Ror-API shutting down")
 
