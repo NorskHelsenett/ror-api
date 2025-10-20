@@ -257,7 +257,7 @@ func ExchangeToken(ctx context.Context, clusterID string, token string, admin bo
 
 	exp := fouramhelper.FourAm()
 
-	newtoken := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+	newtoken := jwt.NewWithClaims(jwt.GetSigningMethod(keyStorage.GetCurrentKey().AlgorithmKey), jwt.MapClaims{
 		"sub":              user.Email,
 		"iss":              "https://auth.ror.nhn.no",
 		"email":            user.Email,
