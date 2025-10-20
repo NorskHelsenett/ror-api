@@ -2,12 +2,19 @@ package tokenservice
 
 import (
 	"context"
+	"crypto"
+	"crypto/rand"
 	"crypto/rsa"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"math/big"
 	"strings"
 	"time"
 
+	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
+	"github.com/NorskHelsenett/ror/pkg/clients/vaultclient"
+	"github.com/NorskHelsenett/ror/pkg/helpers/fouramhelper"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -15,38 +22,200 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwk"
 )
 
+// TODO:
+// 1. Move private key to secure storage OK
+// 2. Implement key rotation OK
+// 3. Implement support for multiple oidc providers and client ids with check on domain name
+
+const (
+	VAULT_PATH = "secret/data/v1.0/ror/config/token"
+)
+
 var (
 	oidcProviderURL string = "https://auth.sky.nhn.no/dex"
 	oidcClientId    string = "clusterauth"
-	privateKey      string = `-----BEGIN PRIVATE KEY-----
-MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDKpv/w83xrjIfx
-yqJWcvqxKn6auwr6Dh/3Td/yYiDdv6QUHnFTm6yx6UOxaSxvu0E0QBQ7uuOn1qmi
-PrgaMAg48FWVq+NulfdCjnWxyS15ZjG9eGnoh2TICzWkf3s/12PRZn4E6W5WkAu5
-wqUlmKU4nXD+S1mg8CXeUH4ULl7tO+FrkVUaDoCe/IeiSCFAw3o21z4vUUBtQwKT
-I/+8w9LmwwrXveFkGK/552DuamSy/XhOHUCx+5U+8UBaZfp0LwpFOZY8iT2aHCL6
-A30eROt+KGeWnrDPNQ4mk/8ymyhSsewysOtlh/ej3RfaIQ7rBNh6kH+Cz+5fVp5Z
-aqKydrbfAgMBAAECggEADiwt4/uJCrFX+yR91mN/K4roDe3GH64VovD2PLzUjk/b
-2ULtNHjDnTFgLxUP2LsiwcLu6+Pl6Y9hxmk7NeNcNZDsLIFu3jw+22scJMaH145x
-dfKyHyxfKlmCV9Jttx/tO0J18woiP4uwstBR/W0NbQYfes8Nz7SnRMLrWu8/j92L
-a8y+55eWmyRW6TsHt9ApEPNscIBMQc8900aRvyWMQtXn6gprx2PeIAMl174J6GOl
-bd3DsKzuYW+Eozrb8lfS/fIBXO+7S1qYF7QallG19JqfpIWrZYtNSphYK/QRBgjO
-htb5JQhlhFA5h9DwkPYjkckGIszW99d4aDf+hy9b1QKBgQDqDecdHBfwY3h15W0r
-ehV7fP/nbBvAt448DhJwZxPtFTRn1o9WT5N/C0qln5ztgiQqmFaWHEeODR72zE0A
-hgO3aulphoOMqRm6RrpSXtD2fsCmrz1B3UnYIidqgzy1ACNyIUEGjY5TBqo3FVG6
-2px5PRyqAvVuAwcsy8bF8mBlIwKBgQDdp1fj3VlANFRnF1CHNZndxhDa37/Mrc6N
-eswbndeinMsjCqBbPVRfqS6fg7YP77AW2j32weOe6w1A3CBKk5s7nUTEY/eQKH+1
-guCLMEMMnEWDWCQQ6RAScJw4t2H4eCr8KhjEIfa7WdlVGE9F6h/FkLbHmwQZDEpj
-B1HyPHoZFQKBgQDOqYX3GxY8KOh1WSXi7MJJLl8a7Uc4DBtoBZjcbPeYME/8m+Qm
-ds8qr0KzKVM8F9xtS+OwWboIwKcljdEz9CEV9C2zApXnPmy8ILVmA9iIvfTHeRYi
-sQ0B7W5WSxjwTPX/UUOEULtprgnf51AqJ9tf5ckIiOJCyCOutyOFJvVcdwKBgQCy
-SOoO5HnnhK/nA//H4btTgP8JrjNuBNdBQWZvSDSsHYXfN6rn+JqnH0PbFmwYwWhX
-2U9B7Y6Swum0I9rtYXDZMJShiu8Tyx999jl6e2VS/VeEYB8SYwSEcIOXsxlga/fX
-QF0PVWpKI+kF4znQOJM5rD74qp1PMG2c3cRyHWbwSQKBgDJCtwsXXwjY6+IHUFCM
-1d12Apw3XhCTHAt4uJjksWYI+FJh87eb8CY9Ts1LhFlJOyeYoO80s+uqXSoyrN15
-TUzfH7D7o0LPoQG8fsHliMZyaJxbqV5aB+2ViJTcLFB31TXv2Jq6MCYSsAfWpEIs
-9ExB6AlRxuOa/pYc3MtDS/Mf
------END PRIVATE KEY-----`
+	keyStorage      KeyStorage
 )
+
+type VaultStorageAdapter struct {
+	vaultclient *vaultclient.VaultClient
+	secretPath  string
+}
+
+func NewVaultStorageAdapter(vaultclient *vaultclient.VaultClient, secretPath string) *VaultStorageAdapter {
+	return &VaultStorageAdapter{
+		vaultclient: vaultclient,
+		secretPath:  secretPath,
+	}
+}
+
+func (v *VaultStorageAdapter) Set(ks *KeyStorage) error {
+	if v.vaultclient == nil {
+		return errors.New("vault client not initialized")
+	}
+
+	payload, err := json.Marshal(ks)
+	if err != nil {
+		return err
+	}
+
+	data := map[string]interface{}{
+		"data": map[string]interface{}{
+			"config": string(payload),
+		},
+	}
+
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	_, err = v.vaultclient.SetSecret(v.secretPath, body)
+	return err
+}
+
+func (v *VaultStorageAdapter) Get() (KeyStorage, error) {
+	if v.vaultclient == nil {
+		return KeyStorage{}, errors.New("vault client not initialized")
+	}
+	secretData, err := v.vaultclient.GetSecret(v.secretPath)
+	if err != nil {
+		return KeyStorage{}, err
+	}
+	data, ok := secretData["data"].(map[string]interface{})
+
+	dataStr, ok := data["config"].(string)
+	if !ok {
+		return KeyStorage{}, errors.New("invalid data format in vault secret")
+	}
+	var ks KeyStorage
+	err = json.Unmarshal([]byte(dataStr), &ks)
+	if err != nil {
+		return KeyStorage{}, err
+	}
+	return ks, nil
+}
+
+type StorageProvider interface {
+	Set(*KeyStorage) error
+	Get() (KeyStorage, error)
+}
+
+type KeyStorage struct {
+	storageProvider  StorageProvider
+	LastRotation     time.Time     `json:"last_rotation"`
+	RotationInterval time.Duration `json:"rotation_interval"`
+	NumKeys          int           `json:"num_keys"`
+	Keys             map[int]Key   `json:"keys"`
+}
+
+type Key struct {
+	KeyID        string          `json:"key_id"`
+	PrivateKey   *rsa.PrivateKey `json:"private_key"`
+	AlgorithmKey string          `json:"algorithm_key"`
+}
+
+func (k *KeyStorage) GetCurrentKey() Key {
+	return k.Keys[1]
+}
+
+func (k *KeyStorage) Save() error {
+	if k.storageProvider != nil {
+		return k.storageProvider.Set(k)
+	}
+	return errors.New("no storage provider set")
+}
+
+func (k *KeyStorage) Load() error {
+	if k.storageProvider != nil {
+		loaded, err := k.storageProvider.Get()
+		if err != nil {
+			return err
+		}
+		k.LastRotation = loaded.LastRotation
+		k.RotationInterval = loaded.RotationInterval
+		k.NumKeys = loaded.NumKeys
+		k.Keys = loaded.Keys
+		return nil
+	}
+	return errors.New("no storage provider set")
+}
+
+func Rotate() {
+	if keyStorage.needRotate(false) {
+
+		randomInterval, err := rand.Int(rand.Reader, big.NewInt(5000))
+		if err != nil {
+			rlog.Error("could not generate random interval for key rotation", err)
+			return
+		}
+		time.Sleep(time.Duration(time.Duration(randomInterval.Int64()) * time.Millisecond))
+		keyStorage.Load()
+		rotated := keyStorage.rotate(true)
+		if rotated {
+			err := keyStorage.Save()
+			if err != nil {
+				rlog.Error("could not save keystorage to vault", err)
+			}
+		}
+		rlog.Info("Key rotation completed")
+	}
+}
+
+func (k *KeyStorage) rotate(force bool) bool {
+	if k.needRotate(force) {
+		for i := 0; i < k.NumKeys; i++ {
+			fmt.Println(i)
+			k.Keys[i] = k.Keys[i+1]
+			if k.Keys[i].KeyID == "" {
+				fmt.Println("generating new key for position", i)
+				newKey, err := GenerateKey()
+				if err != nil {
+					rlog.Error("could not generate new key", err)
+				}
+				k.Keys[i] = newKey
+			}
+		}
+		k.LastRotation = time.Now()
+		return true
+	}
+	return false
+}
+
+func (k *KeyStorage) needRotate(force bool) bool {
+	return time.Now().Unix() > k.LastRotation.Add(k.RotationInterval).Unix() || force
+}
+
+func GenerateKey() (Key, error) {
+	newPrivatekey, err := rsa.GenerateKey(rand.Reader, 4096)
+	if err != nil {
+		return Key{}, err
+	}
+
+	thumprint, err := jwk.FromRaw(newPrivatekey.PublicKey)
+	if err != nil {
+		return Key{}, err
+	}
+	keyid, err := thumprint.Thumbprint(crypto.SHA256)
+	if err != nil {
+		return Key{}, err
+	}
+	key := Key{
+		KeyID:        fmt.Sprintf("%x", keyid),
+		PrivateKey:   newPrivatekey,
+		AlgorithmKey: "RS512",
+	}
+	return key, nil
+}
+
+func Init() {
+	keyStorage.storageProvider = NewVaultStorageAdapter(apiconnections.VaultClient, VAULT_PATH)
+	err := keyStorage.Load()
+	if err != nil {
+		rlog.Error("could not load keystorage from vault", err)
+	}
+	Rotate()
+}
 
 // ExchangeToken exchanges a token for a new resigned token
 // 1 . Verifies the provided token
@@ -86,6 +255,8 @@ func ExchangeToken(ctx context.Context, clusterID string, token string, admin bo
 		user.Groups = append(user.Groups, "cluster-admin@ror.io")
 	}
 
+	exp := fouramhelper.FourAm()
+
 	newtoken := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
 		"sub":              user.Email,
 		"iss":              "https://auth.ror.nhn.no",
@@ -93,18 +264,14 @@ func ExchangeToken(ctx context.Context, clusterID string, token string, admin bo
 		"groups":           user.Groups,
 		"nbf":              time.Now().Add(-1 * time.Minute).Unix(),
 		"iat":              time.Now().Unix(),
-		"exp":              time.Now().Add(time.Hour).Unix(),
+		"exp":              exp.Unix(),
 		"aud":              oidcClientId,
 		"clusterID":        clusterID,
 		"providerISS":      user.Issuer,
 		"providerAudience": user.Audience,
 	})
-	newtoken.Header["kid"] = "ror-api-key-1"
-	rsaPriv, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(privateKey))
-	if err != nil {
-		return "", err
-	}
-	signed, err := newtoken.SignedString(rsaPriv)
+	newtoken.Header["kid"] = keyStorage.GetCurrentKey().KeyID
+	signed, err := newtoken.SignedString(keyStorage.GetCurrentKey().PrivateKey)
 	if err != nil {
 		return "", err
 	}
@@ -137,25 +304,22 @@ func ExtractGroups(user *identitymodels.User) ([]string, error) {
 	return groups, nil
 }
 
+// GetJwks returns the JSON Web Key Set (JWKS) containing the public keys
 func GetJwks() (jwk.Set, error) {
 
-	rsaPriv, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(privateKey))
-	if err != nil {
-		panic(err)
-	}
-
-	pubKey := rsaPriv.Public().(*rsa.PublicKey)
-
-	jwkKey, err := jwk.FromRaw(pubKey)
-	if err != nil {
-		return nil, err
-	}
-	jwkKey.Set(jwk.KeyIDKey, "ror-api-key-1")
-	jwkKey.Set(jwk.AlgorithmKey, "RS256")
-	jwkKey.Set(jwk.KeyUsageKey, "sig")
-
 	set := jwk.NewSet()
-	set.AddKey(jwkKey)
+	for _, data := range keyStorage.Keys {
+		pubKey := data.PrivateKey.Public().(*rsa.PublicKey)
+		jwkKey, err := jwk.FromRaw(pubKey)
+		if err != nil {
+			return nil, err
+		}
+		jwkKey.Set(jwk.KeyIDKey, data.KeyID)
+		jwkKey.Set(jwk.AlgorithmKey, data.AlgorithmKey)
+		jwkKey.Set(jwk.KeyUsageKey, "sig")
+
+		set.AddKey(jwkKey)
+	}
 
 	return set, nil
 }
