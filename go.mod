@@ -3,7 +3,7 @@ module github.com/NorskHelsenett/ror-api
 go 1.25.0
 
 require (
-	github.com/NorskHelsenett/ror v1.5.9
+	github.com/NorskHelsenett/ror v1.5.10
 	github.com/blang/semver/v4 v4.0.0
 	github.com/coreos/go-oidc/v3 v3.16.0
 	github.com/dotse/go-health v1.0.1
@@ -123,9 +123,9 @@ require (
 	github.com/prometheus/procfs v0.17.0 // indirect
 	github.com/quic-go/qpack v0.5.1 // indirect
 	github.com/quic-go/quic-go v0.55.0 // indirect
-	github.com/redis/go-redis/extra/rediscmd/v9 v9.14.0 // indirect
-	github.com/redis/go-redis/extra/redisotel/v9 v9.14.0 // indirect
-	github.com/redis/go-redis/v9 v9.14.1 // indirect
+	github.com/redis/go-redis/extra/rediscmd/v9 v9.15.1 // indirect
+	github.com/redis/go-redis/extra/redisotel/v9 v9.15.1 // indirect
+	github.com/redis/go-redis/v9 v9.15.1 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
