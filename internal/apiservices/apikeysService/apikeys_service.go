@@ -32,7 +32,7 @@ import (
 
 // TODO: Move and remove duplicate in repo
 func mustGetApikeySalt() string {
-	apisalt := rorconfig.GetString(rorconfig.API_KEY_SALT)
+	apisalt := rorconfig.GetString(rorconfig.ROR_API_KEY_SALT)
 	if len(apisalt) == 0 {
 		panic("api key salt is missing")
 	}
@@ -189,7 +189,7 @@ func Create(ctx context.Context, input *apicontracts.ApiKey, identity *identitym
 	}
 
 	universalId := uniqueId.String()
-	hash := stringhelper.HashSHA512(universalId, []byte(rorconfig.GetString(rorconfig.API_KEY_SALT)))
+	hash := stringhelper.HashSHA512(universalId, []byte(rorconfig.GetString(rorconfig.ROR_API_KEY_SALT)))
 
 	if identity.IsCluster() {
 		input.Identifier = identity.GetId()

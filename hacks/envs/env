@@ -1,17 +1,17 @@
 # .env
-USE_CORS=true
-LOG_LEVEL=debug
-GIN_MODE=debug
-ALLOW_ORIGINS=https://ror.sky.test.nhn.no;http://localhost:11000;http://127.0.0.1:11000
-HTTP_HOST=localhost
+HTTP_ALLOW_ORIGINS=https://ror.sky.test.nhn.no;http://localhost:11000;http://127.0.0.1:11000
+HTTP_USE_CORS=true
+HTTP_TIMEOUT=60s
 HTTP_PORT=10000
 HTTP_HEALTH_HOST=127.0.0.1
 HTTP_HEALTH_PORT=9999
-VAULT_URL=http://localhost:8200
 MONGODB_PORT=27017
+VAULT_URL=http://localhost:8200
+LOG_LEVEL=debug
+HTTP_HOST=localhost
 OPENTELEMETRY_COLLECTOR_ENDPOINT=localhost:4317
-DEVELOPMENT=true
 ENABLE_TRACING=false
+DEVELOPMENT=true
 PROFILER_ENABLED=false
 TANZU_AUTH_BASE_URL=http://localhost:18082
 CONTAINER_REG_PREFIX=docker.io/

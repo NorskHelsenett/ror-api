@@ -3,7 +3,7 @@ module github.com/NorskHelsenett/ror-api
 go 1.25.0
 
 require (
-	github.com/NorskHelsenett/ror v1.5.11
+	github.com/NorskHelsenett/ror v1.6.0
 	github.com/blang/semver/v4 v4.0.0
 	github.com/coreos/go-oidc/v3 v3.16.0
 	github.com/dotse/go-health v1.0.1

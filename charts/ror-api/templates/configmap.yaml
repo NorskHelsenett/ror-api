@@ -3,28 +3,24 @@ kind: ConfigMap
 metadata:
   name: ror-api-cm-env
 data:
-  GIN_MODE: {{.Values.api.http.mode | quote}}
-  ALLOW_ORIGINS: {{.Values.api.config.allowOrigins | quote}}
-  USE_CORS: {{.Values.api.config.useCors | quote }}
+  HTTP_ALLOW_ORIGINS: {{.Values.api.config.allowOrigins | quote}}
+  HTTP_USE_CORS: {{.Values.api.config.useCors | quote }}
+  HTTP_TIMEOUT: {{.Values.api.http.timeout | quote}}
+  HTTP_HEALTH_HOST: {{.Values.api.http.health.host | quote}}
+  HTTP_HEALTH_PORT: {{.Values.api.http.health.port | quote}}
   RABBITMQ_HOST: {{.Values.api.config.rabbitmq.host | quote}}
   RABBITMQ_PORT: {{.Values.api.config.rabbitmq.port | quote}}
   MONGODB_HOST: {{.Values.api.config.mongodb.host | quote}}
   MONGODB_PORT: {{.Values.api.config.mongodb.port | quote}}
-  VAULT_HOST: {{.Values.api.config.vault.host | quote}}
-  VAULT_PORT: {{.Values.api.config.vault.port | quote}}
-  REDIS_HOST: {{.Values.api.config.redis.host | quote}}
-  REDIS_PORT: {{.Values.api.config.redis.port | quote}}
+  KV_HOST: {{.Values.api.config.redis.host | quote}}
+  KV_PORT: {{.Values.api.config.redis.port | quote}}
+  VAULT_URL: {{.Values.api.config.vault.url | quote}}
   LOG_LEVEL: {{.Values.api.config.logLevel | quote}}
   OIDC_PROVIDER: {{.Values.api.config.oidc.provider | quote}}
   OIDC_CLIENT_ID: {{.Values.api.config.oidc.clientId | quote}}
   OPENTELEMETRY_COLLECTOR_ENDPOINT: {{.Values.api.config.tracing.endpoint | quote}}
   ENABLE_TRACING: {{.Values.api.config.tracing.enabled | quote}}
-  HTTP_TIMEOUT: {{.Values.api.http.timeout | quote}}
-  LDAP_CERT_FOLDER: "/ldap-certs"
   TANZU_AUTH_BASE_URL: {{ default "http://ror-ms-tanzu-auth.nhn-ror.svc:8080" .Values.api.config.tanzu.tanzuAuthBaseUrl | quote }}
   CONTAINER_REG_PREFIX: "docker.io/"
   CONTAINER_REG_IMAGE_PATH: "github.com/NorskHelsenett/ror/"
   CONTAINER_REG_HELM_PATH: "nhn-helm/"
-  ROR_URL: {{.Values.api.config.rorUrl | quote}}
-  HTTP_HEALTH_HOST: {{.Values.api.http.health.host | quote}}
-  HTTP_HEALTH_PORT: {{.Values.api.http.health.port | quote}}

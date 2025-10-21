@@ -11,11 +11,11 @@ import (
 // CORS returns a gin middleware for handling CORS
 func CORS() gin.HandlerFunc {
 
-	if rorconfig.GetBool(rorconfig.GIN_USE_CORS) {
+	if rorconfig.GetBool(rorconfig.HTTP_USE_CORS) {
 		corsConfig := cors.DefaultConfig()
 		//corsConfig.AllowCredentials = true
 
-		origins := strings.Split(rorconfig.GetString(rorconfig.GIN_ALLOW_ORIGINS), ";")
+		origins := strings.Split(rorconfig.GetString(rorconfig.HTTP_ALLOW_ORIGINS), ";")
 		if len(origins) == 0 {
 			origins = []string{"*"}
 		}

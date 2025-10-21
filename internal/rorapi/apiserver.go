@@ -45,5 +45,4 @@ func Run() {
 	tokenservice.Init()
 	<-done
 	rlog.Infoc(ctx, "Ror-API shutting down")
-
 }
