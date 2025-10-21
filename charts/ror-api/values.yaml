@@ -5,7 +5,7 @@ enabled: true
 api:
   fqdn: api.ror.sky.test.nhn.no
   http:
-    timeout: 15sß
+    timeout: 15s
     mode: "release"
     health:
       host: "0.0.0.0"
@@ -30,8 +30,7 @@ api:
       host: "ror-mongodb.nhn-ror.svc"
       port: 27017
     vault:
-      host: "ror-vault-active.nhn-ror.svc"
-      port: 8200
+      url: "http://ror-vault-active.nhn-ror.svc:8200"
     redis:
       host: "ror-redis-master.nhn-ror.svc"
       port: 6379

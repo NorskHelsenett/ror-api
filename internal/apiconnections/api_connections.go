@@ -39,7 +39,7 @@ func InitConnections() {
 	mongodb.Init(mongocredshelper, rorconfig.GetString(rorconfig.MONGODB_HOST), rorconfig.GetString(rorconfig.MONGODB_PORT), rorconfig.GetString(rorconfig.MONGO_DATABASE))
 
 	redisdatabasecredhelper := databasecredhelper.NewVaultDBCredentials(VaultClient, fmt.Sprintf("redis-%v-role", rorconfig.GetString(rorconfig.ROLE)), "")
-	RedisDB = redisdb.New(redisdatabasecredhelper, rorconfig.GetString(rorconfig.REDIS_HOST), rorconfig.GetString(rorconfig.REDIS_PORT))
+	RedisDB = redisdb.New(redisdatabasecredhelper, rorconfig.GetString(rorconfig.KV_HOST), rorconfig.GetString(rorconfig.KV_PORT))
 
 	rmqcredhelper := rabbitmqcredhelper.NewVaultRMQCredentials(VaultClient, rorconfig.GetString(rorconfig.ROLE))
 	RabbitMQConnection = rabbitmqclient.NewRabbitMQConnection(rmqcredhelper, rorconfig.GetString(rorconfig.RABBITMQ_HOST), rorconfig.GetString(rorconfig.RABBITMQ_PORT), rorconfig.GetString(rorconfig.RABBITMQ_BROADCAST_NAME))
@@ -58,7 +58,7 @@ func InitConnections() {
 	apirabbitmqdefinitions.InitOrDie(RabbitMQConnection)
 	mongodbseeding.CheckAndSeed(context.Background())
 
-	rorconfig.SetWithProvider(rorconfig.API_KEY_SALT, VaultClient.GetSecretProvider("secret/data/v1.0/ror/config/common", "apikeySalt"))
+	rorconfig.SetWithProvider(rorconfig.ROR_API_KEY_SALT, VaultClient.GetSecretProvider("secret/data/v1.0/ror/config/common", "apikeySalt"))
 
 	apirabbitmqhandler.StartListening(RabbitMQConnection)
 

@@ -72,7 +72,7 @@ func getKubeconfig(configPayload apicontracts.TanzuKubeConfigPayload) (string, e
 		return "", err
 	}
 
-	serviceUrl := rorconfig.GetString(rorconfig.TANZU_AUTH_BASE_URL)
+	serviceUrl := rorconfig.GetString("TANZU_AUTH_BASE_URL")
 	httpposturl := fmt.Sprintf("%s/v1/kubeconfig", serviceUrl)
 	request, err := http.NewRequest("POST", httpposturl, &payload)
 	if err != nil {

@@ -19,7 +19,7 @@ func Test_mustGetApikeySalt(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		rorconfig.Set(rorconfig.API_KEY_SALT, tt.salt)
+		rorconfig.Set(rorconfig.ROR_API_KEY_SALT, tt.salt)
 		t.Run(tt.name, func(t *testing.T) {
 			if got := mustGetApikeySalt(); got != tt.want {
 				t.Errorf("mustGetApikeySalt() = %v, want %v", got, tt.want)
@@ -27,7 +27,7 @@ func Test_mustGetApikeySalt(t *testing.T) {
 		})
 	}
 	// test panic
-	rorconfig.Set(rorconfig.API_KEY_SALT, "")
+	rorconfig.Set(rorconfig.ROR_API_KEY_SALT, "")
 	defer func() { _ = recover() }()
 	mustGetApikeySalt()
 	t.Errorf("did not panic")

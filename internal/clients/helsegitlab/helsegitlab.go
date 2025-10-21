@@ -30,7 +30,7 @@ func GetFileContent(projectId int, filePath string, branch string, vaultClient *
 	urlencodeFilePath := url.QueryEscape(filePath)
 	urlencodeBranch := url.QueryEscape(branch)
 
-	repourl := fmt.Sprintf("%s%d/repository/files/%s/raw?ref=%s", rorconfig.GetString(rorconfig.HELSEGITLAB_BASE_URL), projectId, urlencodeFilePath, urlencodeBranch)
+	repourl := fmt.Sprintf("%s%d/repository/files/%s/raw?ref=%s", rorconfig.GetString("HELSEGITLAB_BASE_URL"), projectId, urlencodeFilePath, urlencodeBranch)
 	response, err := gitlabRequest.Get(repourl)
 	if err != nil {
 		return nil, errors.New("could not get a response from helsegitlab client")
