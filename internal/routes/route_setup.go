@@ -10,7 +10,6 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/controllers/clusterscontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/datacenterscontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/desiredversioncontroller"
-	healthcontroller "github.com/NorskHelsenett/ror-api/internal/controllers/healthcontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/infocontroller"
 	ctrlM2mConfiguration "github.com/NorskHelsenett/ror-api/internal/controllers/m2m/configurationcontroller"
 	ctrlM2mEaster "github.com/NorskHelsenett/ror-api/internal/controllers/m2m/eastercontroller"
@@ -41,6 +40,7 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/config/rorversion"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorhealth"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
 	"github.com/NorskHelsenett/ror-api/internal/docs"
@@ -340,7 +340,7 @@ func SetupRoutes(router *gin.Engine) {
 	selfv2Route.POST("/apikeys", handlerv2selfcontroller.CreateOrRenewApikey())
 	selfv2Route.DELETE("/apikeys/:id", handlerv2selfcontroller.DeleteApiKey())
 
-	router.GET("/health", healthcontroller.GetHealthStatus())
+	router.GET("/health", rorhealth.GetGinHandler())
 	router.GET("/metrics", gin.WrapH(promhttp.HandlerFor(prometheus.DefaultGatherer, promhttp.HandlerOpts{EnableOpenMetrics: true})))
 
 	docs.SwaggerInfo.BasePath = "/"

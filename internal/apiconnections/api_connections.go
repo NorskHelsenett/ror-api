@@ -33,6 +33,8 @@ var (
 )
 
 func InitConnections() {
+	ctx, cancel := context.WithTimeout(context.Background(), 60)
+	defer cancel()
 	VaultClient = vaultclient.NewVaultClient(rorconfig.GetString(rorconfig.ROLE), rorconfig.GetString(rorconfig.VAULT_URL))
 
 	mongocredshelper := databasecredhelper.NewVaultDBCredentials(VaultClient, rorconfig.GetString(rorconfig.ROLE), "mongodb")
@@ -51,12 +53,12 @@ func InitConnections() {
 	}
 
 	DomainResolvers.RegisterHealthChecks()
-	rorhealth.Register("vault", VaultClient)
-	rorhealth.Register("redis", RedisDB)
-	rorhealth.Register("rabbitmq", RabbitMQConnection)
+	rorhealth.Register(ctx, "vault", VaultClient)
+	rorhealth.Register(ctx, "redis", RedisDB)
+	rorhealth.Register(ctx, "rabbitmq", RabbitMQConnection)
 
 	apirabbitmqdefinitions.InitOrDie(RabbitMQConnection)
-	mongodbseeding.CheckAndSeed(context.Background())
+	mongodbseeding.CheckAndSeed(ctx)
 
 	rorconfig.SetWithProvider(rorconfig.ROR_API_KEY_SALT, VaultClient.GetSecretProvider("secret/data/v1.0/ror/config/common", "apikeySalt"))
 
