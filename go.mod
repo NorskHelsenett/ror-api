@@ -3,10 +3,9 @@ module github.com/NorskHelsenett/ror-api
 go 1.25.0
 
 require (
-	github.com/NorskHelsenett/ror v1.6.0
+	github.com/NorskHelsenett/ror v1.7.0
 	github.com/blang/semver/v4 v4.0.0
 	github.com/coreos/go-oidc/v3 v3.16.0
-	github.com/dotse/go-health v1.0.1
 	github.com/evanphx/json-patch/v5 v5.9.11
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-contrib/gzip v1.2.4
@@ -51,6 +50,7 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
+	github.com/dotse/go-health v1.0.1 // indirect
 	github.com/ebitengine/purego v0.8.4 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.10 // indirect
