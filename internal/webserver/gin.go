@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/NorskHelsenett/ror-api/internal/auth"
 	"github.com/NorskHelsenett/ror-api/internal/routes"
+	"github.com/NorskHelsenett/ror-api/pkg/middelware/authmiddleware"
+	"github.com/NorskHelsenett/ror-api/pkg/middelware/authmiddleware/oauthprovider"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/corsmiddleware"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/headersmiddleware"
 
@@ -29,6 +32,10 @@ func StartListening(sigs chan os.Signal, done chan struct{}) {
 }
 
 func InitHttpServer() {
+
+	authmiddleware.RegisterAuthProvider(oauthprovider.NewOauthProvider())
+	authmiddleware.RegisterAuthProvider(auth.NewApiKeyAuthProvider())
+
 	useCors := rorconfig.GetBool(rorconfig.HTTP_USE_CORS)
 	allowOrigins := rorconfig.GetString(rorconfig.HTTP_ALLOW_ORIGINS)
 	rlog.Info("Starting web server", rlog.Any("useCors", useCors), rlog.Any("allowedOrigins", allowOrigins))

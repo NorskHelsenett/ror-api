@@ -65,7 +65,6 @@ func clusterAuth(c *gin.Context, apikey apicontracts.ApiKey) {
 		rlog.Errorc(ctx, "could not update lastUsed", err, rlog.String("id", apikey.Id), rlog.String("identifier", identifier))
 	}
 
-	c.Next()
 }
 
 func serviceAuth(c *gin.Context, apikey apicontracts.ApiKey) {
@@ -87,7 +86,7 @@ func serviceAuth(c *gin.Context, apikey apicontracts.ApiKey) {
 	if err != nil {
 		rlog.Errorc(ctx, "could not update lastUsed", err, rlog.String("id", apikey.Id), rlog.String("identifier", identifier))
 	}
-	c.Next()
+
 }
 
 func userAuth(c *gin.Context, apikey apicontracts.ApiKey) {
@@ -121,5 +120,19 @@ func userAuth(c *gin.Context, apikey apicontracts.ApiKey) {
 		rlog.Errorc(ctx, "could not update lastUsed for apikey", err, rlog.String("id", apikey.Id), rlog.String("identifier", identity.GetId()))
 	}
 
-	c.Next()
+}
+
+type ApiKeyAuthProvider struct{}
+
+func (a *ApiKeyAuthProvider) IsOfType(c *gin.Context) bool {
+	xapikey := c.Request.Header.Get("X-API-KEY")
+	return len(xapikey) > 0
+}
+
+func (a *ApiKeyAuthProvider) Authenticate(c *gin.Context) {
+	ApiKeyAuth(c)
+}
+
+func NewApiKeyAuthProvider() *ApiKeyAuthProvider {
+	return &ApiKeyAuthProvider{}
 }

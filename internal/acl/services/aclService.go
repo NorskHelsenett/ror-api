@@ -19,9 +19,7 @@ import (
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/rorresourceowner"
-	"github.com/NorskHelsenett/ror/pkg/rlog"
 
-	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel"
 )
 
@@ -101,10 +99,7 @@ func Delete(ctx context.Context, aclId string, identity *identitymodels.Identity
 func CheckAccessByContextScopeSubject(ctx context.Context, scope any, subject any) aclmodels.AclV2ListItemAccess {
 	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "aclService.CheckAccessByContextScopeSubject")
 	defer span.End()
-	_, ok := ctx.(*gin.Context)
-	if ok {
-		rlog.Fatal("not expecting a gin.Context", nil)
-	}
+
 	aclModel := aclmodels.NewAclV2QueryAccessScopeSubject(scope, subject)
 
 	return aclrepository.CheckAcl2ByIdentityQuery(ctx, aclModel)
@@ -112,10 +107,6 @@ func CheckAccessByContextScopeSubject(ctx context.Context, scope any, subject an
 func CheckAccessByContextAclQuery(ctx context.Context, query aclmodels.AclV2QueryAccessScopeSubject) aclmodels.AclV2ListItemAccess {
 	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "aclService.CheckAccessByContextScopeSubject")
 	defer span.End()
-	_, ok := ctx.(*gin.Context)
-	if ok {
-		rlog.Fatal("not expecting a gin.Context", nil)
-	}
 
 	if !query.IsValid() {
 		return aclmodels.AclV2ListItemAccess{}
@@ -129,10 +120,6 @@ func CheckAccessByContextAclQuery(ctx context.Context, query aclmodels.AclV2Quer
 func CheckAccessByOwnerref(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerReference) aclmodels.AclV2ListItemAccess {
 	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "aclService.CheckAccessByContextScopeSubject")
 	defer span.End()
-	_, ok := ctx.(*gin.Context)
-	if ok {
-		rlog.Fatal("not expecting a gin.Context", nil)
-	}
 
 	aclModel := aclmodels.NewAclV2QueryAccessScopeSubject(ownerref.Scope, ownerref.Subject)
 
@@ -142,10 +129,6 @@ func CheckAccessByOwnerref(ctx context.Context, ownerref apiresourcecontracts.Re
 func CheckAccessByRorOwnerref(ctx context.Context, ownerref rorresourceowner.RorResourceOwnerReference) aclmodels.AclV2ListItemAccess {
 	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "aclService.CheckAccessByContextScopeSubject")
 	defer span.End()
-	_, ok := ctx.(*gin.Context)
-	if ok {
-		rlog.Fatal("not expecting a gin.Context", nil)
-	}
 
 	aclModel := aclmodels.NewAclV2QueryAccessScopeSubject(ownerref.Scope, ownerref.Subject)
 
