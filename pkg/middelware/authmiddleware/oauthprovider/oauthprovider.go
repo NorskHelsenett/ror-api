@@ -24,7 +24,22 @@ func (d *OauthProvider) IsOfType(c *gin.Context) bool {
 }
 
 func (d *OauthProvider) Authenticate(c *gin.Context) {
-	OauthGinMiddleware(c)
+	auth := c.Request.Header.Get("Authorization")
+	if auth == "" {
+		rerr := rorerror.NewRorError(http.StatusUnauthorized, "No Authorization header provided ")
+		rerr.GinLogErrorAbort(c)
+		return
+	}
+
+	identity, rerr := getIdentityFromToken(c.Request.Context(), auth)
+
+	if rerr != nil {
+		rerr.GinLogErrorAbort(c)
+		return
+	}
+
+	c.Set("user", identity.User)
+	c.Set("identity", identity)
 }
 
 func NewOauthProvider() *OauthProvider {
