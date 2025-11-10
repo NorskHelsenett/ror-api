@@ -165,10 +165,9 @@ func Rotate() {
 func (k *KeyStorage) rotate(force bool) bool {
 	if k.needRotate(force) {
 		for i := 0; i < k.NumKeys; i++ {
-			fmt.Println(i)
 			k.Keys[i] = k.Keys[i+1]
 			if k.Keys[i].KeyID == "" {
-				fmt.Println("generating new key for position", i)
+				rlog.Info("generating new key for position", rlog.Int("position", i))
 				newKey, err := GenerateKey()
 				if err != nil {
 					rlog.Error("could not generate new key", err)
