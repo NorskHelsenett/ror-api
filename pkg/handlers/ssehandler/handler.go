@@ -24,10 +24,10 @@ import (
 // @Accept			text/event-stream
 // @Produce		text/event-stream
 // @Success		200					{string}	string	"ok"
-// @Failure		403					{object}	rorerror.RorError
-// @Failure		400					{object}	rorerror.RorError
-// @Failure		401					{object}	rorerror.RorError
-// @Failure		500					{object}	rorerror.RorError
+// @Failure		403					{object}	rorerror.ErrorData
+// @Failure		400					{object}	rorerror.ErrorData
+// @Failure		401					{object}	rorerror.ErrorData
+// @Failure		500					{object}	rorerror.ErrorData
 // @Router			/v2/events/listen	[get]
 // @Security		ApiKey || AccessToken
 func HandleSSE() gin.HandlerFunc {

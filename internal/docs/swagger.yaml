@@ -176,6 +176,8 @@ definitions:
         items:
           $ref: '#/definitions/apicontracts.Ingress'
         type: array
+      kubeApi:
+        $ref: '#/definitions/apicontracts.ClusterKubeApi'
       lastObserved:
         type: string
       metadata:
@@ -258,6 +260,13 @@ definitions:
         type: string
       metadata:
         $ref: '#/definitions/apicontracts.ClusterMetadata'
+    type: object
+  apicontracts.ClusterKubeApi:
+    properties:
+      certificate:
+        type: string
+      endpointAddress:
+        type: string
     type: object
   apicontracts.ClusterKubeconfig:
     properties:
@@ -1600,29 +1609,18 @@ definitions:
     properties:
       columns:
         items:
-          $ref: '#/definitions/apiview.ViewField'
+          $ref: '#/definitions/apiview.ViewColumn'
         type: array
       rows:
         items:
           items:
-            $ref: '#/definitions/apiview.ViewData'
+            $ref: '#/definitions/apiview.ViewValue'
           type: array
         type: array
       type:
         $ref: '#/definitions/apiview.ViewType'
     type: object
-  apiview.ViewData:
-    properties:
-      description:
-        type: string
-      fieldName:
-        type: string
-      fieldValue:
-        type: string
-      resourceUid:
-        type: string
-    type: object
-  apiview.ViewField:
+  apiview.ViewColumn:
     properties:
       default:
         type: boolean
@@ -1631,6 +1629,8 @@ definitions:
       name:
         type: string
       order:
+        description: order of the column in the view, it may be holes and duplicates
+          in the order
         type: integer
       possibleValues:
         items:
@@ -1640,7 +1640,9 @@ definitions:
         description: '"spec.clusterdata.clustername"'
         type: string
       resourceType:
-        $ref: '#/definitions/v1.TypeMeta'
+        allOf:
+        - $ref: '#/definitions/v1.TypeMeta'
+        description: resourceType in ror
       type:
         $ref: '#/definitions/apiview.ViewFieldType'
       writeable:
@@ -1670,19 +1672,31 @@ definitions:
         type: string
       name:
         type: string
+      type:
+        $ref: '#/definitions/apiview.ViewType'
       version:
-        type: string
+        type: integer
     type: object
   apiview.ViewType:
     enum:
-    - grid
-    - table
+    - list
     - chart
     type: string
     x-enum-varnames:
-    - ViewTypeGrid
-    - ViewTypeTable
+    - ViewTypeList
     - ViewTypeChart
+  apiview.ViewValue:
+    properties:
+      description:
+        type: string
+      fieldName:
+        description: must match the column name
+        type: string
+      fieldValue:
+        type: string
+      resourceUid:
+        type: string
+    type: object
   github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReport:
     properties:
       clusterid:
@@ -1849,6 +1863,18 @@ definitions:
     - IdentityTypeUser
     - IdentityTypeCluster
     - IdentityTypeService
+  internal_controllers_v2_tokencontroller.ExchangeTokenRequest:
+    properties:
+      admin:
+        type: boolean
+      clusterId:
+        type: string
+      token:
+        type: string
+    required:
+    - clusterId
+    - token
+    type: object
   intstr.IntOrString:
     properties:
       intVal:
@@ -2007,7 +2033,7 @@ definitions:
     - ProviderTypeGke
     - ProviderTypeTalos
     - ProviderTypeVitistack
-  rorerror.RorError:
+  rorerror.ErrorData:
     properties:
       message:
         description: Error message
@@ -2739,7 +2765,7 @@ definitions:
       name:
         type: string
       status:
-        description: Status spesific to the destination - remote being unavailable
+        description: Status spesific to the destination - remote being unavailable.
         type: string
       type:
         description: Local, remote, archive, etc.
@@ -2764,11 +2790,6 @@ definitions:
         description: Direct targets for this backup job
         items:
           $ref: '#/definitions/rortypes.ResourceBackupTarget'
-        type: array
-      backupDestinations:
-        description: Any destination defined by this backup job
-        items:
-          $ref: '#/definitions/rortypes.ResourceBackupDestination'
         type: array
       indirectBackupTargets:
         description: Indirect targets for this backup job
@@ -2798,8 +2819,6 @@ definitions:
         items:
           type: string
         type: array
-      lastUpdated:
-        type: string
       location:
         type: string
       policyName:
@@ -2816,9 +2835,14 @@ definitions:
       source:
         type: string
       spec:
-        $ref: '#/definitions/rortypes.ResourceBackupJobSpec'
+        $ref: '#/definitions/rortypes.ResourceBackupRunSpec'
       status:
         $ref: '#/definitions/rortypes.ResourceBackupRunStatus'
+    type: object
+  rortypes.ResourceBackupRunSpec:
+    properties:
+      delete:
+        type: boolean
     type: object
   rortypes.ResourceBackupRunStatus:
     properties:
@@ -2842,28 +2866,30 @@ definitions:
         type: string
       id:
         type: string
-      lastUpdated:
-        type: string
       startTime:
         description: When the run was started
         type: string
     type: object
   rortypes.ResourceBackupSchedule:
     properties:
+      destination:
+        allOf:
+        - $ref: '#/definitions/rortypes.ResourceBackupDestination'
+        description: Which destination does this apply to.
       endTime:
         description: When will the job be forcibly stopped, if empty it will continue
-          indefinitely
+          indefinitely.
         type: string
       frequency:
-        description: How many time per unit will this backup run
+        description: How many time per unit will this backup run.
         type: integer
       retention:
         $ref: '#/definitions/rortypes.ResourceBackupScheduleRetention'
       startTime:
-        description: When will the job start
+        description: When will the job start.
         type: string
       unit:
-        description: What unit of time is this schedule going to run in
+        description: What unit of time is this schedule going to run in.
         type: string
     type: object
   rortypes.ResourceBackupScheduleRetention:
@@ -4853,6 +4879,15 @@ definitions:
     - NEEDS_TRIAGE
     - CONFIRMED
     - DISMISSED
+  rorversion.RorVersion:
+    properties:
+      commit:
+        type: string
+      libVer:
+        type: string
+      version:
+        type: string
+    type: object
   v1.FieldsV1:
     type: object
   v1.ManagedFieldsEntry:
@@ -5168,25 +5203,6 @@ info:
   title: Swagger ROR-API
   version: "0.1"
 paths:
-  /health:
-    get:
-      consumes:
-      - application/json
-      description: Get health status for ROR-API
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/apicontracts.HealthStatus'
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Health status
-      tags:
-      - health status
   /v1/acl:
     post:
       consumes:
@@ -5209,19 +5225,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -5249,19 +5265,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -5288,19 +5304,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -5333,19 +5349,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -5405,19 +5421,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -5445,7 +5461,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -5477,7 +5493,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -5505,15 +5521,15 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -5542,15 +5558,15 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -5579,15 +5595,15 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -5615,7 +5631,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -5651,11 +5667,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -5691,11 +5707,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -5732,11 +5748,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -5773,11 +5789,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -5815,11 +5831,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -5855,7 +5871,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -5891,11 +5907,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -5937,11 +5953,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -5977,7 +5993,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -6012,11 +6028,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -6052,7 +6068,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -6088,7 +6104,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -6124,7 +6140,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -6164,11 +6180,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -6204,11 +6220,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -6240,7 +6256,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -6277,19 +6293,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -6318,11 +6334,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -6382,7 +6398,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -6415,7 +6431,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -6445,7 +6461,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -6478,7 +6494,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -6508,11 +6524,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -6546,11 +6562,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -6594,11 +6610,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -6630,11 +6646,11 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
@@ -6668,11 +6684,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -6716,11 +6732,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -6756,11 +6772,11 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
@@ -6851,11 +6867,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -6891,11 +6907,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -6930,11 +6946,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
@@ -6968,11 +6984,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -7002,19 +7018,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -7032,17 +7048,7 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/rorerror.RorError'
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/rorversion.RorVersion'
         "500":
           description: Internal Server Error
           schema:
@@ -7066,7 +7072,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -7102,7 +7108,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -7138,7 +7144,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -7168,7 +7174,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -7204,7 +7210,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -7240,7 +7246,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -7276,7 +7282,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -7306,7 +7312,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -7336,7 +7342,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -7372,11 +7378,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -7418,11 +7424,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
@@ -7455,11 +7461,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -7491,7 +7497,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -7529,11 +7535,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -7569,11 +7575,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -7614,11 +7620,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -7659,11 +7665,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -7693,19 +7699,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -7727,19 +7733,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -7760,19 +7766,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -7801,19 +7807,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -7841,19 +7847,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -7877,11 +7883,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -7919,11 +7925,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -7959,11 +7965,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -8004,11 +8010,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -8046,11 +8052,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -8087,19 +8093,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -8127,19 +8133,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -8166,19 +8172,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -8211,19 +8217,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -8253,19 +8259,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -8294,19 +8300,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -8330,7 +8336,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
@@ -8372,7 +8378,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
@@ -8414,7 +8420,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
@@ -8579,7 +8585,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -8629,7 +8635,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -8665,7 +8671,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -8715,7 +8721,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "404":
           description: Not Found
           schema:
@@ -8756,7 +8762,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -8792,11 +8798,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -8839,11 +8845,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -8886,11 +8892,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -8938,7 +8944,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -8976,11 +8982,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -9012,7 +9018,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -9046,7 +9052,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
@@ -9088,11 +9094,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -9128,7 +9134,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
@@ -9173,11 +9179,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -9218,11 +9224,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -9252,7 +9258,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
@@ -9293,19 +9299,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -9333,19 +9339,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -9374,19 +9380,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -9410,11 +9416,11 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "404":
           description: Not Found
           schema:
@@ -9448,11 +9454,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -9460,7 +9466,7 @@ paths:
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -9494,7 +9500,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -9530,11 +9536,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -9542,7 +9548,7 @@ paths:
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -9564,19 +9570,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -9606,7 +9612,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -9679,11 +9685,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -9719,7 +9725,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -9769,7 +9775,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -9805,7 +9811,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -9855,7 +9861,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "404":
           description: Not Found
           schema:
@@ -9896,7 +9902,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
@@ -9963,19 +9969,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -10003,25 +10009,87 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
       summary: Delete api key for user
       tags:
       - user
+  /v2/token/exchange:
+    post:
+      consumes:
+      - application/json
+      description: Create a api key
+      parameters:
+      - description: token to exchange
+        in: body
+        name: token
+        required: true
+        schema:
+          $ref: '#/definitions/internal_controllers_v2_tokencontroller.ExchangeTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Excahnges a token for a new resigned token
+      tags:
+      - users
+  /v2/token/jwks:
+    get:
+      consumes:
+      - application/json
+      description: Get JWKS for token verification
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Get JWKS
+      tags:
+      - users
   /v2/views:
     get:
       consumes:
@@ -10039,15 +10107,15 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []
@@ -10097,15 +10165,15 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rorerror.RorError'
+            $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
         ApiKey: []

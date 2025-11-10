@@ -42,8 +42,8 @@ func init() {
 //	@Param			price	body		apicontracts.Cluster	true	"Add a price"
 //	@Success		200		{array}		apicontracts.Price
 //	@Failure		403		{string}	Forbidden
-//	@Failure		400		{object}	rorerror.RorError
-//	@Failure		401		{object}	rorerror.RorError
+//	@Failure		400		{object}	rorerror.ErrorData
+//	@Failure		401		{object}	rorerror.ErrorData
 //	@Failure		500		{string}	Failure	message
 //	@Router			/v1/prices [post]
 //	@Security		ApiKey || AccessToken
@@ -107,8 +107,8 @@ func Create() gin.HandlerFunc {
 //	@Param			providerName	path		string	true	"providerName"
 //	@Success		200				{array}		apicontracts.Price
 //	@Failure		403				{string}	Forbidden
-//	@Failure		400				{object}	rorerror.RorError
-//	@Failure		401				{object}	rorerror.RorError
+//	@Failure		400				{object}	rorerror.ErrorData
+//	@Failure		401				{object}	rorerror.ErrorData
 //	@Failure		500				{string}	Failure	message
 //	@Router			/v1/prices/provider/{providerName} [get]
 //	@Security		ApiKey || AccessToken
@@ -146,8 +146,8 @@ func GetByProvider() gin.HandlerFunc {
 //	@Param			price	body		apicontracts.Price	true	"Update price"
 //	@Success		200		{object}	apicontracts.Price
 //	@Failure		403		{string}	Forbidden
-//	@Failure		400		{object}	rorerror.RorError
-//	@Failure		401		{object}	rorerror.RorError
+//	@Failure		400		{object}	rorerror.ErrorData
+//	@Failure		401		{object}	rorerror.ErrorData
 //	@Failure		500		{string}	Failure	message
 //	@Router			/v1/prices/:id [put]
 //	@Security		ApiKey || AccessToken
@@ -222,8 +222,8 @@ func Update() gin.HandlerFunc {
 //	@Param			id	path		string	true	"id"
 //	@Success		200	{bool}		true
 //	@Failure		403	{string}	Forbidden
-//	@Failure		400	{object}	rorerror.RorError
-//	@Failure		401	{object}	rorerror.RorError
+//	@Failure		400	{object}	rorerror.ErrorData
+//	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/prices/:id [delete]
 //	@Security		ApiKey || AccessToken
@@ -272,8 +272,8 @@ func Delete() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200			{array}		apicontracts.Price
 //	@Failure		403			{string}	Forbidden
-//	@Failure		400			{object}	rorerror.RorError
-//	@Failure		401			{object}	rorerror.RorError
+//	@Failure		400			{object}	rorerror.ErrorData
+//	@Failure		401			{object}	rorerror.ErrorData
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/prices	[get]
 //	@Security		ApiKey || AccessToken

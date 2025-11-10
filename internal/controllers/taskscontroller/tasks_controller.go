@@ -40,8 +40,8 @@ func init() {
 // @Param			task	body		apicontracts.Task	true	"Get a task"
 // @Success		200		{object}	apicontracts.Task
 // @Failure		403		{string}	Forbidden
-// @Failure		400		{object}	rorerror.RorError
-// @Failure		401		{object}	rorerror.RorError
+// @Failure		400		{object}	rorerror.ErrorData
+// @Failure		401		{object}	rorerror.ErrorData
 // @Failure		500		{string}	Failure	message
 // @Router			/v1/tasks/:id [get]
 // @Security		ApiKey || AccessToken
@@ -83,7 +83,7 @@ func GetById() gin.HandlerFunc {
 // @Produce		application/json
 // @Success		200			{array}		apicontracts.Task
 // @Failure		403			{string}	Forbidden
-// @Failure		400			{object}	rorerror.RorError
+// @Failure		400			{object}	rorerror.ErrorData
 // @Failure		401			{string}	Unauthorized
 // @Failure		500			{string}	Failure	message
 // @Router			/v1/tasks	[get]
@@ -124,8 +124,8 @@ func GetAll() gin.HandlerFunc {
 // @Param			task	body		apicontracts.Task	true	"Add a task"
 // @Success		200		{array}		apicontracts.Task
 // @Failure		403		{string}	Forbidden
-// @Failure		400		{object}	rorerror.RorError
-// @Failure		401		{object}	rorerror.RorError
+// @Failure		400		{object}	rorerror.ErrorData
+// @Failure		401		{object}	rorerror.ErrorData
 // @Failure		500		{string}	Failure	message
 // @Router			/v1/tasks [post]
 // @Security		ApiKey || AccessToken
@@ -190,8 +190,8 @@ func Create() gin.HandlerFunc {
 // @Param			task	body		apicontracts.Task	true	"Update task"
 // @Success		200		{object}	apicontracts.Task
 // @Failure		403		{string}	Forbidden
-// @Failure		400		{object}	rorerror.RorError
-// @Failure		401		{object}	rorerror.RorError
+// @Failure		400		{object}	rorerror.ErrorData
+// @Failure		401		{object}	rorerror.ErrorData
 // @Failure		500		{string}	Failure	message
 // @Router			/v1/tasks/:id [put]
 // @Security		ApiKey || AccessToken
@@ -266,7 +266,7 @@ func Update() gin.HandlerFunc {
 // @Param			id	path		string	true	"id"
 // @Success		200	{bool}		true
 // @Failure		403	{string}	Forbidden
-// @Failure		400	{object}	rorerror.RorError
+// @Failure		400	{object}	rorerror.ErrorData
 // @Failure		401	{string}	Unauthorized
 // @Failure		500	{string}	Failure	message
 // @Router			/v1/tasks/:id [delete]

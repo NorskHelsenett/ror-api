@@ -18,35 +18,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/health": {
-            "get": {
-                "description": "Get health status for ROR-API",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "health status"
-                ],
-                "summary": "Health status",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/apicontracts.HealthStatus"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
         "/v1/acl": {
             "post": {
                 "security": [
@@ -87,25 +58,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -151,25 +122,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -213,7 +184,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -263,7 +234,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -307,25 +278,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -376,25 +347,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -436,25 +407,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -549,19 +520,19 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -607,19 +578,19 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -663,19 +634,19 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -721,13 +692,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -783,7 +754,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -839,13 +810,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -901,13 +872,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -965,13 +936,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -1030,13 +1001,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -1086,7 +1057,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -1144,25 +1115,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -1208,13 +1179,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -1308,7 +1279,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -1358,7 +1329,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -1405,7 +1376,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -1455,7 +1426,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -1499,13 +1470,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -1561,13 +1532,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -1635,13 +1606,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -1697,7 +1668,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -1753,13 +1724,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -1824,13 +1795,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -1886,7 +1857,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -1940,13 +1911,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -2002,7 +1973,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -2058,7 +2029,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -2114,7 +2085,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -2175,13 +2146,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -2237,13 +2208,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -2293,13 +2264,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
@@ -2352,13 +2323,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -2482,13 +2453,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -2544,13 +2515,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
@@ -2635,13 +2606,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -2691,13 +2662,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
@@ -2754,13 +2725,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -2814,13 +2785,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -2867,25 +2838,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -2908,21 +2879,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/rorversion.RorVersion"
                         }
                     },
                     "500": {
@@ -2964,7 +2921,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -3020,7 +2977,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -3076,7 +3033,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -3123,7 +3080,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -3179,7 +3136,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -3235,7 +3192,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -3291,7 +3248,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -3338,7 +3295,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -3385,7 +3342,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -3441,13 +3398,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -3512,13 +3469,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
@@ -3570,13 +3527,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -3626,7 +3583,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -3685,13 +3642,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -3756,13 +3713,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -3825,13 +3782,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -3885,13 +3842,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -3938,25 +3895,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -4002,25 +3959,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -4064,25 +4021,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -4117,25 +4074,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -4168,25 +4125,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -4224,13 +4181,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -4289,13 +4246,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -4360,13 +4317,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -4420,13 +4377,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -4485,13 +4442,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -4549,25 +4506,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -4613,25 +4570,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -4675,25 +4632,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -4744,25 +4701,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -4804,25 +4761,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -4869,25 +4826,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -4925,7 +4882,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
@@ -4990,7 +4947,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
@@ -5055,7 +5012,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
@@ -5300,7 +5257,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -5374,7 +5331,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -5439,7 +5396,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -5493,7 +5450,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -5566,7 +5523,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "404": {
@@ -5627,13 +5584,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -5685,7 +5642,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -5746,13 +5703,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -5820,13 +5777,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -5894,13 +5851,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -5975,7 +5932,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -6025,7 +5982,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
@@ -6090,13 +6047,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -6161,13 +6118,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -6230,13 +6187,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -6290,7 +6247,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
@@ -6343,7 +6300,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
@@ -6407,25 +6364,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -6471,25 +6428,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -6533,25 +6490,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -6589,13 +6546,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "404": {
@@ -6648,13 +6605,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -6666,7 +6623,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -6710,13 +6667,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -6728,7 +6685,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -6781,7 +6738,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -6828,25 +6785,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -6893,7 +6850,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -7002,13 +6959,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -7064,7 +7021,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -7138,7 +7095,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -7203,7 +7160,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -7257,7 +7214,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
@@ -7330,7 +7287,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "404": {
@@ -7435,25 +7392,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -7497,25 +7454,122 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/token/exchange": {
+            "post": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Create a api key",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Excahnges a token for a new resigned token",
+                "parameters": [
+                    {
+                        "description": "token to exchange",
+                        "name": "token",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_controllers_v2_tokencontroller.ExchangeTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/token/jwks": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Get JWKS for token verification",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get JWKS",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -7553,19 +7607,19 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -7639,19 +7693,19 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rorerror.RorError"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     }
                 }
@@ -7913,6 +7967,9 @@ const docTemplate = `{
                         "$ref": "#/definitions/apicontracts.Ingress"
                     }
                 },
+                "kubeApi": {
+                    "$ref": "#/definitions/apicontracts.ClusterKubeApi"
+                },
                 "lastObserved": {
                     "type": "string"
                 },
@@ -8032,6 +8089,17 @@ const docTemplate = `{
                 },
                 "metadata": {
                     "$ref": "#/definitions/apicontracts.ClusterMetadata"
+                }
+            }
+        },
+        "apicontracts.ClusterKubeApi": {
+            "type": "object",
+            "properties": {
+                "certificate": {
+                    "type": "string"
+                },
+                "endpointAddress": {
+                    "type": "string"
                 }
             }
         },
@@ -10011,7 +10079,7 @@ const docTemplate = `{
                 "columns": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/apiview.ViewField"
+                        "$ref": "#/definitions/apiview.ViewColumn"
                     }
                 },
                 "rows": {
@@ -10019,7 +10087,7 @@ const docTemplate = `{
                     "items": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/definitions/apiview.ViewData"
+                            "$ref": "#/definitions/apiview.ViewValue"
                         }
                     }
                 },
@@ -10028,24 +10096,7 @@ const docTemplate = `{
                 }
             }
         },
-        "apiview.ViewData": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "fieldName": {
-                    "type": "string"
-                },
-                "fieldValue": {
-                    "type": "string"
-                },
-                "resourceUid": {
-                    "type": "string"
-                }
-            }
-        },
-        "apiview.ViewField": {
+        "apiview.ViewColumn": {
             "type": "object",
             "properties": {
                 "default": {
@@ -10058,6 +10109,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "order": {
+                    "description": "order of the column in the view, it may be holes and duplicates in the order",
                     "type": "integer"
                 },
                 "possibleValues": {
@@ -10071,7 +10123,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "resourceType": {
-                    "$ref": "#/definitions/v1.TypeMeta"
+                    "description": "resourceType in ror",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1.TypeMeta"
+                        }
+                    ]
                 },
                 "type": {
                     "$ref": "#/definitions/apiview.ViewFieldType"
@@ -10112,23 +10169,42 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "type": {
+                    "$ref": "#/definitions/apiview.ViewType"
+                },
                 "version": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
         "apiview.ViewType": {
             "type": "string",
             "enum": [
-                "grid",
-                "table",
+                "list",
                 "chart"
             ],
             "x-enum-varnames": [
-                "ViewTypeGrid",
-                "ViewTypeTable",
+                "ViewTypeList",
                 "ViewTypeChart"
             ]
+        },
+        "apiview.ViewValue": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "fieldName": {
+                    "description": "must match the column name",
+                    "type": "string"
+                },
+                "fieldValue": {
+                    "type": "string"
+                },
+                "resourceUid": {
+                    "type": "string"
+                }
+            }
         },
         "github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReport": {
             "type": "object",
@@ -10377,6 +10453,24 @@ const docTemplate = `{
                 "IdentityTypeService"
             ]
         },
+        "internal_controllers_v2_tokencontroller.ExchangeTokenRequest": {
+            "type": "object",
+            "required": [
+                "clusterId",
+                "token"
+            ],
+            "properties": {
+                "admin": {
+                    "type": "boolean"
+                },
+                "clusterId": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
         "intstr.IntOrString": {
             "type": "object",
             "properties": {
@@ -10596,7 +10690,7 @@ const docTemplate = `{
                 "ProviderTypeVitistack"
             ]
         },
-        "rorerror.RorError": {
+        "rorerror.ErrorData": {
             "type": "object",
             "properties": {
                 "message": {
@@ -11668,7 +11762,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "description": "Status spesific to the destination - remote being unavailable",
+                    "description": "Status spesific to the destination - remote being unavailable.",
                     "type": "string"
                 },
                 "type": {
@@ -11705,13 +11799,6 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/rortypes.ResourceBackupTarget"
-                    }
-                },
-                "backupDestinations": {
-                    "description": "Any destination defined by this backup job",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.ResourceBackupDestination"
                     }
                 },
                 "indirectBackupTargets": {
@@ -11751,9 +11838,6 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "lastUpdated": {
-                    "type": "string"
-                },
                 "location": {
                     "type": "string"
                 },
@@ -11778,10 +11862,18 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "spec": {
-                    "$ref": "#/definitions/rortypes.ResourceBackupJobSpec"
+                    "$ref": "#/definitions/rortypes.ResourceBackupRunSpec"
                 },
                 "status": {
                     "$ref": "#/definitions/rortypes.ResourceBackupRunStatus"
+                }
+            }
+        },
+        "rortypes.ResourceBackupRunSpec": {
+            "type": "object",
+            "properties": {
+                "delete": {
+                    "type": "boolean"
                 }
             }
         },
@@ -11817,9 +11909,6 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "lastUpdated": {
-                    "type": "string"
-                },
                 "startTime": {
                     "description": "When the run was started",
                     "type": "string"
@@ -11829,23 +11918,31 @@ const docTemplate = `{
         "rortypes.ResourceBackupSchedule": {
             "type": "object",
             "properties": {
+                "destination": {
+                    "description": "Which destination does this apply to.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/rortypes.ResourceBackupDestination"
+                        }
+                    ]
+                },
                 "endTime": {
-                    "description": "When will the job be forcibly stopped, if empty it will continue indefinitely",
+                    "description": "When will the job be forcibly stopped, if empty it will continue indefinitely.",
                     "type": "string"
                 },
                 "frequency": {
-                    "description": "How many time per unit will this backup run",
+                    "description": "How many time per unit will this backup run.",
                     "type": "integer"
                 },
                 "retention": {
                     "$ref": "#/definitions/rortypes.ResourceBackupScheduleRetention"
                 },
                 "startTime": {
-                    "description": "When will the job start",
+                    "description": "When will the job start.",
                     "type": "string"
                 },
                 "unit": {
-                    "description": "What unit of time is this schedule going to run in",
+                    "description": "What unit of time is this schedule going to run in.",
                     "type": "string"
                 }
             }
@@ -14886,6 +14983,20 @@ const docTemplate = `{
                 "CONFIRMED",
                 "DISMISSED"
             ]
+        },
+        "rorversion.RorVersion": {
+            "type": "object",
+            "properties": {
+                "commit": {
+                    "type": "string"
+                },
+                "libVer": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
         },
         "v1.FieldsV1": {
             "type": "object"

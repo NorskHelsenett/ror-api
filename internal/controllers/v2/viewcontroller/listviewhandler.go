@@ -20,9 +20,9 @@ import (
 // @Accept			application/json
 // @Produce		application/json
 // @Success		200	{object}	apiview.View
-// @Failure		403	{object}	rorerror.RorError
-// @Failure		401	{object}	rorerror.RorError
-// @Failure		500	{object}	rorerror.RorError
+// @Failure		403	{object}	rorerror.ErrorData
+// @Failure		401	{object}	rorerror.ErrorData
+// @Failure		500	{object}	rorerror.ErrorData
 // @Router			/v2/views/{viewid} [get]
 // @Param			viewid		path	string							true	"The ID of the view to retrieve"
 // @Param			limit	query	int							false	"Number of items to return, if set to -1, only metadata is returned"
@@ -59,9 +59,9 @@ func GetView() gin.HandlerFunc {
 // @Accept			application/json
 // @Produce		application/json
 // @Success		200	{object}	[]apiview.ViewMetadata
-// @Failure		403	{object}	rorerror.RorError
-// @Failure		401	{object}	rorerror.RorError
-// @Failure		500	{object}	rorerror.RorError
+// @Failure		403	{object}	rorerror.ErrorData
+// @Failure		401	{object}	rorerror.ErrorData
+// @Failure		500	{object}	rorerror.ErrorData
 // @Router			/v2/views [get]
 // @Security		ApiKey || AccessToken
 func GetViews() gin.HandlerFunc {

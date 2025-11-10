@@ -27,7 +27,7 @@ import (
 //	@Produce		application/json
 //	@Success		200			{object}	apicontracts.MetricsTotal
 //	@Failure		403			{string}	Forbidden
-//	@Failure		401			{object}	rorerror.RorError
+//	@Failure		401			{object}	rorerror.ErrorData
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/metrics	[get]
 //	@Security		ApiKey || AccessToken
@@ -66,7 +66,7 @@ func GetTotalByUser() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200					{object}	apicontracts.MetricsTotal
 //	@Failure		403					{string}	Forbidden
-//	@Failure		401					{object}	rorerror.RorError
+//	@Failure		401					{object}	rorerror.ErrorData
 //	@Failure		500					{string}	Failure	message
 //	@Router			/v1/metrics/total	[get]
 //	@Security		ApiKey || AccessToken
@@ -106,7 +106,7 @@ func GetTotal() gin.HandlerFunc {
 //	@Param			metrics		body		apicontracts.MetricsReport	true	"MetricsReport"
 //	@Success		200			{object}	apicontracts.MetricsTotal
 //	@Failure		403			{string}	Forbidden
-//	@Failure		401			{object}	rorerror.RorError
+//	@Failure		401			{object}	rorerror.ErrorData
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/metrics	[post]
 //	@Security		ApiKey || AccessToken

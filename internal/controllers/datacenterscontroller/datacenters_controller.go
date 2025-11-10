@@ -35,8 +35,8 @@ func init() {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200				{array}		apicontracts.Datacenter
-//	@Failure		403				{object}	rorerror.RorError
-//	@Failure		401				{object}	rorerror.RorError
+//	@Failure		403				{object}	rorerror.ErrorData
+//	@Failure		401				{object}	rorerror.ErrorData
 //	@Failure		500				{string}	Failure	message
 //	@Router			/v1/datacenters	[get]
 //	@Security		ApiKey || AccessToken
@@ -75,8 +75,8 @@ func GetAll() gin.HandlerFunc {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200									{object}	apicontracts.Datacenter
-//	@Failure		403									{object}	rorerror.RorError
-//	@Failure		401									{object}	rorerror.RorError
+//	@Failure		403									{object}	rorerror.ErrorData
+//	@Failure		401									{object}	rorerror.ErrorData
 //	@Failure		500									{string}	Failure	message
 //	@Router			/v1/datacenters/{datacenterName}	[get]
 //	@Param			datacenterName						path	string	true	"datacenterName"
@@ -156,8 +156,8 @@ func GetById() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200				{array}		apicontracts.Datacenter
 //	@Failure		403				{string}	Forbidden
-//	@Failure		400				{object}	rorerror.RorError
-//	@Failure		401				{object}	rorerror.RorError
+//	@Failure		400				{object}	rorerror.ErrorData
+//	@Failure		401				{object}	rorerror.ErrorData
 //	@Failure		500				{string}	Failure					message
 //	@Param			datacenter		body		apicontracts.Datacenter	true	"Datacenter"
 //	@Router			/v1/datacenters	[post]
@@ -223,8 +223,8 @@ func Create() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200								{array}		apicontracts.Datacenter
 //	@Failure		403								{string}	Forbidden
-//	@Failure		400								{object}	rorerror.RorError
-//	@Failure		401								{object}	rorerror.RorError
+//	@Failure		400								{object}	rorerror.ErrorData
+//	@Failure		401								{object}	rorerror.ErrorData
 //	@Failure		500								{string}	Failure					message
 //	@Param			datacenterId					path		string					true	"datacenterId"
 //	@Param			datacenter						body		apicontracts.Datacenter	true	"Datacenter"
