@@ -38,8 +38,7 @@ func (d *OauthProvider) Authenticate(c *gin.Context) {
 		return
 	}
 
-	c.Set("user", identity.User)
-	c.Set("identity", identity)
+	c.Set("identity", *identity)
 }
 
 func NewOauthProvider() *OauthProvider {

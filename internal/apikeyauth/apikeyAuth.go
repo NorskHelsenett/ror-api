@@ -119,8 +119,6 @@ func userAuth(c *gin.Context, apikey apicontracts.ApiKey) {
 		Type: identitymodels.IdentityTypeUser,
 		User: user,
 	}
-
-	c.Set("user", user)
 	c.Set("identity", identity)
 
 	err = apikeysservice.UpdateLastUsed(ctx, apikey.Id, identity.GetId())
