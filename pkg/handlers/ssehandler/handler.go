@@ -9,7 +9,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	"github.com/NorskHelsenett/ror-api/pkg/services/sseservice"
 
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"

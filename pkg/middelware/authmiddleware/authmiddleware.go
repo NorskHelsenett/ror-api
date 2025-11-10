@@ -3,7 +3,7 @@ package authmiddleware
 import (
 	"net/http"
 
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	"github.com/gin-gonic/gin"
 )
 

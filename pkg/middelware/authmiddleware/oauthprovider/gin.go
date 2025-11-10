@@ -3,7 +3,7 @@ package oauthprovider
 import (
 	"net/http"
 
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,7 +17,7 @@ func OauthGinMiddleware(c *gin.Context) {
 
 	identity, rerr := getIdentityFromToken(c.Request.Context(), auth)
 
-	if rerr.IsError() {
+	if rerr != nil {
 		rerr.GinLogErrorAbort(c)
 		return
 	}

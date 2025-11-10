@@ -19,7 +19,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/clients/vaultclient"
 	"github.com/NorskHelsenett/ror/pkg/clients/vaultclient/databasecredhelper"
 	"github.com/NorskHelsenett/ror/pkg/clients/vaultclient/rabbitmqcredhelper"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorhealth"

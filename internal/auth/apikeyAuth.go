@@ -7,7 +7,7 @@ import (
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -94,11 +94,11 @@ func userAuth(c *gin.Context, apikey apicontracts.ApiKey) {
 
 	user, err := apiconnections.DomainResolvers.GetUser(ctx, apikey.Identifier)
 	if err != nil {
-		rerr := rorerror.RorError{
+		rerr := rorerror.ErrorData{
 			Status:  401,
 			Message: "error getting user",
 		}
-		rorerror.GinHandleErrorAndAbort(c, 401, rerr, rorerror.String("user", apikey.Identifier))
+		rorerror.GinHandleErrorAndAbort(c, 401, rerr, rlog.String("user", apikey.Identifier))
 		return
 	}
 

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -112,7 +112,7 @@ func getIdentityFromToken(c context.Context, auth string) (*identitymodels.Ident
 		},
 		Type: identitymodels.IdentityTypeUser,
 		User: &user,
-	}, rorerror.NoRorError
+	}, nil
 
 }
 

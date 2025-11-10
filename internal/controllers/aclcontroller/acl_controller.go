@@ -13,7 +13,7 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/messagebuscontracts"
 
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 

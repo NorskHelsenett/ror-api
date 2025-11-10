@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
@@ -45,7 +45,7 @@ func DexMiddleware(c *gin.Context) {
 
 	if err != nil {
 		rerr := rorerror.NewRorError(http.StatusBadRequest, fmt.Sprintf("Could not get provider, %s", oicdProvider), err)
-		rerr.GinLogErrorAbort(c, rorerror.Field{Key: "oidcProvider", Value: oicdProvider})
+		rerr.GinLogErrorAbort(c, rlog.String("oidcProvider", oicdProvider))
 		return
 	}
 

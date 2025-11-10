@@ -12,7 +12,7 @@ import (
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/v2/apicontractsv2self"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/gin-gonic/gin"
