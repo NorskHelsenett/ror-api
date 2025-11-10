@@ -1,4 +1,4 @@
-package auth
+package apikeyauth
 
 import (
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
@@ -14,9 +14,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ApiKeyAuth authenticates the identity against the api key
+type ApiKeyAuthProvider struct{}
 
-func ApiKeyAuth(c *gin.Context) {
+func (a *ApiKeyAuthProvider) IsOfType(c *gin.Context) bool {
+	xapikey := c.Request.Header.Get("X-API-KEY")
+	return len(xapikey) > 0
+}
+
+func (a *ApiKeyAuthProvider) Authenticate(c *gin.Context) {
 	apikey := c.Request.Header.Get("X-API-KEY")
 	ctx := c.Request.Context()
 	if len(apikey) == 0 {
@@ -41,7 +46,10 @@ func ApiKeyAuth(c *gin.Context) {
 		rerr := rorerror.NewRorError(401, "error wrong api key type")
 		rerr.GinLogErrorAbort(c)
 	}
+}
 
+func NewApiKeyAuthProvider() *ApiKeyAuthProvider {
+	return &ApiKeyAuthProvider{}
 }
 
 func clusterAuth(c *gin.Context, apikey apicontracts.ApiKey) {
@@ -120,19 +128,4 @@ func userAuth(c *gin.Context, apikey apicontracts.ApiKey) {
 		rlog.Errorc(ctx, "could not update lastUsed for apikey", err, rlog.String("id", apikey.Id), rlog.String("identifier", identity.GetId()))
 	}
 
-}
-
-type ApiKeyAuthProvider struct{}
-
-func (a *ApiKeyAuthProvider) IsOfType(c *gin.Context) bool {
-	xapikey := c.Request.Header.Get("X-API-KEY")
-	return len(xapikey) > 0
-}
-
-func (a *ApiKeyAuthProvider) Authenticate(c *gin.Context) {
-	ApiKeyAuth(c)
-}
-
-func NewApiKeyAuthProvider() *ApiKeyAuthProvider {
-	return &ApiKeyAuthProvider{}
 }
