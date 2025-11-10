@@ -20,6 +20,7 @@ func AuthenticationMiddleware(c *gin.Context) {
 		if provider.IsOfType(c) {
 			provider.Authenticate(c)
 			c.Next()
+			return
 		}
 	}
 	rerr := rorerror.NewRorError(http.StatusUnauthorized, "Authorization provider not supported")
