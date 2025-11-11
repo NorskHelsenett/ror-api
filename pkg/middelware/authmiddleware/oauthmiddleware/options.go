@@ -8,9 +8,9 @@ type providersOptionFunc func(*OauthMiddleware)
 
 func (of providersOptionFunc) apply(cfg *OauthMiddleware) { of(cfg) }
 
-func OptionProvider(name string, provider OauthProviderInterface) OauthProvidersOption {
+func OptionProvider(provider OauthProviderInterface) OauthProvidersOption {
 	return providersOptionFunc(func(cfg *OauthMiddleware) {
-		cfg.AddProvider(name, provider)
+		cfg.AddProvider(provider.GetProviderURI(), provider)
 	})
 }
 
