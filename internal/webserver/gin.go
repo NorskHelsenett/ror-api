@@ -7,7 +7,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/apikeyauth"
 	"github.com/NorskHelsenett/ror-api/internal/routes"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/authmiddleware"
-	"github.com/NorskHelsenett/ror-api/pkg/middelware/authmiddleware/oauthprovider"
+	"github.com/NorskHelsenett/ror-api/pkg/middelware/authmiddleware/oauthmiddleware"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/corsmiddleware"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/headersmiddleware"
 
@@ -33,7 +33,7 @@ func StartListening(sigs chan os.Signal, done chan struct{}) {
 
 func InitHttpServer() {
 
-	authmiddleware.RegisterAuthProvider(oauthprovider.NewOauthProvider())
+	authmiddleware.RegisterAuthProvider(oauthmiddleware.NewOauthMiddleware())
 	authmiddleware.RegisterAuthProvider(apikeyauth.NewApiKeyAuthProvider())
 
 	useCors := rorconfig.GetBool(rorconfig.HTTP_USE_CORS)
