@@ -12,7 +12,7 @@ import (
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -34,8 +34,8 @@ var (
 //	@Produce		application/json
 //	@Param			key	path		string	true	"key"
 //	@Success		200	{object}	apicontracts.DesiredVersion
-//	@Failure		400	{object}	rorerror.RorError
-//	@Failure		401	{object}	rorerror.RorError
+//	@Failure		400	{object}	rorerror.ErrorData
+//	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/desired_versions/{key} [get]
 func GetByKey() gin.HandlerFunc {
@@ -94,8 +94,8 @@ func GetAll() gin.HandlerFunc {
 //	@Param			version	body		apicontracts.DesiredVersion	true	"Add a desired version"
 //	@Success		200		{string}	Ok
 //	@Failure		403		{string}	Forbidden
-//	@Failure		400		{object}	rorerror.RorError
-//	@Failure		401		{object}	rorerror.RorError
+//	@Failure		400		{object}	rorerror.ErrorData
+//	@Failure		401		{object}	rorerror.ErrorData
 //	@Failure		500		{string}	Failure	message
 //	@Router			/v1/desired_versions [post]
 //	@Security		ApiKey || AccessToken
@@ -154,8 +154,8 @@ func Create() gin.HandlerFunc {
 //	@Param			version	body		apicontracts.DesiredVersion	true	"Update the desired version"
 //	@Success		200		{string}	Ok
 //	@Failure		403		{string}	Forbidden
-//	@Failure		400		{object}	rorerror.RorError
-//	@Failure		401		{object}	rorerror.RorError
+//	@Failure		400		{object}	rorerror.ErrorData
+//	@Failure		401		{object}	rorerror.ErrorData
 //	@Failure		500		{string}	Failure	message
 //	@Router			/v1/desired_versions/{key} [put]
 //	@Security		ApiKey || AccessToken
@@ -217,8 +217,8 @@ func Update() gin.HandlerFunc {
 //	@Param			key	path		string	true	"key"
 //	@Success		200	{string}	Ok
 //	@Failure		403	{string}	Forbidden
-//	@Failure		400	{object}	rorerror.RorError
-//	@Failure		401	{object}	rorerror.RorError
+//	@Failure		400	{object}	rorerror.ErrorData
+//	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/desired_versions/{key} [delete]
 //	@Security		ApiKey || AccessToken

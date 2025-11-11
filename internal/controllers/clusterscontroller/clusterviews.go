@@ -10,7 +10,7 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
@@ -33,7 +33,7 @@ import (
 //	@Param			id	path		string	true	"id"
 //	@Success		200	{string}	This	is		not	the	view	you	are	looking	for
 //	@Failure		403	{string}	Forbidden
-//	@Failure		401	{object}	rorerror.RorError
+//	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/clusters/{clusterid}/views/ingresses [get]
 //	@Router			/v1/clusters/{clusterid}/views/nodes [get]
@@ -61,8 +61,8 @@ func DummyView() gin.HandlerFunc {
 //	@Param			id	path		string	true	"id"
 //	@Success		200	{string}	This	is		not	the	view	you	are	looking	for
 //	@Failure		403	{string}	Forbidden
-//	@Failure		400	{object}	rorerror.RorError
-//	@Failure		401	{object}	rorerror.RorError
+//	@Failure		400	{object}	rorerror.ErrorData
+//	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/clusters/{clusterid}/views/policyreports [get]
 //	@Security		ApiKey || AccessToken
@@ -110,8 +110,8 @@ func PolicyreportsView() gin.HandlerFunc {
 //	@Param			type	query		viewsmodels.PolicyreportGlobalQueryType	true	"type"
 //	@Success		200		{string}	This									is		not	the	view	you	are	looking	for
 //	@Failure		403		{string}	Forbidden
-//	@Failure		400		{object}	rorerror.RorError
-//	@Failure		401		{object}	rorerror.RorError
+//	@Failure		400		{object}	rorerror.ErrorData
+//	@Failure		401		{object}	rorerror.ErrorData
 //	@Failure		500		{string}	Failure	message
 //	@Router			/v1/clusters/{clusterid}/views/policyreports [get]
 //	@Security		ApiKey || AccessToken
@@ -164,8 +164,8 @@ func PolicyreportSummaryView() gin.HandlerFunc {
 //	@Param			type	query		viewsmodels.PolicyreportGlobalQueryType	true	"type"
 //	@Success		200		{string}	This									is		not	the	view	you	are	looking	for
 //	@Failure		403		{string}	Forbidden
-//	@Failure		400		{object}	rorerror.RorError
-//	@Failure		401		{object}	rorerror.RorError
+//	@Failure		400		{object}	rorerror.ErrorData
+//	@Failure		401		{object}	rorerror.ErrorData
 //	@Failure		500		{string}	Failure	message
 //	@Router			/v1/clusters/{clusterid}/views/policyreports [get]
 //	@Security		ApiKey || AccessToken
@@ -216,8 +216,8 @@ func VulnerabilityreportSummaryView() gin.HandlerFunc {
 //	@Param			id	path		string	true	"id"
 //	@Success		200	{string}	This	is		not	the	view	you	are	looking	for
 //	@Failure		403	{string}	Forbidden
-//	@Failure		400	{object}	rorerror.RorError
-//	@Failure		401	{object}	rorerror.RorError
+//	@Failure		400	{object}	rorerror.ErrorData
+//	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/clusters/{clusterid}/views/vulnerabilityreports [get]
 //	@Security		ApiKey || AccessToken
@@ -265,8 +265,8 @@ func VulnerabilityReportsView() gin.HandlerFunc {
 //	@Param			cveid	path		string	true	"cveid"
 //	@Success		200		{string}	This	is		not	the	view	you	are	looking	for
 //	@Failure		403		{string}	Forbidden
-//	@Failure		400		{object}	rorerror.RorError
-//	@Failure		401		{object}	rorerror.RorError
+//	@Failure		400		{object}	rorerror.ErrorData
+//	@Failure		401		{object}	rorerror.ErrorData
 //	@Failure		500		{string}	Failure	message
 //	@Router			/v1/clusters/views/vulnerabilityreports/byid/:cveid [get]
 //	@Security		ApiKey || AccessToken
@@ -313,7 +313,7 @@ func VulnerabilityReportsViewById() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200	{object}	[]viewsmodels.VulnerabilityReportsView
 //	@Failure		403	{string}	Forbidden
-//	@Failure		401	{object}	rorerror.RorError
+//	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/clusters/views/vulnerabilityreports [get]
 //	@Security		ApiKey || AccessToken
@@ -354,8 +354,8 @@ func VulnerabilityReportsGlobal() gin.HandlerFunc {
 //	@Query			cveid	{string}
 //	@Success		200		{string}	This	is	not	the	view	you	are	looking	for
 //	@Failure		403		{string}	Forbidden
-//	@Failure		400		{object}	rorerror.RorError
-//	@Failure		401		{object}	rorerror.RorError
+//	@Failure		400		{object}	rorerror.ErrorData
+//	@Failure		401		{object}	rorerror.ErrorData
 //	@Failure		500		{string}	Failure	message
 //	@Router			/v1/clusters/views/vulnerabilityreports/byid [get]
 //	@Security		ApiKey || AccessToken
@@ -403,8 +403,8 @@ func GlobalVulnerabilityReportsViewById() gin.HandlerFunc {
 //	@Param			clusterid	path		string	true	"clusterid"
 //	@Success		200			{array}		viewsmodels.ComplianceReport
 //	@Failure		403			{string}	Forbidden
-//	@Failure		400			{object}	rorerror.RorError
-//	@Failure		401			{object}	rorerror.RorError
+//	@Failure		400			{object}	rorerror.ErrorData
+//	@Failure		401			{object}	rorerror.ErrorData
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/clusters/:clusterid/views/compliancereports [get]
 //	@Security		ApiKey || AccessToken
@@ -451,7 +451,7 @@ func ComplianceReports() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200	{object}	[]viewsmodels.ComplianceReport
 //	@Failure		403	{string}	Forbidden
-//	@Failure		401	{object}	rorerror.RorError
+//	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/clusters/views/compliancereports [get]
 //	@Security		ApiKey || AccessToken

@@ -6,7 +6,7 @@ import (
 	aclrepository "github.com/NorskHelsenett/ror-api/internal/acl/repositories"
 	"github.com/NorskHelsenett/ror-api/pkg/services/tokenservice"
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -29,10 +29,10 @@ var (
 // @Accept			application/json
 // @Produce		application/json
 // @Success		200					{object}	string
-// @Failure		403					{object}	rorerror.RorError
-// @Failure		400					{object}	rorerror.RorError
-// @Failure		401					{object}	rorerror.RorError
-// @Failure		500					{object}	rorerror.RorError
+// @Failure		403					{object}	rorerror.ErrorData
+// @Failure		400					{object}	rorerror.ErrorData
+// @Failure		401					{object}	rorerror.ErrorData
+// @Failure		500					{object}	rorerror.ErrorData
 // @Router			/v2/token/exchange	[post]
 // @Param			token				body	ExchangeTokenRequest	true	"token to exchange"
 // @Security		ApiKey || AccessToken
@@ -94,7 +94,7 @@ func ExchangeToken() gin.HandlerFunc {
 // @Accept			application/json
 // @Produce		application/json
 // @Success		200					{object}	interface{}
-// @Failure		500					{object}	rorerror.RorError
+// @Failure		500					{object}	rorerror.ErrorData
 // @Router			/v2/token/jwks		[get]
 // @Security		ApiKey || AccessToken
 func GetJwks() gin.HandlerFunc {

@@ -150,7 +150,11 @@ func Rotate() {
 			return
 		}
 		time.Sleep(time.Duration(time.Duration(randomInterval.Int64()) * time.Millisecond))
-		keyStorage.Load()
+		err = keyStorage.Load()
+		if err != nil {
+			rlog.Error("could not load keystorage from vault", err)
+			return
+		}
 		rotated := keyStorage.rotate(true)
 		if rotated {
 			err := keyStorage.Save()
@@ -165,10 +169,9 @@ func Rotate() {
 func (k *KeyStorage) rotate(force bool) bool {
 	if k.needRotate(force) {
 		for i := 0; i < k.NumKeys; i++ {
-			fmt.Println(i)
 			k.Keys[i] = k.Keys[i+1]
 			if k.Keys[i].KeyID == "" {
-				fmt.Println("generating new key for position", i)
+				rlog.Info("generating new key for position", rlog.Int("position", i))
 				newKey, err := GenerateKey()
 				if err != nil {
 					rlog.Error("could not generate new key", err)
@@ -314,11 +317,19 @@ func GetJwks() (jwk.Set, error) {
 		if err != nil {
 			return nil, err
 		}
-		jwkKey.Set(jwk.KeyIDKey, data.KeyID)
-		jwkKey.Set(jwk.AlgorithmKey, data.AlgorithmKey)
-		jwkKey.Set(jwk.KeyUsageKey, "sig")
+		if err := jwkKey.Set(jwk.KeyIDKey, data.KeyID); err != nil {
+			return nil, err
+		}
+		if err := jwkKey.Set(jwk.AlgorithmKey, data.AlgorithmKey); err != nil {
+			return nil, err
+		}
+		if err := jwkKey.Set(jwk.KeyUsageKey, "sig"); err != nil {
+			return nil, err
+		}
 
-		set.AddKey(jwkKey)
+		if err := set.AddKey(jwkKey); err != nil {
+			return nil, err
+		}
 	}
 
 	return set, nil

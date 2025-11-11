@@ -1,6 +1,7 @@
-package auth
+package oauthprovider
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -8,23 +9,43 @@ import (
 	"time"
 
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
-
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
-
 	"github.com/NorskHelsenett/ror/pkg/rlog"
-
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gin-gonic/gin"
 )
 
-func DexMiddleware(c *gin.Context) {
+type OauthProvider struct{}
+
+func (d *OauthProvider) IsOfType(c *gin.Context) bool {
+	authorization := c.Request.Header.Get("Authorization")
+	return strings.HasPrefix(authorization, "Bearer ")
+}
+
+func (d *OauthProvider) Authenticate(c *gin.Context) {
 	auth := c.Request.Header.Get("Authorization")
 	if auth == "" {
 		rerr := rorerror.NewRorError(http.StatusUnauthorized, "No Authorization header provided ")
 		rerr.GinLogErrorAbort(c)
 		return
 	}
+
+	identity, rerr := getIdentityFromToken(c.Request.Context(), auth)
+
+	if rerr != nil {
+		rerr.GinLogErrorAbort(c)
+		return
+	}
+
+	c.Set("identity", *identity)
+}
+
+func NewOauthProvider() *OauthProvider {
+	return &OauthProvider{}
+}
+
+func getIdentityFromToken(c context.Context, auth string) (*identitymodels.Identity, rorerror.RorError) {
 
 	skipVerificationCheck := rorconfig.GetBool(rorconfig.OIDC_SKIP_ISSUER_VERIFY)
 
@@ -44,62 +65,60 @@ func DexMiddleware(c *gin.Context) {
 	}
 
 	if err != nil {
-		rerr := rorerror.NewRorError(http.StatusBadRequest, fmt.Sprintf("Could not get provider, %s", oicdProvider), err)
-		rerr.GinLogErrorAbort(c, rorerror.Field{Key: "oidcProvider", Value: oicdProvider})
-		return
+		return nil, rorerror.NewRorError(http.StatusBadRequest, fmt.Sprintf("Could not get provider, %s", oicdProvider), err)
 	}
 
 	token := strings.TrimPrefix(auth, "Bearer ")
 	if token == auth {
-		rerr := rorerror.NewRorError(http.StatusUnauthorized, "Could not find bearer token in Authorization header")
-		rerr.GinLogErrorAbort(c)
-		return
+		return nil, rorerror.NewRorError(http.StatusUnauthorized, "Could not find bearer token in Authorization header")
 	}
 
-	idTokenVerifier := provider.Verifier(&oidc.Config{
-		ClientID:                   rorconfig.GetString(rorconfig.OIDC_CLIENT_ID),
-		SkipIssuerCheck:            skipVerificationCheck,
-		InsecureSkipSignatureCheck: skipVerificationCheck,
-	})
+	clientIDs := []string{
+		rorconfig.GetString(rorconfig.OIDC_CLIENT_ID),
+		rorconfig.GetString(rorconfig.OIDC_DEVICE_CLIENT_ID),
+	}
 
-	flowKind := c.Request.Header.Get("Flow")
-	if len(flowKind) > 0 && flowKind == "device" {
-		idTokenVerifier = provider.Verifier(&oidc.Config{
-			ClientID:                   rorconfig.GetString(rorconfig.OIDC_DEVICE_CLIENT_ID),
+	var idToken *oidc.IDToken
+	var verifyErr error
+
+	// Try each client ID until one works
+	for _, clientID := range clientIDs {
+		if clientID == "" {
+			continue
+		}
+
+		idTokenVerifier := provider.Verifier(&oidc.Config{
+			ClientID:                   clientID,
 			SkipIssuerCheck:            skipVerificationCheck,
 			InsecureSkipSignatureCheck: skipVerificationCheck,
 		})
+
+		idToken, verifyErr = idTokenVerifier.Verify(c, token)
+		if verifyErr == nil {
+			break // Successfully verified with this client ID
+		}
 	}
 
-	// Parse and verify ID Token payload.
-	idToken, err := idTokenVerifier.Verify(c, token)
-	if err != nil {
-		rerr := rorerror.NewRorError(http.StatusUnauthorized, "Could not verify token.", err)
-		rerr.GinLogErrorAbort(c)
-		return
+	if verifyErr != nil {
+		return nil, rorerror.NewRorError(http.StatusUnauthorized, "Could not verify token with any client ID.")
 	}
 
 	// Extract custom user.
 	user := identitymodels.User{Groups: []string{"NotAuthorized"}}
 	if err := idToken.Claims(&user); err != nil {
-		rerr := rorerror.NewRorError(http.StatusUnauthorized, "Not authorized")
-		rerr.GinLogErrorAbort(c)
-		return
+		return nil, rorerror.NewRorError(http.StatusUnauthorized, "Not authorized")
 	}
 
 	groupsWithDomain, err := ExtractGroups(&user)
 	if err != nil || len(groupsWithDomain) == 0 {
-		rerr := rorerror.NewRorError(http.StatusUnauthorized, "Not authorized, missing groups")
-		rerr.GinLogErrorAbort(c)
-		return
+		return nil, rorerror.NewRorError(http.StatusUnauthorized, "Not authorized, missing groups")
 	}
 
 	user.Groups = groupsWithDomain
 
 	exptime := time.Unix(int64(user.ExpirationTime), 0)
 
-	c.Set("user", user)
-	c.Set("identity", identitymodels.Identity{
+	return &identitymodels.Identity{
 		Auth: identitymodels.AuthInfo{
 			AuthProvider:   identitymodels.IdentityProviderOidc,
 			AuthProviderID: user.Email,
@@ -107,18 +126,8 @@ func DexMiddleware(c *gin.Context) {
 		},
 		Type: identitymodels.IdentityTypeUser,
 		User: &user,
-	})
-	// Pass on to the next-in-chain
-	c.Next()
-}
+	}, nil
 
-func Contains[T comparable](array []T, element T) bool {
-	for _, v := range array {
-		if v == element {
-			return true
-		}
-	}
-	return false
 }
 
 // Function extracts groups from user object

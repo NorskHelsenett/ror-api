@@ -43,7 +43,7 @@ func init() {
 //	@Param			uid				path	string				true	"UID"
 //	@Success		204
 //	@Failure		404	{string}	NotFound
-//	@Failure		401	{object}	rorerror.RorError
+//	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v2/resources/uid/{uid} [head]
 //	@Security		ApiKey || AccessToken
@@ -109,7 +109,7 @@ func ExistsResources() gin.HandlerFunc {
 //	@Param			ownerSubject	query		string				true	"The name og the owner"
 //	@Success		200				{array}		apiresourcecontracts.HashList
 //	@Failure		403				{string}	Forbidden
-//	@Failure		401				{object}	rorerror.RorError
+//	@Failure		401				{object}	rorerror.ErrorData
 //	@Failure		500				{string}	Failure	message
 //	@Router			/v2/resources/hashes [get]
 //	@Security		ApiKey || AccessToken

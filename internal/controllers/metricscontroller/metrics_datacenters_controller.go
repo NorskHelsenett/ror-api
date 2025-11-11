@@ -9,7 +9,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,7 +24,7 @@ import (
 //	@Produce		application/json
 //	@Success		200						{object}	apicontracts.MetricList
 //	@Failure		403						{string}	Forbidden
-//	@Failure		401						{object}	rorerror.RorError
+//	@Failure		401						{object}	rorerror.ErrorData
 //	@Failure		500						{string}	Failure	message
 //	@Router			/v1/metrics/datacenters	[get]
 //	@Security		ApiKey || AccessToken
@@ -62,7 +62,7 @@ func GetForDatacenters() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200										{object}	apicontracts.MetricItem
 //	@Failure		403										{string}	Forbidden
-//	@Failure		401										{object}	rorerror.RorError
+//	@Failure		401										{object}	rorerror.ErrorData
 //	@Failure		500										{string}	Failure	message
 //	@Router			/v1/metrics/datacenter/{datacenterName}	[get]
 //	@Param			datacenterName							path	string	true	"datacenterName"

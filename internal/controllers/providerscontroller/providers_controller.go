@@ -11,7 +11,7 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
 
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,7 +24,7 @@ import (
 // @Produce		application/json
 // @Success		200	{array}		providermodels.Provider
 // @Failure		403	{string}	Forbidden
-// @Failure		400	{object}	rorerror.RorError
+// @Failure		400	{object}	rorerror.ErrorData
 // @Failure		401	{string}	Unauthorized
 // @Failure		500	{string}	Failure	message
 // @Router			/v1/providers [get]
@@ -79,7 +79,7 @@ func GetAll() gin.HandlerFunc {
 // @Param			providerType	path		string	true	"providerType"
 // @Success		200				{array}		providermodels.Provider
 // @Failure		403				{string}	Forbidden
-// @Failure		400				{object}	rorerror.RorError
+// @Failure		400				{object}	rorerror.ErrorData
 // @Failure		401				{string}	Unauthorized
 // @Failure		500				{string}	Failure	message
 // @Router			/v1/providers/{providerType}/kubernetes/versions [get]
@@ -129,7 +129,7 @@ func GetKubernetesVersionByProvider() gin.HandlerFunc {
 // @Param			providerType	path		string	true	"providerType"
 // @Success		200				{array}		providermodels.Provider
 // @Failure		403				{string}	Forbidden
-// @Failure		400				{object}	rorerror.RorError
+// @Failure		400				{object}	rorerror.ErrorData
 // @Failure		401				{string}	Unauthorized
 // @Failure		500				{string}	Failure	message
 // @Router			/v1/providers/{providerType}/configs/params [get]

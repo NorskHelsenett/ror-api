@@ -14,7 +14,7 @@ import (
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -37,8 +37,8 @@ func init() {
 // @Accept			application/json
 // @Produce		application/json
 // @Success		200				{array}		apicontracts.Workspace
-// @Failure		401				{object}	rorerror.RorError
-// @Failure		403				{object}	rorerror.RorError
+// @Failure		401				{object}	rorerror.ErrorData
+// @Failure		403				{object}	rorerror.ErrorData
 // @Success		404				{array}		apicontracts.Workspace
 // @Router			/v1/workspaces	[get]
 // @Security		ApiKey || AccessToken
@@ -75,9 +75,9 @@ func GetAll() gin.HandlerFunc {
 // @Param			name	path		string	true	"name"
 // @Success		200		{object}	apicontracts.Workspace
 // @Failure		403		{string}	Forbidden
-// @Failure		400		{object}	rorerror.RorError
-// @Failure		401		{object}	rorerror.RorError
-// @Failure		500		{object}	rorerror.RorError
+// @Failure		400		{object}	rorerror.ErrorData
+// @Failure		401		{object}	rorerror.ErrorData
+// @Failure		500		{object}	rorerror.ErrorData
 // @Router			/v1/workspaces/{workspaceName} [get]
 // @Security		ApiKey || AccessToken
 func GetByName() gin.HandlerFunc {
@@ -170,9 +170,9 @@ func Update() gin.HandlerFunc {
 // @Param			id	path		string	true	"id"
 // @Success		200	{object}	apicontracts.Workspace
 // @Failure		403	{string}	Forbidden
-// @Failure		400	{object}	rorerror.RorError
-// @Failure		401	{object}	rorerror.RorError
-// @Failure		500	{object}	rorerror.RorError
+// @Failure		400	{object}	rorerror.ErrorData
+// @Failure		401	{object}	rorerror.ErrorData
+// @Failure		500	{object}	rorerror.ErrorData
 // @Router			/v1/workspaces/id/{workspaceName} [get]
 // @Security		ApiKey || AccessToken
 func GetById() gin.HandlerFunc {
@@ -211,7 +211,7 @@ func GetById() gin.HandlerFunc {
 //	@Param			credentials	body		apicontracts.KubeconfigCredentials	true	"Credentials"
 //	@Success		200			{object}	apicontracts.ClusterKubeconfig
 //	@Failure		403			{string}	Forbidden
-//	@Failure		401			{object}	rorerror.RorError
+//	@Failure		401			{object}	rorerror.ErrorData
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/workspaces/{workspaceName}/login [post]
 //	@Security		ApiKey || AccessToken

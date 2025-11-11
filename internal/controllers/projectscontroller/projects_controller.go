@@ -14,7 +14,7 @@ import (
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -38,10 +38,10 @@ func init() {
 // @Accept			application/json
 // @Produce		application/json
 // @Success		200				{object}	apicontracts.Project
-// @Failure		403				{object}	rorerror.RorError
-// @Failure		400				{object}	rorerror.RorError
-// @Failure		401				{object}	rorerror.RorError
-// @Failure		500				{object}	rorerror.RorError
+// @Failure		403				{object}	rorerror.ErrorData
+// @Failure		400				{object}	rorerror.ErrorData
+// @Failure		401				{object}	rorerror.ErrorData
+// @Failure		500				{object}	rorerror.ErrorData
 // @Router			/v1/projects	[post]
 // @Param			project			body	apicontracts.Project	true	"Project"
 // @Security		ApiKey || AccessToken
@@ -94,10 +94,10 @@ func Create() gin.HandlerFunc {
 // @Accept			application/json
 // @Produce		application/json
 // @Success		200					{object}	apicontracts.PaginatedResult[apicontracts.Project]
-// @Failure		403					{object}	rorerror.RorError
-// @Failure		400					{object}	rorerror.RorError
-// @Failure		401					{object}	rorerror.RorError
-// @Failure		500					{object}	rorerror.RorError
+// @Failure		403					{object}	rorerror.ErrorData
+// @Failure		400					{object}	rorerror.ErrorData
+// @Failure		401					{object}	rorerror.ErrorData
+// @Failure		500					{object}	rorerror.ErrorData
 // @Router			/v1/projects/filter	[get]
 // @Param			filter				body	apicontracts.Filter	true	"Filter"
 // @Security		ApiKey || AccessToken
@@ -139,10 +139,10 @@ func GetByFilter() gin.HandlerFunc {
 // @Accept			application/json
 // @Produce		application/json
 // @Success		200									{array}		apicontracts.ClusterInfo
-// @Failure		403									{object}	rorerror.RorError
-// @Failure		400									{object}	rorerror.RorError
-// @Failure		401									{object}	rorerror.RorError
-// @Failure		500									{object}	rorerror.RorError
+// @Failure		403									{object}	rorerror.ErrorData
+// @Failure		400									{object}	rorerror.ErrorData
+// @Failure		401									{object}	rorerror.ErrorData
+// @Failure		500									{object}	rorerror.ErrorData
 // @Router			/v1/projects/{projectId}/clusters	[get]
 // @Param			projectId							path	string	true	"projectId"
 // @Security		ApiKey || AccessToken
@@ -176,10 +176,10 @@ func GetClustersByProjectId() gin.HandlerFunc {
 // @Accept			application/json
 // @Produce		application/json
 // @Success		200							{object}	apicontracts.Project
-// @Failure		403							{object}	rorerror.RorError
-// @Failure		400							{object}	rorerror.RorError
-// @Failure		401							{object}	rorerror.RorError
-// @Failure		500							{object}	rorerror.RorError
+// @Failure		403							{object}	rorerror.ErrorData
+// @Failure		400							{object}	rorerror.ErrorData
+// @Failure		401							{object}	rorerror.ErrorData
+// @Failure		500							{object}	rorerror.ErrorData
 // @Router			/v1/projects/{projectId}	[get]
 // @Param			id							path	string	true	"id"
 // @Security		ApiKey || AccessToken
@@ -213,10 +213,10 @@ func GetById() gin.HandlerFunc {
 // @Accept			application/json
 // @Produce		application/json
 // @Success		200							{object}	apicontracts.PaginatedResult[apicontracts.Project]
-// @Failure		403							{object}	rorerror.RorError
-// @Failure		400							{object}	rorerror.RorError
-// @Failure		401							{object}	rorerror.RorError
-// @Failure		500							{object}	rorerror.RorError
+// @Failure		403							{object}	rorerror.ErrorData
+// @Failure		400							{object}	rorerror.ErrorData
+// @Failure		401							{object}	rorerror.ErrorData
+// @Failure		500							{object}	rorerror.ErrorData
 // @Router			/v1/projects/{projectId}	[put]
 // @Param			projectId					path	string					true	"projectId"
 // @Param			project						body	apicontracts.Project	true	"Project"
@@ -288,10 +288,10 @@ func Update() gin.HandlerFunc {
 // @Accept			application/json
 // @Produce		application/json
 // @Success		200							{bool}		bool
-// @Failure		403							{object}	rorerror.RorError
-// @Failure		400							{object}	rorerror.RorError
-// @Failure		401							{object}	rorerror.RorError
-// @Failure		500							{object}	rorerror.RorError
+// @Failure		403							{object}	rorerror.ErrorData
+// @Failure		400							{object}	rorerror.ErrorData
+// @Failure		401							{object}	rorerror.ErrorData
+// @Failure		500							{object}	rorerror.ErrorData
 // @Router			/v1/projects/{projectId}	[delete]
 // @Param			projectId					path	string	true	"projectId"
 // @Security		ApiKey || AccessToken

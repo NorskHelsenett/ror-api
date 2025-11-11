@@ -12,7 +12,7 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
@@ -43,9 +43,9 @@ func init() {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200					{object}	apicontracts.PaginatedResult[apicontracts.ApiKey]
-//	@Failure		403					{object}	rorerror.RorError
-//	@Failure		401					{object}	rorerror.RorError
-//	@Failure		500					{object}	rorerror.RorError
+//	@Failure		403					{object}	rorerror.ErrorData
+//	@Failure		401					{object}	rorerror.ErrorData
+//	@Failure		500					{object}	rorerror.ErrorData
 //	@Router			/v1/apikeys/filter	[post]
 //	@Param			filter				body	apicontracts.Filter	true	"Filter"
 //	@Security		ApiKey || AccessToken
@@ -130,9 +130,9 @@ func CreateForAgent() gin.HandlerFunc {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200						{bool}		bool
-//	@Failure		403						{object}	rorerror.RorError
-//	@Failure		401						{object}	rorerror.RorError
-//	@Failure		500						{object}	rorerror.RorError
+//	@Failure		403						{object}	rorerror.ErrorData
+//	@Failure		401						{object}	rorerror.ErrorData
+//	@Failure		500						{object}	rorerror.ErrorData
 //	@Router			/v1/apikeys/{apikeyId}	[delete]
 //	@Param			apikeyId				path	string	true	"apikeyId"
 //	@Security		ApiKey || AccessToken
@@ -182,9 +182,9 @@ func Delete() gin.HandlerFunc {
 // @Accept			application/json
 // @Produce		application/json
 // @Success		200					{string}	api	key
-// @Failure		403					{object}	rorerror.RorError
-// @Failure		401					{object}	rorerror.RorError
-// @Failure		500					{object}	rorerror.RorError
+// @Failure		403					{object}	rorerror.ErrorData
+// @Failure		401					{object}	rorerror.ErrorData
+// @Failure		500					{object}	rorerror.ErrorData
 // @Router			/v1/apikeys/apikeys	[post]
 // @Param			project				body	apicontracts.ApiKey	true	"Api key"
 // @Security		ApiKey || AccessToken

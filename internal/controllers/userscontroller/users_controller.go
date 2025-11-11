@@ -12,7 +12,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -38,7 +38,7 @@ func init() {
 // @Produce		application/json
 // @Success		200	{object}	apicontracts.User
 // @Failure		403	{string}	Forbidden
-// @Failure		400	{object}	rorerror.RorError
+// @Failure		400	{object}	rorerror.ErrorData
 // @Failure		401	{string}	Unauthorized
 // @Failure		500	{string}	Failure	message
 // @Router			/v1/users/self [get]
@@ -76,10 +76,10 @@ func GetUser() gin.HandlerFunc {
 // @Accept			application/json
 // @Produce		application/json
 // @Success		200								{object}	apicontracts.PaginatedResult[apicontracts.ApiKey]
-// @Failure		403								{object}	rorerror.RorError
-// @Failure		400								{object}	rorerror.RorError
-// @Failure		401								{object}	rorerror.RorError
-// @Failure		500								{object}	rorerror.RorError
+// @Failure		403								{object}	rorerror.ErrorData
+// @Failure		400								{object}	rorerror.ErrorData
+// @Failure		401								{object}	rorerror.ErrorData
+// @Failure		500								{object}	rorerror.ErrorData
 // @Router			/v1/users/self/apikeys/filter	[post]
 // @Param			filter							body	apicontracts.Filter	true	"Filter"
 // @Security		ApiKey || AccessToken
@@ -143,10 +143,10 @@ func GetApiKeysByFilter() gin.HandlerFunc {
 // @Accept			application/json
 // @Produce		application/json
 // @Success		200						{string}	api	key
-// @Failure		403						{object}	rorerror.RorError
-// @Failure		400						{object}	rorerror.RorError
-// @Failure		401						{object}	rorerror.RorError
-// @Failure		500						{object}	rorerror.RorError
+// @Failure		403						{object}	rorerror.ErrorData
+// @Failure		400						{object}	rorerror.ErrorData
+// @Failure		401						{object}	rorerror.ErrorData
+// @Failure		500						{object}	rorerror.ErrorData
 // @Router			/v1/users/self/apikeys	[post]
 // @Param			project					body	apicontracts.ApiKey	true	"Api key"
 // @Security		ApiKey || AccessToken
@@ -202,10 +202,10 @@ func CreateApikey() gin.HandlerFunc {
 // @Accept			application/json
 // @Produce		application/json
 // @Success		200									{bool}		bool
-// @Failure		403									{object}	rorerror.RorError
-// @Failure		400									{object}	rorerror.RorError
-// @Failure		401									{object}	rorerror.RorError
-// @Failure		500									{object}	rorerror.RorError
+// @Failure		403									{object}	rorerror.ErrorData
+// @Failure		400									{object}	rorerror.ErrorData
+// @Failure		401									{object}	rorerror.ErrorData
+// @Failure		500									{object}	rorerror.ErrorData
 // @Router			/v1/users/self/apikeys/{apikeyId}	[delete]
 // @Param			apikeyId							path	string	true	"apikeyId"
 // @Security		ApiKey || AccessToken

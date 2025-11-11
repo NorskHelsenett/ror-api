@@ -9,7 +9,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/handlers/ginresourcequeryhandler"
 
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 
 	"github.com/gin-gonic/gin"
@@ -36,8 +36,8 @@ import (
 // @Param limit query int false "Maximum number of results to return"
 // @Success		200				{object}		rorresources.ResourceSet
 // @Failure		403				{string}	Forbidden
-// @Failure		400				{object}	rorerror.RorError
-// @Failure		401				{object}	rorerror.RorError
+// @Failure		400				{object}	rorerror.ErrorData
+// @Failure		401				{object}	rorerror.ErrorData
 // @Failure		500				{string}	Failure	message
 // @Router			/v2/resources [get]
 // @Security		ApiKey || AccessToken
@@ -96,7 +96,7 @@ func GetResources() gin.HandlerFunc {
 //	@Param			uid				path		string				true	"The uid of the resource"
 //	@Success		200				{array}		rorresources.Resource
 //	@Failure		403				{string}	Forbidden
-//	@Failure		401				{object}	rorerror.RorError
+//	@Failure		401				{object}	rorerror.ErrorData
 //	@Failure		500				{string}	Failure	message
 //	@Router			/v2/resource/uid/{uid} [get]
 //	@Security		ApiKey || AccessToken

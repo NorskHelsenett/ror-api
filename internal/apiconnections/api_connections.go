@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	mongodbseeding "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/seeding"
 	"github.com/NorskHelsenett/ror-api/internal/rabbitmq/apirabbitmqdefinitions"
@@ -19,7 +20,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/clients/vaultclient"
 	"github.com/NorskHelsenett/ror/pkg/clients/vaultclient/databasecredhelper"
 	"github.com/NorskHelsenett/ror/pkg/clients/vaultclient/rabbitmqcredhelper"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorhealth"
@@ -33,7 +34,7 @@ var (
 )
 
 func InitConnections() {
-	ctx, cancel := context.WithTimeout(context.Background(), 60)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	VaultClient = vaultclient.NewVaultClient(rorconfig.GetString(rorconfig.ROLE), rorconfig.GetString(rorconfig.VAULT_URL))
 

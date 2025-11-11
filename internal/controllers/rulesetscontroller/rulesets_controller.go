@@ -11,7 +11,7 @@ import (
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/messages"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -33,8 +33,8 @@ func init() {
 //	@Param			clusterId	path		string	true	"clusterId"
 //	@Success		200			{object}	messages.RulesetModel
 //	@Failure		403			{string}	Forbidden
-//	@Failure		400			{object}	rorerror.RorError
-//	@Failure		401			{object}	rorerror.RorError
+//	@Failure		400			{object}	rorerror.ErrorData
+//	@Failure		401			{object}	rorerror.ErrorData
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/rulesets/cluster/{clusterId} [get]
 //	@Security		ApiKeyAuth
@@ -84,7 +84,7 @@ func GetByCluster() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200	{object}	messages.RulesetModel
 //	@Failure		403	{string}	Forbidden
-//	@Failure		401	{object}	rorerror.RorError
+//	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/rulesets/internal [get]
 //	@Security		ApiKeyAuth
@@ -126,8 +126,8 @@ func GetInternal() gin.HandlerFunc {
 //	@Param			rulesetId	path		string	true	"rulesetId"
 //	@Success		200			{object}	messages.RulesetResourceModel
 //	@Failure		403			{string}	Forbidden
-//	@Failure		400			{object}	rorerror.RorError
-//	@Failure		401			{object}	rorerror.RorError
+//	@Failure		400			{object}	rorerror.ErrorData
+//	@Failure		401			{object}	rorerror.ErrorData
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/rulesets/{rulesetId}/resources [post]
 //	@Security		ApiKeyAuth
@@ -195,8 +195,8 @@ func AddResource() gin.HandlerFunc {
 //	@Param			resourceId	path		string	true	"resourceId"
 //	@Success		200			{bool}		Deleted
 //	@Failure		403			{string}	Forbidden
-//	@Failure		400			{object}	rorerror.RorError
-//	@Failure		401			{object}	rorerror.RorError
+//	@Failure		400			{object}	rorerror.ErrorData
+//	@Failure		401			{object}	rorerror.ErrorData
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/rulesets/{rulesetId}/resources/{resourceId} [delete]
 //	@Security		ApiKeyAuth
@@ -258,8 +258,8 @@ func DeleteResource() gin.HandlerFunc {
 //	@Param			resourceId	path		string	true	"resourceId"
 //	@Success		200			{object}	messages.RulesetRuleModel
 //	@Failure		403			{string}	Forbidden
-//	@Failure		400			{object}	rorerror.RorError
-//	@Failure		401			{object}	rorerror.RorError
+//	@Failure		400			{object}	rorerror.ErrorData
+//	@Failure		401			{object}	rorerror.ErrorData
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/rulesets/{rulesetId}/resources/{resourceId}/rules [post]
 //	@Security		ApiKeyAuth
@@ -330,7 +330,7 @@ func AddResourceRule() gin.HandlerFunc {
 //	@Param			ruleId		path		string	true	"ruleId"
 //	@Success		200			{bool}		Deleted
 //	@Failure		403			{string}	Forbidden
-//	@Failure		401			{object}	rorerror.RorError
+//	@Failure		401			{object}	rorerror.ErrorData
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/rulesets/{rulesetId}/resources/{resourceId}/rules/{ruleId} [post]
 //	@Security		ApiKeyAuth

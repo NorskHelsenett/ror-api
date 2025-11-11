@@ -10,7 +10,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/models/m2mmodels"
 	"github.com/NorskHelsenett/ror-api/internal/models/vaultmodels"
 
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -54,7 +54,7 @@ func SelfRegister() gin.HandlerFunc {
 		secret, err := apiconnections.VaultClient.GetSecret(secretPath)
 		if err != nil {
 			rerr := rorerror.NewRorError(http.StatusBadRequest, "Error checking token", err)
-			rerr.GinLogErrorAbort(c, rorerror.Field{Key: "clusterId", Value: tokenModel.ClusterId}, rorerror.Field{Key: "path", Value: secretPath})
+			rerr.GinLogErrorAbort(c, rlog.String("clusterId", tokenModel.ClusterId), rlog.String("path", secretPath))
 			return
 		}
 
@@ -78,14 +78,14 @@ func SelfRegister() gin.HandlerFunc {
 			secretByteArray, err := json.Marshal(clusterSecret)
 			if err != nil {
 				rerr := rorerror.NewRorError(http.StatusBadRequest, "A error occured", err)
-				rerr.GinLogErrorAbort(c, rorerror.Field{Key: "clusterId", Value: tokenModel.ClusterId})
+				rerr.GinLogErrorAbort(c, rlog.String("clusterId", tokenModel.ClusterId))
 				return
 			}
 
 			_, err = apiconnections.VaultClient.SetSecret(secretPath, secretByteArray)
 			if err != nil {
 				rerr := rorerror.NewRorError(http.StatusInternalServerError, "A error occured", err)
-				rerr.GinLogErrorAbort(c, rorerror.Field{Key: "clusterId", Value: tokenModel.ClusterId})
+				rerr.GinLogErrorAbort(c, rlog.String("clusterId", tokenModel.ClusterId))
 				return
 			}
 			tokenModel.Token = clusterSecret.Data.RorClientSecret

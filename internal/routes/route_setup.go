@@ -3,7 +3,6 @@ package routes
 import (
 	"time"
 
-	"github.com/NorskHelsenett/ror-api/internal/auth"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/aclcontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/apikeyscontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/auditlogscontroller"
@@ -30,6 +29,7 @@ import (
 	ctrlWorkspaces "github.com/NorskHelsenett/ror-api/internal/controllers/workspacescontroller"
 	"github.com/NorskHelsenett/ror-api/pkg/handlers/ssehandler"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/auditmiddleware"
+	"github.com/NorskHelsenett/ror-api/pkg/middelware/authmiddleware"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/rorratelimiter"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/ssemiddleware"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/timeoutmiddleware"
@@ -68,7 +68,7 @@ func SetupRoutes(router *gin.Engine) {
 
 	v1 := router.Group("/v1")
 	{
-		eventsRoute := v1.Group("events", auth.AuthenticationMiddleware)
+		eventsRoute := v1.Group("events", authmiddleware.AuthenticationMiddleware)
 		{
 			eventsRoute.GET("listen", ssemiddleware.SSEHeadersMiddlewareV1(), sse.Server.HandleSSE())
 			eventsRoute.POST("send", sse.Server.Send())
@@ -77,7 +77,7 @@ func SetupRoutes(router *gin.Engine) {
 		{
 			logintimeoutduration := 120 * time.Second
 			clusterloginRoute.Use(timeoutmiddleware.TimeoutMiddleware(logintimeoutduration))
-			clusterloginRoute.Use(auth.AuthenticationMiddleware)
+			clusterloginRoute.Use(authmiddleware.AuthenticationMiddleware)
 			clusterloginRoute.POST("/:clusterid/login", clusterscontroller.GetKubeconfig())
 		}
 
@@ -97,7 +97,7 @@ func SetupRoutes(router *gin.Engine) {
 			// Allow anonymous POST requests
 		}
 
-		v1.Use(auth.AuthenticationMiddleware)
+		v1.Use(authmiddleware.AuthenticationMiddleware)
 		aclRoute := v1.Group("/acl")
 		{
 			aclRoute.POST("", aclcontroller.Create())
@@ -325,14 +325,14 @@ func SetupRoutes(router *gin.Engine) {
 
 	v2 := router.Group("/v2")
 
-	eventsRoute := v2.Group("events", auth.AuthenticationMiddleware)
+	eventsRoute := v2.Group("events", authmiddleware.AuthenticationMiddleware)
 	{
 		eventstimeout := 60 * time.Second
 		eventsRoute.GET("listen", ssemiddleware.SSEHeadersMiddlewareV2(), ssehandler.HandleSSE())
 		eventsRoute.POST("send", timeoutmiddleware.TimeoutMiddleware(eventstimeout), ssehandler.Send())
 	}
 
-	v2.Use(auth.AuthenticationMiddleware)
+	v2.Use(authmiddleware.AuthenticationMiddleware)
 	v2.Use(timeoutmiddleware.TimeoutMiddleware(timeoutduration))
 	// Self
 	selfv2Route := v2.Group("self")

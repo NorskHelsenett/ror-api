@@ -21,7 +21,7 @@ import (
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -146,10 +146,10 @@ func sendMessage(sse *SSE, clients []apicontracts.SSEClient, message string) {
 // @Accept			text/event-stream
 // @Produce		text/event-stream
 // @Success		200					{string}	string	"ok"
-// @Failure		403					{object}	rorerror.RorError
-// @Failure		400					{object}	rorerror.RorError
-// @Failure		401					{object}	rorerror.RorError
-// @Failure		500					{object}	rorerror.RorError
+// @Failure		403					{object}	rorerror.ErrorData
+// @Failure		400					{object}	rorerror.ErrorData
+// @Failure		401					{object}	rorerror.ErrorData
+// @Failure		500					{object}	rorerror.ErrorData
 // @Router			/v1/events/listen	[get]
 // @Security		ApiKey || AccessToken
 func (sse *SSE) HandleSSE() gin.HandlerFunc {

@@ -48,8 +48,6 @@ func setupWithIdentity(identity identitymodels.Identity) (*gin.Context, *gin.Eng
 
 	ginEngine.Use(func(ctx *gin.Context) {
 		ctx.Set("identity", identity)
-		// TODO: Remove user
-		ctx.Set("user", *identity.User)
 	})
 
 	ginEngine.POST("/v1/clusters/filter", ClusterByFilter())

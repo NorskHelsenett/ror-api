@@ -20,7 +20,7 @@ import (
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -52,7 +52,7 @@ func init() {
 //	@Param			id	path		string	true	"id"
 //	@Success		200	{object}	apicontracts.Cluster
 //	@Failure		403	{string}	Forbidden
-//	@Failure		401	{object}	rorerror.RorError
+//	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/cluster/{clusterid} [get]
 //	@Router			/v1/clusters/{clusterid} [get]
@@ -102,8 +102,8 @@ func ClusterGetById() gin.HandlerFunc {
 //	@Param			id	path		string	true	"id"
 //	@Success		200	{bool}		bool
 //	@Failure		403	{string}	Forbidden
-//	@Failure		400	{object}	rorerror.RorError
-//	@Failure		401	{object}	rorerror.RorError
+//	@Failure		400	{object}	rorerror.ErrorData
+//	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/cluster/{clusterid}/exists [get]
 //	@Router			/v1/clusters/{clusterid}/exists [get]
@@ -140,10 +140,10 @@ func ClusterExistsById() gin.HandlerFunc {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200					{object}	apicontracts.PaginatedResult[apicontracts.Cluster]
-//	@Failure		403					{object}	rorerror.RorError
-//	@Failure		400					{object}	rorerror.RorError
-//	@Failure		401					{object}	rorerror.RorError
-//	@Failure		500					{object}	rorerror.RorError
+//	@Failure		403					{object}	rorerror.ErrorData
+//	@Failure		400					{object}	rorerror.ErrorData
+//	@Failure		401					{object}	rorerror.ErrorData
+//	@Failure		500					{object}	rorerror.ErrorData
 //	@Router			/v1/clusters/filter	[post]
 //	@Param			filter				body	apicontracts.Filter	true	"Filter"
 //	@Security		ApiKey || AccessToken
@@ -199,8 +199,8 @@ func ClusterByFilter() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200											{array}		apicontracts.Cluster
 //	@Failure		403											{string}	Forbidden
-//	@Failure		400											{object}	rorerror.RorError
-//	@Failure		401											{object}	rorerror.RorError
+//	@Failure		400											{object}	rorerror.ErrorData
+//	@Failure		401											{object}	rorerror.ErrorData
 //	@Failure		500											{string}	Failure	message
 //	@Router			/v1/clusters/workspace/{workspaceId}/filter	[get]
 //	@Param			filter										body	apicontracts.Filter	true	"Filter"
@@ -271,7 +271,7 @@ func ClusterGetByWorkspaceId() gin.HandlerFunc {
 //	@Param			id	path		string	true	"id"
 //	@Success		200	{bool}		bool
 //	@Failure		403	{string}	Forbidden
-//	@Failure		401	{object}	rorerror.RorError
+//	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/clusters/{clusterid}/metadata [get]
 //	@Security		ApiKey || AccessToken
@@ -303,8 +303,8 @@ func GetMetadata() gin.HandlerFunc {
 //	@Param			id	path		string	true	"id"
 //	@Success		200	{bool}		bool
 //	@Failure		403	{string}	Forbidden
-//	@Failure		400	{object}	rorerror.RorError
-//	@Failure		401	{object}	rorerror.RorError
+//	@Failure		400	{object}	rorerror.ErrorData
+//	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/cluster/{clusterid}/metadata [patch]
 //	@Router			/v1/clusters/{clusterid}/metadata [patch]
@@ -388,8 +388,8 @@ func UpdateMetadata() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200	{bool}		bool
 //	@Failure		403	{string}	Forbidden
-//	@Failure		400	{object}	rorerror.RorError
-//	@Failure		401	{object}	rorerror.RorError
+//	@Failure		400	{object}	rorerror.ErrorData
+//	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/cluster/heartbeat [post]
 //	@Router			/v1/clusters/heartbeat [post]
@@ -456,7 +456,7 @@ func RegisterHeartbeat() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200	{array}		apicontracts.ClusterControlPlaneMetadata
 //	@Failure		403	{string}	Forbidden
-//	@Failure		401	{object}	rorerror.RorError
+//	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/clusters/controlPlanesMetadata [get]
 //	@Security		ApiKey || AccessToken
@@ -502,8 +502,8 @@ func GetControlPlanesMetadata() gin.HandlerFunc {
 //	@Param			credentials	body		apicontracts.KubeconfigCredentials	true	"Credentials"
 //	@Success		200			{object}	apicontracts.ClusterKubeconfig
 //	@Failure		403			{string}	Forbidden
-//	@Failure		400			{object}	rorerror.RorError
-//	@Failure		401			{object}	rorerror.RorError
+//	@Failure		400			{object}	rorerror.ErrorData
+//	@Failure		401			{object}	rorerror.ErrorData
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/clusters/{clusterid}/login [post]
 //	@Security		ApiKey || AccessToken
@@ -613,8 +613,8 @@ func GetKubeconfig() gin.HandlerFunc {
 //	@Param			credentials	body		apicontracts.Cluster	true	"Credentials"
 //	@Success		200			{string}	ClusterId
 //	@Failure		403			{string}	Forbidden
-//	@Failure		400			{object}	rorerror.RorError
-//	@Failure		401			{object}	rorerror.RorError
+//	@Failure		400			{object}	rorerror.ErrorData
+//	@Failure		401			{object}	rorerror.ErrorData
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/clusters [post]
 //	@Security		ApiKey || AccessToken

@@ -13,7 +13,7 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/messagebuscontracts"
 
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -42,7 +42,7 @@ func init() {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200				{array}		aclmodels.Acl2Scope
-//	@Failure		401				{object}	rorerror.RorError
+//	@Failure		401				{object}	rorerror.ErrorData
 //	@Router			/v1/acl/scopes	[get]
 //	@Security		ApiKey || AccessToken
 func GetScopes() gin.HandlerFunc {
@@ -143,10 +143,10 @@ func CheckAcl() gin.HandlerFunc {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200				{object}	apicontracts.PaginatedResult[aclmodels.AclV2ListItem]
-//	@Failure		403				{object}	rorerror.RorError
-//	@Failure		400				{object}	rorerror.RorError
-//	@Failure		401				{object}	rorerror.RorError
-//	@Failure		500				{object}	rorerror.RorError
+//	@Failure		403				{object}	rorerror.ErrorData
+//	@Failure		400				{object}	rorerror.ErrorData
+//	@Failure		401				{object}	rorerror.ErrorData
+//	@Failure		500				{object}	rorerror.ErrorData
 //	@Router			/v1/acl/{aclId}	[get]
 //	@Param			id				path	string	true	"id"
 //	@Security		ApiKey || AccessToken
@@ -194,10 +194,10 @@ func GetById() gin.HandlerFunc {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200				{object}	apicontracts.PaginatedResult[aclmodels.AclV2ListItem]
-//	@Failure		403				{object}	rorerror.RorError
-//	@Failure		400				{object}	rorerror.RorError
-//	@Failure		401				{object}	rorerror.RorError
-//	@Failure		500				{object}	rorerror.RorError
+//	@Failure		403				{object}	rorerror.ErrorData
+//	@Failure		400				{object}	rorerror.ErrorData
+//	@Failure		401				{object}	rorerror.ErrorData
+//	@Failure		500				{object}	rorerror.ErrorData
 //	@Router			/v1/acl/filter	[post]
 //	@Param			filter			body	apicontracts.Filter	true	"Filter"
 //	@Security		ApiKey || AccessToken
@@ -262,10 +262,10 @@ func GetByFilter() gin.HandlerFunc {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200		{object}	aclmodels.AclV2ListItem
-//	@Failure		403		{object}	rorerror.RorError
-//	@Failure		400		{object}	rorerror.RorError
-//	@Failure		401		{object}	rorerror.RorError
-//	@Failure		500		{object}	rorerror.RorError
+//	@Failure		403		{object}	rorerror.ErrorData
+//	@Failure		400		{object}	rorerror.ErrorData
+//	@Failure		401		{object}	rorerror.ErrorData
+//	@Failure		500		{object}	rorerror.ErrorData
 //	@Router			/v1/acl	[post]
 //	@Param			acl		body	aclmodels.AclV2ListItem	true	"Acl"
 //	@Security		ApiKey || AccessToken
@@ -321,10 +321,10 @@ func Create() gin.HandlerFunc {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200				{object}	aclmodels.AclV2ListItem
-//	@Failure		403				{object}	rorerror.RorError
-//	@Failure		400				{object}	rorerror.RorError
-//	@Failure		401				{object}	rorerror.RorError
-//	@Failure		500				{object}	rorerror.RorError
+//	@Failure		403				{object}	rorerror.ErrorData
+//	@Failure		400				{object}	rorerror.ErrorData
+//	@Failure		401				{object}	rorerror.ErrorData
+//	@Failure		500				{object}	rorerror.ErrorData
 //	@Router			/v1/acl/{aclId}	[put]
 //	@Param			aclId			path	string					true	"aclId"
 //	@Param			acl				body	aclmodels.AclV2ListItem	true	"Acl"
@@ -390,10 +390,10 @@ func Update() gin.HandlerFunc {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200				{bool}		bool
-//	@Failure		403				{object}	rorerror.RorError
-//	@Failure		400				{object}	rorerror.RorError
-//	@Failure		401				{object}	rorerror.RorError
-//	@Failure		500				{object}	rorerror.RorError
+//	@Failure		403				{object}	rorerror.ErrorData
+//	@Failure		400				{object}	rorerror.ErrorData
+//	@Failure		401				{object}	rorerror.ErrorData
+//	@Failure		500				{object}	rorerror.ErrorData
 //	@Router			/v1/acl/{aclId}	[delete]
 //	@Param			aclId			path	string	true	"aclId"
 //	@Security		ApiKey || AccessToken
@@ -446,7 +446,7 @@ func Delete() gin.HandlerFunc {
 //	@Param			id	path		string	true	"id"
 //	@Success		200	{string}	Status
 //	@Failure		403	{string}	Forbidden
-//	@Failure		401	{object}	rorerror.RorError
+//	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/acl/migrate [get]
 //	@Security		ApiKey || AccessToken

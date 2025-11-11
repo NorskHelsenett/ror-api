@@ -9,7 +9,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -36,8 +36,8 @@ func init() {
 //	@Produce		application/json
 //	@Success		200								{object}	apicontracts.PaginatedResult[apicontracts.Metric]
 //	@Failure		403								{string}	Forbidden
-//	@Failure		400								{object}	rorerror.RorError
-//	@Failure		401								{object}	rorerror.RorError
+//	@Failure		400								{object}	rorerror.ErrorData
+//	@Failure		401								{object}	rorerror.ErrorData
 //	@Failure		500								{string}	Failure	message
 //	@Router			/v1/metrics/workspaces/filter	[post]
 //	@Param			filter							body	apicontracts.Filter	true	"Filter"
@@ -105,8 +105,8 @@ func GetForWorkspaces() gin.HandlerFunc {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200														{object}	apicontracts.MetricList
-//	@Failure		400														{object}	rorerror.RorError
-//	@Failure		401														{object}	rorerror.RorError
+//	@Failure		400														{object}	rorerror.ErrorData
+//	@Failure		401														{object}	rorerror.ErrorData
 //	@Failure		500														{string}	Failure	message
 //	@Param			datacenterId											path		string	true	"datacenterId"
 //	@Router			/v1/metrics/workspaces/datacenter/{datacenterId}/filter	[post]
@@ -169,8 +169,8 @@ func GetForWorkspacesByDatacenterId() gin.HandlerFunc {
 //	@Produce		application/json
 //	@Success		200									{object}	apicontracts.MetricItem
 //	@Failure		403									{string}	Forbidden
-//	@Failure		400									{object}	rorerror.RorError
-//	@Failure		401									{object}	rorerror.RorError
+//	@Failure		400									{object}	rorerror.ErrorData
+//	@Failure		401									{object}	rorerror.ErrorData
 //	@Failure		500									{string}	Failure	message
 //	@Router			/v1/metrics/workspace/{workspaceId}	[get]
 //	@Param			workspaceId							path	string	true	"workspaceId"

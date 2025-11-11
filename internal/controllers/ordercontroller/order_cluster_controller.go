@@ -14,7 +14,7 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -43,10 +43,10 @@ func init() {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200					{object}	apicontracts.PaginatedResult[apicontracts.Cluster]
-//	@Failure		403					{object}	rorerror.RorError
-//	@Failure		400					{object}	rorerror.RorError
-//	@Failure		401					{object}	rorerror.RorError
-//	@Failure		500					{object}	rorerror.RorError
+//	@Failure		403					{object}	rorerror.ErrorData
+//	@Failure		400					{object}	rorerror.ErrorData
+//	@Failure		401					{object}	rorerror.ErrorData
+//	@Failure		500					{object}	rorerror.ErrorData
 //	@Router			/v1/orders/cluster	[post]
 //	@Param			filter				body	apiresourcecontracts.ResourceClusterOrderSpec	true	"Filter"
 //	@Security		ApiKey || AccessToken
@@ -104,10 +104,10 @@ func OrderCluster() gin.HandlerFunc {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200					{object}	apicontracts.PaginatedResult[apicontracts.Cluster]
-//	@Failure		403					{object}	rorerror.RorError
-//	@Failure		400					{object}	rorerror.RorError
-//	@Failure		401					{object}	rorerror.RorError
-//	@Failure		500					{object}	rorerror.RorError
+//	@Failure		403					{object}	rorerror.ErrorData
+//	@Failure		400					{object}	rorerror.ErrorData
+//	@Failure		401					{object}	rorerror.ErrorData
+//	@Failure		500					{object}	rorerror.ErrorData
 //	@Router			/v1/orders/cluster	[delete]
 //	@Param			filter				body	apiresourcecontracts.ResourceClusterOrderSpec	true	"Filter"
 //	@Security		ApiKey || AccessToken
@@ -166,10 +166,10 @@ func DeleteCluster() gin.HandlerFunc {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200			{object}	apicontracts.PaginatedResult[apicontracts.Cluster]
-//	@Failure		403			{object}	rorerror.RorError
-//	@Failure		400			{object}	rorerror.RorError
-//	@Failure		401			{object}	rorerror.RorError
-//	@Failure		500			{object}	rorerror.RorError
+//	@Failure		403			{object}	rorerror.ErrorData
+//	@Failure		400			{object}	rorerror.ErrorData
+//	@Failure		401			{object}	rorerror.ErrorData
+//	@Failure		500			{object}	rorerror.ErrorData
 //	@Router			/v1/orders	[get]
 //	@Security		ApiKey || AccessToken
 func GetOrders() gin.HandlerFunc {
@@ -212,10 +212,10 @@ func GetOrders() gin.HandlerFunc {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200					{object}	apiresourcecontracts.ResourceListClusterorders
-//	@Failure		403					{object}	rorerror.RorError
-//	@Failure		400					{object}	rorerror.RorError
-//	@Failure		401					{object}	rorerror.RorError
-//	@Failure		500					{object}	rorerror.RorError
+//	@Failure		403					{object}	rorerror.ErrorData
+//	@Failure		400					{object}	rorerror.ErrorData
+//	@Failure		401					{object}	rorerror.ErrorData
+//	@Failure		500					{object}	rorerror.ErrorData
 //	@Router			/v1/orders/{uid}	[get]
 //	@Security		ApiKey || AccessToken
 func GetOrder() gin.HandlerFunc {
@@ -270,10 +270,10 @@ func GetOrder() gin.HandlerFunc {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200					{bool}		bool
-//	@Failure		403					{object}	rorerror.RorError
-//	@Failure		400					{object}	rorerror.RorError
-//	@Failure		401					{object}	rorerror.RorError
-//	@Failure		500					{object}	rorerror.RorError
+//	@Failure		403					{object}	rorerror.ErrorData
+//	@Failure		400					{object}	rorerror.ErrorData
+//	@Failure		401					{object}	rorerror.ErrorData
+//	@Failure		500					{object}	rorerror.ErrorData
 //	@Router			/v1/orders/{uid}	[delete]
 //	@Security		ApiKey || AccessToken
 func DeleteOrder() gin.HandlerFunc {
