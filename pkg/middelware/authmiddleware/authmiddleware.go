@@ -28,5 +28,8 @@ func AuthenticationMiddleware(c *gin.Context) {
 }
 
 func RegisterAuthProvider(provider GinAuthProvider) {
+	if provider == nil {
+		return
+	}
 	AuthProviders = append(AuthProviders, provider)
 }
