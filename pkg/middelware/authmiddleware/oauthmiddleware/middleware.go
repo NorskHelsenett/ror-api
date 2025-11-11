@@ -57,6 +57,8 @@ func (d *OauthMiddleware) Authenticate(c *gin.Context) {
 		return
 	}
 
+	token, _ := extractTokenFromAuthorizationHeader(auth)
+	identity.SetToken(token)
 	c.Set("identity", *identity)
 }
 
