@@ -33,7 +33,7 @@ func StartListening(sigs chan os.Signal, done chan struct{}) {
 
 func InitHttpServer() {
 
-	authmiddleware.RegisterAuthProvider(oauthmiddleware.NewOauthMiddleware())
+	authmiddleware.RegisterAuthProvider(oauthmiddleware.NewDefaultOauthMiddleware())
 	authmiddleware.RegisterAuthProvider(apikeyauth.NewApiKeyAuthProvider())
 
 	useCors := rorconfig.GetBool(rorconfig.HTTP_USE_CORS)
