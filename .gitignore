@@ -27,9 +27,8 @@ dist/
 tmp/
 
 # Environment files
-.env
-.env.local
-.env.*.local
+.env*
+!.env.example
 
 # Debug binaries
 cmd/api/__debug_bin*
@@ -86,3 +85,5 @@ charts/*.tgz
 
 # Cache directories
 .cache/
+
+bin/

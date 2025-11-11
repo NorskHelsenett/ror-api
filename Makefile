@@ -36,6 +36,20 @@ YELLOW := \033[0;33m
 BLUE := \033[0;34m
 RESET := \033[0m
 
+## Location to install dependencies to
+LOCALBIN ?= $(shell pwd)/bin
+$(LOCALBIN):
+	mkdir -p $(LOCALBIN)
+
+# Use the Go toolchain version declared in go.mod when building tools
+GO_VERSION := $(shell awk '/^go /{print $$2}' go.mod)
+GO_TOOLCHAIN := go$(GO_VERSION)
+GOSEC_VERSION ?= latest
+GOLANGCI_LINT_VERSION ?= latest
+
+GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
+GOSEC ?= $(LOCALBIN)/gosec
+
 # Default target
 .DEFAULT_GOAL := help
 
@@ -161,9 +175,9 @@ vet: check-go ## Run go vet to catch potential issues
 	@echo "${GREEN}go vet completed!${RESET}"
 
 # Run linting
-lint: check-go ## Run linting with golangci-lint
+lint: golangci-lint ## Run linting with golangci-lint
 	@echo "${YELLOW}Running linter...${RESET}"
-	golangci-lint run ./...
+	$(GOLANGCI_LINT) run --timeout 5m ./... --config .golangci.yml
 	@echo "${GREEN}Linting completed!${RESET}"
 
 # Run gosec
@@ -177,7 +191,7 @@ quality: fmt vet lint gosec ## Run all code quality checks
 	@echo "${GREEN}All quality checks completed!${RESET}"
 
 # Security scan
-security-scan: gosec ## Run security analysis
+security-scan: go-security-scan ## Run security analysis
 	@echo "${GREEN}Security scan completed!${RESET}"
 ##@ Development
 
@@ -305,3 +319,43 @@ clean-all: clean ## Clean everything including Docker images
 	@echo "${YELLOW}Cleaning Docker images...${RESET}"
 	@docker images ${DOCKER_IMAGE} -q | xargs -r docker rmi -f 2>/dev/null || true
 	@echo "${GREEN}Everything cleaned!${RESET}"
+
+##@ Tools
+
+.PHONY: golangci-lint
+golangci-lint: $(LOCALBIN) ## Download golangci-lint locally if necessary.
+	$(call go-install-tool,$(GOLANGCI_LINT),github.com/golangci/golangci-lint/v2/cmd/golangci-lint,$(GOLANGCI_LINT_VERSION))
+
+.PHONY: install-security-scanner
+install-security-scanner: $(GOSEC) ## Install gosec security scanner locally (static analysis for security issues)
+$(GOSEC): $(LOCALBIN)
+	@set -e; echo "Attempting to install gosec $(GOSEC_VERSION)"; \
+	if ! GOBIN=$(LOCALBIN) go install github.com/securego/gosec/v2/cmd/gosec@$(GOSEC_VERSION) 2>/dev/null; then \
+		echo "Primary install failed, attempting install from @main (compatibility fallback)"; \
+		if ! GOBIN=$(LOCALBIN) go install github.com/securego/gosec/v2/cmd/gosec@main; then \
+			echo "gosec installation failed for versions $(GOSEC_VERSION) and @main"; \
+			exit 1; \
+		fi; \
+	fi; \
+	echo "gosec installed at $(GOSEC)"; \
+	chmod +x $(GOSEC)
+
+##@ Security
+.PHONY: go-security-scan
+go-security-scan: install-security-scanner ## Run gosec security scan (fails on findings)
+	$(GOSEC) ./...
+# go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
+# $1 - target path with name of binary
+# $2 - package url which can be installed
+# $3 - specific version of package
+define go-install-tool
+@[ -f "$(1)-$(3)" ] || { \
+set -e; \
+package=$(2)@$(3) ;\
+echo "Downloading $${package}" ;\
+rm -f $(1) || true ;\
+GOTOOLCHAIN=$(GO_TOOLCHAIN) GOBIN=$(LOCALBIN) go install $${package} ;\
+mv $(1) $(1)-$(3) ;\
+} ;\
+ln -sf $(1)-$(3) $(1)
+endef
