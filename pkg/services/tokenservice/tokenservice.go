@@ -5,7 +5,6 @@ import (
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -13,7 +12,6 @@ import (
 	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
-	"github.com/NorskHelsenett/ror/pkg/clients/vaultclient"
 	"github.com/NorskHelsenett/ror/pkg/helpers/fouramhelper"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
@@ -37,111 +35,7 @@ var (
 	keyStorage      KeyStorage
 )
 
-type VaultStorageAdapter struct {
-	vaultclient *vaultclient.VaultClient
-	secretPath  string
-}
-
-func NewVaultStorageAdapter(vaultclient *vaultclient.VaultClient, secretPath string) *VaultStorageAdapter {
-	return &VaultStorageAdapter{
-		vaultclient: vaultclient,
-		secretPath:  secretPath,
-	}
-}
-
-func (v *VaultStorageAdapter) Set(ks *KeyStorage) error {
-	if v.vaultclient == nil {
-		return errors.New("vault client not initialized")
-	}
-
-	payload, err := json.Marshal(ks)
-	if err != nil {
-		return err
-	}
-
-	data := map[string]interface{}{
-		"data": map[string]interface{}{
-			"config": string(payload),
-		},
-	}
-
-	body, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
-
-	_, err = v.vaultclient.SetSecret(v.secretPath, body)
-	return err
-}
-
-func (v *VaultStorageAdapter) Get() (KeyStorage, error) {
-	if v.vaultclient == nil {
-		return KeyStorage{}, errors.New("vault client not initialized")
-	}
-	secretData, err := v.vaultclient.GetSecret(v.secretPath)
-	if err != nil {
-		return KeyStorage{}, err
-	}
-	data, ok := secretData["data"].(map[string]interface{})
-
-	dataStr, ok := data["config"].(string)
-	if !ok {
-		return KeyStorage{}, errors.New("invalid data format in vault secret")
-	}
-	var ks KeyStorage
-	err = json.Unmarshal([]byte(dataStr), &ks)
-	if err != nil {
-		return KeyStorage{}, err
-	}
-	return ks, nil
-}
-
-type StorageProvider interface {
-	Set(*KeyStorage) error
-	Get() (KeyStorage, error)
-}
-
-type KeyStorage struct {
-	storageProvider  StorageProvider
-	LastRotation     time.Time     `json:"last_rotation"`
-	RotationInterval time.Duration `json:"rotation_interval"`
-	NumKeys          int           `json:"num_keys"`
-	Keys             map[int]Key   `json:"keys"`
-}
-
-type Key struct {
-	KeyID        string          `json:"key_id"`
-	PrivateKey   *rsa.PrivateKey `json:"private_key"`
-	AlgorithmKey string          `json:"algorithm_key"`
-}
-
-func (k *KeyStorage) GetCurrentKey() Key {
-	return k.Keys[1]
-}
-
-func (k *KeyStorage) Save() error {
-	if k.storageProvider != nil {
-		return k.storageProvider.Set(k)
-	}
-	return errors.New("no storage provider set")
-}
-
-func (k *KeyStorage) Load() error {
-	if k.storageProvider != nil {
-		loaded, err := k.storageProvider.Get()
-		if err != nil {
-			return err
-		}
-		k.LastRotation = loaded.LastRotation
-		k.RotationInterval = loaded.RotationInterval
-		k.NumKeys = loaded.NumKeys
-		k.Keys = loaded.Keys
-		return nil
-	}
-	return errors.New("no storage provider set")
-}
-
-func Rotate() {
+func RotateKeys() {
 	if keyStorage.needRotate(false) {
 
 		randomInterval, err := rand.Int(rand.Reader, big.NewInt(5000))
@@ -164,29 +58,6 @@ func Rotate() {
 		}
 		rlog.Info("Key rotation completed")
 	}
-}
-
-func (k *KeyStorage) rotate(force bool) bool {
-	if k.needRotate(force) {
-		for i := 0; i < k.NumKeys; i++ {
-			k.Keys[i] = k.Keys[i+1]
-			if k.Keys[i].KeyID == "" {
-				rlog.Info("generating new key for position", rlog.Int("position", i))
-				newKey, err := GenerateKey()
-				if err != nil {
-					rlog.Error("could not generate new key", err)
-				}
-				k.Keys[i] = newKey
-			}
-		}
-		k.LastRotation = time.Now()
-		return true
-	}
-	return false
-}
-
-func (k *KeyStorage) needRotate(force bool) bool {
-	return time.Now().Unix() > k.LastRotation.Add(k.RotationInterval).Unix() || force
 }
 
 func GenerateKey() (Key, error) {
@@ -217,7 +88,7 @@ func Init() {
 	if err != nil {
 		rlog.Error("could not load keystorage from vault", err)
 	}
-	Rotate()
+	RotateKeys()
 }
 
 // ExchangeToken exchanges a token for a new resigned token
