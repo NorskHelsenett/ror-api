@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 	"os/signal"
-	"syscall"
+	"sync"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	"github.com/NorskHelsenett/ror-api/internal/utils/switchboard"
@@ -18,14 +18,15 @@ import (
 )
 
 func Run() {
-	ctx = context.Background()
-	sigs = make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	done = make(chan struct{})
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
+
+	var wg sync.WaitGroup
+
 	InitConfig()
 	rlog.Infoc(ctx, "ROR Api startup ")
 	rlog.Infof("API-version: %s (%s) Library-version: %s", rorversion.GetRorVersion().GetVersion(), rorversion.GetRorVersion().GetCommit(), rorversion.GetRorVersion().GetLibVer())
-	apiconnections.InitConnections()
+	apiconnections.InitConnections(ctx)
 
 	if rorconfig.GetBool(rorconfig.ENABLE_TRACING) {
 		go func() {
@@ -35,7 +36,7 @@ func Run() {
 		}()
 	}
 
-	webserver.StartListening(sigs, done)
+	webserver.StartListening(ctx, &wg)
 
 	healthserver.MustStart(healthserver.ServerString(getHealthEndpoint()))
 
@@ -43,6 +44,8 @@ func Run() {
 		switchboard.PublishStarted(ctx)
 	}
 	tokenservice.Init()
-	<-done
+
+	wg.Wait()
+
 	rlog.Infoc(ctx, "Ror-API shutting down")
 }
