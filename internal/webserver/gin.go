@@ -1,8 +1,11 @@
 package webserver
 
 import (
+	"context"
 	"fmt"
-	"os"
+	"net/http"
+	"sync"
+	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/apikeyauth"
 	"github.com/NorskHelsenett/ror-api/internal/routes"
@@ -23,21 +26,13 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
-func StartListening(sigs chan os.Signal, done chan struct{}) {
-	go func(sigs chan os.Signal, done chan struct{}) {
-		InitHttpServer()
-		<-sigs
-		done <- struct{}{}
-	}(sigs, done)
-}
-
-func InitHttpServer() {
-
+func StartListening(ctx context.Context, wg *sync.WaitGroup) error {
 	authmiddleware.RegisterAuthProvider(oauthmiddleware.NewDefaultOauthMiddleware())
 	authmiddleware.RegisterAuthProvider(apikeyauth.NewApiKeyAuthProvider())
 
 	useCors := rorconfig.GetBool(rorconfig.HTTP_USE_CORS)
 	allowOrigins := rorconfig.GetString(rorconfig.HTTP_ALLOW_ORIGINS)
+
 	rlog.Info("Starting web server", rlog.Any("useCors", useCors), rlog.Any("allowedOrigins", allowOrigins))
 
 	router := gin.New()
@@ -57,10 +52,37 @@ func InitHttpServer() {
 	router.Use(headersmiddleware.HeadersMiddleware())
 	router.Use(corsmiddleware.CORS())
 
-	_ = router.SetTrustedProxies([]string{"localhost"})
+	err := router.SetTrustedProxies([]string{"127.0.0.1"})
+	if err != nil {
+		rlog.Error("could not set trusted proxies", err)
+		return err
+	}
+
 	routes.SetupRoutes(router)
-	rlog.Fatal("router failing", router.Run(getHTTPEndpoint()))
-}
-func getHTTPEndpoint() string {
-	return fmt.Sprintf("%s:%s", rorconfig.GetString(rorconfig.HTTP_HOST), rorconfig.GetString(rorconfig.HTTP_PORT))
+
+	httpEndpoint := fmt.Sprintf("%s:%s", rorconfig.GetString(rorconfig.HTTP_HOST), rorconfig.GetString(rorconfig.HTTP_PORT))
+	
+	httpServ := &http.Server{
+		Addr:    httpEndpoint,
+		Handler: router,
+	}
+
+	wg.Go(func() {
+		httpServ.ListenAndServe()
+	})
+
+	<-ctx.Done()
+
+	rlog.Info("shutting down http server gracefully")
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	err = httpServ.Shutdown(ctx)
+	if err != nil {
+		rlog.Error("error while http server was shutting down", err)
+		return err
+	}
+	rlog.Info("http server successfully shut down")
+
+	return nil
 }
