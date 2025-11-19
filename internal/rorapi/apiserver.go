@@ -26,8 +26,11 @@ func Run() {
 	InitConfig()
 	rlog.Infoc(ctx, "ROR Api startup ")
 	rlog.Infof("API-version: %s (%s) Library-version: %s", rorversion.GetRorVersion().GetVersion(), rorversion.GetRorVersion().GetCommit(), rorversion.GetRorVersion().GetLibVer())
+
+	//TODO: Refactor the init funcitons called to respect context cancelations
 	apiconnections.InitConnections(ctx)
 
+	//TODO: refactor the trace package to respect context cancelations
 	if rorconfig.GetBool(rorconfig.ENABLE_TRACING) {
 		go func() {
 			trace.ConnectTracer(done, rorconfig.GetString(rorconfig.TRACER_ID), rorconfig.GetString(rorconfig.OPENTELEMETRY_COLLECTOR_ENDPOINT))
@@ -38,11 +41,14 @@ func Run() {
 
 	webserver.StartListening(ctx, &wg)
 
+	//TODO: refactor health server to respect context cancelations
 	healthserver.MustStart(healthserver.ServerString(getHealthEndpoint()))
 
 	if apiconnections.RabbitMQConnection.Ping() {
+		// Use of unimplemented code
 		switchboard.PublishStarted(ctx)
 	}
+
 	tokenservice.Init()
 
 	wg.Wait()
