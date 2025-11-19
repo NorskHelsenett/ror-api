@@ -26,7 +26,13 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
-func StartListening(ctx context.Context, wg *sync.WaitGroup) error {
+func StartListening(ctx context.Context, wg *sync.WaitGroup){
+	wg.Go(func() {
+		initHttpServer(ctx, wg)
+	})	
+}
+
+func initHttpServer(ctx context.Context, wg *sync.WaitGroup) error {
 	authmiddleware.RegisterAuthProvider(oauthmiddleware.NewDefaultOauthMiddleware())
 	authmiddleware.RegisterAuthProvider(apikeyauth.NewApiKeyAuthProvider())
 
