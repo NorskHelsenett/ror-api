@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 	"os/signal"
-	"syscall"
+	"sync"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	"github.com/NorskHelsenett/ror-api/internal/utils/switchboard"
@@ -18,15 +18,19 @@ import (
 )
 
 func Run() {
-	ctx = context.Background()
-	sigs = make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	done = make(chan struct{})
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
+
+	var wg sync.WaitGroup
+
 	InitConfig()
 	rlog.Infoc(ctx, "ROR Api startup ")
 	rlog.Infof("API-version: %s (%s) Library-version: %s", rorversion.GetRorVersion().GetVersion(), rorversion.GetRorVersion().GetCommit(), rorversion.GetRorVersion().GetLibVer())
-	apiconnections.InitConnections()
 
+	//TODO: Refactor the init funcitons called to respect context cancelations
+	apiconnections.InitConnections(ctx)
+
+	//TODO: refactor the trace package to respect context cancelations
 	if rorconfig.GetBool(rorconfig.ENABLE_TRACING) {
 		go func() {
 			trace.ConnectTracer(done, rorconfig.GetString(rorconfig.TRACER_ID), rorconfig.GetString(rorconfig.OPENTELEMETRY_COLLECTOR_ENDPOINT))
@@ -35,14 +39,19 @@ func Run() {
 		}()
 	}
 
-	webserver.StartListening(sigs, done)
+	webserver.StartListening(ctx, &wg)
 
+	//TODO: refactor health server to respect context cancelations
 	healthserver.MustStart(healthserver.ServerString(getHealthEndpoint()))
 
 	if apiconnections.RabbitMQConnection.Ping() {
+		// Use of unimplemented code
 		switchboard.PublishStarted(ctx)
 	}
+
 	tokenservice.Init()
-	<-done
+
+	wg.Wait()
+
 	rlog.Infoc(ctx, "Ror-API shutting down")
 }
