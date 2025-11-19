@@ -9,10 +9,11 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	"github.com/NorskHelsenett/ror-api/internal/utils/switchboard"
 	"github.com/NorskHelsenett/ror-api/internal/webserver"
-	"github.com/NorskHelsenett/ror-api/pkg/services/tokenservice"
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/config/rorversion"
 	healthserver "github.com/NorskHelsenett/ror/pkg/helpers/rorhealth/server"
+	"github.com/NorskHelsenett/ror/pkg/helpers/tokenstoragehelper"
+	"github.com/NorskHelsenett/ror/pkg/helpers/tokenstoragehelper/vaulttokenadapter"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/NorskHelsenett/ror/pkg/telemetry/trace"
 )
@@ -49,7 +50,7 @@ func Run() {
 		switchboard.PublishStarted(ctx)
 	}
 
-	tokenservice.Init()
+	tokenstoragehelper.Init(vaulttokenadapter.NewVaultStorageAdapter(apiconnections.VaultClient, rorconfig.GetString("TOKEN_STORE_VAULT_PATH")))
 
 	wg.Wait()
 

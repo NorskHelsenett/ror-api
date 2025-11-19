@@ -59,6 +59,8 @@ func InitConfig() {
 	rorconfig.SetDefault(rorconfig.OPENTELEMETRY_COLLECTOR_ENDPOINT, "opentelemetry-collector:4317")
 	rorconfig.SetDefault("HELSEGITLAB_BASE_URL", "https://helsegitlab.nhn.no/api/v4/projects/")
 
+	rorconfig.SetDefault("TOKEN_STORE_VAULT_PATH", "secret/data/v1.0/ror/config/token")
+
 	if rorconfig.GetBool(rorconfig.OIDC_SKIP_ISSUER_VERIFY) {
 		rlog.Error("skipping OIDC issuer verification. THIS IS UNSAFE IN PRODUCTION!!!", nil)
 	}
