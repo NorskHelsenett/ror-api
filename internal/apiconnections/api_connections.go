@@ -3,7 +3,6 @@ package apiconnections
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	mongodbseeding "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/seeding"
@@ -16,7 +15,6 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
 	"github.com/NorskHelsenett/ror/pkg/clients/rabbitmqclient"
 
-	"github.com/NorskHelsenett/ror/pkg/clients/redisdb"
 	"github.com/NorskHelsenett/ror/pkg/clients/vaultclient"
 	"github.com/NorskHelsenett/ror/pkg/clients/vaultclient/databasecredhelper"
 	"github.com/NorskHelsenett/ror/pkg/clients/vaultclient/rabbitmqcredhelper"
@@ -28,7 +26,6 @@ import (
 
 var (
 	VaultClient        *vaultclient.VaultClient
-	RedisDB            redisdb.RedisDB
 	RabbitMQConnection rabbitmqclient.RabbitMQConnection
 	DomainResolvers    *userauth.DomainResolvers
 )
@@ -41,9 +38,6 @@ func InitConnections() {
 	mongocredshelper := databasecredhelper.NewVaultDBCredentials(VaultClient, rorconfig.GetString(rorconfig.ROLE), "mongodb")
 	mongodb.Init(mongocredshelper, rorconfig.GetString(rorconfig.MONGODB_HOST), rorconfig.GetString(rorconfig.MONGODB_PORT), rorconfig.GetString(rorconfig.MONGO_DATABASE))
 
-	redisdatabasecredhelper := databasecredhelper.NewVaultDBCredentials(VaultClient, fmt.Sprintf("redis-%v-role", rorconfig.GetString(rorconfig.ROLE)), "")
-	RedisDB = redisdb.New(redisdatabasecredhelper, rorconfig.GetString(rorconfig.KV_HOST), rorconfig.GetString(rorconfig.KV_PORT))
-
 	rmqcredhelper := rabbitmqcredhelper.NewVaultRMQCredentials(VaultClient, rorconfig.GetString(rorconfig.ROLE))
 	RabbitMQConnection = rabbitmqclient.NewRabbitMQConnection(rmqcredhelper, rorconfig.GetString(rorconfig.RABBITMQ_HOST), rorconfig.GetString(rorconfig.RABBITMQ_PORT), rorconfig.GetString(rorconfig.RABBITMQ_BROADCAST_NAME))
 
@@ -55,7 +49,7 @@ func InitConnections() {
 
 	DomainResolvers.RegisterHealthChecks()
 	rorhealth.Register(ctx, "vault", VaultClient)
-	rorhealth.Register(ctx, "redis", RedisDB)
+	// rorhealth.Register(ctx, "redis", RedisDB)
 	rorhealth.Register(ctx, "rabbitmq", RabbitMQConnection)
 
 	apirabbitmqdefinitions.InitOrDie(RabbitMQConnection)
