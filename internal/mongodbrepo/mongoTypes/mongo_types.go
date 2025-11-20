@@ -253,7 +253,20 @@ type MongoPrice struct {
 	MemoryBytes  int64                       `json:"memoryBytes"`
 	Price        int                         `json:"price"`
 	From         time.Time                   `json:"from"`
-	To           time.Time                   `json:"to,omitempty"`
+	To           time.Time                   `json:"to"`
+}
+
+func NewMongoPrice(provider providermodels.ProviderType, machineClass string, cpu int, memory, memoryBytes int64, price int, from time.Time) MongoPrice {
+	return MongoPrice{
+		ID:           primitive.NewObjectID(),
+		Provider:     provider,
+		MachineClass: machineClass,
+		Cpu:          cpu,
+		Memory:       memory,
+		MemoryBytes:  memoryBytes,
+		Price:        price,
+		From:         from,
+	}
 }
 
 type MongoAuditLogMetadata struct {
