@@ -11,7 +11,7 @@ import (
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 	clustersservice "github.com/NorskHelsenett/ror-api/internal/apiservices/clustersService"
 	"github.com/NorskHelsenett/ror-api/internal/customvalidators"
-	"github.com/NorskHelsenett/ror-api/internal/responses"
+	"github.com/NorskHelsenett/ror-api/internal/models/responses"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
