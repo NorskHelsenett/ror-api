@@ -6,7 +6,7 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
 	"github.com/NorskHelsenett/ror-api/internal/customvalidators"
-	"github.com/NorskHelsenett/ror-api/internal/responses"
+	"github.com/NorskHelsenett/ror-api/internal/models/responses"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 
