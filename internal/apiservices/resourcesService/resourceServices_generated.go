@@ -6,7 +6,6 @@ package resourcesservice
 import (
 	"context"
 	"errors"
-
 	"github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/resourcesmongodb"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
