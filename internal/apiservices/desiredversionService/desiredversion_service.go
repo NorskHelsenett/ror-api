@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	"github.com/NorskHelsenett/ror-api/internal/auditlog"
+	desiredversionrepo "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/desiredversion"
 	"github.com/NorskHelsenett/ror-api/internal/models"
-	desiredversionrepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/desiredversionRepo"
 
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 

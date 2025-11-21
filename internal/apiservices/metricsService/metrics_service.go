@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	datacentersrepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/datacentersRepo"
-	metricsrepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/metricsRepo"
-	workspacesrepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/workspacesRepo"
+	mongodatacenters "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/datacenters"
+	mongometrics "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/metrics"
+	mongoworkspaces "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/workspaces"
 
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 
@@ -16,13 +16,13 @@ import (
 )
 
 func GetTotal(ctx context.Context) (*apicontracts.MetricsTotal, error) {
-	metrics, err := metricsrepo.GetTotal(ctx)
+	metrics, err := mongometrics.GetTotal(ctx)
 	if err != nil {
 		return nil, errors.New("could not get metrics")
 	}
 
-	datacentersCount, _ := datacentersrepo.GetTotalCount(ctx)
-	workspacesCount, _ := workspacesrepo.GetTotalCount(ctx)
+	datacentersCount, _ := mongodatacenters.GetTotalCount(ctx)
+	workspacesCount, _ := mongoworkspaces.GetTotalCount(ctx)
 
 	if metrics == nil {
 		metrics = &apicontracts.MetricsTotal{}
@@ -38,24 +38,24 @@ func GetTotalByUser(ctx context.Context) (*apicontracts.MetricsTotal, error) {
 	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "metricsservice.GetTotalByUser")
 	defer span.End()
 
-	ctx, span1 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "metricsrepo.GetTotalByUser")
+	ctx, span1 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "mongometrics.GetTotalByUser")
 	defer span1.End()
 
-	metrics, err := metricsrepo.GetTotalByUser(ctx)
+	metrics, err := mongometrics.GetTotalByUser(ctx)
 	if err != nil {
 		return nil, errors.New("could not get metrics by user")
 	}
 
 	span1.End()
 
-	ctx, span2 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "datacentersrepo.GetAllByUser")
+	ctx, span2 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "mongodatacenters.GetAllByUser")
 	defer span2.End()
-	datacenters, _ := datacentersrepo.GetAllByUser(ctx)
+	datacenters, _ := mongodatacenters.GetAllByUser(ctx)
 	span2.End()
 
-	ctx, span3 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "workspacesrepo.GetAllByUser")
+	ctx, span3 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "mongoworkspaces.GetAllByUser")
 	defer span3.End()
-	workspaces, _ := workspacesrepo.GetAllByIdentity(ctx)
+	workspaces, _ := mongoworkspaces.GetAllByIdentity(ctx)
 	span3.End()
 
 	_, span4 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Return data")
@@ -68,7 +68,7 @@ func GetTotalByUser(ctx context.Context) (*apicontracts.MetricsTotal, error) {
 }
 
 func GetForDatacenters(ctx context.Context) (*apicontracts.MetricList, error) {
-	metrics, err := metricsrepo.GetForDatacenters(ctx)
+	metrics, err := mongometrics.GetForDatacenters(ctx)
 	if err != nil {
 		return nil, errors.New("could not get metrics for datacenters")
 	}
@@ -77,7 +77,7 @@ func GetForDatacenters(ctx context.Context) (*apicontracts.MetricList, error) {
 }
 
 func GetForDatacenterId(ctx context.Context, datacenterName string) (*apicontracts.MetricItem, error) {
-	metrics, err := metricsrepo.GetForDatacenterId(ctx, datacenterName)
+	metrics, err := mongometrics.GetForDatacenterId(ctx, datacenterName)
 	if err != nil {
 		return nil, errors.New("could not get metrics for datacenters")
 	}
@@ -86,7 +86,7 @@ func GetForDatacenterId(ctx context.Context, datacenterName string) (*apicontrac
 }
 
 func GetForWorkspaces(ctx context.Context, filter *apicontracts.Filter) (*apicontracts.PaginatedResult[apicontracts.Metric], error) {
-	metrics, err := metricsrepo.GetForWorkspaces(ctx, filter)
+	metrics, err := mongometrics.GetForWorkspaces(ctx, filter)
 	if err != nil {
 		return nil, errors.New("could not get metrics for datacenters")
 	}
@@ -95,7 +95,7 @@ func GetForWorkspaces(ctx context.Context, filter *apicontracts.Filter) (*apicon
 }
 
 func GetForWorkspacesByDatacenterId(ctx context.Context, filter *apicontracts.Filter, datacenterId string) (*apicontracts.PaginatedResult[apicontracts.Metric], error) {
-	metrics, err := metricsrepo.GetForWorkspacesByDatacenterId(ctx, filter, datacenterId)
+	metrics, err := mongometrics.GetForWorkspacesByDatacenterId(ctx, filter, datacenterId)
 	if err != nil {
 		return nil, errors.New("could not get metrics for datacenters")
 	}
@@ -104,7 +104,7 @@ func GetForWorkspacesByDatacenterId(ctx context.Context, filter *apicontracts.Fi
 }
 
 func GetForWorkspaceId(ctx context.Context, workspaceId string) (*apicontracts.MetricItem, error) {
-	metrics, err := metricsrepo.GetForWorkspaceId(ctx, workspaceId)
+	metrics, err := mongometrics.GetForWorkspaceId(ctx, workspaceId)
 	if err != nil {
 		return nil, errors.New("could not get metrics for workspace")
 	}
@@ -113,7 +113,7 @@ func GetForWorkspaceId(ctx context.Context, workspaceId string) (*apicontracts.M
 }
 
 func GetForClusters(ctx context.Context) (*apicontracts.MetricList, error) {
-	metrics, err := metricsrepo.GetForClusters(ctx)
+	metrics, err := mongometrics.GetForClusters(ctx)
 	if err != nil {
 		return nil, errors.New("could not get metrics for clusters")
 	}
@@ -122,7 +122,7 @@ func GetForClusters(ctx context.Context) (*apicontracts.MetricList, error) {
 }
 
 func GetForClustersByWorkspaceId(ctx context.Context, workspaceId string) (*apicontracts.MetricList, error) {
-	metrics, err := metricsrepo.GetForClustersByWorkspaceId(ctx, workspaceId)
+	metrics, err := mongometrics.GetForClustersByWorkspaceId(ctx, workspaceId)
 	if err != nil {
 		return nil, errors.New("could not get metrics for clusters")
 	}
@@ -131,7 +131,7 @@ func GetForClustersByWorkspaceId(ctx context.Context, workspaceId string) (*apic
 }
 
 func GetForClusterid(ctx context.Context, clusterId string) (*apicontracts.MetricItem, error) {
-	metrics, err := metricsrepo.GetForClusterid(ctx, clusterId)
+	metrics, err := mongometrics.GetForClusterid(ctx, clusterId)
 	if err != nil {
 		return nil, errors.New("could not get metrics for clusterid")
 	}
@@ -140,7 +140,7 @@ func GetForClusterid(ctx context.Context, clusterId string) (*apicontracts.Metri
 }
 
 func ForClustersByProperty(ctx context.Context, property string) (*apicontracts.MetricsCustom, error) {
-	metrics, err := metricsrepo.ForClustersByProperty(ctx, property)
+	metrics, err := mongometrics.ForClustersByProperty(ctx, property)
 	if err != nil {
 		return nil, errors.New("could not get metrics for clusterid")
 	}

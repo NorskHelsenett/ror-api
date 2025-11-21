@@ -9,6 +9,7 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	services "github.com/NorskHelsenett/ror-api/internal/apiservices"
+	mongoclusters "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/clusters"
 	"github.com/NorskHelsenett/ror-api/internal/services/clusterservice"
 	"github.com/NorskHelsenett/ror-api/internal/services/kubeconfigservice"
 	"github.com/NorskHelsenett/ror-api/internal/webserver/sse"
@@ -23,7 +24,6 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/internal/auditlog"
 	"github.com/NorskHelsenett/ror-api/internal/models"
-	clustersRepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/clustersRepo"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -39,7 +39,7 @@ import (
 )
 
 func GetByClusterId(ctx context.Context, clusterId string) (*apicontracts.Cluster, error) {
-	result, err := clustersRepo.GetByClusterId(ctx, clusterId)
+	result, err := mongoclusters.GetByClusterId(ctx, clusterId)
 	if err != nil {
 		return nil, errors.New("could not get clusters")
 	}
@@ -56,10 +56,10 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 
 	span1.End()
 
-	_, span2 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "clustersRepo.GetByFilter")
+	_, span2 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "mongoclusters.GetByFilter")
 	defer span2.End()
 
-	result, err := clustersRepo.GetByFilter(ctx, filter)
+	result, err := mongoclusters.GetByFilter(ctx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("could not get clusters: %v", err)
 	}
@@ -79,7 +79,7 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 }
 
 func FindByName(ctx context.Context, clusterName string) (*apicontracts.Cluster, error) {
-	result, err := clustersRepo.FindByName(ctx, clusterName)
+	result, err := mongoclusters.FindByName(ctx, clusterName)
 	if err != nil {
 		return nil, errors.New("could not get cluster")
 	}
@@ -88,7 +88,7 @@ func FindByName(ctx context.Context, clusterName string) (*apicontracts.Cluster,
 }
 
 func GetByWorkspaceId(ctx context.Context, filter *apicontracts.Filter, workspaceId string) (*apicontracts.PaginatedResult[apicontracts.Cluster], error) {
-	result, err := clustersRepo.GetByWorkspaceId(ctx, filter, workspaceId)
+	result, err := mongoclusters.GetByWorkspaceId(ctx, filter, workspaceId)
 	if err != nil {
 		return nil, errors.New("could not get clusters")
 	}
@@ -101,7 +101,7 @@ func CreateOrUpdate(ctx context.Context, input *apicontracts.Cluster, clusterId 
 	defer span.End()
 	_, span1 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Check if cluster exists")
 	defer span1.End()
-	existing, err := clustersRepo.GetByClusterId(ctx, clusterId)
+	existing, err := mongoclusters.GetByClusterId(ctx, clusterId)
 	if err != nil {
 		return fmt.Errorf("could not create or update cluster with id: %s", input.ClusterId)
 	}
@@ -168,7 +168,7 @@ func Update(ctx context.Context, input *apicontracts.Cluster, existing *apicontr
 
 	_, span1 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Run repository update")
 	defer span1.End()
-	err := clustersRepo.Update(ctx, input)
+	err := mongoclusters.Update(ctx, input)
 	if err != nil {
 		return fmt.Errorf("could not update cluster with id: %s", input.ClusterId)
 	}
@@ -178,7 +178,7 @@ func Update(ctx context.Context, input *apicontracts.Cluster, existing *apicontr
 }
 
 func Exists(ctx context.Context, clusterId string) (bool, error) {
-	cluster, err := clustersRepo.FindByClusterId(ctx, clusterId)
+	cluster, err := mongoclusters.FindByClusterId(ctx, clusterId)
 	if err != nil {
 		return false, err
 	}
@@ -191,7 +191,7 @@ func Exists(ctx context.Context, clusterId string) (bool, error) {
 }
 
 func GetClusterIdByProjectId(ctx context.Context, projectId string) ([]*apicontracts.ClusterInfo, error) {
-	clusters, err := clustersRepo.GetClusterIdByProjectId(ctx, projectId)
+	clusters, err := mongoclusters.GetClusterIdByProjectId(ctx, projectId)
 	if err != nil {
 		return make([]*apicontracts.ClusterInfo, 0), err
 	}
@@ -292,7 +292,7 @@ func FindMachineClass(ctx context.Context, cluster *apicontracts.Cluster) {
 }
 
 func GetMetadata(ctx context.Context) (map[string][]string, error) {
-	metadata, err := clustersRepo.GetMetadata(ctx)
+	metadata, err := mongoclusters.GetMetadata(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not get metadata from cluster repository: %v", err)
 	}
@@ -305,7 +305,7 @@ func UpdateMetadata(ctx context.Context, input *apicontracts.ClusterMetadataMode
 		return errors.New("must be a user to update")
 	}
 
-	err := clustersRepo.UpdateMetadata(ctx, input, existing)
+	err := mongoclusters.UpdateMetadata(ctx, input, existing)
 	if err != nil {
 		return fmt.Errorf("could not update cluster with id: %s", existing.ClusterId)
 	}
@@ -319,7 +319,7 @@ func UpdateMetadata(ctx context.Context, input *apicontracts.ClusterMetadataMode
 }
 
 func GetControlPlanesMetadata(ctx context.Context) ([]apicontracts.ClusterControlPlaneMetadata, error) {
-	controlPlanes, err := clustersRepo.GetControlPlaneMetadata(ctx)
+	controlPlanes, err := mongoclusters.GetControlPlaneMetadata(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not get control planes from cluster repository: %v", err)
 	}
@@ -339,7 +339,7 @@ func GetKubeconfig(ctx context.Context, clusterId string, credentials apicontrac
 		return "", err
 	}
 
-	cluster, err := clustersRepo.GetByClusterId(ctx, clusterId)
+	cluster, err := mongoclusters.GetByClusterId(ctx, clusterId)
 	if err != nil {
 		err := fmt.Errorf("could not find cluster with id: %s", clusterId)
 		rlog.Errorc(ctx, "could not get kubeconfig", err, rlog.String("clusterId", clusterId))

@@ -6,7 +6,8 @@ package resourcesservice
 import (
 	"context"
 	"errors"
-	"github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/resourcesmongodbrepo"
+
+	"github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/resourcesmongodb"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 )
@@ -860,7 +861,7 @@ func GetNamespaces(ctx context.Context, ownerref apiresourcecontracts.ResourceOw
 		Kind:       "Namespace",
 		ApiVersion: "v1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceNamespace](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceNamespace](ctx, query)
 	resources.Owner = ownerref
 	resources.Namespaces = resourceset
 	if err != nil {
@@ -878,7 +879,7 @@ func GetNodes(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerRe
 		Kind:       "Node",
 		ApiVersion: "v1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceNode](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceNode](ctx, query)
 	resources.Owner = ownerref
 	resources.Nodes = resourceset
 	if err != nil {
@@ -896,7 +897,7 @@ func GetPersistentvolumeclaims(ctx context.Context, ownerref apiresourcecontract
 		Kind:       "PersistentVolumeClaim",
 		ApiVersion: "v1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourcePersistentVolumeClaim](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourcePersistentVolumeClaim](ctx, query)
 	resources.Owner = ownerref
 	resources.Persistentvolumeclaims = resourceset
 	if err != nil {
@@ -914,7 +915,7 @@ func GetDeployments(ctx context.Context, ownerref apiresourcecontracts.ResourceO
 		Kind:       "Deployment",
 		ApiVersion: "apps/v1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceDeployment](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceDeployment](ctx, query)
 	resources.Owner = ownerref
 	resources.Deployments = resourceset
 	if err != nil {
@@ -932,7 +933,7 @@ func GetStorageclasses(ctx context.Context, ownerref apiresourcecontracts.Resour
 		Kind:       "StorageClass",
 		ApiVersion: "storage.k8s.io/v1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceStorageClass](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceStorageClass](ctx, query)
 	resources.Owner = ownerref
 	resources.Storageclasses = resourceset
 	if err != nil {
@@ -950,7 +951,7 @@ func GetPolicyreports(ctx context.Context, ownerref apiresourcecontracts.Resourc
 		Kind:       "PolicyReport",
 		ApiVersion: "wgpolicyk8s.io/v1alpha2",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourcePolicyReport](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourcePolicyReport](ctx, query)
 	resources.Owner = ownerref
 	resources.Policyreports = resourceset
 	if err != nil {
@@ -968,7 +969,7 @@ func GetApplications(ctx context.Context, ownerref apiresourcecontracts.Resource
 		Kind:       "Application",
 		ApiVersion: "argoproj.io/v1alpha1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceApplication](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceApplication](ctx, query)
 	resources.Owner = ownerref
 	resources.Applications = resourceset
 	if err != nil {
@@ -986,7 +987,7 @@ func GetAppprojects(ctx context.Context, ownerref apiresourcecontracts.ResourceO
 		Kind:       "AppProject",
 		ApiVersion: "argoproj.io/v1alpha1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceAppProject](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceAppProject](ctx, query)
 	resources.Owner = ownerref
 	resources.Appprojects = resourceset
 	if err != nil {
@@ -1004,7 +1005,7 @@ func GetCertificates(ctx context.Context, ownerref apiresourcecontracts.Resource
 		Kind:       "Certificate",
 		ApiVersion: "cert-manager.io/v1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceCertificate](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceCertificate](ctx, query)
 	resources.Owner = ownerref
 	resources.Certificates = resourceset
 	if err != nil {
@@ -1022,7 +1023,7 @@ func GetServices(ctx context.Context, ownerref apiresourcecontracts.ResourceOwne
 		Kind:       "Service",
 		ApiVersion: "v1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceService](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceService](ctx, query)
 	resources.Owner = ownerref
 	resources.Services = resourceset
 	if err != nil {
@@ -1040,7 +1041,7 @@ func GetPods(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerRef
 		Kind:       "Pod",
 		ApiVersion: "v1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourcePod](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourcePod](ctx, query)
 	resources.Owner = ownerref
 	resources.Pods = resourceset
 	if err != nil {
@@ -1058,7 +1059,7 @@ func GetReplicasets(ctx context.Context, ownerref apiresourcecontracts.ResourceO
 		Kind:       "ReplicaSet",
 		ApiVersion: "apps/v1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceReplicaSet](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceReplicaSet](ctx, query)
 	resources.Owner = ownerref
 	resources.Replicasets = resourceset
 	if err != nil {
@@ -1076,7 +1077,7 @@ func GetStatefulsets(ctx context.Context, ownerref apiresourcecontracts.Resource
 		Kind:       "StatefulSet",
 		ApiVersion: "apps/v1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceStatefulSet](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceStatefulSet](ctx, query)
 	resources.Owner = ownerref
 	resources.Statefulsets = resourceset
 	if err != nil {
@@ -1094,7 +1095,7 @@ func GetDaemonsets(ctx context.Context, ownerref apiresourcecontracts.ResourceOw
 		Kind:       "DaemonSet",
 		ApiVersion: "apps/v1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceDaemonSet](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceDaemonSet](ctx, query)
 	resources.Owner = ownerref
 	resources.Daemonsets = resourceset
 	if err != nil {
@@ -1112,7 +1113,7 @@ func GetIngresses(ctx context.Context, ownerref apiresourcecontracts.ResourceOwn
 		Kind:       "Ingress",
 		ApiVersion: "networking.k8s.io/v1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceIngress](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceIngress](ctx, query)
 	resources.Owner = ownerref
 	resources.Ingresses = resourceset
 	if err != nil {
@@ -1130,7 +1131,7 @@ func GetIngressclasses(ctx context.Context, ownerref apiresourcecontracts.Resour
 		Kind:       "IngressClass",
 		ApiVersion: "networking.k8s.io/v1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceIngressClass](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceIngressClass](ctx, query)
 	resources.Owner = ownerref
 	resources.Ingressclasses = resourceset
 	if err != nil {
@@ -1148,7 +1149,7 @@ func GetVulnerabilityreports(ctx context.Context, ownerref apiresourcecontracts.
 		Kind:       "VulnerabilityReport",
 		ApiVersion: "aquasecurity.github.io/v1alpha1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceVulnerabilityReport](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceVulnerabilityReport](ctx, query)
 	resources.Owner = ownerref
 	resources.Vulnerabilityreports = resourceset
 	if err != nil {
@@ -1166,7 +1167,7 @@ func GetExposedsecretreports(ctx context.Context, ownerref apiresourcecontracts.
 		Kind:       "ExposedSecretReport",
 		ApiVersion: "aquasecurity.github.io/v1alpha1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceExposedSecretReport](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceExposedSecretReport](ctx, query)
 	resources.Owner = ownerref
 	resources.Exposedsecretreports = resourceset
 	if err != nil {
@@ -1184,7 +1185,7 @@ func GetConfigauditreports(ctx context.Context, ownerref apiresourcecontracts.Re
 		Kind:       "ConfigAuditReport",
 		ApiVersion: "aquasecurity.github.io/v1alpha1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceConfigAuditReport](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceConfigAuditReport](ctx, query)
 	resources.Owner = ownerref
 	resources.Configauditreports = resourceset
 	if err != nil {
@@ -1202,7 +1203,7 @@ func GetRbacassessmentreports(ctx context.Context, ownerref apiresourcecontracts
 		Kind:       "RbacAssessmentReport",
 		ApiVersion: "aquasecurity.github.io/v1alpha1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceRbacAssessmentReport](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceRbacAssessmentReport](ctx, query)
 	resources.Owner = ownerref
 	resources.Rbacassessmentreports = resourceset
 	if err != nil {
@@ -1220,7 +1221,7 @@ func GetTanzukubernetesclusters(ctx context.Context, ownerref apiresourcecontrac
 		Kind:       "TanzuKubernetesCluster",
 		ApiVersion: "run.tanzu.vmware.com/v1alpha3",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceTanzuKubernetesCluster](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceTanzuKubernetesCluster](ctx, query)
 	resources.Owner = ownerref
 	resources.Tanzukubernetesclusters = resourceset
 	if err != nil {
@@ -1238,7 +1239,7 @@ func GetTanzukubernetesreleases(ctx context.Context, ownerref apiresourcecontrac
 		Kind:       "TanzuKubernetesRelease",
 		ApiVersion: "run.tanzu.vmware.com/v1alpha3",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceTanzuKubernetesRelease](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceTanzuKubernetesRelease](ctx, query)
 	resources.Owner = ownerref
 	resources.Tanzukubernetesreleases = resourceset
 	if err != nil {
@@ -1256,7 +1257,7 @@ func GetVirtualmachineclasses(ctx context.Context, ownerref apiresourcecontracts
 		Kind:       "VirtualMachineClass",
 		ApiVersion: "vmoperator.vmware.com/v1alpha2",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceVirtualMachineClass](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceVirtualMachineClass](ctx, query)
 	resources.Owner = ownerref
 	resources.Virtualmachineclasses = resourceset
 	if err != nil {
@@ -1274,7 +1275,7 @@ func GetKubernetesclusters(ctx context.Context, ownerref apiresourcecontracts.Re
 		Kind:       "KubernetesCluster",
 		ApiVersion: "general.ror.internal/v1alpha1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceKubernetesCluster](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceKubernetesCluster](ctx, query)
 	resources.Owner = ownerref
 	resources.Kubernetesclusters = resourceset
 	if err != nil {
@@ -1292,7 +1293,7 @@ func GetClusterorders(ctx context.Context, ownerref apiresourcecontracts.Resourc
 		Kind:       "ClusterOrder",
 		ApiVersion: "general.ror.internal/v1alpha1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceClusterOrder](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceClusterOrder](ctx, query)
 	resources.Owner = ownerref
 	resources.Clusterorders = resourceset
 	if err != nil {
@@ -1310,7 +1311,7 @@ func GetProjects(ctx context.Context, ownerref apiresourcecontracts.ResourceOwne
 		Kind:       "Project",
 		ApiVersion: "general.ror.internal/v1alpha1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceProject](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceProject](ctx, query)
 	resources.Owner = ownerref
 	resources.Projects = resourceset
 	if err != nil {
@@ -1328,7 +1329,7 @@ func GetConfigurations(ctx context.Context, ownerref apiresourcecontracts.Resour
 		Kind:       "Configuration",
 		ApiVersion: "general.ror.internal/v1alpha1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceConfiguration](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceConfiguration](ctx, query)
 	resources.Owner = ownerref
 	resources.Configurations = resourceset
 	if err != nil {
@@ -1346,7 +1347,7 @@ func GetClustercompliancereports(ctx context.Context, ownerref apiresourcecontra
 		Kind:       "ClusterComplianceReport",
 		ApiVersion: "aquasecurity.github.io/v1alpha1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceClusterComplianceReport](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceClusterComplianceReport](ctx, query)
 	resources.Owner = ownerref
 	resources.Clustercompliancereports = resourceset
 	if err != nil {
@@ -1364,7 +1365,7 @@ func GetClustervulnerabilityreports(ctx context.Context, ownerref apiresourcecon
 		Kind:       "ClusterVulnerabilityReport",
 		ApiVersion: "general.ror.internal/v1alpha1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceClusterVulnerabilityReport](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceClusterVulnerabilityReport](ctx, query)
 	resources.Owner = ownerref
 	resources.Clustervulnerabilityreports = resourceset
 	if err != nil {
@@ -1382,7 +1383,7 @@ func GetRoutes(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerR
 		Kind:       "Route",
 		ApiVersion: "general.ror.internal/v1alpha1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceRoute](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceRoute](ctx, query)
 	resources.Owner = ownerref
 	resources.Routes = resourceset
 	if err != nil {
@@ -1400,7 +1401,7 @@ func GetSlackmessages(ctx context.Context, ownerref apiresourcecontracts.Resourc
 		Kind:       "SlackMessage",
 		ApiVersion: "general.ror.internal/v1alpha1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceSlackMessage](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceSlackMessage](ctx, query)
 	resources.Owner = ownerref
 	resources.Slackmessages = resourceset
 	if err != nil {
@@ -1418,7 +1419,7 @@ func GetVulnerabilityevents(ctx context.Context, ownerref apiresourcecontracts.R
 		Kind:       "VulnerabilityEvent",
 		ApiVersion: "general.ror.internal/v1alpha1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceVulnerabilityEvent](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceVulnerabilityEvent](ctx, query)
 	resources.Owner = ownerref
 	resources.Vulnerabilityevents = resourceset
 	if err != nil {
@@ -1436,7 +1437,7 @@ func GetVirtualmachines(ctx context.Context, ownerref apiresourcecontracts.Resou
 		Kind:       "VirtualMachine",
 		ApiVersion: "general.ror.internal/v1alpha1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceVirtualMachine](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceVirtualMachine](ctx, query)
 	resources.Owner = ownerref
 	resources.Virtualmachines = resourceset
 	if err != nil {
@@ -1454,7 +1455,7 @@ func GetEndpoints(ctx context.Context, ownerref apiresourcecontracts.ResourceOwn
 		Kind:       "Endpoints",
 		ApiVersion: "v1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceEndpoints](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceEndpoints](ctx, query)
 	resources.Owner = ownerref
 	resources.Endpoints = resourceset
 	if err != nil {
@@ -1472,7 +1473,7 @@ func GetNetworkpolicies(ctx context.Context, ownerref apiresourcecontracts.Resou
 		Kind:       "NetworkPolicy",
 		ApiVersion: "networking.k8s.io/v1",
 	}
-	resourceset, err := resourcesmongodbrepo.GetResourcesByQuery[apiresourcecontracts.ResourceNetworkPolicy](ctx, query)
+	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceNetworkPolicy](ctx, query)
 	resources.Owner = ownerref
 	resources.Networkpolicies = resourceset
 	if err != nil {
@@ -1486,9 +1487,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	var err error
 
 	if resourceUpdate.ApiVersion == "v1" && resourceUpdate.Kind == "Namespace" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceNamespace]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceNamespace]](resourceUpdate)
 		resource = filterInNamespace(resource)
-		err = resourcesmongodbrepo.CreateResourceNamespace(resource, ctx)
+		err = resourcesmongodb.CreateResourceNamespace(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1498,9 +1499,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "v1" && resourceUpdate.Kind == "Node" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceNode]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceNode]](resourceUpdate)
 		resource = filterInNode(resource)
-		err = resourcesmongodbrepo.CreateResourceNode(resource, ctx)
+		err = resourcesmongodb.CreateResourceNode(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1510,9 +1511,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "v1" && resourceUpdate.Kind == "PersistentVolumeClaim" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourcePersistentVolumeClaim]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourcePersistentVolumeClaim]](resourceUpdate)
 		resource = filterInPersistentVolumeClaim(resource)
-		err = resourcesmongodbrepo.CreateResourcePersistentVolumeClaim(resource, ctx)
+		err = resourcesmongodb.CreateResourcePersistentVolumeClaim(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1522,9 +1523,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "apps/v1" && resourceUpdate.Kind == "Deployment" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceDeployment]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceDeployment]](resourceUpdate)
 		resource = filterInDeployment(resource)
-		err = resourcesmongodbrepo.CreateResourceDeployment(resource, ctx)
+		err = resourcesmongodb.CreateResourceDeployment(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1534,9 +1535,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "storage.k8s.io/v1" && resourceUpdate.Kind == "StorageClass" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceStorageClass]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceStorageClass]](resourceUpdate)
 		resource = filterInStorageClass(resource)
-		err = resourcesmongodbrepo.CreateResourceStorageClass(resource, ctx)
+		err = resourcesmongodb.CreateResourceStorageClass(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1546,9 +1547,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "wgpolicyk8s.io/v1alpha2" && resourceUpdate.Kind == "PolicyReport" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourcePolicyReport]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourcePolicyReport]](resourceUpdate)
 		resource = filterInPolicyReport(resource)
-		err = resourcesmongodbrepo.CreateResourcePolicyReport(resource, ctx)
+		err = resourcesmongodb.CreateResourcePolicyReport(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1558,9 +1559,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "argoproj.io/v1alpha1" && resourceUpdate.Kind == "Application" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceApplication]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceApplication]](resourceUpdate)
 		resource = filterInApplication(resource)
-		err = resourcesmongodbrepo.CreateResourceApplication(resource, ctx)
+		err = resourcesmongodb.CreateResourceApplication(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1570,9 +1571,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "argoproj.io/v1alpha1" && resourceUpdate.Kind == "AppProject" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceAppProject]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceAppProject]](resourceUpdate)
 		resource = filterInAppProject(resource)
-		err = resourcesmongodbrepo.CreateResourceAppProject(resource, ctx)
+		err = resourcesmongodb.CreateResourceAppProject(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1582,9 +1583,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "cert-manager.io/v1" && resourceUpdate.Kind == "Certificate" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceCertificate]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceCertificate]](resourceUpdate)
 		resource = filterInCertificate(resource)
-		err = resourcesmongodbrepo.CreateResourceCertificate(resource, ctx)
+		err = resourcesmongodb.CreateResourceCertificate(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1594,9 +1595,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "v1" && resourceUpdate.Kind == "Service" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceService]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceService]](resourceUpdate)
 		resource = filterInService(resource)
-		err = resourcesmongodbrepo.CreateResourceService(resource, ctx)
+		err = resourcesmongodb.CreateResourceService(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1606,9 +1607,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "v1" && resourceUpdate.Kind == "Pod" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourcePod]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourcePod]](resourceUpdate)
 		resource = filterInPod(resource)
-		err = resourcesmongodbrepo.CreateResourcePod(resource, ctx)
+		err = resourcesmongodb.CreateResourcePod(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1618,9 +1619,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "apps/v1" && resourceUpdate.Kind == "ReplicaSet" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceReplicaSet]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceReplicaSet]](resourceUpdate)
 		resource = filterInReplicaSet(resource)
-		err = resourcesmongodbrepo.CreateResourceReplicaSet(resource, ctx)
+		err = resourcesmongodb.CreateResourceReplicaSet(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1630,9 +1631,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "apps/v1" && resourceUpdate.Kind == "StatefulSet" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceStatefulSet]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceStatefulSet]](resourceUpdate)
 		resource = filterInStatefulSet(resource)
-		err = resourcesmongodbrepo.CreateResourceStatefulSet(resource, ctx)
+		err = resourcesmongodb.CreateResourceStatefulSet(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1642,9 +1643,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "apps/v1" && resourceUpdate.Kind == "DaemonSet" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceDaemonSet]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceDaemonSet]](resourceUpdate)
 		resource = filterInDaemonSet(resource)
-		err = resourcesmongodbrepo.CreateResourceDaemonSet(resource, ctx)
+		err = resourcesmongodb.CreateResourceDaemonSet(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1654,9 +1655,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "networking.k8s.io/v1" && resourceUpdate.Kind == "Ingress" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceIngress]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceIngress]](resourceUpdate)
 		resource = filterInIngress(resource)
-		err = resourcesmongodbrepo.CreateResourceIngress(resource, ctx)
+		err = resourcesmongodb.CreateResourceIngress(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1666,9 +1667,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "networking.k8s.io/v1" && resourceUpdate.Kind == "IngressClass" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceIngressClass]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceIngressClass]](resourceUpdate)
 		resource = filterInIngressClass(resource)
-		err = resourcesmongodbrepo.CreateResourceIngressClass(resource, ctx)
+		err = resourcesmongodb.CreateResourceIngressClass(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1678,9 +1679,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "aquasecurity.github.io/v1alpha1" && resourceUpdate.Kind == "VulnerabilityReport" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVulnerabilityReport]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVulnerabilityReport]](resourceUpdate)
 		resource = filterInVulnerabilityReport(resource)
-		err = resourcesmongodbrepo.CreateResourceVulnerabilityReport(resource, ctx)
+		err = resourcesmongodb.CreateResourceVulnerabilityReport(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1690,9 +1691,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "aquasecurity.github.io/v1alpha1" && resourceUpdate.Kind == "ExposedSecretReport" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceExposedSecretReport]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceExposedSecretReport]](resourceUpdate)
 		resource = filterInExposedSecretReport(resource)
-		err = resourcesmongodbrepo.CreateResourceExposedSecretReport(resource, ctx)
+		err = resourcesmongodb.CreateResourceExposedSecretReport(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1702,9 +1703,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "aquasecurity.github.io/v1alpha1" && resourceUpdate.Kind == "ConfigAuditReport" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceConfigAuditReport]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceConfigAuditReport]](resourceUpdate)
 		resource = filterInConfigAuditReport(resource)
-		err = resourcesmongodbrepo.CreateResourceConfigAuditReport(resource, ctx)
+		err = resourcesmongodb.CreateResourceConfigAuditReport(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1714,9 +1715,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "aquasecurity.github.io/v1alpha1" && resourceUpdate.Kind == "RbacAssessmentReport" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceRbacAssessmentReport]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceRbacAssessmentReport]](resourceUpdate)
 		resource = filterInRbacAssessmentReport(resource)
-		err = resourcesmongodbrepo.CreateResourceRbacAssessmentReport(resource, ctx)
+		err = resourcesmongodb.CreateResourceRbacAssessmentReport(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1726,9 +1727,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "run.tanzu.vmware.com/v1alpha3" && resourceUpdate.Kind == "TanzuKubernetesCluster" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceTanzuKubernetesCluster]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceTanzuKubernetesCluster]](resourceUpdate)
 		resource = filterInTanzuKubernetesCluster(resource)
-		err = resourcesmongodbrepo.CreateResourceTanzuKubernetesCluster(resource, ctx)
+		err = resourcesmongodb.CreateResourceTanzuKubernetesCluster(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1738,9 +1739,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "run.tanzu.vmware.com/v1alpha3" && resourceUpdate.Kind == "TanzuKubernetesRelease" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceTanzuKubernetesRelease]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceTanzuKubernetesRelease]](resourceUpdate)
 		resource = filterInTanzuKubernetesRelease(resource)
-		err = resourcesmongodbrepo.CreateResourceTanzuKubernetesRelease(resource, ctx)
+		err = resourcesmongodb.CreateResourceTanzuKubernetesRelease(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1750,9 +1751,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "vmoperator.vmware.com/v1alpha2" && resourceUpdate.Kind == "VirtualMachineClass" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVirtualMachineClass]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVirtualMachineClass]](resourceUpdate)
 		resource = filterInVirtualMachineClass(resource)
-		err = resourcesmongodbrepo.CreateResourceVirtualMachineClass(resource, ctx)
+		err = resourcesmongodb.CreateResourceVirtualMachineClass(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1762,9 +1763,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "general.ror.internal/v1alpha1" && resourceUpdate.Kind == "KubernetesCluster" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceKubernetesCluster]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceKubernetesCluster]](resourceUpdate)
 		resource = filterInKubernetesCluster(resource)
-		err = resourcesmongodbrepo.CreateResourceKubernetesCluster(resource, ctx)
+		err = resourcesmongodb.CreateResourceKubernetesCluster(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1774,9 +1775,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "general.ror.internal/v1alpha1" && resourceUpdate.Kind == "ClusterOrder" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceClusterOrder]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceClusterOrder]](resourceUpdate)
 		resource = filterInClusterOrder(resource)
-		err = resourcesmongodbrepo.CreateResourceClusterOrder(resource, ctx)
+		err = resourcesmongodb.CreateResourceClusterOrder(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1786,9 +1787,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "general.ror.internal/v1alpha1" && resourceUpdate.Kind == "Project" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceProject]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceProject]](resourceUpdate)
 		resource = filterInProject(resource)
-		err = resourcesmongodbrepo.CreateResourceProject(resource, ctx)
+		err = resourcesmongodb.CreateResourceProject(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1798,9 +1799,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "general.ror.internal/v1alpha1" && resourceUpdate.Kind == "Configuration" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceConfiguration]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceConfiguration]](resourceUpdate)
 		resource = filterInConfiguration(resource)
-		err = resourcesmongodbrepo.CreateResourceConfiguration(resource, ctx)
+		err = resourcesmongodb.CreateResourceConfiguration(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1810,9 +1811,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "aquasecurity.github.io/v1alpha1" && resourceUpdate.Kind == "ClusterComplianceReport" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceClusterComplianceReport]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceClusterComplianceReport]](resourceUpdate)
 		resource = filterInClusterComplianceReport(resource)
-		err = resourcesmongodbrepo.CreateResourceClusterComplianceReport(resource, ctx)
+		err = resourcesmongodb.CreateResourceClusterComplianceReport(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1822,9 +1823,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "general.ror.internal/v1alpha1" && resourceUpdate.Kind == "ClusterVulnerabilityReport" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceClusterVulnerabilityReport]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceClusterVulnerabilityReport]](resourceUpdate)
 		resource = filterInClusterVulnerabilityReport(resource)
-		err = resourcesmongodbrepo.CreateResourceClusterVulnerabilityReport(resource, ctx)
+		err = resourcesmongodb.CreateResourceClusterVulnerabilityReport(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1834,9 +1835,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "general.ror.internal/v1alpha1" && resourceUpdate.Kind == "Route" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceRoute]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceRoute]](resourceUpdate)
 		resource = filterInRoute(resource)
-		err = resourcesmongodbrepo.CreateResourceRoute(resource, ctx)
+		err = resourcesmongodb.CreateResourceRoute(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1846,9 +1847,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "general.ror.internal/v1alpha1" && resourceUpdate.Kind == "SlackMessage" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceSlackMessage]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceSlackMessage]](resourceUpdate)
 		resource = filterInSlackMessage(resource)
-		err = resourcesmongodbrepo.CreateResourceSlackMessage(resource, ctx)
+		err = resourcesmongodb.CreateResourceSlackMessage(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1858,9 +1859,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "general.ror.internal/v1alpha1" && resourceUpdate.Kind == "VulnerabilityEvent" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVulnerabilityEvent]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVulnerabilityEvent]](resourceUpdate)
 		resource = filterInVulnerabilityEvent(resource)
-		err = resourcesmongodbrepo.CreateResourceVulnerabilityEvent(resource, ctx)
+		err = resourcesmongodb.CreateResourceVulnerabilityEvent(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1870,9 +1871,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "general.ror.internal/v1alpha1" && resourceUpdate.Kind == "VirtualMachine" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVirtualMachine]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVirtualMachine]](resourceUpdate)
 		resource = filterInVirtualMachine(resource)
-		err = resourcesmongodbrepo.CreateResourceVirtualMachine(resource, ctx)
+		err = resourcesmongodb.CreateResourceVirtualMachine(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1882,9 +1883,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "v1" && resourceUpdate.Kind == "Endpoints" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceEndpoints]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceEndpoints]](resourceUpdate)
 		resource = filterInEndpoints(resource)
-		err = resourcesmongodbrepo.CreateResourceEndpoints(resource, ctx)
+		err = resourcesmongodb.CreateResourceEndpoints(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1894,9 +1895,9 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "networking.k8s.io/v1" && resourceUpdate.Kind == "NetworkPolicy" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceNetworkPolicy]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceNetworkPolicy]](resourceUpdate)
 		resource = filterInNetworkPolicy(resource)
-		err = resourcesmongodbrepo.CreateResourceNetworkPolicy(resource, ctx)
+		err = resourcesmongodb.CreateResourceNetworkPolicy(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionAdd)
 			if err != nil {
@@ -1919,9 +1920,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	var err error
 
 	if resourceUpdate.ApiVersion == "v1" && resourceUpdate.Kind == "Namespace" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceNamespace]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceNamespace]](resourceUpdate)
 		resource = filterInNamespace(resource)
-		err = resourcesmongodbrepo.UpdateResourceNamespace(resource, ctx)
+		err = resourcesmongodb.UpdateResourceNamespace(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -1931,9 +1932,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "v1" && resourceUpdate.Kind == "Node" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceNode]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceNode]](resourceUpdate)
 		resource = filterInNode(resource)
-		err = resourcesmongodbrepo.UpdateResourceNode(resource, ctx)
+		err = resourcesmongodb.UpdateResourceNode(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -1943,9 +1944,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "v1" && resourceUpdate.Kind == "PersistentVolumeClaim" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourcePersistentVolumeClaim]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourcePersistentVolumeClaim]](resourceUpdate)
 		resource = filterInPersistentVolumeClaim(resource)
-		err = resourcesmongodbrepo.UpdateResourcePersistentVolumeClaim(resource, ctx)
+		err = resourcesmongodb.UpdateResourcePersistentVolumeClaim(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -1955,9 +1956,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "apps/v1" && resourceUpdate.Kind == "Deployment" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceDeployment]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceDeployment]](resourceUpdate)
 		resource = filterInDeployment(resource)
-		err = resourcesmongodbrepo.UpdateResourceDeployment(resource, ctx)
+		err = resourcesmongodb.UpdateResourceDeployment(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -1967,9 +1968,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "storage.k8s.io/v1" && resourceUpdate.Kind == "StorageClass" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceStorageClass]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceStorageClass]](resourceUpdate)
 		resource = filterInStorageClass(resource)
-		err = resourcesmongodbrepo.UpdateResourceStorageClass(resource, ctx)
+		err = resourcesmongodb.UpdateResourceStorageClass(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -1979,9 +1980,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "wgpolicyk8s.io/v1alpha2" && resourceUpdate.Kind == "PolicyReport" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourcePolicyReport]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourcePolicyReport]](resourceUpdate)
 		resource = filterInPolicyReport(resource)
-		err = resourcesmongodbrepo.UpdateResourcePolicyReport(resource, ctx)
+		err = resourcesmongodb.UpdateResourcePolicyReport(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -1991,9 +1992,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "argoproj.io/v1alpha1" && resourceUpdate.Kind == "Application" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceApplication]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceApplication]](resourceUpdate)
 		resource = filterInApplication(resource)
-		err = resourcesmongodbrepo.UpdateResourceApplication(resource, ctx)
+		err = resourcesmongodb.UpdateResourceApplication(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2003,9 +2004,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "argoproj.io/v1alpha1" && resourceUpdate.Kind == "AppProject" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceAppProject]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceAppProject]](resourceUpdate)
 		resource = filterInAppProject(resource)
-		err = resourcesmongodbrepo.UpdateResourceAppProject(resource, ctx)
+		err = resourcesmongodb.UpdateResourceAppProject(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2015,9 +2016,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "cert-manager.io/v1" && resourceUpdate.Kind == "Certificate" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceCertificate]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceCertificate]](resourceUpdate)
 		resource = filterInCertificate(resource)
-		err = resourcesmongodbrepo.UpdateResourceCertificate(resource, ctx)
+		err = resourcesmongodb.UpdateResourceCertificate(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2027,9 +2028,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "v1" && resourceUpdate.Kind == "Service" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceService]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceService]](resourceUpdate)
 		resource = filterInService(resource)
-		err = resourcesmongodbrepo.UpdateResourceService(resource, ctx)
+		err = resourcesmongodb.UpdateResourceService(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2039,9 +2040,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "v1" && resourceUpdate.Kind == "Pod" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourcePod]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourcePod]](resourceUpdate)
 		resource = filterInPod(resource)
-		err = resourcesmongodbrepo.UpdateResourcePod(resource, ctx)
+		err = resourcesmongodb.UpdateResourcePod(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2051,9 +2052,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "apps/v1" && resourceUpdate.Kind == "ReplicaSet" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceReplicaSet]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceReplicaSet]](resourceUpdate)
 		resource = filterInReplicaSet(resource)
-		err = resourcesmongodbrepo.UpdateResourceReplicaSet(resource, ctx)
+		err = resourcesmongodb.UpdateResourceReplicaSet(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2063,9 +2064,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "apps/v1" && resourceUpdate.Kind == "StatefulSet" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceStatefulSet]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceStatefulSet]](resourceUpdate)
 		resource = filterInStatefulSet(resource)
-		err = resourcesmongodbrepo.UpdateResourceStatefulSet(resource, ctx)
+		err = resourcesmongodb.UpdateResourceStatefulSet(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2075,9 +2076,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "apps/v1" && resourceUpdate.Kind == "DaemonSet" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceDaemonSet]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceDaemonSet]](resourceUpdate)
 		resource = filterInDaemonSet(resource)
-		err = resourcesmongodbrepo.UpdateResourceDaemonSet(resource, ctx)
+		err = resourcesmongodb.UpdateResourceDaemonSet(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2087,9 +2088,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "networking.k8s.io/v1" && resourceUpdate.Kind == "Ingress" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceIngress]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceIngress]](resourceUpdate)
 		resource = filterInIngress(resource)
-		err = resourcesmongodbrepo.UpdateResourceIngress(resource, ctx)
+		err = resourcesmongodb.UpdateResourceIngress(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2099,9 +2100,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "networking.k8s.io/v1" && resourceUpdate.Kind == "IngressClass" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceIngressClass]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceIngressClass]](resourceUpdate)
 		resource = filterInIngressClass(resource)
-		err = resourcesmongodbrepo.UpdateResourceIngressClass(resource, ctx)
+		err = resourcesmongodb.UpdateResourceIngressClass(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2111,9 +2112,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "aquasecurity.github.io/v1alpha1" && resourceUpdate.Kind == "VulnerabilityReport" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVulnerabilityReport]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVulnerabilityReport]](resourceUpdate)
 		resource = filterInVulnerabilityReport(resource)
-		err = resourcesmongodbrepo.UpdateResourceVulnerabilityReport(resource, ctx)
+		err = resourcesmongodb.UpdateResourceVulnerabilityReport(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2123,9 +2124,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "aquasecurity.github.io/v1alpha1" && resourceUpdate.Kind == "ExposedSecretReport" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceExposedSecretReport]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceExposedSecretReport]](resourceUpdate)
 		resource = filterInExposedSecretReport(resource)
-		err = resourcesmongodbrepo.UpdateResourceExposedSecretReport(resource, ctx)
+		err = resourcesmongodb.UpdateResourceExposedSecretReport(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2135,9 +2136,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "aquasecurity.github.io/v1alpha1" && resourceUpdate.Kind == "ConfigAuditReport" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceConfigAuditReport]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceConfigAuditReport]](resourceUpdate)
 		resource = filterInConfigAuditReport(resource)
-		err = resourcesmongodbrepo.UpdateResourceConfigAuditReport(resource, ctx)
+		err = resourcesmongodb.UpdateResourceConfigAuditReport(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2147,9 +2148,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "aquasecurity.github.io/v1alpha1" && resourceUpdate.Kind == "RbacAssessmentReport" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceRbacAssessmentReport]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceRbacAssessmentReport]](resourceUpdate)
 		resource = filterInRbacAssessmentReport(resource)
-		err = resourcesmongodbrepo.UpdateResourceRbacAssessmentReport(resource, ctx)
+		err = resourcesmongodb.UpdateResourceRbacAssessmentReport(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2159,9 +2160,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "run.tanzu.vmware.com/v1alpha3" && resourceUpdate.Kind == "TanzuKubernetesCluster" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceTanzuKubernetesCluster]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceTanzuKubernetesCluster]](resourceUpdate)
 		resource = filterInTanzuKubernetesCluster(resource)
-		err = resourcesmongodbrepo.UpdateResourceTanzuKubernetesCluster(resource, ctx)
+		err = resourcesmongodb.UpdateResourceTanzuKubernetesCluster(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2171,9 +2172,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "run.tanzu.vmware.com/v1alpha3" && resourceUpdate.Kind == "TanzuKubernetesRelease" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceTanzuKubernetesRelease]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceTanzuKubernetesRelease]](resourceUpdate)
 		resource = filterInTanzuKubernetesRelease(resource)
-		err = resourcesmongodbrepo.UpdateResourceTanzuKubernetesRelease(resource, ctx)
+		err = resourcesmongodb.UpdateResourceTanzuKubernetesRelease(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2183,9 +2184,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "vmoperator.vmware.com/v1alpha2" && resourceUpdate.Kind == "VirtualMachineClass" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVirtualMachineClass]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVirtualMachineClass]](resourceUpdate)
 		resource = filterInVirtualMachineClass(resource)
-		err = resourcesmongodbrepo.UpdateResourceVirtualMachineClass(resource, ctx)
+		err = resourcesmongodb.UpdateResourceVirtualMachineClass(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2195,9 +2196,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "general.ror.internal/v1alpha1" && resourceUpdate.Kind == "KubernetesCluster" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceKubernetesCluster]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceKubernetesCluster]](resourceUpdate)
 		resource = filterInKubernetesCluster(resource)
-		err = resourcesmongodbrepo.UpdateResourceKubernetesCluster(resource, ctx)
+		err = resourcesmongodb.UpdateResourceKubernetesCluster(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2207,9 +2208,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "general.ror.internal/v1alpha1" && resourceUpdate.Kind == "ClusterOrder" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceClusterOrder]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceClusterOrder]](resourceUpdate)
 		resource = filterInClusterOrder(resource)
-		err = resourcesmongodbrepo.UpdateResourceClusterOrder(resource, ctx)
+		err = resourcesmongodb.UpdateResourceClusterOrder(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2219,9 +2220,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "general.ror.internal/v1alpha1" && resourceUpdate.Kind == "Project" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceProject]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceProject]](resourceUpdate)
 		resource = filterInProject(resource)
-		err = resourcesmongodbrepo.UpdateResourceProject(resource, ctx)
+		err = resourcesmongodb.UpdateResourceProject(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2231,9 +2232,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "general.ror.internal/v1alpha1" && resourceUpdate.Kind == "Configuration" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceConfiguration]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceConfiguration]](resourceUpdate)
 		resource = filterInConfiguration(resource)
-		err = resourcesmongodbrepo.UpdateResourceConfiguration(resource, ctx)
+		err = resourcesmongodb.UpdateResourceConfiguration(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2243,9 +2244,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "aquasecurity.github.io/v1alpha1" && resourceUpdate.Kind == "ClusterComplianceReport" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceClusterComplianceReport]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceClusterComplianceReport]](resourceUpdate)
 		resource = filterInClusterComplianceReport(resource)
-		err = resourcesmongodbrepo.UpdateResourceClusterComplianceReport(resource, ctx)
+		err = resourcesmongodb.UpdateResourceClusterComplianceReport(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2255,9 +2256,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "general.ror.internal/v1alpha1" && resourceUpdate.Kind == "ClusterVulnerabilityReport" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceClusterVulnerabilityReport]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceClusterVulnerabilityReport]](resourceUpdate)
 		resource = filterInClusterVulnerabilityReport(resource)
-		err = resourcesmongodbrepo.UpdateResourceClusterVulnerabilityReport(resource, ctx)
+		err = resourcesmongodb.UpdateResourceClusterVulnerabilityReport(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2267,9 +2268,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "general.ror.internal/v1alpha1" && resourceUpdate.Kind == "Route" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceRoute]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceRoute]](resourceUpdate)
 		resource = filterInRoute(resource)
-		err = resourcesmongodbrepo.UpdateResourceRoute(resource, ctx)
+		err = resourcesmongodb.UpdateResourceRoute(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2279,9 +2280,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "general.ror.internal/v1alpha1" && resourceUpdate.Kind == "SlackMessage" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceSlackMessage]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceSlackMessage]](resourceUpdate)
 		resource = filterInSlackMessage(resource)
-		err = resourcesmongodbrepo.UpdateResourceSlackMessage(resource, ctx)
+		err = resourcesmongodb.UpdateResourceSlackMessage(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2291,9 +2292,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "general.ror.internal/v1alpha1" && resourceUpdate.Kind == "VulnerabilityEvent" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVulnerabilityEvent]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVulnerabilityEvent]](resourceUpdate)
 		resource = filterInVulnerabilityEvent(resource)
-		err = resourcesmongodbrepo.UpdateResourceVulnerabilityEvent(resource, ctx)
+		err = resourcesmongodb.UpdateResourceVulnerabilityEvent(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2303,9 +2304,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "general.ror.internal/v1alpha1" && resourceUpdate.Kind == "VirtualMachine" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVirtualMachine]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceVirtualMachine]](resourceUpdate)
 		resource = filterInVirtualMachine(resource)
-		err = resourcesmongodbrepo.UpdateResourceVirtualMachine(resource, ctx)
+		err = resourcesmongodb.UpdateResourceVirtualMachine(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2315,9 +2316,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "v1" && resourceUpdate.Kind == "Endpoints" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceEndpoints]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceEndpoints]](resourceUpdate)
 		resource = filterInEndpoints(resource)
-		err = resourcesmongodbrepo.UpdateResourceEndpoints(resource, ctx)
+		err = resourcesmongodb.UpdateResourceEndpoints(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
@@ -2327,9 +2328,9 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 	}
 
 	if resourceUpdate.ApiVersion == "networking.k8s.io/v1" && resourceUpdate.Kind == "NetworkPolicy" {
-		resource := resourcesmongodbrepo.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceNetworkPolicy]](resourceUpdate)
+		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceNetworkPolicy]](resourceUpdate)
 		resource = filterInNetworkPolicy(resource)
-		err = resourcesmongodbrepo.UpdateResourceNetworkPolicy(resource, ctx)
+		err = resourcesmongodb.UpdateResourceNetworkPolicy(resource, ctx)
 		if err == nil {
 			err = sendToMessageBus(ctx, resource, apiresourcecontracts.K8sActionUpdate)
 			if err != nil {
