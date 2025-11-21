@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
-	"github.com/NorskHelsenett/ror-api/internal/responses"
+	"github.com/NorskHelsenett/ror-api/internal/models/responses"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 
