@@ -7,11 +7,11 @@ import (
 	"time"
 
 	clustersservice "github.com/NorskHelsenett/ror-api/internal/apiservices/clustersService"
+	apikeyrepo "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/apikeys"
+	datacenterRepo "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/datacenters"
 
 	"github.com/NorskHelsenett/ror-api/internal/auditlog"
 	"github.com/NorskHelsenett/ror-api/internal/models"
-	apikeyrepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/apikeysRepo"
-	datacenterRepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/datacentersRepo"
 
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"

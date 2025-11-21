@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
+	"github.com/NorskHelsenett/ror-api/internal/databases/mongodb/mongoTypes"
+	mongoauditlog "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/auditlog"
 	"github.com/NorskHelsenett/ror-api/internal/models"
-	"github.com/NorskHelsenett/ror-api/internal/mongodbrepo/mongoTypes"
-	auditlogrepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/auditlogRepo"
 
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
@@ -27,7 +27,7 @@ func Create(ctx context.Context, msg string, category models.AuditCategory, acti
 	data["old_object"] = oldObject
 	auditLog.Data = data
 
-	insertedID, err := auditlogrepo.Create(ctx, auditLog)
+	insertedID, err := mongoauditlog.Create(ctx, auditLog)
 	if err != nil {
 		rlog.Error("failed to create auditlog", err, rlog.String("msg", msg), rlog.Any("category", category), rlog.Any("action", action))
 	}

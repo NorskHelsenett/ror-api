@@ -6,10 +6,10 @@ import (
 	"fmt"
 
 	"github.com/NorskHelsenett/ror-api/internal/auditlog"
+	"github.com/NorskHelsenett/ror-api/internal/databases/mongodb/mongoTypes"
+	operatorconfigrepo "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/operatorconfig"
 	"github.com/NorskHelsenett/ror-api/internal/helpers/mapping"
 	"github.com/NorskHelsenett/ror-api/internal/models"
-	"github.com/NorskHelsenett/ror-api/internal/mongodbrepo/mongoTypes"
-	operatorconfigrepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/operatorconfigRepo"
 
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 

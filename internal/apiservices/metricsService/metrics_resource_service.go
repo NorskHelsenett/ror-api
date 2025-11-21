@@ -11,7 +11,7 @@ import (
 
 	apimachinery "k8s.io/apimachinery/pkg/api/resource"
 
-	metricsRepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/metricsRepo"
+	mongometrics "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/metrics"
 )
 
 // Enriches metricsreports and calls metricsRepo.WriteMetrics to save the data to mongodb
@@ -36,6 +36,6 @@ func ProcessMetricReport(ctx context.Context, resourceUpdate *apicontracts.Metri
 			resourceUpdate.Nodes[m].MemoryPercentage = memoryPercentage
 		}
 	}
-	metricsRepo.WriteMetrics(resourceUpdate, string(resourceUpdate.Owner.Subject), ctx)
+	mongometrics.WriteMetrics(resourceUpdate, string(resourceUpdate.Owner.Subject), ctx)
 	return nil
 }

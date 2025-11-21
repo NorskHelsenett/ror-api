@@ -5,8 +5,8 @@ import (
 	"errors"
 
 	"github.com/NorskHelsenett/ror-api/internal/auditlog"
+	datacentersRepo "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/datacenters"
 	"github.com/NorskHelsenett/ror-api/internal/models"
-	datacentersRepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/datacentersRepo"
 
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 

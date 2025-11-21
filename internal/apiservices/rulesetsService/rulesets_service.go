@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
-	"github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/rulesetsRepo"
+	mongorulesets "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/rulesets"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
@@ -25,7 +25,7 @@ func Create(ctx context.Context, clusterId string) (*messages.RulesetModel, erro
 	set.Identity.Type = messages.RulesetIdentityTypeCluster
 	set.Identity.Id = clusterId
 
-	if err := rulesetsRepo.Create(ctx, set); err != nil {
+	if err := mongorulesets.Create(ctx, set); err != nil {
 		return nil, err
 	}
 
@@ -38,7 +38,7 @@ func CreateInternal(ctx context.Context) (*messages.RulesetModel, error) {
 	set.Identity.Type = messages.RulesetIdentityTypeInternal
 	set.Identity.Id = "internal-primary"
 
-	if err := rulesetsRepo.Create(ctx, set); err != nil {
+	if err := mongorulesets.Create(ctx, set); err != nil {
 		return nil, err
 	}
 
@@ -46,7 +46,7 @@ func CreateInternal(ctx context.Context) (*messages.RulesetModel, error) {
 }
 
 func FindInternal(ctx context.Context) (*messages.RulesetModel, error) {
-	set, err := rulesetsRepo.FindInternal(ctx)
+	set, err := mongorulesets.FindInternal(ctx)
 	if err != nil {
 		if !errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, err
@@ -59,11 +59,11 @@ func FindInternal(ctx context.Context) (*messages.RulesetModel, error) {
 }
 
 func FindAll(ctx context.Context) ([]*messages.RulesetModel, error) {
-	return rulesetsRepo.FindAll(ctx)
+	return mongorulesets.FindAll(ctx)
 }
 
 func FindCluster(ctx context.Context, clusterId string) (*messages.RulesetModel, error) {
-	set, err := rulesetsRepo.FindCluster(ctx, clusterId)
+	set, err := mongorulesets.FindCluster(ctx, clusterId)
 	if err != nil {
 		if !errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, err
@@ -76,16 +76,16 @@ func FindCluster(ctx context.Context, clusterId string) (*messages.RulesetModel,
 }
 
 func Find(ctx context.Context, setId string) (*messages.RulesetModel, error) {
-	return rulesetsRepo.FindById(ctx, setId)
+	return mongorulesets.FindById(ctx, setId)
 }
 
 func DeleteResource(ctx context.Context, setId string, resourceId string) error {
-	set, err := rulesetsRepo.FindById(ctx, setId)
+	set, err := mongorulesets.FindById(ctx, setId)
 	if err != nil {
 		return err
 	}
 
-	if err := rulesetsRepo.PullResource(ctx, set, resourceId); err != nil {
+	if err := mongorulesets.PullResource(ctx, set, resourceId); err != nil {
 		return nil
 	}
 
@@ -95,7 +95,7 @@ func DeleteResource(ctx context.Context, setId string, resourceId string) error 
 func AddResource(ctx context.Context, setId string, input *messages.RulesetResourceInput) (*messages.RulesetResourceModel, error) {
 	model := new(messages.RulesetResourceModel)
 
-	set, err := rulesetsRepo.FindById(ctx, setId)
+	set, err := mongorulesets.FindById(ctx, setId)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +147,7 @@ func AddResource(ctx context.Context, setId string, input *messages.RulesetResou
 
 	model.Id = uuid.NewString()
 
-	if err := rulesetsRepo.AddResource(ctx, set, model); err != nil {
+	if err := mongorulesets.AddResource(ctx, set, model); err != nil {
 		return nil, err
 	}
 
@@ -164,7 +164,7 @@ func AddResourceRule(ctx context.Context, setId string, resourceId string, input
 
 	model.Slack = input.Slack
 
-	set, err := rulesetsRepo.FindById(ctx, setId)
+	set, err := mongorulesets.FindById(ctx, setId)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +176,7 @@ func AddResourceRule(ctx context.Context, setId string, resourceId string, input
 	}
 	rlog.Infoc(ctx, "found resource", rlog.String("id", resource.Id))
 
-	if err := rulesetsRepo.AddResourceRule(ctx, set, resource, model); err != nil {
+	if err := mongorulesets.AddResourceRule(ctx, set, resource, model); err != nil {
 		return nil, err
 	}
 	rlog.Infoc(ctx, "added event", rlog.String("id", model.Id))
@@ -185,7 +185,7 @@ func AddResourceRule(ctx context.Context, setId string, resourceId string, input
 }
 
 func DeleteResourceRule(ctx context.Context, setId string, resourceId string, ruleId string) error {
-	set, err := rulesetsRepo.FindById(ctx, setId)
+	set, err := mongorulesets.FindById(ctx, setId)
 	if err != nil {
 		return err
 	}
@@ -195,7 +195,7 @@ func DeleteResourceRule(ctx context.Context, setId string, resourceId string, ru
 		return err
 	}
 
-	if err := rulesetsRepo.PullResourceRule(ctx, set, resource, ruleId); err != nil {
+	if err := mongorulesets.PullResourceRule(ctx, set, resource, ruleId); err != nil {
 		return nil
 	}
 

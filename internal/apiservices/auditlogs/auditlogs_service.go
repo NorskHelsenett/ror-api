@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	auditlogrepo "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/auditlog"
 	"github.com/NorskHelsenett/ror-api/internal/helpers/mapping"
-	auditlogrepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/auditlogRepo"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 )

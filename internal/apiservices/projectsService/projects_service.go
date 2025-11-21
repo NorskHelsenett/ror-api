@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/NorskHelsenett/ror-api/internal/auditlog"
+	"github.com/NorskHelsenett/ror-api/internal/databases/mongodb/mongoTypes"
 	"github.com/NorskHelsenett/ror-api/internal/helpers/mapping"
 	"github.com/NorskHelsenett/ror-api/internal/models"
-	"github.com/NorskHelsenett/ror-api/internal/mongodbrepo/mongoTypes"
 
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
@@ -15,14 +15,14 @@ import (
 
 	clustersservice "github.com/NorskHelsenett/ror-api/internal/apiservices/clustersService"
 
-	clustersRepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/clustersRepo"
-	projectsRepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/projectsRepo"
+	mongoclusters "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/clusters"
+	mongoprojects "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/projects"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontracts.PaginatedResult[apicontracts.Project], error) {
-	projects, totalCount, err := projectsRepo.GetByFilter(ctx, filter)
+	projects, totalCount, err := mongoprojects.GetByFilter(ctx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("error when getting projects by filter from repo: %v", err)
 	}
@@ -48,7 +48,7 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 }
 
 func GetById(ctx context.Context, ID string) (*apicontracts.Project, error) {
-	object, err := projectsRepo.GetById(ctx, ID)
+	object, err := mongoprojects.GetById(ctx, ID)
 	if err != nil {
 		return nil, fmt.Errorf("could not get object by ID from repository: %v", err)
 	}
@@ -63,7 +63,7 @@ func GetById(ctx context.Context, ID string) (*apicontracts.Project, error) {
 }
 
 func GetClustersByProjectId(ctx context.Context, projectId string) ([]*apicontracts.ClusterInfo, error) {
-	objects, err := clustersRepo.GetClusterIdByProjectId(ctx, projectId)
+	objects, err := mongoclusters.GetClusterIdByProjectId(ctx, projectId)
 	if err != nil {
 		return nil, fmt.Errorf("could not get object by ID from repository: %v", err)
 	}
@@ -89,7 +89,7 @@ func Create(ctx context.Context, projectInput *apicontracts.ProjectModel) (*apic
 		return nil, fmt.Errorf("could not map project from apitype to mongotype: %v", err)
 	}
 
-	createdProject, err := projectsRepo.Create(ctx, &mappedInput)
+	createdProject, err := mongoprojects.Create(ctx, &mappedInput)
 	if err != nil {
 		return nil, fmt.Errorf("could not create project: %v", err)
 	}
@@ -117,7 +117,7 @@ func Update(ctx context.Context, projectId string, input *apicontracts.ProjectMo
 	}
 
 	mongoObject.ID = primitive.NilObjectID
-	newObject, oldObject, err := projectsRepo.Update(ctx, mongoObject, projectId)
+	newObject, oldObject, err := mongoprojects.Update(ctx, mongoObject, projectId)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not update object: %v", err)
 	}
@@ -153,7 +153,7 @@ func Delete(ctx context.Context, projectId string) (bool, *apicontracts.Project,
 		return false, nil, fmt.Errorf("could not delete project, it is in use")
 	}
 
-	deleted, deletedObject, err := projectsRepo.Delete(ctx, projectId)
+	deleted, deletedObject, err := mongoprojects.Delete(ctx, projectId)
 	if err != nil {
 		return false, nil, fmt.Errorf("could not delete object: %v", err)
 	}

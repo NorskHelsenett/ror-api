@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
+	mongoviews "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/views"
 	"github.com/NorskHelsenett/ror-api/internal/models/viewsmodels"
-	viewsrepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/viewsRepo"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 )
@@ -36,7 +36,7 @@ func GetViewVulnerabilityReports(ctx context.Context, ownerref apiresourcecontra
 func GetViewVulnerabilityReportsById(ctx context.Context, cveId string) (viewsmodels.VulnerabilityById, error) {
 	var view viewsmodels.VulnerabilityById
 
-	data, err := viewsrepo.GetViewVulnerabilityReportsById(ctx, cveId)
+	data, err := mongoviews.GetViewVulnerabilityReportsById(ctx, cveId)
 
 	view.ImportData(data)
 	if err != nil {
@@ -46,7 +46,7 @@ func GetViewVulnerabilityReportsById(ctx context.Context, cveId string) (viewsmo
 }
 
 func GetGlobalViewVulnerabilityReportsById(ctx context.Context, cveId string) ([]viewsmodels.GlobalVulnerabilityReportsViewById, error) {
-	data, err := viewsrepo.GetGlobalViewVulnerabilityReportsById(ctx, cveId)
+	data, err := mongoviews.GetGlobalViewVulnerabilityReportsById(ctx, cveId)
 
 	if err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ func GetGlobalViewVulnerabilityReportsById(ctx context.Context, cveId string) ([
 }
 
 func GetViewVulnerabilityReportsGlobal(ctx context.Context) ([]viewsmodels.VulnerabilityReportsView, error) {
-	data, err := viewsrepo.GetViewVulnerabilityReportsGlobal(ctx)
+	data, err := mongoviews.GetViewVulnerabilityReportsGlobal(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func GetViewPolicyReportSummary(ctx context.Context, querytype viewsmodels.Polic
 		Type:     querytype,
 		Internal: false,
 	}
-	ReportsView, err := viewsrepo.GetPolicyReportSummary(ctx, query, clusterID)
+	ReportsView, err := mongoviews.GetPolicyReportSummary(ctx, query, clusterID)
 	if err != nil {
 		return ReportsView, err
 	}
@@ -78,7 +78,7 @@ func GetViewPolicyReportSummary(ctx context.Context, querytype viewsmodels.Polic
 }
 
 func GetClusterComplianceReports(ctx context.Context, clusterId string) ([]viewsmodels.ComplianceReport, error) {
-	reports, err := viewsrepo.GetComplianceReports(ctx, clusterId)
+	reports, err := mongoviews.GetComplianceReports(ctx, clusterId)
 	if err != nil {
 		return nil, fmt.Errorf("error when fetching compliance reports from repository: %w", err)
 	}
@@ -86,7 +86,7 @@ func GetClusterComplianceReports(ctx context.Context, clusterId string) ([]views
 }
 
 func GetClusterComplianceReportsGlobal(ctx context.Context) ([]viewsmodels.ComplianceReport, error) {
-	reports, err := viewsrepo.GetComplianceReportsGlobal(ctx)
+	reports, err := mongoviews.GetComplianceReportsGlobal(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error when fetching compliance reports from repository: %w", err)
 	}

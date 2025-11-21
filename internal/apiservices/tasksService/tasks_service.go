@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/NorskHelsenett/ror-api/internal/auditlog"
+	tasksrepo "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/tasks"
 	"github.com/NorskHelsenett/ror-api/internal/models"
-	tasksrepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/tasksRepo"
 
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
