@@ -29,7 +29,7 @@ require (
 	go.opentelemetry.io/otel v1.38.0
 	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546
 	golang.org/x/time v0.14.0
-	k8s.io/apimachinery v0.34.1
+	k8s.io/apimachinery v0.34.2
 	sigs.k8s.io/yaml v1.6.0
 )
 
