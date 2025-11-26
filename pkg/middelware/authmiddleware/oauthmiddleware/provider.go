@@ -41,8 +41,8 @@ func (d *OauthProvider) GetIssuers() []string {
 	return d.Issuers
 }
 
-// Verify provider configuration
-func (d *OauthProvider) Verify() error {
+// VerifyConfig provider configuration
+func (d *OauthProvider) VerifyConfig() error {
 	if d.Provider == nil {
 		return fmt.Errorf("OIDC provider is not initialized")
 	}
@@ -82,7 +82,7 @@ func NewOauthProvider(opts ...OauthProviderOption) OauthProviderInterface {
 
 	provider.Provider = oidcProvider
 
-	err = provider.Verify()
+	err = provider.VerifyConfig()
 	if err != nil {
 		rlog.Error("Invalid OIDC provider configuration", err)
 		return nil
