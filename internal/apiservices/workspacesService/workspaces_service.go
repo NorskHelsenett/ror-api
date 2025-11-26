@@ -6,10 +6,10 @@ import (
 	"fmt"
 
 	"github.com/NorskHelsenett/ror-api/internal/auditlog"
+	"github.com/NorskHelsenett/ror-api/internal/databases/mongodb/mongoTypes"
+	mongoworkspaces "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/workspaces"
 	"github.com/NorskHelsenett/ror-api/internal/helpers/mapping"
 	"github.com/NorskHelsenett/ror-api/internal/models"
-	"github.com/NorskHelsenett/ror-api/internal/mongodbrepo/mongoTypes"
-	workspacesRepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/workspacesRepo"
 	"github.com/NorskHelsenett/ror-api/internal/services/kubeconfigservice"
 
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
@@ -22,7 +22,7 @@ import (
 )
 
 func GetAll(ctx context.Context) (*[]apicontracts.Workspace, error) {
-	workspaces, err := workspacesRepo.GetAllByIdentity(ctx)
+	workspaces, err := mongoworkspaces.GetAllByIdentity(ctx)
 	if err != nil {
 		return nil, errors.New("Could not get workspaces")
 	}
@@ -35,7 +35,7 @@ func GetByFilter(ctx context.Context, filter apicontracts.Filter) ([]*apicontrac
 }
 
 func GetById(ctx context.Context, id string) (*apicontracts.Workspace, error) {
-	object, err := workspacesRepo.GetById(ctx, id)
+	object, err := mongoworkspaces.GetById(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("could not get object by ID from repository: %w", err)
 	}
@@ -54,7 +54,7 @@ func GetById(ctx context.Context, id string) (*apicontracts.Workspace, error) {
 }
 
 func GetByName(ctx context.Context, workspaceName string) (*apicontracts.Workspace, error) {
-	workspace, err := workspacesRepo.GetByName(ctx, workspaceName)
+	workspace, err := mongoworkspaces.GetByName(ctx, workspaceName)
 	if err != nil {
 		rlog.Error("could not get workspace", err)
 		return nil, errors.New("could not get workspace")
@@ -87,7 +87,7 @@ func Update(ctx context.Context, input *apicontracts.Workspace, id string) (*api
 	// 	mappedInput.ProjectID = projectID
 	// }
 
-	updatedObject, originalObject, err := workspacesRepo.Update(ctx, &mappedInput, id)
+	updatedObject, originalObject, err := mongoworkspaces.Update(ctx, &mappedInput, id)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not update object: %w", err)
 	}
@@ -125,7 +125,7 @@ func GetKubeconfig(ctx context.Context, workspaceName string, credentials apicon
 		return "", err
 	}
 
-	workspace, err := workspacesRepo.GetByName(ctx, workspaceName)
+	workspace, err := mongoworkspaces.GetByName(ctx, workspaceName)
 	if err != nil {
 		err := fmt.Errorf("could not find workspace with name: %s", workspaceName)
 		rlog.Errorc(ctx, "could not get kubeconfig", err, rlog.String("workspaceName", workspaceName))

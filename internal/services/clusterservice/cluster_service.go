@@ -7,17 +7,15 @@ import (
 	"time"
 
 	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
-
+	mongoclusters "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/clusters"
+	mongodatacenters "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/datacenters"
+	mongoprojects "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/projects"
+	mongoworkspaces "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/workspaces"
 	"github.com/NorskHelsenett/ror-api/internal/helpers/mapping"
-	clustersRepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/clustersRepo"
-	datacentersRepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/datacentersRepo"
-	projectsrepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/projectsRepo"
-	workspacesRepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/workspacesRepo"
-
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 	"github.com/NorskHelsenett/ror/pkg/helpers/stringhelper"
-	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 )
 
@@ -43,19 +41,19 @@ func Create(ctx context.Context, clusterName, datacenterId, workspaceId, workspa
 			ProjectID: projectId,
 		},
 	}
-	datacenter, _ := datacentersRepo.GetById(ctx, datacenterId)
+	datacenter, _ := mongodatacenters.GetById(ctx, datacenterId)
 	if datacenter != nil {
 		clusterInput.Workspace.DatacenterID = datacenter.ID
 	} else {
 		return "", fmt.Errorf("could not find datacenter with id: %s", datacenterId)
 	}
 
-	workspace, _ := workspacesRepo.FindByName(ctx, workspaceName)
+	workspace, _ := mongoworkspaces.FindByName(ctx, workspaceName)
 	if workspace != nil {
 		clusterInput.Workspace = *workspace
 		clusterInput.WorkspaceId = workspace.ID
 	} else {
-		w, err := workspacesRepo.Create(ctx, &apicontracts.Workspace{
+		w, err := mongoworkspaces.Create(ctx, &apicontracts.Workspace{
 			Name:         workspaceName,
 			DatacenterID: datacenter.ID,
 		})
@@ -73,7 +71,7 @@ func Create(ctx context.Context, clusterName, datacenterId, workspaceId, workspa
 	clusterInput.Identifier = GetClusterIdentifier(clusterName)
 	clusterInput.ClusterId = clusterInput.Identifier
 
-	err := clustersRepo.Create(ctx, &clusterInput)
+	err := mongoclusters.Create(ctx, &clusterInput)
 	if err != nil {
 		return "", fmt.Errorf("could not create cluster with id: %s", clusterInput.ClusterId)
 	}
@@ -103,7 +101,7 @@ func postSetupCluster(ctx context.Context, clusterId string) error {
 		return fmt.Errorf("clusterId must be set")
 	}
 
-	cluster, err := clustersRepo.FindByClusterId(ctx, clusterId)
+	cluster, err := mongoclusters.FindByClusterId(ctx, clusterId)
 	if err != nil {
 		rlog.Errorc(ctx, "could not find cluster", err, rlog.String("clusterId", clusterId))
 		return fmt.Errorf("could not find cluster with id: %s", clusterId)
@@ -135,7 +133,7 @@ func postSetupCluster(ctx context.Context, clusterId string) error {
 		return fmt.Errorf("could not find cluster order for cluster: %s", cluster.ClusterName)
 	}
 
-	mongoProject, err := projectsrepo.GetById(ctx, clusterOrder.Spec.ProjectId)
+	mongoProject, err := mongoprojects.GetById(ctx, clusterOrder.Spec.ProjectId)
 	if err != nil {
 		rlog.Errorc(ctx, "error getting project", err)
 		return err
@@ -163,7 +161,7 @@ func postSetupCluster(ctx context.Context, clusterId string) error {
 	cluster.ACL.AccessGroups = groups
 	cluster.Updated = time.Now()
 
-	err = clustersRepo.Update(ctx, cluster)
+	err = mongoclusters.Update(ctx, cluster)
 	if err != nil {
 		rlog.Errorc(ctx, "error updating cluster", err)
 		return err
@@ -181,7 +179,7 @@ func postSetupCluster(ctx context.Context, clusterId string) error {
 		Roles: project.ProjectMetadata.Roles,
 	}
 
-	err = clustersRepo.UpdateMetadata(ctx, &metadata, cluster)
+	err = mongoclusters.UpdateMetadata(ctx, &metadata, cluster)
 	if err != nil {
 		rlog.Errorc(ctx, "error updating cluster metadata", err)
 		return err

@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/NorskHelsenett/ror-api/internal/databases/mongodb/mongoTypes"
+	pricesRepo "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/prices"
 	"github.com/NorskHelsenett/ror-api/internal/helpers/mapping"
-	"github.com/NorskHelsenett/ror-api/internal/mongodbrepo/mongoTypes"
-	pricesRepo "github.com/NorskHelsenett/ror-api/internal/mongodbrepo/repositories/pricesRepo"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 )

@@ -39,5 +39,5 @@ func main() {
 
 	// Internal - mongorepo
 	//   - internal/mongodbrepo/repositories/resourcesmongodbrepo/resourcesinsertupdate_generated.go
-	generator.TemplateFile("internal/mongodbrepo/repositories/resourcesmongodbrepo/resourcesinsertupdate_generated.go.tmpl", rordefs.Resourcedefs.GetResourcesByVersion(rordefs.ApiVersionV1))
+	generator.TemplateFile("internal/databases/mongodb/repositories/resourcesmongodb/resourcesinsertupdate_generated.go.tmpl", rordefs.Resourcedefs.GetResourcesByVersion(rordefs.ApiVersionV1))
 }

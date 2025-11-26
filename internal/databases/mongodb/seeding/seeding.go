@@ -6,8 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/NorskHelsenett/ror-api/internal/mongodbrepo/mongoTypes"
-
+	"github.com/NorskHelsenett/ror-api/internal/databases/mongodb/mongoTypes"
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
 
