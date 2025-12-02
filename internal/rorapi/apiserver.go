@@ -27,7 +27,6 @@ func Run() {
 	InitConfig()
 	rlog.Infoc(ctx, "ROR Api startup ")
 	rlog.Infof("API-version: %s (%s) Library-version: %s", rorversion.GetRorVersion().GetVersion(), rorversion.GetRorVersion().GetCommit(), rorversion.GetRorVersion().GetLibVer())
-	apiconnections.InitConnections(ctx)
 
 	//TODO: Refactor the init funcitons called to respect context cancelations
 	apiconnections.InitConnections(ctx)
