@@ -97,7 +97,7 @@ func startHttpServer(ctx context.Context) error {
 
 		// we create a new context here because the one passed to use is
 		// canceled in this case
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
 		err = httpServ.Shutdown(ctx)
