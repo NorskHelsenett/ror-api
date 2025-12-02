@@ -2,6 +2,7 @@ package webserver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"sync"
@@ -26,13 +27,17 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
-func StartListening(ctx context.Context, wg *sync.WaitGroup){
+func StartListening(ctx context.Context, wg *sync.WaitGroup) {
 	wg.Go(func() {
-		initHttpServer(ctx, wg)
-	})	
+		err := startHttpServer(ctx)
+		if err != nil {
+			rlog.Fatal("the ror api encountered an unexpected error: ", err)
+			return
+		}
+	})
 }
 
-func initHttpServer(ctx context.Context, wg *sync.WaitGroup) error {
+func startHttpServer(ctx context.Context) error {
 	authmiddleware.RegisterAuthProvider(oauthmiddleware.NewDefaultOauthMiddleware())
 	authmiddleware.RegisterAuthProvider(apikeyauth.NewApiKeyAuthProvider())
 
@@ -67,28 +72,45 @@ func initHttpServer(ctx context.Context, wg *sync.WaitGroup) error {
 	routes.SetupRoutes(router)
 
 	httpEndpoint := fmt.Sprintf("%s:%s", rorconfig.GetString(rorconfig.HTTP_HOST), rorconfig.GetString(rorconfig.HTTP_PORT))
-	
+
 	httpServ := &http.Server{
 		Addr:    httpEndpoint,
 		Handler: router,
 	}
 
-	wg.Go(func() {
-		httpServ.ListenAndServe()
-	})
+	chanHttpErr := make(chan error)
 
-	<-ctx.Done()
+	go func() {
+		err = httpServ.ListenAndServe()
+		if err != nil {
+			if !errors.Is(err, http.ErrServerClosed) {
+				chanHttpErr <- err
+			}
+		}
+	}()
 
-	rlog.Info("shutting down http server gracefully")
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
+	select {
+	// if we are toldt to abort, initate gracefull shutdown of the http
+	// server
+	case <-ctx.Done():
+		rlog.Info("http server: attempting graceful shutdown")
 
-	err = httpServ.Shutdown(ctx)
-	if err != nil {
-		rlog.Error("error while http server was shutting down", err)
+		// we create a new context here because the one passed to use is
+		// canceled in this case
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+
+		err = httpServ.Shutdown(ctx)
+		if err != nil {
+			rlog.Error("error while http server was shutting down", err)
+			return err
+		}
+
+		rlog.Info("http server: graceful shutdown complete")
+		return nil
+	// handle unexpected errors from the http server
+	case <-chanHttpErr:
+		rlog.Error("http server closed unexpectedly", err)
 		return err
 	}
-	rlog.Info("http server successfully shut down")
-
-	return nil
 }
