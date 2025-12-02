@@ -30,8 +30,8 @@ var (
 	DomainResolvers    *userauth.DomainResolvers
 )
 
-func InitConnections() {
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+func InitConnections(ctx context.Context) {
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	VaultClient = vaultclient.NewVaultClient(rorconfig.GetString(rorconfig.ROLE), rorconfig.GetString(rorconfig.VAULT_URL))
 
