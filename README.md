@@ -6,31 +6,40 @@ WebAPI made with Golang and Gin WebAPI framework
 
 # Prerequisites
 
--   Golang 1.23.x
--   ROR core: https://github.com/NorskHelsenett/ror
+- Golang 1.25.4
+- Vault, Valkey, RabbitMQ, MongoDB, OpenIDConnect service (see requirements on how to start)
 
 # Get started
 
 Bash commands is from `<repo root>`
 
-## Download dependencies:
+## Start requirements
 
 ```bash
-go get ./...
+docker compose up -d
 ```
 
-## Start WebAPI
+### Optional
+
+**ui**: provides mongoexpress and rediscommander
+**tracing**: otel collector and jaeger
+
+```bash
+docker compose --profiles [ui] [tracing] up -d
+```
+
+## Start API
 
 ### Visual Studio Code
 
 1. Open the repository in Visual Studio Code
 2. Go to Debugging
-3. On "Run and debug" select "Debug ROR-Api" or "Debug ROR-Api tests"
+3. On "Run and debug" select "Debug ROR-Api"
 
 ### Terminal
 
 ```bash
-go run main.go
+go run cmd/api/main.go
 ```
 
 # Generate swagger docs:
