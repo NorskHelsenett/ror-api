@@ -200,13 +200,10 @@ func seedDatacenters(ctx context.Context) {
 		},
 	}
 
-	for i := 0; i < len(datacenters); i++ {
+	for i := range datacenters {
 		datacenterInput := datacenters[i]
 		var datacenter *mongoTypes.MongoDatacenter
-		findError := collection.FindOne(ctx, bson.M{"name": datacenterInput.Name}).Decode(&datacenter)
-		if findError != nil {
-			rlog.Errorc(ctx, "could not find datacenter", findError)
-		}
+		_ = collection.FindOne(ctx, bson.M{"name": datacenterInput.Name}).Decode(&datacenter)
 
 		if datacenter != nil {
 			continue
