@@ -22,6 +22,7 @@ docker compose up -d
 ### Optional
 
 **ui**: provides mongoexpress and rediscommander
+
 **tracing**: otel collector and jaeger
 
 ```bash
