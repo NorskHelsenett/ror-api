@@ -16,6 +16,7 @@ Bash commands is from `<repo root>`
 ## Start requirements
 
 ```bash
+cp .env.example .env
 docker compose up -d
 ```
 
