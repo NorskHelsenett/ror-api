@@ -16,7 +16,6 @@ services:
       timeout: 15s
       retries: 10
 
-
   mongodb:
     image: ${DOCKER_MIRROR}mongo:8-noble
     volumes:
@@ -109,7 +108,7 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
-      rabbitmq: 
+      rabbitmq:
         condition: service_healthy
       valkey:
         condition: service_healthy
@@ -133,7 +132,7 @@ services:
       LDAP_ORGANISATION: 'ROR by NHN'
       LDAP_DOMAIN: ror.dev
     volumes:
-      - ${DOCKER_VOLUME_PATH:-../ror/hacks/data}/openldap/config-ldap.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/custom-config.ldif
+      - ${ROR_ASSETS_PATH:-./hacks/assets}/openldap/config-ldap.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/custom-config.ldif
     ports:
       - '1389:389'
 
@@ -174,7 +173,7 @@ services:
     restart: unless-stopped
     platform: linux/amd64
     ports:
-      - "9082:8081"
+      - '9082:8081'
     environment:
       - REDIS_HOSTS=ror-api:valkey:6379:0:S3cret!
     depends_on:
@@ -183,4 +182,3 @@ services:
       - ui
 volumes:
   data: {}
-
