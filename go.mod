@@ -1,6 +1,6 @@
 module github.com/NorskHelsenett/ror-api
 
-go 1.25.0
+go 1.25.4
 
 require (
 	github.com/NorskHelsenett/ror v1.9.3
