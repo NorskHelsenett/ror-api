@@ -180,5 +180,18 @@ services:
       - valkey
     profiles:
       - ui
+  mocc:
+    image: ghcr.io/jonasbg/mocc:latest
+    container_name: ${COMPOSE_PROJECT_NAME}-mocc
+    restart: unless-stopped
+    ports:
+      - '6006:6006'
+    environment:
+      - PORT=6006
+    volumes:
+      - ${ROR_ASSETS_PATH:-./hacks/assets}/mocc/users.yaml:/config/users.yaml:ro
+    profiles:
+      - mocc
 volumes:
   data: {}
+

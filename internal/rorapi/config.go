@@ -1,7 +1,6 @@
 package rorapi
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -13,7 +12,6 @@ import (
 var (
 	sigs chan os.Signal
 	done chan struct{}
-	ctx  context.Context
 )
 
 func InitConfig() {
