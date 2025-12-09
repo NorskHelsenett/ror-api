@@ -1,0 +1,42 @@
+users:
+  - name: "Håvard Hageland"
+    apikey: "600ad949-e6ab-4d12-9ce7-076e35999661"
+    email: "superadmin@ror.dev"
+    claims:
+      aud: ["ror.sky.test.nhn.no"]
+      email_verified: true
+      groups: 
+      - A-T1-SDI-DevOps-Operators
+      - R-T1-Internal-Accounts
+  - name: "Herold Simonsen"
+    apikey: "56c27661-c143-45da-bbe1-290bbf701238"
+    email: "dev1@ror.dev"
+    claims:
+      aud: ["ror.sky.test.nhn.no"]
+      email_verified: true
+      groups: 
+      - R-T1-SDI-SHP-Plattform-Admin
+      - R-T1-Internal-Accounts
+      - Developers
+  - name: "Hjørdis Gulbrandsen"
+    apikey: "993482f9-59fa-4fbe-af8a-0dc13867bd7c"
+    email: "dev2@ror.dev"
+    claims:
+      aud: ["ror.sky.test.nhn.no"]
+      email_verified: true
+      groups:
+      - R-T1-Internal-Accounts
+      - Developers
+  - name: "Gunleif Lange"
+    apikey: "d5c20d9d-23d8-4691-b501-4232b0c3a50c"
+    email: "readadmin@ror.dev"
+    claims:
+      aud: ["ror.sky.test.nhn.no"]
+      email_verified: true
+      groups:
+      - R-T1-Internal-Accounts
+      - AdminRead
+config:
+  allow_origins:
+    - "http://localhost:11000"
+

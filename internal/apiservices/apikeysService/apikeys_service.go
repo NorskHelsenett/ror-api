@@ -372,3 +372,42 @@ func CreateOrRenew(ctx context.Context, req *apicontractsv2self.CreateOrRenewApi
 
 	return resp, nil
 }
+
+func CreateOrRenewDevelopmentToken(ctx context.Context, identifier string, name string, token string) (*apicontractsv2self.CreateOrRenewApikeyResponse, error) {
+	if !rorconfig.GetBool(rorconfig.DEVELOPMENT) {
+		return nil, fmt.Errorf("development tokens can only be created in development mode")
+	}
+	resp := &apicontractsv2self.CreateOrRenewApikeyResponse{}
+
+	expires := time.Now().Local().Add(time.Duration(60 * 24 * time.Hour))
+	existing, _ := apikeyrepo.GetByIdentifierAndName(ctx, identifier, name)
+	hash := stringhelper.HashSHA512(token, []byte(mustGetApikeySalt()))
+
+	if existing != nil {
+
+		err := apikeyrepo.UpdateByNameAndIdentifier(ctx, identifier, name, hash, expires)
+
+		if err != nil {
+			return nil, err
+		}
+	} else {
+
+		newkey := apicontracts.ApiKey{
+			Identifier:  identifier,
+			DisplayName: name,
+			Type:        apicontracts.ApiKeyTypeUser,
+			Hash:        hash,
+			Expires:     expires,
+			Created:     time.Now(),
+		}
+		err := apikeyrepo.Create(ctx, newkey)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	resp.Token = token
+	resp.Expires = expires
+
+	return resp, nil
+}

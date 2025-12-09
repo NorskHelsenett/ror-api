@@ -38,6 +38,11 @@ func StartListening(ctx context.Context, wg *sync.WaitGroup) {
 }
 
 func startHttpServer(ctx context.Context) error {
+
+	if !rorconfig.GetBool(rorconfig.DEVELOPMENT) {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	authmiddleware.RegisterAuthProvider(oauthmiddleware.NewDefaultOauthMiddleware())
 	authmiddleware.RegisterAuthProvider(apikeyauth.NewApiKeyAuthProvider())
 

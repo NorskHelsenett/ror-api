@@ -51,28 +51,56 @@ func GetByIdentifier(ctx context.Context, identifier string) ([]apicontracts.Api
 	}
 	return results, nil
 }
-
-func GetOwnByName(ctx context.Context, name string) (*apicontracts.ApiKey, error) {
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
-
+func GetByIdentifierAndName(ctx context.Context, identifier string, name string) (*apicontracts.ApiKey, error) {
 	var aggregationPipeline = []bson.M{
-		{"$match": bson.M{"displayname": name, "identifier": identity.GetId()}},
+		{"$match": bson.M{"displayname": name, "identifier": identifier}},
 	}
 	var results = make([]apicontracts.ApiKey, 0)
 	mongoctx, cancel := context.WithTimeout(ctx, 4*time.Second)
 	defer cancel()
-	//mongoHelper.PrettyprintBSON(aggregationPipeline)
 	err := mongodb.Aggregate(mongoctx, collectionName, aggregationPipeline, &results)
 	if err != nil {
 		return nil, fmt.Errorf("error finding apikeys: %v", err)
 	}
-	if len(results) > 1 {
-		return nil, fmt.Errorf("found more than one apikey with description: %s for user %s", name, identity.GetId())
+	if len(results) != 1 {
+		return nil, fmt.Errorf("expected to find one apikey for identifier %s and name %s, found %d", identifier, name, len(results))
 	}
-	if len(results) == 0 {
-		return nil, nil
-	}
+
 	return &results[0], nil
+}
+
+func UpdateByNameAndIdentifier(ctx context.Context, identifier string, name string, hash string, expires time.Time) error {
+	existing, err := GetByIdentifierAndName(ctx, identifier, name)
+	if err != nil {
+		return fmt.Errorf("failed to query existing apikey: %v", err)
+	}
+
+	objectId, err := primitive.ObjectIDFromHex(existing.Id)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": objectId, "identifier": identifier}
+	update := bson.M{"$set": bson.M{"hash": hash, "expires": expires}}
+
+	_, err = mongodb.UpdateOne(ctx, collectionName, filter, update)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetOwnByName(ctx context.Context, name string) (*apicontracts.ApiKey, error) {
+	identity := rorcontext.GetIdentityFromRorContext(ctx)
+
+	return GetByIdentifierAndName(ctx, identity.GetId(), name)
+}
+
+func UpdateOwnByName(ctx context.Context, name string, hash string, expires time.Time) error {
+	identity := rorcontext.GetIdentityFromRorContext(ctx)
+
+	return UpdateByNameAndIdentifier(ctx, identity.GetId(), name, hash, expires)
 }
 
 func GetByFilter(ctx context.Context, filter *apicontracts.Filter) ([]apicontracts.ApiKey, int, error) {
@@ -89,31 +117,6 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) ([]apicontrac
 		return nil, 0, fmt.Errorf("could not get total count for apikey: %v", err)
 	}
 	return results, totalCount, nil
-}
-
-func UpdateOwnByName(ctx context.Context, name string, hash string, expires time.Time) error {
-
-	existing, err := GetOwnByName(ctx, name)
-	if err != nil {
-		return fmt.Errorf("failed to query existing apikey: %v", err)
-	}
-
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
-	identifier := identity.GetId()
-	objectId, err := primitive.ObjectIDFromHex(existing.Id)
-	if err != nil {
-		return err
-	}
-
-	filter := bson.M{"_id": objectId, "identifier": identifier}
-	update := bson.M{"$set": bson.M{"hash": hash, "expires": expires}}
-
-	_, err = mongodb.UpdateOne(ctx, collectionName, filter, update)
-
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func Delete(ctx context.Context, ID string) (bool, apicontracts.ApiKey, error) {
