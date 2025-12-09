@@ -19,7 +19,17 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/helpers/tokenstoragehelper/vaulttokenadapter"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/NorskHelsenett/ror/pkg/telemetry/trace"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"gopkg.in/yaml.v3"
+)
+
+var (
+	// resourcesProcessed is a Prometheus counter for the number of processed resources
+	resourcesProcessed = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "ror_api_not_safe_for_production",
+		Help: "Bool representing if the ROR-API is running in development mode",
+	})
 )
 
 func Run() {
@@ -58,6 +68,7 @@ func Run() {
 	if rorconfig.GetBool(rorconfig.DEVELOPMENT) {
 		printDevelopmentWarning()
 		printDevelopemntApiKeys()
+		resourcesProcessed.Set(1)
 	}
 
 	wg.Wait()
