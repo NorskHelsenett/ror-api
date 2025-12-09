@@ -7,7 +7,7 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	clustersservice "github.com/NorskHelsenett/ror-api/internal/apiservices/clustersService"
-	"github.com/NorskHelsenett/ror-api/internal/clients/helsegitlab"
+	"github.com/NorskHelsenett/ror-api/internal/clients/gitlab"
 	"github.com/NorskHelsenett/ror-api/internal/configuration"
 	"github.com/NorskHelsenett/ror-api/internal/factories/storagefactory"
 
@@ -84,7 +84,7 @@ func getArgoCdInstallerConfig(job *apicontracts.OperatorJob) error {
 		return errors.New("error getting secret file content from helsegitlab for task")
 	}
 
-	entrypoint, err := helsegitlab.GetFileContent(428, "argocd/entrypoint.sh", "main", apiconnections.VaultClient)
+	entrypoint, err := gitlab.GetFileContent(428, "argocd/entrypoint.sh", "main", apiconnections.VaultClient)
 	if err != nil {
 		rlog.Error("Could not get file from helsegitlab", err)
 		return nil
@@ -99,7 +99,7 @@ func getArgoCdInstallerConfig(job *apicontracts.OperatorJob) error {
 		},
 	}
 
-	rolebindings, err := helsegitlab.GetFileContent(428, "argocd/rolebinding.yaml", "main", apiconnections.VaultClient)
+	rolebindings, err := gitlab.GetFileContent(428, "argocd/rolebinding.yaml", "main", apiconnections.VaultClient)
 	if err != nil {
 		rlog.Error("Could not get file from helsegitlab", err)
 		return nil
@@ -127,7 +127,7 @@ func getClusterAgentInstallerConfig(job *apicontracts.OperatorJob, cluster *apic
 		return errors.New("could not find taskSpec")
 	}
 
-	entrypoint, err := helsegitlab.GetFileContent(428, "ror-agent/entrypoint.sh", "main", apiconnections.VaultClient)
+	entrypoint, err := gitlab.GetFileContent(428, "ror-agent/entrypoint.sh", "main", apiconnections.VaultClient)
 	if err != nil {
 		rlog.Error("Could not get file from helsegitlab", err)
 		return nil
@@ -214,7 +214,7 @@ func getNHNToolingInstallerConfig(job *apicontracts.OperatorJob, cluster *apicon
 		return errors.New("error generating config")
 	}
 
-	entrypoint, err := helsegitlab.GetFileContent(428, "nhn-tooling/entrypoint.sh", "main", apiconnections.VaultClient)
+	entrypoint, err := gitlab.GetFileContent(428, "nhn-tooling/entrypoint.sh", "main", apiconnections.VaultClient)
 	if err != nil {
 		rlog.Error("Could not get file from helsegitlab", err)
 		return nil

@@ -1,5 +1,5 @@
 // TODO: Replace with go-gitlab compatible library
-package helsegitlab
+package gitlab
 
 import (
 	"errors"
