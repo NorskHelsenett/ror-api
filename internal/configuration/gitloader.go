@@ -1,7 +1,7 @@
 package configuration
 
 import (
-	"github.com/NorskHelsenett/ror-api/internal/clients/helsegitlab"
+	"github.com/NorskHelsenett/ror-api/internal/clients/gitlab"
 
 	"github.com/NorskHelsenett/ror/pkg/clients/vaultclient"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
@@ -16,7 +16,7 @@ import (
 //		path: the path to the file
 //	 branch: the branch to download from
 func NewHelsegitlabLoader(parser ParserType, projectid int, path string, branch string, vaultClient *vaultclient.VaultClient) ConfigLoaderInterface {
-	data, err := helsegitlab.GetFileContent(projectid, path, branch, vaultClient)
+	data, err := gitlab.GetFileContent(projectid, path, branch, vaultClient)
 	if err != nil {
 		rlog.Error("Could not get file from helsegitlab", err)
 		return nil
