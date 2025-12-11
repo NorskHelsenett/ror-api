@@ -22,12 +22,26 @@ docker compose up -d
 
 ### Optional
 
+If extra functionality is needed, docker compose profiles can be utilized like this:
+
 **ui**: provides mongoexpress and rediscommander
 
 **tracing**: otel collector and jaeger
 
+Single profiles can be used like this:
+
 ```bash
-docker compose --profile [ui] [tracing] up -d
+docker compose --profile ui up -d
+```
+
+```bash
+docker compose --profile tracing up -d
+```
+
+Or multiple profiles can be applied at the same time like this:
+
+```bash
+docker compose --profile ui,tracing up -d
 ```
 
 ## Start API
