@@ -15,9 +15,17 @@ Bash commands is from `<repo root>`
 
 ## Start requirements
 
+To start the environment:
+
 ```bash
 cp .env.example .env
 docker compose up -d
+```
+
+To stop the environment:
+
+```bash
+docker compose down
 ```
 
 ### Optional
@@ -48,7 +56,7 @@ Or multiple profiles:
 docker compose --profile ui,tracing up -d
 ```
 
-To bring profiled docker compose manifests down you the following:
+To bring profiled docker compose manifests down, use the following:
 
 ```bash
 docker compose --profile ui down
@@ -63,6 +71,8 @@ Or multiple profiles:
 ```bash
 docker compose --profile ui,tracing down
 ```
+
+Failure to do so will result in the containers related to that profile to keep running.
 
 ## Start API
 
