@@ -15,20 +15,64 @@ Bash commands is from `<repo root>`
 
 ## Start requirements
 
+To start the environment:
+
 ```bash
 cp .env.example .env
 docker compose up -d
 ```
 
-### Optional
-
-**ui**: provides mongoexpress and rediscommander
-
-**tracing**: otel collector and jaeger
+To stop the environment:
 
 ```bash
-docker compose --profiles [ui] [tracing] up -d
+docker compose down
 ```
+
+### Optional
+
+If extra functionality is needed, the docker compose file is build with profiles.
+
+The current available profiles are:
+
+- **ui**: provides mongoexpress and rediscommander
+
+- **tracing**: otel collector and jaeger
+
+Docker compose profiles can be utilized like this:
+
+Single profiles:
+
+```bash
+docker compose --profile ui up -d
+```
+
+```bash
+docker compose --profile tracing up -d
+```
+
+Or multiple profiles:
+
+```bash
+docker compose --profile ui,tracing up -d
+```
+
+To bring profiled docker compose manifests down, use the following:
+
+```bash
+docker compose --profile ui down
+```
+
+```bash
+docker compose --profile tracing down
+```
+
+Or multiple profiles:
+
+```bash
+docker compose --profile ui,tracing down
+```
+
+Failure to do so will result in the containers related to that profile to keep running.
 
 ## Start API
 
@@ -136,48 +180,48 @@ make build-static
 
 #### Prerequisites
 
--   `make check-prereqs` - Check all required tools are installed
--   `make install-tools` - Install development tools (golangci-lint, gosec, swag)
+- `make check-prereqs` - Check all required tools are installed
+- `make install-tools` - Install development tools (golangci-lint, gosec, swag)
 
 #### Build and Test
 
--   `make build` - Build the application
--   `make build-generator` - Build the generator application
--   `make build-static` - Build with static linking for containers
--   `make test` - Run all tests
--   `make test-coverage` - Run tests with coverage report
--   `make test-race` - Run tests with race detection
--   `make bench` - Run benchmarks
+- `make build` - Build the application
+- `make build-generator` - Build the generator application
+- `make build-static` - Build with static linking for containers
+- `make test` - Run all tests
+- `make test-coverage` - Run tests with coverage report
+- `make test-race` - Run tests with race detection
+- `make bench` - Run benchmarks
 
 #### Code Quality
 
--   `make fmt` - Format Go code
--   `make vet` - Run go vet
--   `make lint` - Run golangci-lint
--   `make gosec` - Run security analysis
--   `make quality` - Run all quality checks
+- `make fmt` - Format Go code
+- `make vet` - Run go vet
+- `make lint` - Run golangci-lint
+- `make gosec` - Run security analysis
+- `make quality` - Run all quality checks
 
 #### Development
 
--   `make run` - Run the API server
--   `make run-generator` - Run the generator
--   `make dev` - Run with auto-reload (requires air)
--   `make docs` - Generate documentation
+- `make run` - Run the API server
+- `make run-generator` - Run the generator
+- `make dev` - Run with auto-reload (requires air)
+- `make docs` - Generate documentation
 
 #### Docker
 
--   `make docker-build` - Build Docker image
+- `make docker-build` - Build Docker image
 
 #### Helm
 
--   `make helm-install` - Install with Helm
--   `make helm-template` - Generate Helm templates
+- `make helm-install` - Install with Helm
+- `make helm-template` - Generate Helm templates
 
 #### Utilities
 
--   `make clean` - Remove build artifacts
--   `make deps` - Download and verify dependencies
--   `make version` - Show version information
+- `make clean` - Remove build artifacts
+- `make deps` - Download and verify dependencies
+- `make version` - Show version information
 
 ### Environment Variables
 
