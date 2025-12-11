@@ -26,9 +26,9 @@ If extra functionality is needed, the docker compose file is build with profiles
 
 The current available profiles are:
 
-**ui**: provides mongoexpress and rediscommander
+- **ui**: provides mongoexpress and rediscommander
 
-**tracing**: otel collector and jaeger
+- **tracing**: otel collector and jaeger
 
 Docker compose profiles can be utilized like this:
 
@@ -46,6 +46,22 @@ Or multiple profiles:
 
 ```bash
 docker compose --profile ui,tracing up -d
+```
+
+To bring profiled docker compose manifests down you the following:
+
+```bash
+docker compose --profile ui down
+```
+
+```bash
+docker compose --profile tracing down
+```
+
+Or multiple profiles:
+
+```bash
+docker compose --profile ui,tracing down
 ```
 
 ## Start API
