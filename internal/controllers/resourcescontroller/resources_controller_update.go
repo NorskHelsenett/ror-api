@@ -5,7 +5,7 @@ import (
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
-	"github.com/NorskHelsenett/ror-api/internal/responses"
+	"github.com/NorskHelsenett/ror-api/internal/models/responses"
 
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 

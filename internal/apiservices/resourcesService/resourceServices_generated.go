@@ -572,7 +572,7 @@ func GetKubernetesClusterByUid(ctx context.Context, ownerref apiresourcecontract
 	query := apiresourcecontracts.ResourceQuery{
 		Owner:      ownerref,
 		Kind:       "KubernetesCluster",
-		ApiVersion: "general.ror.internal/v1alpha1",
+		ApiVersion: "vitistack.io/v1alpha1",
 		Internal:   true,
 		Uid:        uid,
 	}
@@ -1272,7 +1272,7 @@ func GetKubernetesclusters(ctx context.Context, ownerref apiresourcecontracts.Re
 	query := apiresourcecontracts.ResourceQuery{
 		Owner:      ownerref,
 		Kind:       "KubernetesCluster",
-		ApiVersion: "general.ror.internal/v1alpha1",
+		ApiVersion: "vitistack.io/v1alpha1",
 	}
 	resourceset, err := resourcesmongodb.GetResourcesByQuery[apiresourcecontracts.ResourceKubernetesCluster](ctx, query)
 	resources.Owner = ownerref
@@ -1761,7 +1761,7 @@ func ResourceCreateService(ctx context.Context, resourceUpdate apiresourcecontra
 		}
 	}
 
-	if resourceUpdate.ApiVersion == "general.ror.internal/v1alpha1" && resourceUpdate.Kind == "KubernetesCluster" {
+	if resourceUpdate.ApiVersion == "vitistack.io/v1alpha1" && resourceUpdate.Kind == "KubernetesCluster" {
 		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceKubernetesCluster]](resourceUpdate)
 		resource = filterInKubernetesCluster(resource)
 		err = resourcesmongodb.CreateResourceKubernetesCluster(resource, ctx)
@@ -2194,7 +2194,7 @@ func ResourceUpdateService(ctx context.Context, resourceUpdate apiresourcecontra
 		}
 	}
 
-	if resourceUpdate.ApiVersion == "general.ror.internal/v1alpha1" && resourceUpdate.Kind == "KubernetesCluster" {
+	if resourceUpdate.ApiVersion == "vitistack.io/v1alpha1" && resourceUpdate.Kind == "KubernetesCluster" {
 		resource := resourcesmongodb.MapToResourceModel[apiresourcecontracts.ResourceModel[apiresourcecontracts.ResourceKubernetesCluster]](resourceUpdate)
 		resource = filterInKubernetesCluster(resource)
 		err = resourcesmongodb.UpdateResourceKubernetesCluster(resource, ctx)

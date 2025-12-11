@@ -149,7 +149,7 @@ func (rj rorResourceJson) getResource(resourceReturn *rorResource) error {
 		return err
 	}
 
-	if resourceReturn.ApiVersion == "general.ror.internal/v1alpha1" && resourceReturn.Kind == "KubernetesCluster" {
+	if resourceReturn.ApiVersion == "vitistack.io/v1alpha1" && resourceReturn.Kind == "KubernetesCluster" {
 		payload, err := prepareResourcePayload[apiresourcecontracts.ResourceKubernetesCluster](bytes)
 		resourceReturn.Resource = payload
 		return err
