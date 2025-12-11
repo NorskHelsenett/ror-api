@@ -4,11 +4,10 @@
 package resourcescontroller
 
 import (
-	"net/http"
-
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
 	"github.com/NorskHelsenett/ror-api/internal/models/responses"
+	"net/http"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
@@ -232,7 +231,7 @@ func GetResources() gin.HandlerFunc {
 			}
 			c.JSON(http.StatusOK, resources)
 		}
-		if query.ApiVersion == "general.ror.internal/v1alpha1" && query.Kind == "KubernetesCluster" {
+		if query.ApiVersion == "vitistack.io/v1alpha1" && query.Kind == "KubernetesCluster" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceKubernetesCluster](ctx, query)
 			if err != nil {
 				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
@@ -560,7 +559,7 @@ func GetResource() gin.HandlerFunc {
 			}
 			c.JSON(http.StatusOK, resources)
 		}
-		if query.ApiVersion == "general.ror.internal/v1alpha1" && query.Kind == "KubernetesCluster" {
+		if query.ApiVersion == "vitistack.io/v1alpha1" && query.Kind == "KubernetesCluster" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceKubernetesCluster](ctx, query)
 			if err != nil {
 				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
