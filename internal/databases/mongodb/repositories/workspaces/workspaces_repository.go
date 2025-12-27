@@ -219,7 +219,25 @@ func GetByName(ctx context.Context, workspaceName string) (*apicontracts.Workspa
 	return &workspace, nil
 }
 
+// isValidWorkspaceName checks for potentially dangerous input in workspace names.
+func isValidWorkspaceName(name string) bool {
+	// Only allow alphanumeric, underscore, dash, max length 64. Feel free to adjust.
+	if len(name) == 0 || len(name) > 64 {
+		return false
+	}
+	for _, c := range name {
+		if !(c >= 'a' && c <= 'z') && !(c >= 'A' && c <= 'Z') &&
+			!(c >= '0' && c <= '9') && c != '-' && c != '_' {
+			return false
+		}
+	}
+	return true
+}
+
 func FindByName(ctx context.Context, name string) (*apicontracts.Workspace, error) {
+	if !isValidWorkspaceName(name) {
+		return nil, errors.New("invalid workspace name")
+	}
 	db := mongodb.GetMongoDb()
 	var wsResult mongoTypes.MongoWorkspace
 	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{"name": name}).Decode(&wsResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
