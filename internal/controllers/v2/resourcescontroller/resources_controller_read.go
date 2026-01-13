@@ -9,7 +9,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/pkg/handlers/ginresourcequeryhandler"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 
-	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 
 	"github.com/gin-gonic/gin"

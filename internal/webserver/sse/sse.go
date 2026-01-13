@@ -25,7 +25,7 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
-	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
 	"github.com/gin-gonic/gin"

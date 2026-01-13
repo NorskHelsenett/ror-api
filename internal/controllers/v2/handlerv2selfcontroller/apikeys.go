@@ -6,8 +6,8 @@ import (
 
 	apikeysservice "github.com/NorskHelsenett/ror-api/internal/apiservices/apikeysService"
 
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
-	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"

@@ -8,8 +8,8 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/models/viewsmodels"
 	"github.com/NorskHelsenett/ror-api/internal/responses"
 
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
-	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"

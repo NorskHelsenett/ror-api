@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	aclrepository "github.com/NorskHelsenett/ror-api/internal/acl/repositories"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror-api/pkg/services/tokenservice"
-	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"

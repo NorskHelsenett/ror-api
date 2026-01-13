@@ -3,9 +3,9 @@ package viewcontroller
 import (
 	"net/http"
 
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror-api/pkg/services/viewservice"
-	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	"github.com/gin-gonic/gin"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/v2/apiview"
