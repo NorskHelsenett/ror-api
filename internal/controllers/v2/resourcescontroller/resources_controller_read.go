@@ -6,10 +6,10 @@ import (
 	"net/http"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror/pkg/handlers/ginresourcequeryhandler"
 
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 
 	"github.com/gin-gonic/gin"
@@ -74,7 +74,7 @@ func GetResources() gin.HandlerFunc {
 		}
 
 		if validationErr := validate.Struct(rsQuery); validationErr != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, validationErr.Error())
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, validationErr.Error())
 			rerr.GinLogErrorAbort(c)
 			return
 		}

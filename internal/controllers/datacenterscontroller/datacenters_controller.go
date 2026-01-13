@@ -7,13 +7,13 @@ import (
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 	datacentersservice "github.com/NorskHelsenett/ror-api/internal/apiservices/datacentersService"
 
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
@@ -47,7 +47,7 @@ func GetAll() gin.HandlerFunc {
 
 		_, err := gincontext.GetUserFromGinContext(c)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusForbidden, "Could not get user", err)
+			rerr := rorginerror.NewRorGinError(http.StatusForbidden, "Could not get user", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -57,7 +57,7 @@ func GetAll() gin.HandlerFunc {
 
 		datacenters, err := datacentersservice.GetAllByUser(ctx)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusForbidden, "Could not get datacenters", err)
+			rerr := rorginerror.NewRorGinError(http.StatusForbidden, "Could not get datacenters", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -93,7 +93,7 @@ func GetByName() gin.HandlerFunc {
 
 		datacenter, err := datacentersservice.GetByName(ctx, datacenterName)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusForbidden, "Could not get datacenter", err)
+			rerr := rorginerror.NewRorGinError(http.StatusForbidden, "Could not get datacenter", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -132,7 +132,7 @@ func GetById() gin.HandlerFunc {
 
 		datacenter, err := datacentersservice.GetById(ctx, datacenterId)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusForbidden, "Could not get datacenter", err)
+			rerr := rorginerror.NewRorGinError(http.StatusForbidden, "Could not get datacenter", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -184,27 +184,27 @@ func Create() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&datacenterInput); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing body", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Missing body", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&datacenterInput); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "could not validate input", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		datacenter, err := datacentersservice.Create(ctx, &datacenterInput, identity.User)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not create datacenter", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not create datacenter", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		if datacenter == nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not create datacenter, does it already exists?! ", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not create datacenter, does it already exists?! ", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -253,27 +253,27 @@ func Update() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&datacenterInput); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing body", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Missing body", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&datacenterInput); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "could not validate input", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		datacenter, err := datacentersservice.Update(ctx, datacenterId, &datacenterInput, identity.User)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not update datacenter", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not update datacenter", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		if datacenter == nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not update datacenter, does it exists?!", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not update datacenter, does it exists?!", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}

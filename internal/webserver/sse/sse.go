@@ -13,6 +13,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/models/ssemodels"
 	"github.com/NorskHelsenett/ror-api/pkg/services/sseservice"
 
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror/pkg/clients/rabbitmqclient"
 	"github.com/NorskHelsenett/ror/pkg/messagebuscontracts"
 
@@ -21,7 +22,6 @@ import (
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -161,7 +161,7 @@ func (sse *SSE) HandleSSE() gin.HandlerFunc {
 		identity := rorcontext.GetIdentityFromRorContext(ctx)
 		client, err := getClientFromRequest(identity, connection)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not get client from request", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not get client from request", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -227,14 +227,14 @@ func (sse *SSE) Send() gin.HandlerFunc {
 		var input apicontracts.SSEMessage
 		err := c.BindJSON(&input)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Object is not valid", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Object is not valid", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		err = validate.Struct(&input)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields missing", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Required fields missing", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}

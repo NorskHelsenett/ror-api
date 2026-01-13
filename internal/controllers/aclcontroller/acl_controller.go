@@ -8,12 +8,12 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	"github.com/NorskHelsenett/ror-api/internal/customvalidators"
 
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
 	"github.com/NorskHelsenett/ror/pkg/messagebuscontracts"
 
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -74,21 +74,21 @@ func CheckAcl() gin.HandlerFunc {
 
 		scope := c.Param("scope")
 		if scope == "" || len(scope) == 0 {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid scope")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid scope")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		subject := c.Param("subject")
 		if subject == "" || len(subject) == 0 {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid subject")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid subject")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		access := c.Param("access")
 		if access == "" || len(access) == 0 {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid id")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid id")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -168,7 +168,7 @@ func GetById() gin.HandlerFunc {
 
 		aclId := c.Param("id")
 		if aclId == "" || len(aclId) == 0 {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid id")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid id")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -176,7 +176,7 @@ func GetById() gin.HandlerFunc {
 		var _ aclmodels.AclV2ListItem
 		object, err := aclservice.GetById(ctx, aclId)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not get object", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not get object", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -222,14 +222,14 @@ func GetByFilter() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&filter); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Missing parameter", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&filter); validationErr != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, validationErr.Error())
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, validationErr.Error())
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -289,20 +289,20 @@ func Create() gin.HandlerFunc {
 
 		var aclModel aclmodels.AclV2ListItem
 		if err := c.BindJSON(&aclModel); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields are missing", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Required fields are missing", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		if err := validate.Struct(&aclModel); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate object", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not validate object", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		created, err := aclservice.Create(ctx, &aclModel, &identity)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Unable to create", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Unable to create", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -349,27 +349,27 @@ func Update() gin.HandlerFunc {
 
 		aclId := c.Param("id")
 		if aclId == "" || len(aclId) == 0 {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid id")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid id")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		var aclModel aclmodels.AclV2ListItem
 		if err := c.BindJSON(&aclModel); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields are missing", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Required fields are missing", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		if err := validate.Struct(&aclModel); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate object", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not validate object", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		created, err := aclservice.Update(ctx, aclId, &aclModel, &identity)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Unable to update", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Unable to update", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -405,7 +405,7 @@ func Delete() gin.HandlerFunc {
 		identity := rorcontext.GetIdentityFromRorContext(ctx)
 		aclId := c.Param("id")
 		if aclId == "" || len(aclId) == 0 {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid id")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid id")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -423,7 +423,7 @@ func Delete() gin.HandlerFunc {
 
 		result, _, err := aclservice.Delete(ctx, aclId, &identity)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not delete object", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not delete object", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}

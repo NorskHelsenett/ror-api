@@ -6,10 +6,10 @@ import (
 
 	metricsservice "github.com/NorskHelsenett/ror-api/internal/apiservices/metricsService"
 
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -49,14 +49,14 @@ func GetForWorkspaces() gin.HandlerFunc {
 		defer cancel()
 
 		if err := c.BindJSON(&filter); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Missing parameter", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&filter); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "could not validate input", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -65,7 +65,7 @@ func GetForWorkspaces() gin.HandlerFunc {
 			sort := filter.Sort[i]
 
 			if err := validate.Struct(sort); err != nil {
-				rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+				rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "could not validate input", err)
 				rerr.GinLogErrorAbort(c)
 				return
 			}
@@ -76,7 +76,7 @@ func GetForWorkspaces() gin.HandlerFunc {
 
 		metrics, err := metricsservice.GetForWorkspaces(ctx, &filter)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get metrics for workspaces", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not get metrics for workspaces", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -120,14 +120,14 @@ func GetForWorkspacesByDatacenterId() gin.HandlerFunc {
 		defer cancel()
 
 		if err := c.BindJSON(&filter); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Missing parameter", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&filter); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "could not validate input", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -136,7 +136,7 @@ func GetForWorkspacesByDatacenterId() gin.HandlerFunc {
 			sort := filter.Sort[i]
 
 			if err := validate.Struct(sort); err != nil {
-				rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+				rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "could not validate input", err)
 				rerr.GinLogErrorAbort(c)
 				return
 			}
@@ -144,7 +144,7 @@ func GetForWorkspacesByDatacenterId() gin.HandlerFunc {
 
 		result, err := metricsservice.GetForWorkspacesByDatacenterId(ctx, &filter, datacenterId)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusNotFound, "Could not get metris for workspaces by datacenter", err)
+			rerr := rorginerror.NewRorGinError(http.StatusNotFound, "Could not get metris for workspaces by datacenter", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -183,7 +183,7 @@ func GetByWorkspaceId() gin.HandlerFunc {
 
 		metrics, err := metricsservice.GetForWorkspaceId(ctx, workspaceId)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get metris for workspace", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not get metris for workspace", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}

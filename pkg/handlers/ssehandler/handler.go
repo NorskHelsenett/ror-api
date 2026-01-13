@@ -9,8 +9,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	"github.com/NorskHelsenett/ror-api/pkg/services/sseservice"
 
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
-
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
@@ -108,14 +107,14 @@ func Send() gin.HandlerFunc {
 		var input sseservice.SseEvent
 		err := c.BindJSON(&input)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Object is not valid", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Object is not valid", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		err = apiconnections.RabbitMQConnection.SendMessage(ctx, input, sseservice.SSERouteBroadcast, nil)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not send sse broadcast event", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not send sse broadcast event", err)
 			rerr.GinLogErrorAbort(c)
 		}
 		c.JSON(http.StatusOK, nil)
@@ -141,14 +140,14 @@ func Subscribe() gin.HandlerFunc {
 		var input sseservice.SSESubscribe
 		err := c.BindJSON(&input)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Object is not valid", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Object is not valid", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		err = apiconnections.RabbitMQConnection.SendMessage(ctx, input, sseservice.SSERouteBroadcast, nil)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not send sse broadcast event", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not send sse broadcast event", err)
 			rerr.GinLogErrorAbort(c)
 		}
 		c.JSON(http.StatusOK, nil)

@@ -3,9 +3,9 @@ package viewcontroller
 import (
 	"net/http"
 
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror-api/pkg/services/viewservice"
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	"github.com/gin-gonic/gin"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/v2/apiview"
@@ -37,14 +37,14 @@ func GetView() gin.HandlerFunc {
 		_ = apiview.View{} // Ensure apiview is imported
 		generator, err := viewservice.Generators.GetGenerator(c.Param("viewid"))
 		if err == viewservice.ErrViewNotRegistered {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid or unsupported view", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid or unsupported view", err)
 			rerr.GinLogErrorAbort(c)
 		}
 		options := viewservice.ParseOptionsFromGinContext(c)
 
 		apiview, err := generator.GenerateView(ctx, options...)
 		if err != nil {
-			rerr := rorerror.NewRorErrorFromError(http.StatusInternalServerError, err)
+			rerr := rorginerror.NewRorGinErrorFromError(http.StatusInternalServerError, err)
 			rerr.GinLogErrorAbort(c)
 		}
 

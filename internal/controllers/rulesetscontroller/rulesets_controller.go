@@ -6,12 +6,12 @@ import (
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/rulesetsService"
 
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/messages"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -47,7 +47,7 @@ func GetByCluster() gin.HandlerFunc {
 		clusterId := c.Param("clusterId")
 
 		if clusterId == "" || len(clusterId) == 0 {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid cluster name")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid cluster name")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -65,7 +65,7 @@ func GetByCluster() gin.HandlerFunc {
 
 		ruleset, err := rulesetsService.FindCluster(ctx, clusterId)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not get ruleset", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not get ruleset", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -107,7 +107,7 @@ func GetInternal() gin.HandlerFunc {
 
 		ruleset, err := rulesetsService.FindInternal(ctx)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not get ruleset", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not get ruleset", err)
 			rerr.GinLogErrorAbort(c)
 		}
 
@@ -141,14 +141,14 @@ func AddResource() gin.HandlerFunc {
 		var input messages.RulesetResourceInput
 
 		if err := c.BindJSON(&input); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid json", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid json", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		ruleset, err := rulesetsService.Find(ctx, rulesetId)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusNotFound, "could not find ruleset", err)
+			rerr := rorginerror.NewRorGinError(http.StatusNotFound, "could not find ruleset", err)
 			rerr.GinLogErrorAbort(c)
 		}
 		var accessQuery aclmodels.AclV2QueryAccessScopeSubject
@@ -174,7 +174,7 @@ func AddResource() gin.HandlerFunc {
 
 		resource, err := rulesetsService.AddResource(ctx, rulesetId, &input)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not add resource", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not add resource", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -211,7 +211,7 @@ func DeleteResource() gin.HandlerFunc {
 
 		ruleset, err := rulesetsService.Find(ctx, rulesetId)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusNotFound, "could not find ruleset", err)
+			rerr := rorginerror.NewRorGinError(http.StatusNotFound, "could not find ruleset", err)
 			rerr.GinLogErrorAbort(c)
 		}
 
@@ -237,7 +237,7 @@ func DeleteResource() gin.HandlerFunc {
 		}
 
 		if err := rulesetsService.DeleteResource(ctx, rulesetId, resourceId); err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not delete resource", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not delete resource", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -271,7 +271,7 @@ func AddResourceRule() gin.HandlerFunc {
 
 		input := new(messages.RulesetRuleInput)
 		if err := c.BindJSON(input); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid json", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid json", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -279,7 +279,7 @@ func AddResourceRule() gin.HandlerFunc {
 		rulesetId := c.Param("rulesetId")
 		ruleset, err := rulesetsService.Find(ctx, rulesetId)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusNotFound, "could not find ruleset", err)
+			rerr := rorginerror.NewRorGinError(http.StatusNotFound, "could not find ruleset", err)
 			rerr.GinLogErrorAbort(c)
 		}
 
@@ -308,7 +308,7 @@ func AddResourceRule() gin.HandlerFunc {
 
 		event, err := rulesetsService.AddResourceRule(ctx, rulesetId, resourceId, input)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not add resource rule", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not add resource rule", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -343,7 +343,7 @@ func DeleteResourceRule() gin.HandlerFunc {
 		rulesetId := c.Param("rulesetId")
 		ruleset, err := rulesetsService.Find(ctx, rulesetId)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusNotFound, "could not find ruleset", err)
+			rerr := rorginerror.NewRorGinError(http.StatusNotFound, "could not find ruleset", err)
 			rerr.GinLogErrorAbort(c)
 		}
 
@@ -372,7 +372,7 @@ func DeleteResourceRule() gin.HandlerFunc {
 		ruleId := c.Param("ruleId")
 
 		if err := rulesetsService.DeleteResourceRule(ctx, rulesetId, resourceId, ruleId); err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not delete resource rule", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not delete resource rule", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -389,7 +389,7 @@ func GetAll() gin.HandlerFunc {
 
 		rulesets, err := rulesetsService.FindAll(ctx)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not find rulesets", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not find rulesets", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}

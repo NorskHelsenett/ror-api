@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gin-gonic/gin"
@@ -45,7 +45,7 @@ func (d *OauthMiddleware) IsOfType(c *gin.Context) bool {
 func (d *OauthMiddleware) Authenticate(c *gin.Context) {
 	auth := c.Request.Header.Get("Authorization")
 	if auth == "" {
-		rerr := rorerror.NewRorError(http.StatusUnauthorized, "No Authorization header provided ")
+		rerr := rorginerror.NewRorGinError(http.StatusUnauthorized, "No Authorization header provided ")
 		rerr.GinLogErrorAbort(c)
 		return
 	}
@@ -77,7 +77,7 @@ func NewDefaultOauthMiddleware(opts ...OauthProvidersOption) OauthMiddlewareInte
 	return NewOauthMiddleware(opts...)
 }
 
-func (d *OauthMiddleware) getIdentityFromToken(c context.Context, auth string) (*identitymodels.Identity, rorerror.RorError) {
+func (d *OauthMiddleware) getIdentityFromToken(c context.Context, auth string) (*identitymodels.Identity, rorginerror.RorGinError) {
 	var err error
 
 	// Extract token from Authorization header
@@ -96,7 +96,7 @@ func (d *OauthMiddleware) getIdentityFromToken(c context.Context, auth string) (
 	oauthProvider, exists := d.GetProviderByURL(unverifiedClaims.Issuer)
 
 	if !exists {
-		return nil, rorerror.NewRorError(http.StatusUnauthorized, fmt.Sprintf("No OIDC provider found for issuer: %s", unverifiedClaims.Issuer))
+		return nil, rorginerror.NewRorGinError(http.StatusUnauthorized, fmt.Sprintf("No OIDC provider found for issuer: %s", unverifiedClaims.Issuer))
 	}
 
 	provider := oauthProvider.GetProvider()
@@ -105,7 +105,7 @@ func (d *OauthMiddleware) getIdentityFromToken(c context.Context, auth string) (
 	// Match audiences against configured client IDs
 	clientID, matched := unverifiedClaims.MatchAudience(clientIDs...)
 	if !matched {
-		return nil, rorerror.NewRorError(http.StatusUnauthorized, "Token audience does not match any configured client IDs.")
+		return nil, rorginerror.NewRorGinError(http.StatusUnauthorized, "Token audience does not match any configured client IDs.")
 	}
 
 	// Create ID token verifier
@@ -118,19 +118,19 @@ func (d *OauthMiddleware) getIdentityFromToken(c context.Context, auth string) (
 	// Verify token
 	idToken, verifyErr := idTokenVerifier.Verify(c, token)
 	if verifyErr != nil {
-		return nil, rorerror.NewRorError(http.StatusUnauthorized, "Could not verify token", verifyErr)
+		return nil, rorginerror.NewRorGinError(http.StatusUnauthorized, "Could not verify token", verifyErr)
 	}
 
 	// Extract user from claims.
 	user := identitymodels.User{Groups: []string{"NotAuthorized"}}
 	if err := idToken.Claims(&user); err != nil {
-		return nil, rorerror.NewRorError(http.StatusUnauthorized, "Not authorized")
+		return nil, rorginerror.NewRorGinError(http.StatusUnauthorized, "Not authorized")
 	}
 
 	// Extract groups and append domain
 	user.Groups, err = ExtractGroups(&user)
 	if err != nil || len(user.Groups) == 0 {
-		return nil, rorerror.NewRorError(http.StatusUnauthorized, "Not authorized, missing groups")
+		return nil, rorginerror.NewRorGinError(http.StatusUnauthorized, "Not authorized, missing groups")
 	}
 
 	// extract expiration time from token

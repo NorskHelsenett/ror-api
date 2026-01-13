@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	aclrepository "github.com/NorskHelsenett/ror-api/internal/acl/repositories"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror-api/pkg/services/tokenservice"
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -44,7 +44,7 @@ func ExchangeToken() gin.HandlerFunc {
 		defer cancel()
 
 		if err := c.BindJSON(&input); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields are missing", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Required fields are missing", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -63,14 +63,14 @@ func ExchangeToken() gin.HandlerFunc {
 		}
 
 		if !hasAccess {
-			rerr := rorerror.NewRorError(http.StatusForbidden, "No access to login to cluster")
+			rerr := rorginerror.NewRorGinError(http.StatusForbidden, "No access to login to cluster")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		validate = validator.New()
 		if err := validate.Struct(&input); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate token exchange object", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not validate token exchange object", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -78,7 +78,7 @@ func ExchangeToken() gin.HandlerFunc {
 		newToken, err := tokenservice.ExchangeToken(ctx, input.ClusterID, input.Token, input.Admin)
 
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Unable to exchange token", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Unable to exchange token", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -101,7 +101,7 @@ func GetJwks() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		jwks, err := tokenservice.GetJwks()
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Unable to get JWKS", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Unable to get JWKS", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}

@@ -8,9 +8,9 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/models/viewsmodels"
 	"github.com/NorskHelsenett/ror-api/internal/responses"
 
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
@@ -73,7 +73,7 @@ func PolicyreportsView() gin.HandlerFunc {
 
 		clusterid := c.Param("clusterid")
 		if clusterid == "" {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "No clusterid")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "No clusterid")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -123,7 +123,7 @@ func PolicyreportSummaryView() gin.HandlerFunc {
 		query := viewsmodels.PolicyreportGlobalQueryType(c.Query("type"))
 
 		if query == "" {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "no type defined")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "no type defined")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -177,7 +177,7 @@ func VulnerabilityreportSummaryView() gin.HandlerFunc {
 		query := viewsmodels.PolicyreportGlobalQueryType(c.Query("type"))
 
 		if query == "" {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "No type defined")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "No type defined")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -228,7 +228,7 @@ func VulnerabilityReportsView() gin.HandlerFunc {
 
 		clusterid := c.Param("clusterid")
 		if clusterid == "" {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "no clusterid")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "no clusterid")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -277,7 +277,7 @@ func VulnerabilityReportsViewById() gin.HandlerFunc {
 
 		cveId := c.Param("cveid")
 		if cveId == "" {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "no cve-id provided")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "no cve-id provided")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -366,7 +366,7 @@ func GlobalVulnerabilityReportsViewById() gin.HandlerFunc {
 
 		cveId := c.Query("cveid")
 		if cveId == "" {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "no cve-id in query")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "no cve-id in query")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -415,7 +415,7 @@ func ComplianceReports() gin.HandlerFunc {
 
 		clusterId := c.Param("clusterid")
 		if clusterId == "" {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "no cluster-id in query")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "no cluster-id in query")
 			rerr.GinLogErrorAbort(c)
 			return
 		}

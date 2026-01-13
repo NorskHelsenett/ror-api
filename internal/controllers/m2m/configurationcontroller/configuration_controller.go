@@ -11,6 +11,7 @@ import (
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
@@ -20,7 +21,6 @@ import (
 	"strings"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -69,13 +69,13 @@ func GetOperatorConfiguration() gin.HandlerFunc {
 		})
 
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusNotFound, "Could not find operator config", err)
+			rerr := rorginerror.NewRorGinError(http.StatusNotFound, "Could not find operator config", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		if operatorConfigs.DataCount == 0 || operatorConfigs.DataCount >= 2 {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not find operator config")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not find operator config")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -121,7 +121,7 @@ func GetTaskConfiguration() gin.HandlerFunc {
 		}
 
 		if name == "" {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing name")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Missing name")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -137,27 +137,27 @@ func GetTaskConfiguration() gin.HandlerFunc {
 		})
 
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusNotFound, "Task not found", err)
+			rerr := rorginerror.NewRorGinError(http.StatusNotFound, "Task not found", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		if tasks.DataCount == 0 || tasks.DataCount >= 2 {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Task not found")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Task not found")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		task := tasks.Data[0]
 		if len(task.Name) == 0 {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Task not found")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Task not found")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		taskSpec, err := configurationservice.GetTaskConfigByClusterIdAndTaskName(ctx, &task, clusterId)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Error when fetching Task.Spec", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Error when fetching Task.Spec", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
