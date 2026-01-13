@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
+	"github.com/NorskHelsenett/ror-api/pkg/handlers/ginresourcequeryhandler"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
-	"github.com/NorskHelsenett/ror/pkg/handlers/ginresourcequeryhandler"
 
 	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
@@ -50,7 +50,7 @@ func GetResources() gin.HandlerFunc {
 
 		testQuery := c.Query("query") == ""
 		if testQuery {
-			rsQuery = ginresourcequeryhandler.ParseResourceQuery(c)
+			rsQuery = ginresourcequeryhandler.ParseGinResourceQuery(c)
 		}
 
 		if !testQuery {
