@@ -8,12 +8,12 @@ import (
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 	tasksservice "github.com/NorskHelsenett/ror-api/internal/apiservices/tasksService"
 
-	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -52,21 +52,21 @@ func GetById() gin.HandlerFunc {
 
 		_, err := gincontext.GetUserFromGinContext(c)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusForbidden, "Could not get user", err)
+			rerr := rorginerror.NewRorGinError(http.StatusForbidden, "Could not get user", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		taskId := c.Param("id")
 		if taskId == "" || len(taskId) == 0 {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid task id")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid task id")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		result, err := tasksservice.GetById(ctx, taskId)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not get task", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not get task", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -107,7 +107,7 @@ func GetAll() gin.HandlerFunc {
 
 		tasks, err := tasksservice.GetAll(ctx)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not find tasks ...", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not find tasks ...", err)
 			rerr.GinLogErrorAbort(c)
 		}
 
@@ -149,14 +149,14 @@ func Create() gin.HandlerFunc {
 		var task apicontracts.Task
 		//validate the request body
 		if err := c.BindJSON(&task); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate task object", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not validate task object", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&task); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, fmt.Sprintf("Required fields are missing: %s", err), err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, fmt.Sprintf("Required fields are missing: %s", err), err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -165,11 +165,11 @@ func Create() gin.HandlerFunc {
 		if err != nil {
 			rlog.Errorc(ctx, "could not create task", err)
 			if strings.Contains(err.Error(), "exists") {
-				rerr := rorerror.NewRorError(http.StatusBadRequest, "Already exists")
+				rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Already exists")
 				rerr.GinLogErrorAbort(c)
 				return
 			}
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields are missing")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Required fields are missing")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -205,7 +205,7 @@ func Update() gin.HandlerFunc {
 		taskId := c.Param("id")
 		if taskId == "" || len(taskId) == 0 {
 			rlog.Errorc(ctx, "invalid task id", fmt.Errorf("id is zero length"))
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid task id")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid task id")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -223,7 +223,7 @@ func Update() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&taskInput); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Object is not valid", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Object is not valid", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -231,21 +231,21 @@ func Update() gin.HandlerFunc {
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&taskInput); validationErr != nil {
 			rlog.Errorc(ctx, "could not validate reqired fields", validationErr)
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields missing")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Required fields missing")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		updatedTask, originalTask, err := tasksservice.Update(ctx, taskId, &taskInput)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not update task", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not update task", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		if updatedTask == nil {
 			rlog.Errorc(ctx, "Could not update task", fmt.Errorf("task does not exist"))
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not update task, does it exist?!")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not update task, does it exist?!")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -279,7 +279,7 @@ func Delete() gin.HandlerFunc {
 		taskId := c.Param("taskId")
 		if taskId == "" || len(taskId) == 0 {
 			rlog.Errorc(ctx, "invalid id", fmt.Errorf("id is zero lenght"))
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid id")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid id")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -297,7 +297,7 @@ func Delete() gin.HandlerFunc {
 
 		result, deletedTask, err := tasksservice.Delete(ctx, taskId)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not delete task", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not delete task", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}

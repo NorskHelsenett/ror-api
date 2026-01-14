@@ -6,10 +6,10 @@ import (
 
 	metricsservice "github.com/NorskHelsenett/ror-api/internal/apiservices/metricsService"
 
-	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/gin-gonic/gin"
 )
@@ -35,7 +35,7 @@ func GetForClusters() gin.HandlerFunc {
 
 		metrics, err := metricsservice.GetForClusters(ctx)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get metrics for clusters", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not get metrics for clusters", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -75,7 +75,7 @@ func GetForClustersByWorkspaceId() gin.HandlerFunc {
 		var _ apicontracts.Datacenter
 		results, err := metricsservice.GetForClustersByWorkspaceId(ctx, workspaceId)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get metrics for clusters by workspace", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not get metrics for clusters by workspace", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -113,7 +113,7 @@ func GetByClusterId() gin.HandlerFunc {
 
 		result, err := metricsservice.GetForClusterid(ctx, clusterId)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get metrics for clusterid", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not get metrics for clusterid", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -151,7 +151,7 @@ func MetricsForClustersByProperty() gin.HandlerFunc {
 
 		result, err := metricsservice.ForClustersByProperty(ctx, property)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get custom metrics for clusters by property", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not get custom metrics for clusters by property", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}

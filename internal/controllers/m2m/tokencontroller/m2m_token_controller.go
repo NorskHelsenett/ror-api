@@ -10,10 +10,9 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/models/m2mmodels"
 	"github.com/NorskHelsenett/ror-api/internal/models/vaultmodels"
 
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
-
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror/pkg/helpers/stringhelper"
 
 	"github.com/gin-gonic/gin"
@@ -38,14 +37,14 @@ func SelfRegister() gin.HandlerFunc {
 		ctx := c.Request.Context()
 		//validate the request body
 		if err := c.BindJSON(&tokenModel); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing body", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Missing body", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&tokenModel); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "could not validate input", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -53,7 +52,7 @@ func SelfRegister() gin.HandlerFunc {
 		secretPath := fmt.Sprintf("secret/data/v1.0/ror/clusters/%s", tokenModel.ClusterId)
 		secret, err := apiconnections.VaultClient.GetSecret(secretPath)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Error checking token", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Error checking token", err)
 			rerr.GinLogErrorAbort(c, rlog.String("clusterId", tokenModel.ClusterId), rlog.String("path", secretPath))
 			return
 		}
@@ -77,14 +76,14 @@ func SelfRegister() gin.HandlerFunc {
 			clusterSecret.Data.RorClientSecret = newSecret
 			secretByteArray, err := json.Marshal(clusterSecret)
 			if err != nil {
-				rerr := rorerror.NewRorError(http.StatusBadRequest, "A error occured", err)
+				rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "A error occured", err)
 				rerr.GinLogErrorAbort(c, rlog.String("clusterId", tokenModel.ClusterId))
 				return
 			}
 
 			_, err = apiconnections.VaultClient.SetSecret(secretPath, secretByteArray)
 			if err != nil {
-				rerr := rorerror.NewRorError(http.StatusInternalServerError, "A error occured", err)
+				rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "A error occured", err)
 				rerr.GinLogErrorAbort(c, rlog.String("clusterId", tokenModel.ClusterId))
 				return
 			}

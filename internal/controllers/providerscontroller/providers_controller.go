@@ -5,13 +5,12 @@ import (
 
 	provider "github.com/NorskHelsenett/ror-api/internal/apiprovider"
 
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 
-	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 
 	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
-
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/gin-gonic/gin"
 )
@@ -91,7 +90,7 @@ func GetKubernetesVersionByProvider() gin.HandlerFunc {
 		defer cancel()
 
 		if providerType == "" || len(providerType) == 0 {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid provider")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid provider")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -141,7 +140,7 @@ func GetConfigParametersByProvider() gin.HandlerFunc {
 		defer cancel()
 
 		if providerType == "" || len(providerType) == 0 {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid provider")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid provider")
 			rerr.GinLogErrorAbort(c)
 			return
 		}

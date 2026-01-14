@@ -3,7 +3,7 @@ package handlerv2selfcontroller
 import (
 	"net/http"
 
-	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/v2/apicontractsv2self"

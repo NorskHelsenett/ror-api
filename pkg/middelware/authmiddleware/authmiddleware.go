@@ -3,7 +3,7 @@ package authmiddleware
 import (
 	"net/http"
 
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,7 +23,7 @@ func AuthenticationMiddleware(c *gin.Context) {
 			return
 		}
 	}
-	rerr := rorerror.NewRorError(http.StatusUnauthorized, "Authorization provider not supported")
+	rerr := rorginerror.NewRorGinError(http.StatusUnauthorized, "Authorization provider not supported")
 	rerr.GinLogErrorAbort(c)
 }
 

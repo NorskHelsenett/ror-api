@@ -9,12 +9,12 @@ import (
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 	workspacesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/workspacesService"
 
-	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -52,7 +52,7 @@ func GetAll() gin.HandlerFunc {
 
 		workspaces, err := workspacesservice.GetAll(ctx)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusForbidden, "Could not get workspaces", err)
+			rerr := rorginerror.NewRorGinError(http.StatusForbidden, "Could not get workspaces", err)
 			rerr.GinLogErrorAbort(c)
 		}
 
@@ -109,7 +109,7 @@ func Update() gin.HandlerFunc {
 		id := c.Param("id")
 		if id == "" || len(id) == 0 {
 			rlog.Errorc(ctx, "invalid id", fmt.Errorf("id is zero length"))
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid id")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid id")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -128,28 +128,28 @@ func Update() gin.HandlerFunc {
 		var input apicontracts.Workspace
 		err := c.BindJSON(&input)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Object is not valid", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Object is not valid", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		err = validate.Struct(&input)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields missing", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Required fields missing", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		updatedObject, originalObject, err := workspacesservice.Update(ctx, &input, id)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not update object", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not update object", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		if updatedObject == nil {
 			rlog.Errorc(ctx, "could not update object", fmt.Errorf("object does not exist"))
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not update object, does it exist?!")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not update object, does it exist?!")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -182,14 +182,14 @@ func GetById() gin.HandlerFunc {
 
 		id := c.Param("id")
 		if id == "" || len(id) == 0 {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid id")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid id")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		object, err := workspacesservice.GetById(ctx, id)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not get object", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not get object", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -242,7 +242,7 @@ func GetKubeconfig() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&credentialPayload); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Missing parameter", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -250,7 +250,7 @@ func GetKubeconfig() gin.HandlerFunc {
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&credentialPayload); validationErr != nil {
 			rlog.Errorc(ctx, "error when validating kubeconfig credentials", validationErr)
-			rerr := rorerror.NewRorError(http.StatusBadRequest, validationErr.Error())
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, validationErr.Error())
 			rerr.GinLogErrorAbort(c)
 			return
 		}

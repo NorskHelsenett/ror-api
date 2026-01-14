@@ -7,12 +7,12 @@ import (
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 	auditLogService "github.com/NorskHelsenett/ror-api/internal/apiservices/auditlogs"
 
-	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -49,14 +49,14 @@ func GetByFilter() gin.HandlerFunc {
 
 		var filter apicontracts.Filter
 		if err := c.BindJSON(&filter); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Missing parameter", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&filter); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not get auditlog", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "could not get auditlog", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -93,14 +93,14 @@ func GetById() gin.HandlerFunc {
 
 		id := c.Param("id")
 		if id == "" || len(id) == 0 {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid auditlog id")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid auditlog id")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		auditlog, err := auditLogService.GetById(ctx, id)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not get auditlog", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not get auditlog", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -130,7 +130,7 @@ func GetMetadata() gin.HandlerFunc {
 
 		metadata, err := auditLogService.GetMetadata(ctx)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not get metadata", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not get metadata", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}

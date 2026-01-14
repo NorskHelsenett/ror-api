@@ -8,11 +8,11 @@ import (
 	apikeysservice "github.com/NorskHelsenett/ror-api/internal/apiservices/apikeysService"
 	"github.com/NorskHelsenett/ror-api/internal/customvalidators"
 
-	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -49,7 +49,7 @@ func GetUser() gin.HandlerFunc {
 
 		identity := rorcontext.GetIdentityFromRorContext(ctx)
 		if !identity.IsUser() {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid identity")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid identity")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -92,7 +92,7 @@ func GetApiKeysByFilter() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&filter); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Missing parameter", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Missing parameter", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -100,14 +100,14 @@ func GetApiKeysByFilter() gin.HandlerFunc {
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&filter); validationErr != nil {
 			rlog.Errorc(ctx, "failed to validate required fields", validationErr)
-			rerr := rorerror.NewRorError(http.StatusBadRequest, validationErr.Error())
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, validationErr.Error())
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		identity := rorcontext.GetIdentityFromRorContext(ctx)
 		if !identity.IsUser() {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid identity")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid identity")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -158,14 +158,14 @@ func CreateApikey() gin.HandlerFunc {
 		identity := rorcontext.GetIdentityFromRorContext(ctx)
 
 		if !identity.IsUser() {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid identity")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid identity")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		var input apicontracts.ApiKey
 		if err := c.BindJSON(&input); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields are missing", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Required fields are missing", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -174,7 +174,7 @@ func CreateApikey() gin.HandlerFunc {
 		input.Identifier = identity.GetId()
 
 		if err := validate.Struct(&input); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate project object", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not validate project object", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -182,11 +182,11 @@ func CreateApikey() gin.HandlerFunc {
 		apikeyText, err := apikeysservice.Create(ctx, &input, &identity)
 		if err != nil {
 			if strings.Contains(err.Error(), "too many apikeys") {
-				rerr := rorerror.NewRorError(http.StatusForbidden, "Too many apikeys, limit of 100 reached.", err)
+				rerr := rorginerror.NewRorGinError(http.StatusForbidden, "Too many apikeys, limit of 100 reached.", err)
 				rerr.GinLogErrorAbort(c)
 				return
 			}
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Unable to create api key, perhaps it already exist?", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Unable to create api key, perhaps it already exist?", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -217,7 +217,7 @@ func DeleteApiKey() gin.HandlerFunc {
 		apikeyId := c.Param("id")
 		if apikeyId == "" || len(apikeyId) == 0 {
 			rlog.Errorc(ctx, "invalid id", fmt.Errorf("id is zero length"))
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid id")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid id")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -225,7 +225,7 @@ func DeleteApiKey() gin.HandlerFunc {
 		identity := rorcontext.GetIdentityFromRorContext(ctx)
 
 		if !identity.IsUser() {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid identity")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid identity")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -233,7 +233,7 @@ func DeleteApiKey() gin.HandlerFunc {
 		// todo fix delete for user
 		result, err := apikeysservice.DeleteForUser(ctx, apikeyId, &identity)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not delete object", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not delete object", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
