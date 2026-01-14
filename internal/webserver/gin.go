@@ -79,8 +79,9 @@ func startHttpServer(ctx context.Context) error {
 	httpEndpoint := fmt.Sprintf("%s:%s", rorconfig.GetString(rorconfig.HTTP_HOST), rorconfig.GetString(rorconfig.HTTP_PORT))
 
 	httpServ := &http.Server{
-		Addr:    httpEndpoint,
-		Handler: router,
+		Addr:              httpEndpoint,
+		Handler:           router,
+		ReadHeaderTimeout: 10 * time.Second,
 	}
 
 	chanHttpErr := make(chan error)

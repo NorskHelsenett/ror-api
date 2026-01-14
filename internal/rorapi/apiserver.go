@@ -137,7 +137,7 @@ func printDevelopemntApiKeys() {
 
 			continue
 		}
-		apikeysservice.CreateOrRenewDevelopmentToken(ctx, user.Email, "DEVELOPMENT TOKEN", user.Apikey)
+		_, _ = apikeysservice.CreateOrRenewDevelopmentToken(ctx, user.Email, "DEVELOPMENT TOKEN", user.Apikey)
 		fmt.Printf("   %s (%s)\t%s\n", user.Name, user.Email, user.Apikey)
 	}
 	fmt.Println()
