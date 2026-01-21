@@ -14,7 +14,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/helpers/mapping"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/stringhelper"
+	"github.com/NorskHelsenett/ror/pkg/helpers/idhelper"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 )
@@ -68,7 +68,7 @@ func Create(ctx context.Context, clusterName, datacenterId, workspaceId, workspa
 	now := time.Now()
 	clusterInput.FirstObserved = now
 	clusterInput.LastObserved = now
-	clusterInput.Identifier = GetClusterIdentifier(clusterName)
+	clusterInput.Identifier = idhelper.GetIdentifier(clusterName)
 	clusterInput.ClusterId = clusterInput.Identifier
 
 	err := mongoclusters.Create(ctx, &clusterInput)
@@ -82,17 +82,6 @@ func Create(ctx context.Context, clusterName, datacenterId, workspaceId, workspa
 	}
 
 	return clusterInput.ClusterId, nil
-}
-
-// GetClusterIdentifier returns a cluster identifier
-//
-// Parameters:
-//
-// - clusterName: name of the cluster
-func GetClusterIdentifier(clusterName string) string {
-	idpostfix := stringhelper.RandomString(4, stringhelper.StringTypeClusterId)
-	identifier := fmt.Sprintf("%s-%s", clusterName, idpostfix)
-	return identifier
 }
 
 // postSetupCluster sets up the cluster after it has been created
