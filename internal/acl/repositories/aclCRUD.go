@@ -112,6 +112,10 @@ func Update(ctx context.Context, aclId string, aclModel *aclmodels.AclV2ListItem
 		rlog.Error("could not get original object", err)
 	}
 
+	// We set id to empty string as mongoDB disallows changes to the _id field.
+	// If this has a value - even if it's the same value is the current value - it will interpret this
+	// as a change and throw an error.
+	aclModel.Id = ""
 	aclModel.Created = originalObject.Created
 	aclModel.IssuedBy = originalObject.IssuedBy
 
