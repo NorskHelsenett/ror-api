@@ -57,11 +57,11 @@ func verifySeed[T any](ctx context.Context, collection *mongo.Collection, seed *
 	err := collection.FindOne(ctx, identifier).Decode(&result)
 
 	if err != nil {
-		rlog.Warnc(ctx, "could not find entry, attempting to seed", rlog.String("collection_name", collection.Name()), rlog.Any("identifier", identifier))
+		rlog.Infoc(ctx, "could not find entry, attempting to seed", rlog.String("collection_name", collection.Name()), rlog.Any("identifier", identifier))
 	}
 
 	if result != nil {
-		rlog.Infoc(ctx, "found existing entry with identifier", rlog.String("collection_name", collection.Name()), rlog.Any("identifier", identifier))
+		rlog.Debugc(ctx, "found existing entry with identifier", rlog.String("collection_name", collection.Name()), rlog.Any("identifier", identifier))
 		return nil
 	}
 
@@ -226,23 +226,9 @@ func seedDatacenters(ctx context.Context) {
 		},
 	}
 
-<<<<<<< HEAD
-	for i := range datacenters {
-		datacenterInput := datacenters[i]
-		var datacenter *mongoTypes.MongoDatacenter
-		_ = collection.FindOne(ctx, bson.M{"name": datacenterInput.Name}).Decode(&datacenter)
-
-		if datacenter != nil {
-			continue
-		}
-
-		insertResult, err := collection.InsertOne(ctx, datacenterInput)
-		errorMsg := fmt.Sprintf("could not insert datacenter of type: %s", datacenterInput.Provider)
-=======
 	for _, datacenter := range datacenters {
 		identifier := bson.M{"name": datacenter.Name}
 		err := verifySeed(ctx, collection, &datacenter, identifier)
->>>>>>> 053fb25 (feature(mongo_seeding): normalized seeding of data)
 		if err != nil {
 			panic(err)
 		}
