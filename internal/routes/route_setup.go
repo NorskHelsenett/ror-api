@@ -7,6 +7,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/controllers/apikeyscontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/auditlogscontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/clusterscontroller"
+	v2clusterscontroller "github.com/NorskHelsenett/ror-api/internal/controllers/clusterscontroller/v2"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/datacenterscontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/desiredversioncontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/infocontroller"
@@ -367,6 +368,10 @@ func SetupRoutes(router *gin.Engine) {
 	tokenroute := v2.Group("/token")
 	{
 		tokenroute.POST("/exchange", v2tokencontroller.ExchangeToken())
+	}
+	v2clustersroute := v2.Group("/clusters")
+	{
+		v2clustersroute.POST("/register", v2clusterscontroller.RegisterCluster())
 	}
 
 }
