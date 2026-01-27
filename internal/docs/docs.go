@@ -5070,7 +5070,8 @@ const docTemplate = `{
                             "cluster",
                             "project",
                             "datacenter",
-                            "virtualmachine"
+                            "virtualmachine",
+                            "backup"
                         ],
                         "type": "string",
                         "description": "The kind of the owner, currently only support 'Cluster'",
@@ -5158,7 +5159,8 @@ const docTemplate = `{
                             "cluster",
                             "project",
                             "datacenter",
-                            "virtualmachine"
+                            "virtualmachine",
+                            "backup"
                         ],
                         "type": "string",
                         "description": "The kind of the owner, currently only support 'Cluster'",
@@ -5302,7 +5304,8 @@ const docTemplate = `{
                             "cluster",
                             "project",
                             "datacenter",
-                            "virtualmachine"
+                            "virtualmachine",
+                            "backup"
                         ],
                         "type": "string",
                         "description": "The kind of the owner, currently only support 'Cluster'",
@@ -5493,7 +5496,8 @@ const docTemplate = `{
                             "cluster",
                             "project",
                             "datacenter",
-                            "virtualmachine"
+                            "virtualmachine",
+                            "backup"
                         ],
                         "type": "string",
                         "description": "The kind of the owner, currently only support 'Cluster'",
@@ -7066,7 +7070,8 @@ const docTemplate = `{
                             "cluster",
                             "project",
                             "datacenter",
-                            "virtualmachine"
+                            "virtualmachine",
+                            "backup"
                         ],
                         "type": "string",
                         "description": "The kind of the owner, currently only support 'Cluster'",
@@ -7257,7 +7262,8 @@ const docTemplate = `{
                             "cluster",
                             "project",
                             "datacenter",
-                            "virtualmachine"
+                            "virtualmachine",
+                            "backup"
                         ],
                         "type": "string",
                         "description": "The kind of the owner, currently only support 'Cluster'",
@@ -7721,19 +7727,77 @@ const docTemplate = `{
                 "cluster",
                 "project",
                 "datacenter",
-                "virtualmachine"
+                "virtualmachine",
+                "backup"
             ],
             "x-enum-comments": {
                 "Acl2ScopeRor": "ROR",
                 "Acl2ScopeUnknown": "unknown"
             },
+            "x-enum-descriptions": [
+                "unknown",
+                "ROR",
+                "",
+                "",
+                "",
+                "",
+                ""
+            ],
             "x-enum-varnames": [
                 "Acl2ScopeUnknown",
                 "Acl2ScopeRor",
                 "Acl2ScopeCluster",
                 "Acl2ScopeProject",
                 "Acl2ScopeDatacenter",
-                "Acl2ScopeVirtualMachine"
+                "Acl2ScopeVirtualMachine",
+                "Acl2ScopeBackup"
+            ]
+        },
+        "aclmodels.Acl2Subject": {
+            "type": "string",
+            "enum": [
+                "UNKNOWN",
+                "cluster",
+                "project",
+                "globalscope",
+                "acl",
+                "apikey",
+                "datacenter",
+                "workspace",
+                "price",
+                "virtualmachine",
+                "backup"
+            ],
+            "x-enum-comments": {
+                "Acl2RorSubjectAcl": "for subject, not scope, TODO: new const",
+                "Acl2RorSubjectApiKey": "api key",
+                "Acl2RorSubjectGlobal": "for subject, not scope, TODO: new const"
+            },
+            "x-enum-descriptions": [
+                "",
+                "",
+                "",
+                "for subject, not scope, TODO: new const",
+                "for subject, not scope, TODO: new const",
+                "api key",
+                "",
+                "",
+                "",
+                "",
+                ""
+            ],
+            "x-enum-varnames": [
+                "Acl2RorSubjecUnknown",
+                "Acl2RorSubjectCluster",
+                "Acl2RorSubjectProject",
+                "Acl2RorSubjectGlobal",
+                "Acl2RorSubjectAcl",
+                "Acl2RorSubjectApiKey",
+                "Acl2RorSubjectDatacenter",
+                "Acl2RorSubjectWorkspace",
+                "Acl2RorSubjectPrice",
+                "Acl2RorSubjectVirtualMachine",
+                "Acl2RorSubjectBackup"
             ]
         },
         "aclmodels.AclV2ListItem": {
@@ -7766,10 +7830,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "issuedBy": {
+                    "description": "expects an email",
                     "type": "string"
                 },
                 "kubernetes": {
-                    "description": "Accessv2   []map[AccessType]bool    ` + "`" + `json:\"accessv2\" validate:\"\"` + "`" + `                      // v2 access model for ror api",
+                    "description": "v2 access model for kubernetes",
                     "allOf": [
                         {
                             "$ref": "#/definitions/aclmodels.AclV2ListItemKubernetes"
@@ -7787,8 +7852,12 @@ const docTemplate = `{
                 },
                 "subject": {
                     "description": "The subject eg. clusterid, projectid (can be 'All')",
-                    "type": "string",
-                    "minLength": 1
+                    "minLength": 1,
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/aclmodels.Acl2Subject"
+                        }
+                    ]
                 },
                 "version": {
                     "description": "Acl Version, must be 2",
@@ -10487,6 +10556,7 @@ const docTemplate = `{
         },
         "intstr.Type": {
             "type": "integer",
+            "format": "int64",
             "enum": [
                 0,
                 1
@@ -10495,6 +10565,10 @@ const docTemplate = `{
                 "Int": "The IntOrString holds an int.",
                 "String": "The IntOrString holds a string."
             },
+            "x-enum-descriptions": [
+                "The IntOrString holds an int.",
+                "The IntOrString holds a string."
+            ],
             "x-enum-varnames": [
                 "Int",
                 "String"
@@ -10690,6 +10764,34 @@ const docTemplate = `{
                 "ProviderTypeVitistack"
             ]
         },
+        "resource.Quantity": {
+            "type": "object",
+            "properties": {
+                "Format": {
+                    "type": "string",
+                    "enum": [
+                        "DecimalExponent",
+                        "BinarySI",
+                        "DecimalSI"
+                    ],
+                    "x-enum-comments": {
+                        "BinarySI": "e.g., 12Mi (12 * 2^20)",
+                        "DecimalExponent": "e.g., 12e6",
+                        "DecimalSI": "e.g., 12M  (12 * 10^6)"
+                    },
+                    "x-enum-descriptions": [
+                        "e.g., 12e6",
+                        "e.g., 12Mi (12 * 2^20)",
+                        "e.g., 12M  (12 * 10^6)"
+                    ],
+                    "x-enum-varnames": [
+                        "DecimalExponent",
+                        "BinarySI",
+                        "DecimalSI"
+                    ]
+                }
+            }
+        },
         "rorerror.ErrorData": {
             "type": "object",
             "properties": {
@@ -10718,7 +10820,11 @@ const docTemplate = `{
                 },
                 "subject": {
                     "description": "ror id eg clusterId or workspaceName",
-                    "type": "string"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/aclmodels.Acl2Subject"
+                        }
+                    ]
                 }
             }
         },
@@ -10980,522 +11086,6 @@ const docTemplate = `{
                 "EnvironmentProduction"
             ]
         },
-        "rortypes.KubernetesClusterAutoscalingConfig": {
-            "type": "object",
-            "properties": {
-                "enabled": {
-                    "type": "boolean"
-                },
-                "maxReplicas": {
-                    "type": "integer"
-                },
-                "minReplicas": {
-                    "type": "integer"
-                }
-            }
-        },
-        "rortypes.KubernetesClusterAutoscalingSpec": {
-            "type": "object",
-            "properties": {
-                "enabled": {
-                    "type": "boolean"
-                },
-                "maxReplicas": {
-                    "type": "integer"
-                },
-                "minReplicas": {
-                    "type": "integer"
-                },
-                "scalingRules": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "rortypes.KubernetesClusterClusterDetails": {
-            "type": "object",
-            "properties": {
-                "controlplane": {
-                    "$ref": "#/definitions/rortypes.KubernetesClusterControlPlaneStatus"
-                },
-                "externalId": {
-                    "type": "string"
-                },
-                "nodepools": {
-                    "description": "TODO",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.KubernetesClusterNodePoolStatus"
-                    }
-                },
-                "price": {
-                    "description": "Price is the price of the cluster, e.g., \"1000 NOK/month\"",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/rortypes.KubernetesClusterStatusPrice"
-                        }
-                    ]
-                },
-                "resources": {
-                    "$ref": "#/definitions/rortypes.KubernetesClusterStatusClusterStatusResources"
-                }
-            }
-        },
-        "rortypes.KubernetesClusterClusterState": {
-            "type": "object",
-            "properties": {
-                "cluster": {
-                    "$ref": "#/definitions/rortypes.KubernetesClusterClusterDetails"
-                },
-                "created": {
-                    "type": "string"
-                },
-                "egressIP": {
-                    "type": "string"
-                },
-                "endpoints": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.KubernetesClusterEndpoint"
-                    }
-                },
-                "lastUpdated": {
-                    "type": "string"
-                },
-                "lastUpdatedBy": {
-                    "type": "string"
-                },
-                "versions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.KubernetesClusterVersion"
-                    }
-                }
-            }
-        },
-        "rortypes.KubernetesClusterCondition": {
-            "type": "object",
-            "properties": {
-                "lastTransitionTime": {
-                    "description": "LastTransitionTime is the last time the condition transitioned from one status to another.",
-                    "type": "string"
-                },
-                "message": {
-                    "description": "Message is a human-readable message indicating details about the condition.",
-                    "type": "string"
-                },
-                "reason": {
-                    "description": "Reason is a brief reason for the condition's last transition.",
-                    "type": "string"
-                },
-                "status": {
-                    "description": "Status is the status of the condition. Valid vales are: ok, warning, error, working, unknown.",
-                    "type": "string",
-                    "enum": [
-                        "ok",
-                        "warning",
-                        "error",
-                        "working",
-                        "unknown"
-                    ],
-                    "example": "ok"
-                },
-                "type": {
-                    "description": "Type is the type of the condition. For example, \"ready\", \"available\", etc.",
-                    "type": "string",
-                    "example": "ClusterReady"
-                }
-            }
-        },
-        "rortypes.KubernetesClusterControlPlaneStatus": {
-            "type": "object",
-            "properties": {
-                "machineClass": {
-                    "description": "MachineClass is the machine class of the control plane, e.g., \"c5.large\", \"m5.xlarge\"",
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "nodes": {
-                    "description": "Nodes is the list of the uuids of the nodes in the control plane",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "resources": {
-                    "description": "Resources is the resources of the control plane, e.g., CPU, Memory, Disk, GPU",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/rortypes.KubernetesClusterStatusClusterStatusResources"
-                        }
-                    ]
-                },
-                "scale": {
-                    "description": "Scale is the number of replicas of the control plane.",
-                    "type": "integer"
-                },
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
-        "rortypes.KubernetesClusterEndpoint": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "description": "Address is the address of the endpoint, e.g., \"https://api.example.com\", \"http://dashboard.example.com\"",
-                    "type": "string"
-                },
-                "name": {
-                    "description": "Name is the name of the endpoint, e.g., \"controllplane\", \"kubernetes\", \"api\", \"dashboard, grafana, argocd\", \"datacenter\"",
-                    "type": "string"
-                }
-            }
-        },
-        "rortypes.KubernetesClusterNodePool": {
-            "type": "object",
-            "properties": {
-                "autoscaling": {
-                    "$ref": "#/definitions/rortypes.KubernetesClusterAutoscalingSpec"
-                },
-                "machineClass": {
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/rortypes.KubernetesClusterSpecMetadataDetails"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "provider": {
-                    "type": "string"
-                },
-                "replicas": {
-                    "type": "integer"
-                },
-                "taint": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.KubernetesClusterTaint"
-                    }
-                },
-                "version": {
-                    "description": "Kubernetes version, e.g., \"1.23.0\"",
-                    "type": "string"
-                }
-            }
-        },
-        "rortypes.KubernetesClusterNodePoolStatus": {
-            "type": "object",
-            "properties": {
-                "autoscaling": {
-                    "description": "Autoscaling is the autoscaling configuration of the node pool.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/rortypes.KubernetesClusterAutoscalingConfig"
-                        }
-                    ]
-                },
-                "machineClass": {
-                    "description": "MachineClass is the machine class of the nodepool, e.g., \"c5.large\", \"m5.xlarge\"",
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "nodes": {
-                    "description": "Nodes is the list of the uuids of the nodes in the node pool",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "resources": {
-                    "description": "Resources is the resources of the node pool, e.g., CPU, Memory, Disk, GPU",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/rortypes.KubernetesClusterStatusClusterStatusResources"
-                        }
-                    ]
-                },
-                "scale": {
-                    "description": "Scale is the number of replicas of the nodepool.",
-                    "type": "integer"
-                },
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
-        "rortypes.KubernetesClusterSpec": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/rortypes.KubernetesClusterSpecData"
-                },
-                "topology": {
-                    "$ref": "#/definitions/rortypes.KubernetesClusterSpecTopology"
-                }
-            }
-        },
-        "rortypes.KubernetesClusterSpecControlPlane": {
-            "type": "object",
-            "properties": {
-                "machineClass": {
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/rortypes.KubernetesClusterSpecMetadataDetails"
-                },
-                "provider": {
-                    "type": "string"
-                },
-                "replicas": {
-                    "type": "integer"
-                },
-                "storage": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.KubernetesClusterStorage"
-                    }
-                },
-                "version": {
-                    "description": "Kubernetes version, e.g., \"1.23.0\"",
-                    "type": "string"
-                }
-            }
-        },
-        "rortypes.KubernetesClusterSpecData": {
-            "type": "object",
-            "properties": {
-                "clusterId": {
-                    "type": "string"
-                },
-                "clusterUid": {
-                    "description": "ClusterUID is a unique identifier for the cluster, e.g., \"12345678-1234-1234-1234-123456789012\"",
-                    "type": "string"
-                },
-                "datacenter": {
-                    "type": "string"
-                },
-                "environment": {
-                    "type": "string"
-                },
-                "project": {
-                    "type": "string"
-                },
-                "provider": {
-                    "type": "string"
-                },
-                "region": {
-                    "type": "string"
-                },
-                "workorder": {
-                    "type": "string"
-                },
-                "workspace": {
-                    "type": "string"
-                },
-                "zone": {
-                    "type": "string"
-                }
-            }
-        },
-        "rortypes.KubernetesClusterSpecMetadataDetails": {
-            "type": "object",
-            "properties": {
-                "annotations": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "labels": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "rortypes.KubernetesClusterSpecTopology": {
-            "type": "object",
-            "properties": {
-                "controlplane": {
-                    "description": "ControlPlane contains the control plane configuration.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/rortypes.KubernetesClusterSpecControlPlane"
-                        }
-                    ]
-                },
-                "version": {
-                    "description": "Kubernetes version, e.g., \"1.23.0\"",
-                    "type": "string"
-                },
-                "workers": {
-                    "description": "Workers contains the worker nodes configuration.",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/rortypes.KubernetesClusterWorkers"
-                        }
-                    ]
-                }
-            }
-        },
-        "rortypes.KubernetesClusterStatus": {
-            "type": "object",
-            "properties": {
-                "conditions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.KubernetesClusterCondition"
-                    }
-                },
-                "phase": {
-                    "description": "Provisioning, Running, Deleting, Failed, Updating",
-                    "type": "string"
-                },
-                "state": {
-                    "$ref": "#/definitions/rortypes.KubernetesClusterClusterState"
-                }
-            }
-        },
-        "rortypes.KubernetesClusterStatusClusterStatusResource": {
-            "type": "object",
-            "properties": {
-                "capacity": {
-                    "description": "Capacity is the total capacity of the resource.\"",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/rortypes.Quantity"
-                        }
-                    ]
-                },
-                "percentage": {
-                    "description": "Percentage is the percentage of the resource that is currently used as an int.",
-                    "type": "integer"
-                },
-                "used": {
-                    "description": "Used is the amount of the resource that is currently used.\"",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/rortypes.Quantity"
-                        }
-                    ]
-                }
-            }
-        },
-        "rortypes.KubernetesClusterStatusClusterStatusResources": {
-            "type": "object",
-            "properties": {
-                "cpu": {
-                    "description": "CPU is the total CPU capacity of the cluster, if not specified in millicores, e.g., \"16 cores\", \"8000 millicores\"",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/rortypes.KubernetesClusterStatusClusterStatusResource"
-                        }
-                    ]
-                },
-                "disk": {
-                    "description": "Disk is the total disk capacity of the cluster, if not specified in bytes\"",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/rortypes.KubernetesClusterStatusClusterStatusResource"
-                        }
-                    ]
-                },
-                "gpu": {
-                    "description": "GPU is the total GPU capacity of the cluster, if not specified in number of GPUs\"",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/rortypes.KubernetesClusterStatusClusterStatusResource"
-                        }
-                    ]
-                },
-                "memory": {
-                    "description": "Memory is the total memory capacity of the cluster, if not specified in bytes, e.g., \"64 GB\", \"128000 MB\", \"25600000000 bytes\"",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/rortypes.KubernetesClusterStatusClusterStatusResource"
-                        }
-                    ]
-                }
-            }
-        },
-        "rortypes.KubernetesClusterStatusPrice": {
-            "type": "object",
-            "properties": {
-                "monthly": {
-                    "description": "Monthly is the monthly price of the cluster in your currency, e.g., \"1000\"",
-                    "type": "integer"
-                },
-                "yearly": {
-                    "description": "Yearly is the yearly price of the cluster, e.g., \"12000\"",
-                    "type": "integer"
-                }
-            }
-        },
-        "rortypes.KubernetesClusterStorage": {
-            "type": "object",
-            "properties": {
-                "class": {
-                    "type": "string"
-                },
-                "path": {
-                    "type": "string"
-                },
-                "size": {
-                    "type": "string"
-                }
-            }
-        },
-        "rortypes.KubernetesClusterTaint": {
-            "type": "object",
-            "properties": {
-                "effect": {
-                    "type": "string"
-                },
-                "key": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "string"
-                }
-            }
-        },
-        "rortypes.KubernetesClusterVersion": {
-            "type": "object",
-            "properties": {
-                "branch": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "version": {
-                    "type": "string"
-                }
-            }
-        },
-        "rortypes.KubernetesClusterWorkers": {
-            "type": "object",
-            "properties": {
-                "nodePools": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/rortypes.KubernetesClusterNodePool"
-                    }
-                }
-            }
-        },
         "rortypes.ProviderType": {
             "type": "string",
             "enum": [
@@ -11510,29 +11100,6 @@ const docTemplate = `{
                 "ProviderTypeAzure",
                 "ProviderTypeK3d"
             ]
-        },
-        "rortypes.Quantity": {
-            "type": "object",
-            "properties": {
-                "Format": {
-                    "type": "string",
-                    "enum": [
-                        "DecimalExponent",
-                        "BinarySI",
-                        "DecimalSI"
-                    ],
-                    "x-enum-comments": {
-                        "BinarySI": "e.g., 12Mi (12 * 2^20)",
-                        "DecimalExponent": "e.g., 12e6",
-                        "DecimalSI": "e.g., 12M  (12 * 10^6)"
-                    },
-                    "x-enum-varnames": [
-                        "DecimalExponent",
-                        "BinarySI",
-                        "DecimalSI"
-                    ]
-                }
-            }
         },
         "rortypes.ResourceAction": {
             "type": "string",
@@ -12893,10 +12460,10 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "spec": {
-                    "$ref": "#/definitions/rortypes.KubernetesClusterSpec"
+                    "$ref": "#/definitions/v1alpha1.KubernetesClusterSpec"
                 },
                 "status": {
-                    "$ref": "#/definitions/rortypes.KubernetesClusterStatus"
+                    "$ref": "#/definitions/v1alpha1.KubernetesClusterStatus"
                 }
             }
         },
@@ -15174,6 +14741,572 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "v1alpha1.KubernetesClusterAutoscalingConfig": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "maxReplicas": {
+                    "type": "integer"
+                },
+                "minReplicas": {
+                    "type": "integer"
+                }
+            }
+        },
+        "v1alpha1.KubernetesClusterAutoscalingSpec": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "maxReplicas": {
+                    "type": "integer"
+                },
+                "minReplicas": {
+                    "type": "integer"
+                },
+                "scalingRules": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "v1alpha1.KubernetesClusterClusterDetails": {
+            "type": "object",
+            "properties": {
+                "controlplane": {
+                    "$ref": "#/definitions/v1alpha1.KubernetesClusterControlPlaneStatus"
+                },
+                "externalId": {
+                    "type": "string"
+                },
+                "nodepools": {
+                    "description": "TODO",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1alpha1.KubernetesClusterNodePoolStatus"
+                    }
+                },
+                "price": {
+                    "description": "Price is the price of the cluster, e.g., \"1000 NOK/month\"",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.KubernetesClusterStatusPrice"
+                        }
+                    ]
+                },
+                "resources": {
+                    "$ref": "#/definitions/v1alpha1.KubernetesClusterStatusClusterStatusResources"
+                }
+            }
+        },
+        "v1alpha1.KubernetesClusterClusterState": {
+            "type": "object",
+            "properties": {
+                "cluster": {
+                    "$ref": "#/definitions/v1alpha1.KubernetesClusterClusterDetails"
+                },
+                "created": {
+                    "type": "string"
+                },
+                "egressIP": {
+                    "type": "string"
+                },
+                "endpoints": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1alpha1.KubernetesClusterEndpoint"
+                    }
+                },
+                "lastUpdated": {
+                    "type": "string"
+                },
+                "lastUpdatedBy": {
+                    "type": "string"
+                },
+                "versions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1alpha1.KubernetesClusterVersion"
+                    }
+                }
+            }
+        },
+        "v1alpha1.KubernetesClusterCondition": {
+            "type": "object",
+            "properties": {
+                "lastTransitionTime": {
+                    "description": "LastTransitionTime is the last time the condition transitioned from one status to another.",
+                    "type": "string"
+                },
+                "message": {
+                    "description": "Message is a human-readable message indicating details about the condition.",
+                    "type": "string"
+                },
+                "reason": {
+                    "description": "Reason is a brief reason for the condition's last transition.",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status is the status of the condition. Valid vales are: ok, warning, error, working, unknown.",
+                    "type": "string",
+                    "enum": [
+                        "ok",
+                        "warning",
+                        "error",
+                        "working",
+                        "unknown"
+                    ],
+                    "example": "ok"
+                },
+                "type": {
+                    "description": "Type is the type of the condition. For example, \"ready\", \"available\", etc.",
+                    "type": "string",
+                    "example": "ClusterReady"
+                }
+            }
+        },
+        "v1alpha1.KubernetesClusterControlPlaneStatus": {
+            "type": "object",
+            "properties": {
+                "machineClass": {
+                    "description": "MachineClass is the machine class of the control plane, e.g., \"c5.large\", \"m5.xlarge\"",
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "nodes": {
+                    "description": "Nodes is the list of the uuids of the nodes in the control plane",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "resources": {
+                    "description": "Resources is the resources of the control plane, e.g., CPU, Memory, Disk, GPU",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.KubernetesClusterStatusClusterStatusResources"
+                        }
+                    ]
+                },
+                "scale": {
+                    "description": "Scale is the number of replicas of the control plane.",
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.KubernetesClusterEndpoint": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "description": "Address is the address of the endpoint, e.g., \"https://api.example.com\", \"http://dashboard.example.com\"",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name is the name of the endpoint, e.g., \"controllplane\", \"kubernetes\", \"api\", \"dashboard, grafana, argocd\", \"datacenter\"",
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.KubernetesClusterNodePool": {
+            "type": "object",
+            "properties": {
+                "architecture": {
+                    "description": "Architecture is the CPU architecture for the nodes in this pool.\nSupported values: \"amd64\", \"arm64\", \"x86_64\" (treated as amd64).\nDefaults to \"amd64\" if not specified.\n+kubebuilder:validation:Optional\n+kubebuilder:validation:Enum=amd64;arm64;x86_64\n+kubebuilder:default=amd64",
+                    "type": "string"
+                },
+                "autoscaling": {
+                    "$ref": "#/definitions/v1alpha1.KubernetesClusterAutoscalingSpec"
+                },
+                "machineClass": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/v1alpha1.KubernetesClusterSpecMetadataDetails"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "provider": {
+                    "$ref": "#/definitions/v1alpha1.KubernetesProviderType"
+                },
+                "replicas": {
+                    "type": "integer"
+                },
+                "storage": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1alpha1.KubernetesClusterStorage"
+                    }
+                },
+                "taint": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1alpha1.KubernetesClusterTaint"
+                    }
+                },
+                "version": {
+                    "description": "Kubernetes version, e.g., \"1.23.0\"",
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.KubernetesClusterNodePoolStatus": {
+            "type": "object",
+            "properties": {
+                "autoscaling": {
+                    "description": "Autoscaling is the autoscaling configuration of the node pool.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.KubernetesClusterAutoscalingConfig"
+                        }
+                    ]
+                },
+                "machineClass": {
+                    "description": "MachineClass is the machine class of the nodepool, e.g., \"c5.large\", \"m5.xlarge\"",
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nodes": {
+                    "description": "Nodes is the list of the uuids of the nodes in the node pool",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "resources": {
+                    "description": "Resources is the resources of the node pool, e.g., CPU, Memory, Disk, GPU",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.KubernetesClusterStatusClusterStatusResources"
+                        }
+                    ]
+                },
+                "scale": {
+                    "description": "Scale is the number of replicas of the nodepool.",
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.KubernetesClusterSpec": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "+kubebuilder:validation:Required",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.KubernetesClusterSpecData"
+                        }
+                    ]
+                },
+                "topology": {
+                    "description": "+kubebuilder:validation:Required",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.KubernetesClusterSpecTopology"
+                        }
+                    ]
+                }
+            }
+        },
+        "v1alpha1.KubernetesClusterSpecControlPlane": {
+            "type": "object",
+            "properties": {
+                "architecture": {
+                    "description": "Architecture is the CPU architecture for the control plane nodes.\nSupported values: \"amd64\", \"arm64\", \"x86_64\" (treated as amd64).\nDefaults to \"amd64\" if not specified.\n+kubebuilder:validation:Optional\n+kubebuilder:validation:Enum=amd64;arm64;x86_64\n+kubebuilder:default=amd64",
+                    "type": "string"
+                },
+                "machineClass": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/v1alpha1.KubernetesClusterSpecMetadataDetails"
+                },
+                "provider": {
+                    "description": "+kubebuilder:validation:Required",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.KubernetesProviderType"
+                        }
+                    ]
+                },
+                "replicas": {
+                    "description": "Replicas is the number of control plane nodes.\nMust be an odd number (1, 3, 5, etc.) to maintain etcd quorum.\n+kubebuilder:validation:Required\n+kubebuilder:validation:Minimum=1\n+kubebuilder:validation:XValidation:rule=\"self % 2 == 1\",message=\"controlplane replicas must be an odd number (1, 3, 5, etc.) to maintain etcd quorum\"",
+                    "type": "integer"
+                },
+                "storage": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1alpha1.KubernetesClusterStorage"
+                    }
+                },
+                "version": {
+                    "description": "Kubernetes version, e.g., \"1.23.0\"",
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.KubernetesClusterSpecData": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "description": "+kubebuilder:validation:Required",
+                    "type": "string"
+                },
+                "clusterUid": {
+                    "description": "ClusterUID is a unique identifier for the cluster, e.g., \"12345678-1234-1234-1234-123456789012\"",
+                    "type": "string"
+                },
+                "datacenter": {
+                    "type": "string"
+                },
+                "environment": {
+                    "description": "+kubebuilder:validation:Required",
+                    "type": "string"
+                },
+                "project": {
+                    "type": "string"
+                },
+                "provider": {
+                    "description": "+kubebuilder:validation:Required",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.KubernetesProviderType"
+                        }
+                    ]
+                },
+                "region": {
+                    "description": "+kubebuilder:validation:Required",
+                    "type": "string"
+                },
+                "workorder": {
+                    "type": "string"
+                },
+                "workspace": {
+                    "type": "string"
+                },
+                "zone": {
+                    "description": "+kubebuilder:validation:Required",
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.KubernetesClusterSpecMetadataDetails": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "v1alpha1.KubernetesClusterSpecTopology": {
+            "type": "object",
+            "properties": {
+                "controlplane": {
+                    "description": "+kubebuilder:validation:Required",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.KubernetesClusterSpecControlPlane"
+                        }
+                    ]
+                },
+                "version": {
+                    "description": "Kubernetes version, e.g., \"1.23.0\"",
+                    "type": "string"
+                },
+                "workers": {
+                    "description": "Workers contains the worker nodes configuration.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.KubernetesClusterWorkers"
+                        }
+                    ]
+                }
+            }
+        },
+        "v1alpha1.KubernetesClusterStatus": {
+            "type": "object",
+            "properties": {
+                "conditions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1alpha1.KubernetesClusterCondition"
+                    }
+                },
+                "phase": {
+                    "description": "Provisioning, Running, Deleting, Failed, Updating",
+                    "type": "string"
+                },
+                "state": {
+                    "$ref": "#/definitions/v1alpha1.KubernetesClusterClusterState"
+                }
+            }
+        },
+        "v1alpha1.KubernetesClusterStatusClusterStatusResource": {
+            "type": "object",
+            "properties": {
+                "capacity": {
+                    "description": "Capacity is the total capacity of the resource.\"",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/resource.Quantity"
+                        }
+                    ]
+                },
+                "percentage": {
+                    "description": "Percentage is the percentage of the resource that is currently used as an int.",
+                    "type": "integer"
+                },
+                "used": {
+                    "description": "Used is the amount of the resource that is currently used.\"",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/resource.Quantity"
+                        }
+                    ]
+                }
+            }
+        },
+        "v1alpha1.KubernetesClusterStatusClusterStatusResources": {
+            "type": "object",
+            "properties": {
+                "cpu": {
+                    "description": "CPU is the total CPU capacity of the cluster, if not specified in millicores, e.g., \"16 cores\", \"8000 millicores\"",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.KubernetesClusterStatusClusterStatusResource"
+                        }
+                    ]
+                },
+                "disk": {
+                    "description": "Disk is the total disk capacity of the cluster, if not specified in bytes\"",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.KubernetesClusterStatusClusterStatusResource"
+                        }
+                    ]
+                },
+                "gpu": {
+                    "description": "GPU is the total GPU capacity of the cluster, if not specified in number of GPUs\"",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.KubernetesClusterStatusClusterStatusResource"
+                        }
+                    ]
+                },
+                "memory": {
+                    "description": "Memory is the total memory capacity of the cluster, if not specified in bytes, e.g., \"64 GB\", \"128000 MB\", \"25600000000 bytes\"",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.KubernetesClusterStatusClusterStatusResource"
+                        }
+                    ]
+                }
+            }
+        },
+        "v1alpha1.KubernetesClusterStatusPrice": {
+            "type": "object",
+            "properties": {
+                "monthly": {
+                    "description": "Monthly is the monthly price of the cluster in your currency, e.g., \"1000\"",
+                    "type": "integer"
+                },
+                "yearly": {
+                    "description": "Yearly is the yearly price of the cluster, e.g., \"12000\"",
+                    "type": "integer"
+                }
+            }
+        },
+        "v1alpha1.KubernetesClusterStorage": {
+            "type": "object",
+            "properties": {
+                "class": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.KubernetesClusterTaint": {
+            "type": "object",
+            "properties": {
+                "effect": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.KubernetesClusterVersion": {
+            "type": "object",
+            "properties": {
+                "branch": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.KubernetesClusterWorkers": {
+            "type": "object",
+            "properties": {
+                "nodePools": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1alpha1.KubernetesClusterNodePool"
+                    }
+                }
+            }
+        },
+        "v1alpha1.KubernetesProviderType": {
+            "type": "string",
+            "enum": [
+                "talos",
+                "aks"
+            ],
+            "x-enum-varnames": [
+                "KubernetesProviderTypeTalos",
+                "KubernetesProviderTypeAKS"
+            ]
         }
     },
     "securityDefinitions": {

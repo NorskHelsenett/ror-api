@@ -202,10 +202,20 @@ run-generator: check-go ## Run the generator application
 	@echo "${GREEN}Running generator...${RESET}"
 	${GO} run ${GENERATOR_PATH}
 
+# Check if swag is installed
+check-swag: ## Check if swag is installed, install if not
+	@if ! command -v swag &> /dev/null; then \
+		echo "${YELLOW}swag not found, installing...${RESET}"; \
+		${GO} install github.com/swaggo/swag/cmd/swag@latest; \
+		echo "${GREEN}swag installed!${RESET}"; \
+	else \
+		echo "${GREEN}swag is installed${RESET}"; \
+	fi
+
 # Generate Swagger documentation
-generate-swagger: check-go ## Generate Swagger documentation
+generate-swagger: check-go check-swag ## Generate Swagger documentation
 	@echo "${YELLOW}Generating Swagger docs...${RESET}"
-	swag init -g ${MAIN_PATH}/main.go -o ./internal/docs
+	swag init -g ${MAIN_PATH}/main.go -o ./internal/docs --parseDependency
 	@echo "${GREEN}Swagger documentation generated!${RESET}"
 
 # Alias for generate-swagger
@@ -267,6 +277,11 @@ run-docker: check-docker ## Start core services with docker-compose (rabbitmq, m
 	@echo "${GREEN}Starting core docker-compose services...${RESET}"
 	docker compose --profile mocc up -d
 	@echo "${GREEN}Core services started!${RESET}"
+
+run-docker-minimal: check-docker ## Start services with UI profile (mongo-express, valkey-commander)
+	@echo "${GREEN}Starting docker-compose services with UI profile...${RESET}"
+	docker compose up openldap dex init-dex-db mocc -d
+	@echo "${GREEN}Services with UI profile started!${RESET}"
 
 run-docker-ui: check-docker ## Start services with UI profile (mongo-express, valkey-commander)
 	@echo "${GREEN}Starting docker-compose services with UI profile...${RESET}"
