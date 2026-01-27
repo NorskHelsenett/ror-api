@@ -202,7 +202,7 @@ func ClusterByFilter() gin.HandlerFunc {
 //	@Failure		400											{object}	rorerror.ErrorData
 //	@Failure		401											{object}	rorerror.ErrorData
 //	@Failure		500											{string}	Failure	message
-//	@Router			/v1/clusters/workspace/{workspaceId}/filter	[get]
+//	@Router			/v1/clusters/workspace/{workspaceId}/filter	[post]
 //	@Param			filter										body	apicontracts.Filter	true	"Filter"
 //	@Param			workspaceId									path	string				true	"workspaceId"
 //	@Security		ApiKey || AccessToken

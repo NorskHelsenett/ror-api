@@ -98,7 +98,7 @@ func GetResources() gin.HandlerFunc {
 //	@Failure		403				{string}	Forbidden
 //	@Failure		401				{object}	rorerror.ErrorData
 //	@Failure		500				{string}	Failure	message
-//	@Router			/v2/resource/uid/{uid} [get]
+//	@Router			/v2/resources/uid/{uid} [get]
 //	@Security		ApiKey || AccessToken
 func GetResource() gin.HandlerFunc {
 	return func(c *gin.Context) {

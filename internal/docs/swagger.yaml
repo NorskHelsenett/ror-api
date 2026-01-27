@@ -6692,7 +6692,7 @@ paths:
       tags:
       - clusters
   /v1/clusters/workspace/{workspaceId}/filter:
-    get:
+    post:
       consumes:
       - application/json
       description: Get clusters by workspace
@@ -9703,44 +9703,6 @@ paths:
       summary: Server sent events
       tags:
       - events
-  /v2/resource/uid/{uid}:
-    get:
-      consumes:
-      - application/json
-      description: Get a resource by uid
-      parameters:
-      - description: The uid of the resource
-        in: path
-        name: uid
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/rorresources.Resource'
-            type: array
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/rorerror.ErrorData'
-        "403":
-          description: Forbidden
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      security:
-      - AccessToken: []
-        ApiKey: []
-      summary: Get resource
-      tags:
-      - resources
   /v2/resources:
     get:
       consumes:
@@ -9939,6 +9901,43 @@ paths:
       - AccessToken: []
         ApiKey: []
       summary: Delete a resource by uid
+      tags:
+      - resources
+    get:
+      consumes:
+      - application/json
+      description: Get a resource by uid
+      parameters:
+      - description: The uid of the resource
+        in: path
+        name: uid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/rorresources.Resource'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Get resource
       tags:
       - resources
     head:
