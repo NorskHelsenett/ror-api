@@ -6,6 +6,7 @@ import (
 
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
@@ -25,13 +26,13 @@ func (a *ApiKeyAuthProvider) Authenticate(c *gin.Context) {
 	apikey := c.Request.Header.Get("X-API-KEY")
 	ctx := c.Request.Context()
 	if len(apikey) == 0 {
-		rerr := rorerror.NewRorError(401, "api key not provided")
+		rerr := rorginerror.NewRorGinError(401, "api key not provided")
 		rerr.GinLogErrorAbort(c)
 		return
 	}
 
 	apikeyResult, err := apikeysservice.VerifyApiKey(ctx, apikey)
-	if rorerror.GinHandleErrorAndAbort(c, 401, err) {
+	if rorginerror.GinHandleErrorAndAbort(c, 401, err) {
 		return
 	}
 
@@ -43,7 +44,7 @@ func (a *ApiKeyAuthProvider) Authenticate(c *gin.Context) {
 	case apicontracts.ApiKeyTypeService:
 		serviceAuth(c, apikeyResult)
 	default:
-		rerr := rorerror.NewRorError(401, "error wrong api key type")
+		rerr := rorginerror.NewRorGinError(401, "error wrong api key type")
 		rerr.GinLogErrorAbort(c)
 	}
 }
@@ -106,7 +107,7 @@ func userAuth(c *gin.Context, apikey apicontracts.ApiKey) {
 			Status:  401,
 			Message: "error getting user",
 		}
-		rorerror.GinHandleErrorAndAbort(c, 401, rerr, rlog.String("user", apikey.Identifier))
+		rorginerror.GinHandleErrorAndAbort(c, 401, rerr, rlog.String("user", apikey.Identifier))
 		return
 	}
 

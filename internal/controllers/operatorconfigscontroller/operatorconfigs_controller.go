@@ -9,12 +9,12 @@ import (
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 	operatorconfigservice "github.com/NorskHelsenett/ror-api/internal/apiservices/operatorConfigService"
 
-	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -65,14 +65,14 @@ func GetById() gin.HandlerFunc {
 
 		id := c.Param("id")
 		if id == "" || len(id) == 0 {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "invalid id")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid id")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		result, err := operatorconfigservice.GetById(ctx, id)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "could not get operator config", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not get operator config", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -113,7 +113,7 @@ func GetAll() gin.HandlerFunc {
 
 		elements, err := operatorconfigservice.GetAll(ctx)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not find operator configs ...", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not find operator configs ...", err)
 			rerr.GinLogErrorAbort(c)
 		}
 
@@ -155,14 +155,14 @@ func Create() gin.HandlerFunc {
 		var config apicontracts.OperatorConfig
 		//validate the request body
 		if err := c.BindJSON(&config); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not validate operator config input", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not validate operator config input", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&config); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "could not validate input", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "could not validate input", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -171,11 +171,11 @@ func Create() gin.HandlerFunc {
 		if err != nil {
 			rlog.Errorc(ctx, "could not create operator config", err)
 			if strings.Contains(err.Error(), "exists") {
-				rerr := rorerror.NewRorError(http.StatusBadRequest, "Already exists", err)
+				rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Already exists", err)
 				rerr.GinLogErrorAbort(c)
 				return
 			}
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields are missing", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Required fields are missing", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -210,7 +210,7 @@ func Update() gin.HandlerFunc {
 
 		id := c.Param("id")
 		if id == "" || len(id) == 0 {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid operator config id", fmt.Errorf("id is zero length"))
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid operator config id", fmt.Errorf("id is zero length"))
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -229,27 +229,27 @@ func Update() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&input); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Input is not valid", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Input is not valid", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&input); err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Required fields missing", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Required fields missing", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		updated, original, err := operatorconfigservice.Update(ctx, id, &input)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not update operator config", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not update operator config", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		if updated == nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not update operator config, does it exist?!", fmt.Errorf("object does not exist"))
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not update operator config, does it exist?!", fmt.Errorf("object does not exist"))
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -284,7 +284,7 @@ func Delete() gin.HandlerFunc {
 
 		id := c.Param("id")
 		if id == "" || len(id) == 0 {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Invalid id", fmt.Errorf("id is zero length"))
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid id", fmt.Errorf("id is zero length"))
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -301,7 +301,7 @@ func Delete() gin.HandlerFunc {
 
 		result, err := operatorconfigservice.Delete(ctx, id)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusBadRequest, "Could not delete operator config", err)
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not delete operator config", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}

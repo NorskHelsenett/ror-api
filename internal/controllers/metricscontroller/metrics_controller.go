@@ -6,13 +6,13 @@ import (
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 	metricsservice "github.com/NorskHelsenett/ror-api/internal/apiservices/metricsService"
-	"github.com/NorskHelsenett/ror-api/internal/responses"
+	"github.com/NorskHelsenett/ror-api/internal/models/responses"
 
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
-	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/gin-gonic/gin"
 )
@@ -41,7 +41,7 @@ func GetTotalByUser() gin.HandlerFunc {
 
 		metricsTotal, err := metricsservice.GetTotalByUser(ctx)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusForbidden, "Could not get user", err)
+			rerr := rorginerror.NewRorGinError(http.StatusForbidden, "Could not get user", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -80,7 +80,7 @@ func GetTotal() gin.HandlerFunc {
 
 		metrics, err := metricsservice.GetTotal(ctx)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get metrics", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not get metrics", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}

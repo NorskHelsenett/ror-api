@@ -27,6 +27,7 @@ import (
 	v2tokencontroller "github.com/NorskHelsenett/ror-api/internal/controllers/v2/tokencontroller"
 	viewcontroller "github.com/NorskHelsenett/ror-api/internal/controllers/v2/viewcontroller"
 	ctrlWorkspaces "github.com/NorskHelsenett/ror-api/internal/controllers/workspacescontroller"
+	"github.com/NorskHelsenett/ror-api/pkg/handlers/healthginhandler"
 	"github.com/NorskHelsenett/ror-api/pkg/handlers/ssehandler"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/auditmiddleware"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/authmiddleware"
@@ -40,7 +41,6 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/config/rorversion"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorhealth"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
 	"github.com/NorskHelsenett/ror-api/internal/docs"
@@ -340,7 +340,7 @@ func SetupRoutes(router *gin.Engine) {
 	selfv2Route.POST("/apikeys", handlerv2selfcontroller.CreateOrRenewApikey())
 	selfv2Route.DELETE("/apikeys/:id", handlerv2selfcontroller.DeleteApiKey())
 
-	router.GET("/health", rorhealth.GetGinHandler())
+	router.GET("/health", healthginhandler.GetGinHandler())
 	router.GET("/metrics", gin.WrapH(promhttp.HandlerFor(prometheus.DefaultGatherer, promhttp.HandlerOpts{EnableOpenMetrics: true})))
 
 	docs.SwaggerInfo.BasePath = "/"

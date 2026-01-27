@@ -5,13 +5,15 @@ package resourcescontroller
 
 import (
 	"net/http"
-	"github.com/NorskHelsenett/ror-api/internal/responses"
 	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
-	
-	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
-	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
+	"github.com/NorskHelsenett/ror-api/internal/models/apiresourcequery"
+	"github.com/NorskHelsenett/ror-api/internal/models/responses"
+
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
+	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"github.com/gin-gonic/gin"
 )
@@ -39,7 +41,7 @@ func GetResources() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		query := apiresourcecontracts.NewResourceQueryFromClient(c)
+		query := apiresourcequery.NewResourceQueryFromClient(c)
 
 		accessObject := aclservice.CheckAccessByOwnerref(ctx, query.Owner)
 		if !accessObject.Read {

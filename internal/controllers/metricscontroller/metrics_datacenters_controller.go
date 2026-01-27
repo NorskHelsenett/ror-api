@@ -6,10 +6,10 @@ import (
 
 	metricsservice "github.com/NorskHelsenett/ror-api/internal/apiservices/metricsService"
 
-	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 
 	"github.com/gin-gonic/gin"
 )
@@ -37,7 +37,7 @@ func GetForDatacenters() gin.HandlerFunc {
 		var _ apicontracts.MetricList
 		metrics, err := metricsservice.GetForDatacenters(ctx)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get metrics", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not get metrics", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -78,7 +78,7 @@ func GetByDatacenterId() gin.HandlerFunc {
 
 		metrics, err := metricsservice.GetForDatacenterId(ctx, datacenterId)
 		if err != nil {
-			rerr := rorerror.NewRorError(http.StatusInternalServerError, "Could not get metrics", err)
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not get metrics", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}

@@ -4,14 +4,14 @@ import (
 	"net/http"
 
 	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
-	"github.com/NorskHelsenett/ror-api/internal/responses"
+	"github.com/NorskHelsenett/ror-api/internal/models/responses"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
-	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"github.com/gin-gonic/gin"

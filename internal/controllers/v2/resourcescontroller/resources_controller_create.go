@@ -6,13 +6,13 @@ import (
 	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
-	"github.com/NorskHelsenett/ror-api/internal/responses"
+	"github.com/NorskHelsenett/ror-api/internal/models/responses"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 
-	"github.com/NorskHelsenett/ror/pkg/context/gincontext"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/gin-gonic/gin"
 )

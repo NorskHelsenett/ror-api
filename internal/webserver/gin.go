@@ -14,10 +14,10 @@ import (
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/authmiddleware/oauthmiddleware"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/corsmiddleware"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/headersmiddleware"
+	"github.com/NorskHelsenett/ror-api/pkg/middelware/metricsmiddleware"
+	"github.com/NorskHelsenett/ror-api/pkg/middelware/rlogmiddleware"
 
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
-
-	"github.com/NorskHelsenett/ror/pkg/telemetry/metric"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
@@ -63,8 +63,8 @@ func startHttpServer(ctx context.Context) error {
 		router.Use(otelgin.Middleware("ror-api"))
 	}
 
-	router.Use(rlog.LogMiddleware())
-	router.Use(metric.MetricMiddleware("/metrics"))
+	router.Use(rlogmiddleware.LogMiddleware())
+	router.Use(metricsmiddleware.MetricMiddleware("/metrics"))
 	router.Use(headersmiddleware.HeadersMiddleware())
 	router.Use(corsmiddleware.CORS())
 
