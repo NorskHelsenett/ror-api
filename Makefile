@@ -46,6 +46,8 @@ GO_VERSION := $(shell awk '/^go /{print $$2}' go.mod)
 GO_TOOLCHAIN := go$(GO_VERSION)
 GOSEC_VERSION ?= latest
 GOLANGCI_LINT_VERSION ?= latest
+GOVULNCHECK_VERSION ?= latest
+GOVULNCHECK ?= $(LOCALBIN)/govulncheck
 
 GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
 GOSEC ?= $(LOCALBIN)/gosec
@@ -57,6 +59,7 @@ GOSEC ?= $(LOCALBIN)/gosec
 .PHONY: help all setup build build-static build-generator clean test test-coverage test-race \
 	fmt vet lint gosec run run-generator deps update-deps \
 	docker docker-build docker-run docker-push \
+	run-docker run-docker-ui run-docker-all stop-docker \
 	helm-template helm-install helm-upgrade helm-uninstall helm-lint \
 	check-go check-docker check-kubectl check-helm check-prereqs \
 	swagger generate-swagger docs dev security-scan bench profile install-tools
@@ -180,12 +183,6 @@ lint: golangci-lint ## Run linting with golangci-lint
 	$(GOLANGCI_LINT) run --timeout 5m ./... --config .golangci.yml
 	@echo "${GREEN}Linting completed!${RESET}"
 
-# Run gosec
-gosec: check-go ## Run gosec for security analysis
-	@echo "${YELLOW}Running gosec...${RESET}"
-	gosec ./...
-	@echo "${GREEN}gosec completed!${RESET}"
-
 # Run all quality checks
 quality: fmt vet lint gosec ## Run all code quality checks
 	@echo "${GREEN}All quality checks completed!${RESET}"
@@ -205,10 +202,20 @@ run-generator: check-go ## Run the generator application
 	@echo "${GREEN}Running generator...${RESET}"
 	${GO} run ${GENERATOR_PATH}
 
+# Check if swag is installed
+check-swag: ## Check if swag is installed, install if not
+	@if ! command -v swag &> /dev/null; then \
+		echo "${YELLOW}swag not found, installing...${RESET}"; \
+		${GO} install github.com/swaggo/swag/cmd/swag@latest; \
+		echo "${GREEN}swag installed!${RESET}"; \
+	else \
+		echo "${GREEN}swag is installed${RESET}"; \
+	fi
+
 # Generate Swagger documentation
-generate-swagger: check-go ## Generate Swagger documentation
+generate-swagger: check-go check-swag ## Generate Swagger documentation
 	@echo "${YELLOW}Generating Swagger docs...${RESET}"
-	swag init -g ${MAIN_PATH}/main.go -o ./internal/docs
+	swag init -g ${MAIN_PATH}/main.go -o ./internal/docs --parseDependency
 	@echo "${GREEN}Swagger documentation generated!${RESET}"
 
 # Alias for generate-swagger
@@ -263,6 +270,33 @@ docker-push: check-docker ## Push Docker image to registry
 	@echo "${YELLOW}Pushing Docker image...${RESET}"
 	docker push ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${DOCKER_TAG}
 	@echo "${GREEN}Docker image pushed: ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${DOCKER_TAG}${RESET}"
+
+##@ Docker Compose
+
+run-docker: check-docker ## Start core services with docker-compose (rabbitmq, mongodb, dex, vault, mocc, etc.)
+	@echo "${GREEN}Starting core docker-compose services...${RESET}"
+	docker compose --profile mocc up -d
+	@echo "${GREEN}Core services started!${RESET}"
+
+run-docker-minimal: check-docker ## Start services with UI profile (mongo-express, valkey-commander)
+	@echo "${GREEN}Starting docker-compose services with UI profile...${RESET}"
+	docker compose up openldap dex init-dex-db mocc -d
+	@echo "${GREEN}Services with UI profile started!${RESET}"
+
+run-docker-ui: check-docker ## Start services with UI profile (mongo-express, valkey-commander)
+	@echo "${GREEN}Starting docker-compose services with UI profile...${RESET}"
+	docker compose --profile mocc --profile ui up -d
+	@echo "${GREEN}Services with UI profile started!${RESET}"
+
+run-docker-all: check-docker ## Start all services including UI and tracing profiles
+	@echo "${GREEN}Starting all docker-compose services...${RESET}"
+	docker compose --profile mocc --profile ui --profile tracing up -d
+	@echo "${GREEN}All services started!${RESET}"
+
+stop-docker: check-docker ## Stop all docker-compose services
+	@echo "${YELLOW}Stopping docker-compose services...${RESET}"
+	docker compose --profile ui --profile tracing --profile mocc down
+	@echo "${GREEN}Services stopped!${RESET}"
 
 ##@ Helm
 
@@ -340,10 +374,29 @@ $(GOSEC): $(LOCALBIN)
 	echo "gosec installed at $(GOSEC)"; \
 	chmod +x $(GOSEC)
 
+.PHONY: install-govulncheck
+install-govulncheck: $(GOVULNCHECK) ## Install govulncheck locally (vulnerability scanner for Go)
+$(GOVULNCHECK): $(LOCALBIN)
+	@set -e; echo "Attempting to install govulncheck $(GOVULNCHECK_VERSION)"; \
+	if ! GOBIN=$(LOCALBIN) go install golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION) 2>/dev/null; then \
+		echo "Primary install failed, attempting install from @latest (compatibility fallback)"; \
+		if ! GOBIN=$(LOCALBIN) go install golang.org/x/vuln/cmd/govulncheck@latest; then \
+			echo "govulncheck installation failed for versions $(GOVULNCHECK_VERSION) and @latest"; \
+			exit 1; \
+		fi; \
+	fi; \
+	echo "govulncheck installed at $(GOVULNCHECK)"; \
+	chmod +x $(GOVULNCHECK)
+
 ##@ Security
-.PHONY: go-security-scan
-go-security-scan: install-security-scanner ## Run gosec security scan (fails on findings)
-	$(GOSEC) ./...
+.PHONY: gosec
+gosec: install-security-scanner ## Run gosec security scan (fails on findings)
+	$(GOSEC) -exclude-dir=.go -exclude-dir=vendor ./...
+
+.PHONY: govulncheck
+govulncheck: install-govulncheck ## Run govulncheck vulnerability scan (fails on findings)
+	$(GOVULNCHECK) ./...
+
 # go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
 # $1 - target path with name of binary
 # $2 - package url which can be installed
