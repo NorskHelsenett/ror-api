@@ -51,6 +51,11 @@ func RegisterCluster() gin.HandlerFunc {
 			return
 		}
 
+		c.JSON(http.StatusOK, clustersapi.RegisterClusterResponse{
+			ClusterId: req.ClusterId,
+			ApiKey:    "dummy-api-key",
+		})
+
 		//clusterId, apiKey, err := clustersservice.RegisterCluster(ctx, req.ClusterId)
 	}
 }
