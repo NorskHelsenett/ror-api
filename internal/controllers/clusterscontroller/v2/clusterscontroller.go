@@ -1,15 +1,15 @@
 package clusterscontroller
 
-import "github.com/gin-gonic/gin"
+import (
+	"net/http"
 
-type RegisterClusterRequest struct {
-	ClusterId string `json:"clusterid"`
-}
-
-type RegisterClusterResponse struct {
-	ClusterId string `json:"clusterid"`
-	ApiKey    string `json:"apikey"`
-}
+	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
+	"github.com/NorskHelsenett/ror/pkg/apicontracts/clustersapi/v2"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/gin-gonic/gin"
+)
 
 // Register a cluster.
 // Identity must be authorized to register a cluster
@@ -20,14 +20,37 @@ type RegisterClusterResponse struct {
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			data	body		RegisterClusterRequest	true	"data"
-//	@Success		200	{object}	RegisterClusterResponse
+//	@Param			data	body		clustersapi.RegisterClusterRequest	true	"data"
+//	@Success		200	{object}	clustersapi.RegisterClusterResponse
 //	@Failure		403	{string}	rorerror.ErrorData
-//	@Failure		401	{object}	rorerror.ErrorData
+//	@Failure		400	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v2/clusters/register [post]
 //	@Security		ApiKey || AccessToken
 func RegisterCluster() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
+		defer cancel()
+
+		// Access check
+		// Scope: ror
+		// Subject: cluster
+		// Access: create
+		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster)
+		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
+		if !accessObject.Create {
+			rerr := rorginerror.NewRorGinError(http.StatusForbidden, "No access")
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		var req clustersapi.RegisterClusterRequest
+		if err := c.BindJSON(&req); err != nil {
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Missing parameter", err)
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		//clusterId, apiKey, err := clustersservice.RegisterCluster(ctx, req.ClusterId)
 	}
 }
