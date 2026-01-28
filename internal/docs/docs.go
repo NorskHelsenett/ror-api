@@ -1557,7 +1557,7 @@ const docTemplate = `{
             }
         },
         "/v1/clusters/workspace/{workspaceId}/filter": {
-            "get": {
+            "post": {
                 "security": [
                     {
                         "AccessToken": [],
@@ -6813,65 +6813,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/v2/resource/uid/{uid}": {
-            "get": {
-                "security": [
-                    {
-                        "AccessToken": [],
-                        "ApiKey": []
-                    }
-                ],
-                "description": "Get a resource by uid",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "resources"
-                ],
-                "summary": "Get resource",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The uid of the resource",
-                        "name": "uid",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/rorresources.Resource"
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/rorerror.ErrorData"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
         "/v2/resources": {
             "get": {
                 "security": [
@@ -7119,6 +7060,63 @@ const docTemplate = `{
             }
         },
         "/v2/resources/uid/{uid}": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Get a resource by uid",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "resources"
+                ],
+                "summary": "Get resource",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The uid of the resource",
+                        "name": "uid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/rorresources.Resource"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
             "put": {
                 "security": [
                     {
