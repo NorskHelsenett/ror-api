@@ -5,9 +5,9 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/internal/controllers/aclcontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/apikeyscontroller"
+	v2apikeyscontroller "github.com/NorskHelsenett/ror-api/internal/controllers/apikeyscontroller/v2"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/auditlogscontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/clusterscontroller"
-	v2clusterscontroller "github.com/NorskHelsenett/ror-api/internal/controllers/clusterscontroller/v2"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/datacenterscontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/desiredversioncontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/infocontroller"
@@ -369,9 +369,9 @@ func SetupRoutes(router *gin.Engine) {
 	{
 		tokenroute.POST("/exchange", v2tokencontroller.ExchangeToken())
 	}
-	v2clustersroute := v2.Group("/clusters")
+	v2apikeysroute := v2.Group("/apikeys")
 	{
-		v2clustersroute.POST("/register", v2clusterscontroller.RegisterCluster())
+		v2apikeysroute.POST("/agent/register", v2apikeyscontroller.RegisterAgent())
 	}
 
 }

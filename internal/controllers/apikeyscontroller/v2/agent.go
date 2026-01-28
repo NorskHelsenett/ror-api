@@ -1,4 +1,4 @@
-package clusterscontroller
+package apikeyscontroller
 
 import (
 	"net/http"
@@ -11,12 +11,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Register a cluster.
-// Identity must be authorized to register a cluster
+// Register an agent.
+// Identity must be authorized to register an agent?
 //
-//	@Summary	Register a cluster
+//	@Summary	Register an agent
 //	@Schemes
-//	@Description	Register a cluster.
+//	@Description	Register an cluster.
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
@@ -25,9 +25,9 @@ import (
 //	@Failure		403	{string}	rorerror.ErrorData
 //	@Failure		400	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
-//	@Router			/v2/clusters/register [post]
+//	@Router			/v2/apikeys/agent/register [post]
 //	@Security		ApiKey || AccessToken
-func RegisterCluster() gin.HandlerFunc {
+func RegisterAgent() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
