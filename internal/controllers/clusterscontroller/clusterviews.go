@@ -16,6 +16,8 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 
+	"github.com/NorskHelsenett/ror-api/internal/models/responses"
+
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
 	"github.com/gin-gonic/gin"
