@@ -11,7 +11,7 @@ import (
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
 	"github.com/NorskHelsenett/ror-api/internal/customvalidators"
-	"github.com/NorskHelsenett/ror-api/internal/responses"
+	"github.com/NorskHelsenett/ror-api/internal/models/responses"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
@@ -202,7 +202,7 @@ func ClusterByFilter() gin.HandlerFunc {
 //	@Failure		400											{object}	rorerror.ErrorData
 //	@Failure		401											{object}	rorerror.ErrorData
 //	@Failure		500											{string}	Failure	message
-//	@Router			/v1/clusters/workspace/{workspaceId}/filter	[get]
+//	@Router			/v1/clusters/workspace/{workspaceId}/filter	[post]
 //	@Param			filter										body	apicontracts.Filter	true	"Filter"
 //	@Param			workspaceId									path	string				true	"workspaceId"
 //	@Security		ApiKey || AccessToken

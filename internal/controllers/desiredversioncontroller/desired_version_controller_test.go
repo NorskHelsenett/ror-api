@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/NorskHelsenett/ror-api/internal/responses"
+	"github.com/NorskHelsenett/ror-api/internal/models/responses"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 

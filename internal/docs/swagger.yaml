@@ -8,10 +8,19 @@ definitions:
     - project
     - datacenter
     - virtualmachine
+    - backup
     type: string
     x-enum-comments:
       Acl2ScopeRor: ROR
       Acl2ScopeUnknown: unknown
+    x-enum-descriptions:
+    - unknown
+    - ROR
+    - ""
+    - ""
+    - ""
+    - ""
+    - ""
     x-enum-varnames:
     - Acl2ScopeUnknown
     - Acl2ScopeRor
@@ -19,6 +28,49 @@ definitions:
     - Acl2ScopeProject
     - Acl2ScopeDatacenter
     - Acl2ScopeVirtualMachine
+    - Acl2ScopeBackup
+  aclmodels.Acl2Subject:
+    enum:
+    - UNKNOWN
+    - cluster
+    - project
+    - globalscope
+    - acl
+    - apikey
+    - datacenter
+    - workspace
+    - price
+    - virtualmachine
+    - backup
+    type: string
+    x-enum-comments:
+      Acl2RorSubjectAcl: 'for subject, not scope, TODO: new const'
+      Acl2RorSubjectApiKey: api key
+      Acl2RorSubjectGlobal: 'for subject, not scope, TODO: new const'
+    x-enum-descriptions:
+    - ""
+    - ""
+    - ""
+    - 'for subject, not scope, TODO: new const'
+    - 'for subject, not scope, TODO: new const'
+    - api key
+    - ""
+    - ""
+    - ""
+    - ""
+    - ""
+    x-enum-varnames:
+    - Acl2RorSubjecUnknown
+    - Acl2RorSubjectCluster
+    - Acl2RorSubjectProject
+    - Acl2RorSubjectGlobal
+    - Acl2RorSubjectAcl
+    - Acl2RorSubjectApiKey
+    - Acl2RorSubjectDatacenter
+    - Acl2RorSubjectWorkspace
+    - Acl2RorSubjectPrice
+    - Acl2RorSubjectVirtualMachine
+    - Acl2RorSubjectBackup
   aclmodels.AclV2ListItem:
     properties:
       access:
@@ -35,21 +87,22 @@ definitions:
         description: Id
         type: string
       issuedBy:
+        description: expects an email
         type: string
       kubernetes:
         allOf:
         - $ref: '#/definitions/aclmodels.AclV2ListItemKubernetes'
-        description: Accessv2   []map[AccessType]bool    `json:"accessv2" validate:""`                      //
-          v2 access model for ror api
+        description: v2 access model for kubernetes
       scope:
         allOf:
         - $ref: '#/definitions/aclmodels.Acl2Scope'
         description: Type of object ['cluster','project']
         minLength: 1
       subject:
+        allOf:
+        - $ref: '#/definitions/aclmodels.Acl2Subject'
         description: The subject eg. clusterid, projectid (can be 'All')
         minLength: 1
-        type: string
       version:
         default: 2
         description: Acl Version, must be 2
@@ -1888,10 +1941,14 @@ definitions:
     enum:
     - 0
     - 1
+    format: int64
     type: integer
     x-enum-comments:
       Int: The IntOrString holds an int.
       String: The IntOrString holds a string.
+    x-enum-descriptions:
+    - The IntOrString holds an int.
+    - The IntOrString holds a string.
     x-enum-varnames:
     - Int
     - String
@@ -2033,6 +2090,27 @@ definitions:
     - ProviderTypeGke
     - ProviderTypeTalos
     - ProviderTypeVitistack
+  resource.Quantity:
+    properties:
+      Format:
+        enum:
+        - DecimalExponent
+        - BinarySI
+        - DecimalSI
+        type: string
+        x-enum-comments:
+          BinarySI: e.g., 12Mi (12 * 2^20)
+          DecimalExponent: e.g., 12e6
+          DecimalSI: e.g., 12M  (12 * 10^6)
+        x-enum-descriptions:
+        - e.g., 12e6
+        - e.g., 12Mi (12 * 2^20)
+        - e.g., 12M  (12 * 10^6)
+        x-enum-varnames:
+        - DecimalExponent
+        - BinarySI
+        - DecimalSI
+    type: object
   rorerror.ErrorData:
     properties:
       message:
@@ -2051,8 +2129,9 @@ definitions:
         - $ref: '#/definitions/aclmodels.Acl2Scope'
         description: cluster, workspace,...
       subject:
+        allOf:
+        - $ref: '#/definitions/aclmodels.Acl2Subject'
         description: ror id eg clusterId or workspaceName
-        type: string
     type: object
   rorresources.Resource:
     properties:
@@ -2241,352 +2320,6 @@ definitions:
     - EnvironmentTesting
     - EnvironmentQA
     - EnvironmentProduction
-  rortypes.KubernetesClusterAutoscalingConfig:
-    properties:
-      enabled:
-        type: boolean
-      maxReplicas:
-        type: integer
-      minReplicas:
-        type: integer
-    type: object
-  rortypes.KubernetesClusterAutoscalingSpec:
-    properties:
-      enabled:
-        type: boolean
-      maxReplicas:
-        type: integer
-      minReplicas:
-        type: integer
-      scalingRules:
-        items:
-          type: string
-        type: array
-    type: object
-  rortypes.KubernetesClusterClusterDetails:
-    properties:
-      controlplane:
-        $ref: '#/definitions/rortypes.KubernetesClusterControlPlaneStatus'
-      externalId:
-        type: string
-      nodepools:
-        description: TODO
-        items:
-          $ref: '#/definitions/rortypes.KubernetesClusterNodePoolStatus'
-        type: array
-      price:
-        allOf:
-        - $ref: '#/definitions/rortypes.KubernetesClusterStatusPrice'
-        description: Price is the price of the cluster, e.g., "1000 NOK/month"
-      resources:
-        $ref: '#/definitions/rortypes.KubernetesClusterStatusClusterStatusResources'
-    type: object
-  rortypes.KubernetesClusterClusterState:
-    properties:
-      cluster:
-        $ref: '#/definitions/rortypes.KubernetesClusterClusterDetails'
-      created:
-        type: string
-      egressIP:
-        type: string
-      endpoints:
-        items:
-          $ref: '#/definitions/rortypes.KubernetesClusterEndpoint'
-        type: array
-      lastUpdated:
-        type: string
-      lastUpdatedBy:
-        type: string
-      versions:
-        items:
-          $ref: '#/definitions/rortypes.KubernetesClusterVersion'
-        type: array
-    type: object
-  rortypes.KubernetesClusterCondition:
-    properties:
-      lastTransitionTime:
-        description: LastTransitionTime is the last time the condition transitioned
-          from one status to another.
-        type: string
-      message:
-        description: Message is a human-readable message indicating details about
-          the condition.
-        type: string
-      reason:
-        description: Reason is a brief reason for the condition's last transition.
-        type: string
-      status:
-        description: 'Status is the status of the condition. Valid vales are: ok,
-          warning, error, working, unknown.'
-        enum:
-        - ok
-        - warning
-        - error
-        - working
-        - unknown
-        example: ok
-        type: string
-      type:
-        description: Type is the type of the condition. For example, "ready", "available",
-          etc.
-        example: ClusterReady
-        type: string
-    type: object
-  rortypes.KubernetesClusterControlPlaneStatus:
-    properties:
-      machineClass:
-        description: MachineClass is the machine class of the control plane, e.g.,
-          "c5.large", "m5.xlarge"
-        type: string
-      message:
-        type: string
-      nodes:
-        description: Nodes is the list of the uuids of the nodes in the control plane
-        items:
-          type: string
-        type: array
-      resources:
-        allOf:
-        - $ref: '#/definitions/rortypes.KubernetesClusterStatusClusterStatusResources'
-        description: Resources is the resources of the control plane, e.g., CPU, Memory,
-          Disk, GPU
-      scale:
-        description: Scale is the number of replicas of the control plane.
-        type: integer
-      status:
-        type: string
-    type: object
-  rortypes.KubernetesClusterEndpoint:
-    properties:
-      address:
-        description: Address is the address of the endpoint, e.g., "https://api.example.com",
-          "http://dashboard.example.com"
-        type: string
-      name:
-        description: Name is the name of the endpoint, e.g., "controllplane", "kubernetes",
-          "api", "dashboard, grafana, argocd", "datacenter"
-        type: string
-    type: object
-  rortypes.KubernetesClusterNodePool:
-    properties:
-      autoscaling:
-        $ref: '#/definitions/rortypes.KubernetesClusterAutoscalingSpec'
-      machineClass:
-        type: string
-      metadata:
-        $ref: '#/definitions/rortypes.KubernetesClusterSpecMetadataDetails'
-      name:
-        type: string
-      provider:
-        type: string
-      replicas:
-        type: integer
-      taint:
-        items:
-          $ref: '#/definitions/rortypes.KubernetesClusterTaint'
-        type: array
-      version:
-        description: Kubernetes version, e.g., "1.23.0"
-        type: string
-    type: object
-  rortypes.KubernetesClusterNodePoolStatus:
-    properties:
-      autoscaling:
-        allOf:
-        - $ref: '#/definitions/rortypes.KubernetesClusterAutoscalingConfig'
-        description: Autoscaling is the autoscaling configuration of the node pool.
-      machineClass:
-        description: MachineClass is the machine class of the nodepool, e.g., "c5.large",
-          "m5.xlarge"
-        type: string
-      message:
-        type: string
-      name:
-        type: string
-      nodes:
-        description: Nodes is the list of the uuids of the nodes in the node pool
-        items:
-          type: string
-        type: array
-      resources:
-        allOf:
-        - $ref: '#/definitions/rortypes.KubernetesClusterStatusClusterStatusResources'
-        description: Resources is the resources of the node pool, e.g., CPU, Memory,
-          Disk, GPU
-      scale:
-        description: Scale is the number of replicas of the nodepool.
-        type: integer
-      status:
-        type: string
-    type: object
-  rortypes.KubernetesClusterSpec:
-    properties:
-      data:
-        $ref: '#/definitions/rortypes.KubernetesClusterSpecData'
-      topology:
-        $ref: '#/definitions/rortypes.KubernetesClusterSpecTopology'
-    type: object
-  rortypes.KubernetesClusterSpecControlPlane:
-    properties:
-      machineClass:
-        type: string
-      metadata:
-        $ref: '#/definitions/rortypes.KubernetesClusterSpecMetadataDetails'
-      provider:
-        type: string
-      replicas:
-        type: integer
-      storage:
-        items:
-          $ref: '#/definitions/rortypes.KubernetesClusterStorage'
-        type: array
-      version:
-        description: Kubernetes version, e.g., "1.23.0"
-        type: string
-    type: object
-  rortypes.KubernetesClusterSpecData:
-    properties:
-      clusterId:
-        type: string
-      clusterUid:
-        description: ClusterUID is a unique identifier for the cluster, e.g., "12345678-1234-1234-1234-123456789012"
-        type: string
-      datacenter:
-        type: string
-      environment:
-        type: string
-      project:
-        type: string
-      provider:
-        type: string
-      region:
-        type: string
-      workorder:
-        type: string
-      workspace:
-        type: string
-      zone:
-        type: string
-    type: object
-  rortypes.KubernetesClusterSpecMetadataDetails:
-    properties:
-      annotations:
-        additionalProperties:
-          type: string
-        type: object
-      labels:
-        additionalProperties:
-          type: string
-        type: object
-    type: object
-  rortypes.KubernetesClusterSpecTopology:
-    properties:
-      controlplane:
-        allOf:
-        - $ref: '#/definitions/rortypes.KubernetesClusterSpecControlPlane'
-        description: ControlPlane contains the control plane configuration.
-      version:
-        description: Kubernetes version, e.g., "1.23.0"
-        type: string
-      workers:
-        allOf:
-        - $ref: '#/definitions/rortypes.KubernetesClusterWorkers'
-        description: Workers contains the worker nodes configuration.
-    type: object
-  rortypes.KubernetesClusterStatus:
-    properties:
-      conditions:
-        items:
-          $ref: '#/definitions/rortypes.KubernetesClusterCondition'
-        type: array
-      phase:
-        description: Provisioning, Running, Deleting, Failed, Updating
-        type: string
-      state:
-        $ref: '#/definitions/rortypes.KubernetesClusterClusterState'
-    type: object
-  rortypes.KubernetesClusterStatusClusterStatusResource:
-    properties:
-      capacity:
-        allOf:
-        - $ref: '#/definitions/rortypes.Quantity'
-        description: Capacity is the total capacity of the resource."
-      percentage:
-        description: Percentage is the percentage of the resource that is currently
-          used as an int.
-        type: integer
-      used:
-        allOf:
-        - $ref: '#/definitions/rortypes.Quantity'
-        description: Used is the amount of the resource that is currently used."
-    type: object
-  rortypes.KubernetesClusterStatusClusterStatusResources:
-    properties:
-      cpu:
-        allOf:
-        - $ref: '#/definitions/rortypes.KubernetesClusterStatusClusterStatusResource'
-        description: CPU is the total CPU capacity of the cluster, if not specified
-          in millicores, e.g., "16 cores", "8000 millicores"
-      disk:
-        allOf:
-        - $ref: '#/definitions/rortypes.KubernetesClusterStatusClusterStatusResource'
-        description: Disk is the total disk capacity of the cluster, if not specified
-          in bytes"
-      gpu:
-        allOf:
-        - $ref: '#/definitions/rortypes.KubernetesClusterStatusClusterStatusResource'
-        description: GPU is the total GPU capacity of the cluster, if not specified
-          in number of GPUs"
-      memory:
-        allOf:
-        - $ref: '#/definitions/rortypes.KubernetesClusterStatusClusterStatusResource'
-        description: Memory is the total memory capacity of the cluster, if not specified
-          in bytes, e.g., "64 GB", "128000 MB", "25600000000 bytes"
-    type: object
-  rortypes.KubernetesClusterStatusPrice:
-    properties:
-      monthly:
-        description: Monthly is the monthly price of the cluster in your currency,
-          e.g., "1000"
-        type: integer
-      yearly:
-        description: Yearly is the yearly price of the cluster, e.g., "12000"
-        type: integer
-    type: object
-  rortypes.KubernetesClusterStorage:
-    properties:
-      class:
-        type: string
-      path:
-        type: string
-      size:
-        type: string
-    type: object
-  rortypes.KubernetesClusterTaint:
-    properties:
-      effect:
-        type: string
-      key:
-        type: string
-      value:
-        type: string
-    type: object
-  rortypes.KubernetesClusterVersion:
-    properties:
-      branch:
-        type: string
-      name:
-        type: string
-      version:
-        type: string
-    type: object
-  rortypes.KubernetesClusterWorkers:
-    properties:
-      nodePools:
-        items:
-          $ref: '#/definitions/rortypes.KubernetesClusterNodePool'
-        type: array
-    type: object
   rortypes.ProviderType:
     enum:
     - ""
@@ -2599,23 +2332,6 @@ definitions:
     - ProviderTypeTanzu
     - ProviderTypeAzure
     - ProviderTypeK3d
-  rortypes.Quantity:
-    properties:
-      Format:
-        enum:
-        - DecimalExponent
-        - BinarySI
-        - DecimalSI
-        type: string
-        x-enum-comments:
-          BinarySI: e.g., 12Mi (12 * 2^20)
-          DecimalExponent: e.g., 12e6
-          DecimalSI: e.g., 12M  (12 * 10^6)
-        x-enum-varnames:
-        - DecimalExponent
-        - BinarySI
-        - DecimalSI
-    type: object
   rortypes.ResourceAction:
     enum:
     - Add
@@ -3512,9 +3228,9 @@ definitions:
   rortypes.ResourceKubernetesCluster:
     properties:
       spec:
-        $ref: '#/definitions/rortypes.KubernetesClusterSpec'
+        $ref: '#/definitions/v1alpha1.KubernetesClusterSpec'
       status:
-        $ref: '#/definitions/rortypes.KubernetesClusterStatus'
+        $ref: '#/definitions/v1alpha1.KubernetesClusterStatus'
     type: object
   rortypes.ResourceKubernetesClusterOrderStatusCondition:
     properties:
@@ -5194,6 +4910,400 @@ definitions:
           +optional
         type: string
     type: object
+  v1alpha1.KubernetesClusterAutoscalingConfig:
+    properties:
+      enabled:
+        type: boolean
+      maxReplicas:
+        type: integer
+      minReplicas:
+        type: integer
+    type: object
+  v1alpha1.KubernetesClusterAutoscalingSpec:
+    properties:
+      enabled:
+        type: boolean
+      maxReplicas:
+        type: integer
+      minReplicas:
+        type: integer
+      scalingRules:
+        items:
+          type: string
+        type: array
+    type: object
+  v1alpha1.KubernetesClusterClusterDetails:
+    properties:
+      controlplane:
+        $ref: '#/definitions/v1alpha1.KubernetesClusterControlPlaneStatus'
+      externalId:
+        type: string
+      nodepools:
+        description: TODO
+        items:
+          $ref: '#/definitions/v1alpha1.KubernetesClusterNodePoolStatus'
+        type: array
+      price:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.KubernetesClusterStatusPrice'
+        description: Price is the price of the cluster, e.g., "1000 NOK/month"
+      resources:
+        $ref: '#/definitions/v1alpha1.KubernetesClusterStatusClusterStatusResources'
+    type: object
+  v1alpha1.KubernetesClusterClusterState:
+    properties:
+      cluster:
+        $ref: '#/definitions/v1alpha1.KubernetesClusterClusterDetails'
+      created:
+        type: string
+      egressIP:
+        type: string
+      endpoints:
+        items:
+          $ref: '#/definitions/v1alpha1.KubernetesClusterEndpoint'
+        type: array
+      lastUpdated:
+        type: string
+      lastUpdatedBy:
+        type: string
+      versions:
+        items:
+          $ref: '#/definitions/v1alpha1.KubernetesClusterVersion'
+        type: array
+    type: object
+  v1alpha1.KubernetesClusterCondition:
+    properties:
+      lastTransitionTime:
+        description: LastTransitionTime is the last time the condition transitioned
+          from one status to another.
+        type: string
+      message:
+        description: Message is a human-readable message indicating details about
+          the condition.
+        type: string
+      reason:
+        description: Reason is a brief reason for the condition's last transition.
+        type: string
+      status:
+        description: 'Status is the status of the condition. Valid vales are: ok,
+          warning, error, working, unknown.'
+        enum:
+        - ok
+        - warning
+        - error
+        - working
+        - unknown
+        example: ok
+        type: string
+      type:
+        description: Type is the type of the condition. For example, "ready", "available",
+          etc.
+        example: ClusterReady
+        type: string
+    type: object
+  v1alpha1.KubernetesClusterControlPlaneStatus:
+    properties:
+      machineClass:
+        description: MachineClass is the machine class of the control plane, e.g.,
+          "c5.large", "m5.xlarge"
+        type: string
+      message:
+        type: string
+      nodes:
+        description: Nodes is the list of the uuids of the nodes in the control plane
+        items:
+          type: string
+        type: array
+      resources:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.KubernetesClusterStatusClusterStatusResources'
+        description: Resources is the resources of the control plane, e.g., CPU, Memory,
+          Disk, GPU
+      scale:
+        description: Scale is the number of replicas of the control plane.
+        type: integer
+      status:
+        type: string
+    type: object
+  v1alpha1.KubernetesClusterEndpoint:
+    properties:
+      address:
+        description: Address is the address of the endpoint, e.g., "https://api.example.com",
+          "http://dashboard.example.com"
+        type: string
+      name:
+        description: Name is the name of the endpoint, e.g., "controllplane", "kubernetes",
+          "api", "dashboard, grafana, argocd", "datacenter"
+        type: string
+    type: object
+  v1alpha1.KubernetesClusterNodePool:
+    properties:
+      architecture:
+        description: |-
+          Architecture is the CPU architecture for the nodes in this pool.
+          Supported values: "amd64", "arm64", "x86_64" (treated as amd64).
+          Defaults to "amd64" if not specified.
+          +kubebuilder:validation:Optional
+          +kubebuilder:validation:Enum=amd64;arm64;x86_64
+          +kubebuilder:default=amd64
+        type: string
+      autoscaling:
+        $ref: '#/definitions/v1alpha1.KubernetesClusterAutoscalingSpec'
+      machineClass:
+        type: string
+      metadata:
+        $ref: '#/definitions/v1alpha1.KubernetesClusterSpecMetadataDetails'
+      name:
+        type: string
+      provider:
+        $ref: '#/definitions/v1alpha1.KubernetesProviderType'
+      replicas:
+        type: integer
+      storage:
+        items:
+          $ref: '#/definitions/v1alpha1.KubernetesClusterStorage'
+        type: array
+      taint:
+        items:
+          $ref: '#/definitions/v1alpha1.KubernetesClusterTaint'
+        type: array
+      version:
+        description: Kubernetes version, e.g., "1.23.0"
+        type: string
+    type: object
+  v1alpha1.KubernetesClusterNodePoolStatus:
+    properties:
+      autoscaling:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.KubernetesClusterAutoscalingConfig'
+        description: Autoscaling is the autoscaling configuration of the node pool.
+      machineClass:
+        description: MachineClass is the machine class of the nodepool, e.g., "c5.large",
+          "m5.xlarge"
+        type: string
+      message:
+        type: string
+      name:
+        type: string
+      nodes:
+        description: Nodes is the list of the uuids of the nodes in the node pool
+        items:
+          type: string
+        type: array
+      resources:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.KubernetesClusterStatusClusterStatusResources'
+        description: Resources is the resources of the node pool, e.g., CPU, Memory,
+          Disk, GPU
+      scale:
+        description: Scale is the number of replicas of the nodepool.
+        type: integer
+      status:
+        type: string
+    type: object
+  v1alpha1.KubernetesClusterSpec:
+    properties:
+      data:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.KubernetesClusterSpecData'
+        description: +kubebuilder:validation:Required
+      topology:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.KubernetesClusterSpecTopology'
+        description: +kubebuilder:validation:Required
+    type: object
+  v1alpha1.KubernetesClusterSpecControlPlane:
+    properties:
+      architecture:
+        description: |-
+          Architecture is the CPU architecture for the control plane nodes.
+          Supported values: "amd64", "arm64", "x86_64" (treated as amd64).
+          Defaults to "amd64" if not specified.
+          +kubebuilder:validation:Optional
+          +kubebuilder:validation:Enum=amd64;arm64;x86_64
+          +kubebuilder:default=amd64
+        type: string
+      machineClass:
+        type: string
+      metadata:
+        $ref: '#/definitions/v1alpha1.KubernetesClusterSpecMetadataDetails'
+      provider:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.KubernetesProviderType'
+        description: +kubebuilder:validation:Required
+      replicas:
+        description: |-
+          Replicas is the number of control plane nodes.
+          Must be an odd number (1, 3, 5, etc.) to maintain etcd quorum.
+          +kubebuilder:validation:Required
+          +kubebuilder:validation:Minimum=1
+          +kubebuilder:validation:XValidation:rule="self % 2 == 1",message="controlplane replicas must be an odd number (1, 3, 5, etc.) to maintain etcd quorum"
+        type: integer
+      storage:
+        items:
+          $ref: '#/definitions/v1alpha1.KubernetesClusterStorage'
+        type: array
+      version:
+        description: Kubernetes version, e.g., "1.23.0"
+        type: string
+    type: object
+  v1alpha1.KubernetesClusterSpecData:
+    properties:
+      clusterId:
+        description: +kubebuilder:validation:Required
+        type: string
+      clusterUid:
+        description: ClusterUID is a unique identifier for the cluster, e.g., "12345678-1234-1234-1234-123456789012"
+        type: string
+      datacenter:
+        type: string
+      environment:
+        description: +kubebuilder:validation:Required
+        type: string
+      project:
+        type: string
+      provider:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.KubernetesProviderType'
+        description: +kubebuilder:validation:Required
+      region:
+        description: +kubebuilder:validation:Required
+        type: string
+      workorder:
+        type: string
+      workspace:
+        type: string
+      zone:
+        description: +kubebuilder:validation:Required
+        type: string
+    type: object
+  v1alpha1.KubernetesClusterSpecMetadataDetails:
+    properties:
+      annotations:
+        additionalProperties:
+          type: string
+        type: object
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  v1alpha1.KubernetesClusterSpecTopology:
+    properties:
+      controlplane:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.KubernetesClusterSpecControlPlane'
+        description: +kubebuilder:validation:Required
+      version:
+        description: Kubernetes version, e.g., "1.23.0"
+        type: string
+      workers:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.KubernetesClusterWorkers'
+        description: Workers contains the worker nodes configuration.
+    type: object
+  v1alpha1.KubernetesClusterStatus:
+    properties:
+      conditions:
+        items:
+          $ref: '#/definitions/v1alpha1.KubernetesClusterCondition'
+        type: array
+      phase:
+        description: Provisioning, Running, Deleting, Failed, Updating
+        type: string
+      state:
+        $ref: '#/definitions/v1alpha1.KubernetesClusterClusterState'
+    type: object
+  v1alpha1.KubernetesClusterStatusClusterStatusResource:
+    properties:
+      capacity:
+        allOf:
+        - $ref: '#/definitions/resource.Quantity'
+        description: Capacity is the total capacity of the resource."
+      percentage:
+        description: Percentage is the percentage of the resource that is currently
+          used as an int.
+        type: integer
+      used:
+        allOf:
+        - $ref: '#/definitions/resource.Quantity'
+        description: Used is the amount of the resource that is currently used."
+    type: object
+  v1alpha1.KubernetesClusterStatusClusterStatusResources:
+    properties:
+      cpu:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.KubernetesClusterStatusClusterStatusResource'
+        description: CPU is the total CPU capacity of the cluster, if not specified
+          in millicores, e.g., "16 cores", "8000 millicores"
+      disk:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.KubernetesClusterStatusClusterStatusResource'
+        description: Disk is the total disk capacity of the cluster, if not specified
+          in bytes"
+      gpu:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.KubernetesClusterStatusClusterStatusResource'
+        description: GPU is the total GPU capacity of the cluster, if not specified
+          in number of GPUs"
+      memory:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.KubernetesClusterStatusClusterStatusResource'
+        description: Memory is the total memory capacity of the cluster, if not specified
+          in bytes, e.g., "64 GB", "128000 MB", "25600000000 bytes"
+    type: object
+  v1alpha1.KubernetesClusterStatusPrice:
+    properties:
+      monthly:
+        description: Monthly is the monthly price of the cluster in your currency,
+          e.g., "1000"
+        type: integer
+      yearly:
+        description: Yearly is the yearly price of the cluster, e.g., "12000"
+        type: integer
+    type: object
+  v1alpha1.KubernetesClusterStorage:
+    properties:
+      class:
+        type: string
+      path:
+        type: string
+      size:
+        type: string
+    type: object
+  v1alpha1.KubernetesClusterTaint:
+    properties:
+      effect:
+        type: string
+      key:
+        type: string
+      value:
+        type: string
+    type: object
+  v1alpha1.KubernetesClusterVersion:
+    properties:
+      branch:
+        type: string
+      name:
+        type: string
+      version:
+        type: string
+    type: object
+  v1alpha1.KubernetesClusterWorkers:
+    properties:
+      nodePools:
+        items:
+          $ref: '#/definitions/v1alpha1.KubernetesClusterNodePool'
+        type: array
+    type: object
+  v1alpha1.KubernetesProviderType:
+    enum:
+    - talos
+    - aks
+    type: string
+    x-enum-varnames:
+    - KubernetesProviderTypeTalos
+    - KubernetesProviderTypeAKS
 info:
   contact:
     name: ROR
@@ -6582,7 +6692,7 @@ paths:
       tags:
       - clusters
   /v1/clusters/workspace/{workspaceId}/filter:
-    get:
+    post:
       consumes:
       - application/json
       description: Get clusters by workspace
@@ -8458,6 +8568,7 @@ paths:
         - project
         - datacenter
         - virtualmachine
+        - backup
         in: query
         name: ownerScope
         required: true
@@ -8518,6 +8629,7 @@ paths:
         - project
         - datacenter
         - virtualmachine
+        - backup
         in: query
         name: ownerScope
         required: true
@@ -8614,6 +8726,7 @@ paths:
         - project
         - datacenter
         - virtualmachine
+        - backup
         in: query
         name: ownerScope
         required: true
@@ -8699,6 +8812,7 @@ paths:
         - project
         - datacenter
         - virtualmachine
+        - backup
         in: query
         name: ownerScope
         required: true
@@ -9589,44 +9703,6 @@ paths:
       summary: Server sent events
       tags:
       - events
-  /v2/resource/uid/{uid}:
-    get:
-      consumes:
-      - application/json
-      description: Get a resource by uid
-      parameters:
-      - description: The uid of the resource
-        in: path
-        name: uid
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/rorresources.Resource'
-            type: array
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/rorerror.ErrorData'
-        "403":
-          description: Forbidden
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      security:
-      - AccessToken: []
-        ApiKey: []
-      summary: Get resource
-      tags:
-      - resources
   /v2/resources:
     get:
       consumes:
@@ -9754,6 +9830,7 @@ paths:
         - project
         - datacenter
         - virtualmachine
+        - backup
         in: query
         name: ownerScope
         required: true
@@ -9826,6 +9903,43 @@ paths:
       summary: Delete a resource by uid
       tags:
       - resources
+    get:
+      consumes:
+      - application/json
+      description: Get a resource by uid
+      parameters:
+      - description: The uid of the resource
+        in: path
+        name: uid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/rorresources.Resource'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Get resource
+      tags:
+      - resources
     head:
       consumes:
       - application/json
@@ -9839,6 +9953,7 @@ paths:
         - project
         - datacenter
         - virtualmachine
+        - backup
         in: query
         name: ownerScope
         required: true
