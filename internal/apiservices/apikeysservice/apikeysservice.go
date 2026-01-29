@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	clustersservice "github.com/NorskHelsenett/ror-api/internal/apiservices/clustersService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
 	apikeyrepo "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/apikeys"
 	datacenterRepo "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/datacenters"
 
@@ -21,6 +21,7 @@ import (
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
+	"github.com/NorskHelsenett/ror/pkg/apicontracts/apikeystypes/v2"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/v2/apicontractsv2self"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
@@ -305,6 +306,53 @@ func CreateForAgent(ctx context.Context, input *apicontracts.AgentApiKeyModel) (
 	}
 
 	return uniqueId.String(), nil
+}
+
+func CreateForAgentV2(ctx context.Context, req *apikeystypes.RegisterClusterRequest) (apikeystypes.RegisterClusterResponse, error) {
+	response := apikeystypes.RegisterClusterResponse{}
+	if req == nil {
+		return response, errors.New("input is nil")
+	}
+
+	if req.ClusterId == "" {
+		return response, errors.New("cluster id is required")
+	}
+
+	mongoctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	apikeys, err := apikeyrepo.GetByIdentifier(mongoctx, req.ClusterId)
+	if err != nil {
+		return response, fmt.Errorf("error when checking apikey for identifier: %w", err)
+	}
+
+	if len(apikeys) > 0 {
+		return response, fmt.Errorf("already a key for idenitifier: %s", req.ClusterId)
+	}
+
+	uniqueId, err := uuid.NewUUID()
+	if err != nil {
+		return response, err
+	}
+
+	apikey := apicontracts.ApiKey{}
+	hash := stringhelper.HashSHA512(uniqueId.String(), []byte(mustGetApikeySalt()))
+
+	apikey.DisplayName = req.ClusterId
+	apikey.Identifier = req.ClusterId
+
+	apikey.ReadOnly = false
+	apikey.Type = apicontracts.ApiKeyTypeCluster
+	apikey.Hash = hash
+
+	err = apikeyrepo.Create(mongoctx, apikey)
+	if err != nil {
+		return response, err
+	}
+
+	return apikeystypes.RegisterClusterResponse{
+		ClusterId: req.ClusterId,
+		ApiKey:    uniqueId.String(),
+	}, nil
 }
 
 func UpdateLastUsed(ctx context.Context, apikeyId string, identifier string) error {

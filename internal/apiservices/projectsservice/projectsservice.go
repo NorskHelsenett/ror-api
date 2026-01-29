@@ -13,7 +13,7 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
-	clustersservice "github.com/NorskHelsenett/ror-api/internal/apiservices/clustersService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
 
 	mongoclusters "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/clusters"
 	mongoprojects "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/projects"

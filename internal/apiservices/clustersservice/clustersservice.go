@@ -15,6 +15,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/webserver/sse"
 
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
+	"github.com/NorskHelsenett/ror/pkg/helpers/idhelper"
 
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
@@ -163,7 +164,7 @@ func Update(ctx context.Context, input *apicontracts.Cluster, existing *apicontr
 	input.Status = existing.Status
 	input.Identifier = existing.Identifier
 	if len(input.Identifier) == 0 {
-		input.Identifier = clusterservice.GetClusterIdentifier(input.ClusterName)
+		input.Identifier = idhelper.GetIdentifier(input.ClusterName)
 	}
 
 	_, span1 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Run repository update")

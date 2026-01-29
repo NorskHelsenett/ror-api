@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
-	workspacesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/workspacesService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/workspacesservice"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"

@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
-	datacentersservice "github.com/NorskHelsenett/ror-api/internal/apiservices/datacentersService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/datacentersservice"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"

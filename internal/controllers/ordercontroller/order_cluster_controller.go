@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
-	orderservice "github.com/NorskHelsenett/ror-api/internal/apiservices/orderService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/ordersservice"
 	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
 	"github.com/NorskHelsenett/ror-api/internal/customvalidators"
 
@@ -83,7 +83,7 @@ func OrderCluster() gin.HandlerFunc {
 		}
 
 		rlog.Debugc(ctx, "cluster order request", rlog.Any("order", order))
-		err := orderservice.OrderCluster(ctx, order)
+		err := ordersservice.OrderCluster(ctx, order)
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "error ordering cluster", err)
 			rerr.GinLogErrorAbort(c)

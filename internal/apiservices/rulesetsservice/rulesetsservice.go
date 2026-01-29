@@ -1,4 +1,4 @@
-package rulesetsService
+package rulesetsservice
 
 import (
 	"context"

@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
-	clustersservice "github.com/NorskHelsenett/ror-api/internal/apiservices/clustersService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
 	"github.com/NorskHelsenett/ror-api/internal/clients/gitlab"
 	"github.com/NorskHelsenett/ror-api/internal/configuration"
 	"github.com/NorskHelsenett/ror-api/internal/factories/storagefactory"

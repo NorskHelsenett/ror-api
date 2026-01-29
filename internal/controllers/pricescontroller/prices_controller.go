@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
-	pricesService "github.com/NorskHelsenett/ror-api/internal/apiservices/pricesService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/pricesservice"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
@@ -78,7 +78,7 @@ func Create() gin.HandlerFunc {
 			return
 		}
 
-		createdPrice, err := pricesService.Create(ctx, &price)
+		createdPrice, err := pricesservice.Create(ctx, &price)
 		if err != nil {
 			rlog.Errorc(ctx, "could not create price", err)
 			if strings.Contains(err.Error(), "exists") {
@@ -124,7 +124,7 @@ func GetByProvider() gin.HandlerFunc {
 			return
 		}
 
-		prices, err := pricesService.GetByProperty(ctx, "provider", strings.ToLower(providerName))
+		prices, err := pricesservice.GetByProperty(ctx, "provider", strings.ToLower(providerName))
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not get prices", err)
 			rerr.GinLogErrorAbort(c)
@@ -191,7 +191,7 @@ func Update() gin.HandlerFunc {
 			return
 		}
 
-		updatedprice, originalprice, err := pricesService.Update(ctx, priceId, &priceInput)
+		updatedprice, originalprice, err := pricesservice.Update(ctx, priceId, &priceInput)
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not update price", err)
 			rerr.GinLogErrorAbort(c)
@@ -250,7 +250,7 @@ func Delete() gin.HandlerFunc {
 			return
 		}
 
-		result, deletedPrice, err := pricesService.Delete(ctx, priceId)
+		result, deletedPrice, err := pricesservice.Delete(ctx, priceId)
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not delete price", err)
 			rerr.GinLogErrorAbort(c)
@@ -282,7 +282,7 @@ func GetAll() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		prices, err := pricesService.GetAll(ctx)
+		prices, err := pricesservice.GetAll(ctx)
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not find prices ...", err)
 			rerr.GinLogErrorAbort(c)
@@ -316,7 +316,7 @@ func GetById() gin.HandlerFunc {
 			return
 		}
 
-		price, err := pricesService.GetById(ctx, priceId)
+		price, err := pricesservice.GetById(ctx, priceId)
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not get price", err)
 			rerr.GinLogErrorAbort(c)

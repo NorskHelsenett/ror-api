@@ -7,7 +7,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/customvalidators"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
-	projectService "github.com/NorskHelsenett/ror-api/internal/apiservices/projectsService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/projectsservice"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
@@ -74,7 +74,7 @@ func Create() gin.HandlerFunc {
 			return
 		}
 
-		createdProject, err := projectService.Create(ctx, &project)
+		createdProject, err := projectsservice.Create(ctx, &project)
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Unable to create project", err)
 			rerr.GinLogErrorAbort(c)
@@ -121,7 +121,7 @@ func GetByFilter() gin.HandlerFunc {
 			return
 		}
 
-		result, err := projectService.GetByFilter(ctx, &filter)
+		result, err := projectsservice.GetByFilter(ctx, &filter)
 		if err != nil {
 			rlog.Errorc(ctx, "could not get projects", err)
 			c.JSON(http.StatusInternalServerError, err)
@@ -158,7 +158,7 @@ func GetClustersByProjectId() gin.HandlerFunc {
 			return
 		}
 
-		clusters, err := projectService.GetClustersByProjectId(ctx, projectId)
+		clusters, err := projectsservice.GetClustersByProjectId(ctx, projectId)
 		if err != nil {
 			rlog.Errorc(ctx, "could not get projects", err)
 			c.JSON(http.StatusInternalServerError, err)
@@ -195,7 +195,7 @@ func GetById() gin.HandlerFunc {
 			return
 		}
 
-		object, err := projectService.GetById(ctx, projectId)
+		object, err := projectsservice.GetById(ctx, projectId)
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not get object", err)
 			rerr.GinLogErrorAbort(c)
@@ -261,7 +261,7 @@ func Update() gin.HandlerFunc {
 			return
 		}
 
-		updatedObject, originalObject, err := projectService.Update(ctx, projectId, &input)
+		updatedObject, originalObject, err := projectsservice.Update(ctx, projectId, &input)
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not update object", err)
 			rerr.GinLogErrorAbort(c)
@@ -318,7 +318,7 @@ func Delete() gin.HandlerFunc {
 			return
 		}
 
-		result, _, err := projectService.Delete(ctx, projectId)
+		result, _, err := projectsservice.Delete(ctx, projectId)
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not delete object", err)
 			rerr.GinLogErrorAbort(c)

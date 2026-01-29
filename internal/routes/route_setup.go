@@ -5,6 +5,7 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/internal/controllers/aclcontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/apikeyscontroller"
+	v2apikeyscontroller "github.com/NorskHelsenett/ror-api/internal/controllers/apikeyscontroller/v2"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/auditlogscontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/clusterscontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/datacenterscontroller"
@@ -331,9 +332,14 @@ func SetupRoutes(router *gin.Engine) {
 		eventsRoute.GET("listen", ssemiddleware.SSEHeadersMiddlewareV2(), ssehandler.HandleSSE())
 		eventsRoute.POST("send", timeoutmiddleware.TimeoutMiddleware(eventstimeout), ssehandler.Send())
 	}
+	v2.Use(timeoutmiddleware.TimeoutMiddleware(timeoutduration))
+	v2apikeysroute := v2.Group("/apikeys")
+	{
+		v2apikeysroute.POST("/register/agent", v2apikeyscontroller.RegisterAgent())
+	}
 
 	v2.Use(authmiddleware.AuthenticationMiddleware)
-	v2.Use(timeoutmiddleware.TimeoutMiddleware(timeoutduration))
+
 	// Self
 	selfv2Route := v2.Group("self")
 	selfv2Route.GET("", handlerv2selfcontroller.GetSelf())

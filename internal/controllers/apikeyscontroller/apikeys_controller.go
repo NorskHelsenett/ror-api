@@ -7,7 +7,7 @@ import (
 	"time"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
-	apikeysservice "github.com/NorskHelsenett/ror-api/internal/apiservices/apikeysService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/apikeysservice"
 	"github.com/NorskHelsenett/ror-api/internal/customvalidators"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"

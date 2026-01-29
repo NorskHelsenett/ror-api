@@ -4,8 +4,7 @@ import (
 	"net/http"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
-	clustersservice "github.com/NorskHelsenett/ror-api/internal/apiservices/clustersService"
-	"github.com/NorskHelsenett/ror-api/internal/models/responses"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
 	"github.com/NorskHelsenett/ror-api/internal/models/viewsmodels"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
@@ -16,6 +15,8 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
+
+	"github.com/NorskHelsenett/ror-api/internal/models/responses"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 

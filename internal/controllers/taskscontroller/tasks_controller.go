@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
-	tasksservice "github.com/NorskHelsenett/ror-api/internal/apiservices/tasksService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/tasksservice"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"

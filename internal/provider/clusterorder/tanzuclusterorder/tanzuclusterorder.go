@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	workspacesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/workspacesService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/workspacesservice"
 	"github.com/NorskHelsenett/ror-api/internal/provider/clusterorder/utils"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
