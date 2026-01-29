@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
-	projectservice "github.com/NorskHelsenett/ror-api/internal/apiservices/projectsService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/projectsservice"
 	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
@@ -167,7 +167,7 @@ func validateCreateOrder(ctx context.Context, order apiresourcecontracts.Resourc
 		return errors.New("ownerGroup is required")
 	}
 
-	project, err := projectservice.GetById(ctx, order.ProjectId)
+	project, err := projectsservice.GetById(ctx, order.ProjectId)
 	if err != nil {
 		return err
 	}
