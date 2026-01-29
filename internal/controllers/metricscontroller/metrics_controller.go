@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
-	metricsservice "github.com/NorskHelsenett/ror-api/internal/apiservices/metricsService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/metricsservice"
 	"github.com/NorskHelsenett/ror-api/internal/responses"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"

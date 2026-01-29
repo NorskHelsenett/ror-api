@@ -4,7 +4,7 @@ package metricscontroller
 import (
 	"net/http"
 
-	metricsservice "github.com/NorskHelsenett/ror-api/internal/apiservices/metricsService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/metricsservice"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
