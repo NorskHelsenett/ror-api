@@ -1,4 +1,4 @@
-package orderservice
+package ordersservice
 
 import (
 	"context"
