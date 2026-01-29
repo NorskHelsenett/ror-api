@@ -3,6 +3,8 @@ package apikeyscontroller
 import (
 	"net/http"
 
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/apikeysservice"
+	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apikeystypes/v2"
 	"github.com/gin-gonic/gin"
@@ -26,8 +28,8 @@ import (
 //	@Security		ApiKey || AccessToken
 func RegisterAgent() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		//ctx, cancel := gincontext.GetRorContextFromGinContext(c)
-		//defer cancel()
+		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
+		defer cancel()
 
 		// // Access check
 		// // Scope: ror
@@ -41,17 +43,21 @@ func RegisterAgent() gin.HandlerFunc {
 		// 	return
 		// }
 
-		var req apikeystypes.RegisterClusterRequest
-		if err := c.BindJSON(&req); err != nil {
+		var req *apikeystypes.RegisterClusterRequest
+		if err := c.BindJSON(req); err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Missing parameter", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
-		c.JSON(http.StatusOK, apikeystypes.RegisterClusterResponse{
-			ClusterId: req.ClusterId,
-			ApiKey:    "dummy-api-key",
-		})
+		resp, err := apikeysservice.CreateForAgentV2(ctx, req)
+		if err != nil {
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not register agent", err)
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		c.JSON(http.StatusOK, resp)
 
 		//clusterId, apiKey, err := clustersservice.RegisterCluster(ctx, req.ClusterId)
 	}
