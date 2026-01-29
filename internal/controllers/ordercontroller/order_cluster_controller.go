@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
-	orderservice "github.com/NorskHelsenett/ror-api/internal/apiservices/orderService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/orderservice"
 	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
 	"github.com/NorskHelsenett/ror-api/internal/customvalidators"
 
