@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	clustersservice "github.com/NorskHelsenett/ror-api/internal/apiservices/clustersService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
 	projectservice "github.com/NorskHelsenett/ror-api/internal/apiservices/projectsService"
 	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
 

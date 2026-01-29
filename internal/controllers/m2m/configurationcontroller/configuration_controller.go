@@ -4,7 +4,7 @@ package configurationcontroller
 import (
 	"net/http"
 
-	clustersservice "github.com/NorskHelsenett/ror-api/internal/apiservices/clustersService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
 	configurationservice "github.com/NorskHelsenett/ror-api/internal/apiservices/configurationService"
 	operatorconfigservice "github.com/NorskHelsenett/ror-api/internal/apiservices/operatorConfigService"
 	tasksservice "github.com/NorskHelsenett/ror-api/internal/apiservices/tasksService"

@@ -9,7 +9,7 @@ import (
 
 	aclrepository "github.com/NorskHelsenett/ror-api/internal/acl/repositories"
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
-	clustersservice "github.com/NorskHelsenett/ror-api/internal/apiservices/clustersService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
 	"github.com/NorskHelsenett/ror-api/internal/customvalidators"
 	"github.com/NorskHelsenett/ror-api/internal/responses"
 

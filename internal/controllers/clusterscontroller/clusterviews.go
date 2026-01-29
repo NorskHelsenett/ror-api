@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
-	clustersservice "github.com/NorskHelsenett/ror-api/internal/apiservices/clustersService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
 	"github.com/NorskHelsenett/ror-api/internal/models/viewsmodels"
 	"github.com/NorskHelsenett/ror-api/internal/responses"
 
