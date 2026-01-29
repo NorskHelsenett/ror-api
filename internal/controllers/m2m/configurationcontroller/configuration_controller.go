@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
-	configurationservice "github.com/NorskHelsenett/ror-api/internal/apiservices/configurationService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/configurationservice"
 	operatorconfigservice "github.com/NorskHelsenett/ror-api/internal/apiservices/operatorConfigService"
 	tasksservice "github.com/NorskHelsenett/ror-api/internal/apiservices/tasksService"
 

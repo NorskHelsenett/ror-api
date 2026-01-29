@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	clustersservice "github.com/NorskHelsenett/ror-api/internal/apiservices/clustersService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
 	apikeyrepo "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/apikeys"
 	datacenterRepo "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/datacenters"
 
