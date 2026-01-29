@@ -7,7 +7,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/configurationservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/operatorconfigservice"
-	tasksservice "github.com/NorskHelsenett/ror-api/internal/apiservices/tasksService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/tasksservice"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 
