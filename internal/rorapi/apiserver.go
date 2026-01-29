@@ -9,7 +9,7 @@ import (
 	"sync"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
-	apikeysservice "github.com/NorskHelsenett/ror-api/internal/apiservices/apikeysService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/apikeysservice"
 	"github.com/NorskHelsenett/ror-api/internal/utils/switchboard"
 	"github.com/NorskHelsenett/ror-api/internal/webserver"
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"

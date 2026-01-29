@@ -2,7 +2,7 @@ package apikeyauth
 
 import (
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
-	apikeysservice "github.com/NorskHelsenett/ror-api/internal/apiservices/apikeysService"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/apikeysservice"
 
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
