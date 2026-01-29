@@ -332,9 +332,14 @@ func SetupRoutes(router *gin.Engine) {
 		eventsRoute.GET("listen", ssemiddleware.SSEHeadersMiddlewareV2(), ssehandler.HandleSSE())
 		eventsRoute.POST("send", timeoutmiddleware.TimeoutMiddleware(eventstimeout), ssehandler.Send())
 	}
+	v2.Use(timeoutmiddleware.TimeoutMiddleware(timeoutduration))
+	v2apikeysroute := v2.Group("/apikeys")
+	{
+		v2apikeysroute.POST("/register/agent", v2apikeyscontroller.RegisterAgent())
+	}
 
 	v2.Use(authmiddleware.AuthenticationMiddleware)
-	v2.Use(timeoutmiddleware.TimeoutMiddleware(timeoutduration))
+
 	// Self
 	selfv2Route := v2.Group("self")
 	selfv2Route.GET("", handlerv2selfcontroller.GetSelf())
@@ -368,10 +373,6 @@ func SetupRoutes(router *gin.Engine) {
 	tokenroute := v2.Group("/token")
 	{
 		tokenroute.POST("/exchange", v2tokencontroller.ExchangeToken())
-	}
-	v2apikeysroute := v2.Group("/apikeys")
-	{
-		v2apikeysroute.POST("/agent/register", v2apikeyscontroller.RegisterAgent())
 	}
 
 }

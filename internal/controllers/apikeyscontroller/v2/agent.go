@@ -3,11 +3,8 @@ package apikeyscontroller
 import (
 	"net/http"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
-	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
-	"github.com/NorskHelsenett/ror/pkg/apicontracts/clustersapi/v2"
-	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/apicontracts/apikeystypes/v2"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,8 +17,8 @@ import (
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			data	body		clustersapi.RegisterClusterRequest	true	"data"
-//	@Success		200	{object}	clustersapi.RegisterClusterResponse
+//	@Param			data	body		apikeystypes.RegisterClusterRequest	true	"data"
+//	@Success		200	{object}	apikeystypes.RegisterClusterResponse
 //	@Failure		403	{string}	rorerror.ErrorData
 //	@Failure		400	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
@@ -29,29 +26,29 @@ import (
 //	@Security		ApiKey || AccessToken
 func RegisterAgent() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
-		defer cancel()
+		//ctx, cancel := gincontext.GetRorContextFromGinContext(c)
+		//defer cancel()
 
-		// Access check
-		// Scope: ror
-		// Subject: cluster
-		// Access: create
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Create {
-			rerr := rorginerror.NewRorGinError(http.StatusForbidden, "No access")
-			rerr.GinLogErrorAbort(c)
-			return
-		}
+		// // Access check
+		// // Scope: ror
+		// // Subject: cluster
+		// // Access: create
+		// accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster)
+		// accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
+		// if !accessObject.Create {
+		// 	rerr := rorginerror.NewRorGinError(http.StatusForbidden, "No access")
+		// 	rerr.GinLogErrorAbort(c)
+		// 	return
+		// }
 
-		var req clustersapi.RegisterClusterRequest
+		var req apikeystypes.RegisterClusterRequest
 		if err := c.BindJSON(&req); err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Missing parameter", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
-		c.JSON(http.StatusOK, clustersapi.RegisterClusterResponse{
+		c.JSON(http.StatusOK, apikeystypes.RegisterClusterResponse{
 			ClusterId: req.ClusterId,
 			ApiKey:    "dummy-api-key",
 		})
