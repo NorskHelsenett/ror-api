@@ -8,7 +8,6 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/controllers/v2/tokencontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/v2/viewcontroller"
 
-	"github.com/NorskHelsenett/ror-api/pkg/handlers/healthginhandler"
 	"github.com/NorskHelsenett/ror-api/pkg/handlers/ssehandler"
 
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/authmiddleware"
@@ -19,17 +18,9 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/controllers/v2/handlerv2selfcontroller"
 
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
-	"github.com/NorskHelsenett/ror/pkg/config/rorversion"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
-	"github.com/NorskHelsenett/ror-api/internal/docs"
-
 	"github.com/gin-gonic/gin"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-
-	swaggerfiles "github.com/swaggo/files"
-	ginswagger "github.com/swaggo/gin-swagger"
 )
 
 var (
@@ -65,24 +56,7 @@ func SetupRoutes(router *gin.Engine) error {
 	selfv2Route.POST("/apikeys", handlerv2selfcontroller.CreateOrRenewApikey())
 	selfv2Route.DELETE("/apikeys/:id", handlerv2selfcontroller.DeleteApiKey())
 
-	router.GET("/health", healthginhandler.GetGinHandler())
-	router.GET("/metrics", gin.WrapH(promhttp.HandlerFor(prometheus.DefaultGatherer, promhttp.HandlerOpts{EnableOpenMetrics: true})))
-
-	docs.SwaggerInfo.BasePath = "/"
-	docs.SwaggerInfo.Version = rorversion.GetRorVersion().GetVersion()
-	router.GET("/swagger/*any", ginswagger.WrapHandler(swaggerfiles.Handler))
-
-	resourceRoute := v2.Group("resources")
-	resourceRoute.Use(resourceV2rorratelimiter.RateLimiter)
-	resourceRoute.GET("", resourcescontroller.GetResources())
-	resourceRoute.POST("", resourcescontroller.NewResource())
-	resourceRoute.DELETE("/uid/:uid", resourcescontroller.DeleteResource())
-	resourceRoute.HEAD("/uid/:uid", resourcescontroller.ExistsResources())
-	resourceRoute.GET("/hashes", resourcescontroller.GetResourceHashList())
-
-	//deprecated: let client deal with special cases
-	resourceRoute.GET("/uid/:uid", resourcescontroller.GetResource())
-	resourceRoute.PUT("/uid/:uid", resourcescontroller.UpdateResource())
+	setupV2ResourcesRoute(v2)
 
 	viewsRoute := v2.Group("views")
 	{
@@ -94,6 +68,18 @@ func SetupRoutes(router *gin.Engine) error {
 		tokenroute.POST("/exchange", tokencontroller.ExchangeToken())
 	}
 	return nil
+}
+
+func setupV2ResourcesRoute(v2 *gin.RouterGroup) {
+	resourceRoute := v2.Group("resources")
+	resourceRoute.Use(resourceV2rorratelimiter.RateLimiter)
+	resourceRoute.GET("", resourcescontroller.GetResources())
+	resourceRoute.POST("", resourcescontroller.NewResource())
+	resourceRoute.GET("/hashes", resourcescontroller.GetResourceHashList())
+	resourceRoute.GET("/uid/:uid", resourcescontroller.GetResource())
+	resourceRoute.PUT("/uid/:uid", resourcescontroller.UpdateResource())
+	resourceRoute.DELETE("/uid/:uid", resourcescontroller.DeleteResource())
+	resourceRoute.HEAD("/uid/:uid", resourcescontroller.ExistsResources())
 }
 
 func setupV2EventsRoute(v2eventsRoute *gin.RouterGroup) {
