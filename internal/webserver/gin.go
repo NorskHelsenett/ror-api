@@ -78,6 +78,7 @@ func startHttpServer(ctx context.Context) error {
 		rlog.Error("could not set trusted proxies", err)
 		return err
 	}
+
 	err = v1routes.SetupRoutes(router)
 	if err != nil {
 		rlog.Error("could not setup v1 routes", err)
