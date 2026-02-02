@@ -13,14 +13,6 @@ definitions:
     x-enum-comments:
       Acl2ScopeRor: ROR
       Acl2ScopeUnknown: unknown
-    x-enum-descriptions:
-    - unknown
-    - ROR
-    - ""
-    - ""
-    - ""
-    - ""
-    - ""
     x-enum-varnames:
     - Acl2ScopeUnknown
     - Acl2ScopeRor
@@ -47,18 +39,6 @@ definitions:
       Acl2RorSubjectAcl: 'for subject, not scope, TODO: new const'
       Acl2RorSubjectApiKey: api key
       Acl2RorSubjectGlobal: 'for subject, not scope, TODO: new const'
-    x-enum-descriptions:
-    - ""
-    - ""
-    - ""
-    - 'for subject, not scope, TODO: new const'
-    - 'for subject, not scope, TODO: new const'
-    - api key
-    - ""
-    - ""
-    - ""
-    - ""
-    - ""
     x-enum-varnames:
     - Acl2RorSubjecUnknown
     - Acl2RorSubjectCluster
@@ -1224,6 +1204,18 @@ definitions:
       name:
         type: string
     type: object
+  apikeystypes.RegisterClusterRequest:
+    properties:
+      clusterid:
+        type: string
+    type: object
+  apikeystypes.RegisterClusterResponse:
+    properties:
+      apikey:
+        type: string
+      clusterid:
+        type: string
+    type: object
   apiresourcecontracts.CriticalityLevel:
     enum:
     - 0
@@ -1941,14 +1933,10 @@ definitions:
     enum:
     - 0
     - 1
-    format: int64
     type: integer
     x-enum-comments:
       Int: The IntOrString holds an int.
       String: The IntOrString holds a string.
-    x-enum-descriptions:
-    - The IntOrString holds an int.
-    - The IntOrString holds a string.
     x-enum-varnames:
     - Int
     - String
@@ -2102,10 +2090,6 @@ definitions:
           BinarySI: e.g., 12Mi (12 * 2^20)
           DecimalExponent: e.g., 12e6
           DecimalSI: e.g., 12M  (12 * 10^6)
-        x-enum-descriptions:
-        - e.g., 12e6
-        - e.g., 12Mi (12 * 2^20)
-        - e.g., 12M  (12 * 10^6)
         x-enum-varnames:
         - DecimalExponent
         - BinarySI
@@ -9669,6 +9653,43 @@ paths:
       summary: Get a workspace by id
       tags:
       - workspaces
+  /v2/apikeys/agent/register:
+    post:
+      consumes:
+      - application/json
+      description: Register an cluster.
+      parameters:
+      - description: data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/apikeystypes.RegisterClusterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apikeystypes.RegisterClusterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Register an agent
+      tags:
+      - clusters
   /v2/events/listen:
     get:
       consumes:
