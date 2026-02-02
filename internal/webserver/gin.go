@@ -9,7 +9,10 @@ import (
 	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/apikeyauth"
-	"github.com/NorskHelsenett/ror-api/internal/routes"
+	"github.com/NorskHelsenett/ror-api/internal/webserver/routes/utilityroutes"
+	"github.com/NorskHelsenett/ror-api/internal/webserver/routes/v1routes"
+	"github.com/NorskHelsenett/ror-api/internal/webserver/routes/v2routes"
+
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/authmiddleware"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/authmiddleware/oauthmiddleware"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/corsmiddleware"
@@ -17,14 +20,15 @@ import (
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/metricsmiddleware"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/rlogmiddleware"
 
+	"github.com/gin-contrib/gzip"
+	"github.com/gin-contrib/pprof"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
-	"github.com/gin-contrib/gzip"
-	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
 func StartListening(ctx context.Context, wg *sync.WaitGroup) {
@@ -52,6 +56,7 @@ func startHttpServer(ctx context.Context) error {
 	rlog.Info("Starting web server", rlog.Any("useCors", useCors), rlog.Any("allowedOrigins", allowOrigins))
 
 	router := gin.New()
+
 	if rorconfig.GetBool(rorconfig.PROFILER_ENABLED) {
 		rlog.Debug("profiler enabled")
 		pprof.Register(router)
@@ -73,8 +78,22 @@ func startHttpServer(ctx context.Context) error {
 		rlog.Error("could not set trusted proxies", err)
 		return err
 	}
+	err = v1routes.SetupRoutes(router)
+	if err != nil {
+		rlog.Error("could not setup v1 routes", err)
+		return err
+	}
+	err = v2routes.SetupRoutes(router)
+	if err != nil {
+		rlog.Error("could not setup v2 routes", err)
+		return err
+	}
 
-	routes.SetupRoutes(router)
+	err = utilityroutes.SetupRoutes(router)
+	if err != nil {
+		rlog.Error("could not setup utility routes", err)
+		return err
+	}
 
 	httpEndpoint := fmt.Sprintf("%s:%s", rorconfig.GetString(rorconfig.HTTP_HOST), rorconfig.GetString(rorconfig.HTTP_PORT))
 

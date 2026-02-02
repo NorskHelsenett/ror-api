@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/NorskHelsenett/ror-api/internal/rorapi"
+	apiserver "github.com/NorskHelsenett/ror-api/internal/apiserver"
 )
 
 //	@title			Swagger ROR-API
@@ -20,5 +20,5 @@ import (
 //	@name						X-API-KEY
 
 func main() {
-	rorapi.Run()
+	apiserver.Run()
 }
