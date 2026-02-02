@@ -6760,6 +6760,64 @@ const docTemplate = `{
                 }
             }
         },
+        "/v2/apikeys/agent/register": {
+            "post": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Register an cluster.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clusters"
+                ],
+                "summary": "Register an agent",
+                "parameters": [
+                    {
+                        "description": "data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/apikeystypes.RegisterClusterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apikeystypes.RegisterClusterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/v2/events/listen": {
             "get": {
                 "security": [
@@ -7732,15 +7790,6 @@ const docTemplate = `{
                 "Acl2ScopeRor": "ROR",
                 "Acl2ScopeUnknown": "unknown"
             },
-            "x-enum-descriptions": [
-                "unknown",
-                "ROR",
-                "",
-                "",
-                "",
-                "",
-                ""
-            ],
             "x-enum-varnames": [
                 "Acl2ScopeUnknown",
                 "Acl2ScopeRor",
@@ -7771,19 +7820,6 @@ const docTemplate = `{
                 "Acl2RorSubjectApiKey": "api key",
                 "Acl2RorSubjectGlobal": "for subject, not scope, TODO: new const"
             },
-            "x-enum-descriptions": [
-                "",
-                "",
-                "",
-                "for subject, not scope, TODO: new const",
-                "for subject, not scope, TODO: new const",
-                "api key",
-                "",
-                "",
-                "",
-                "",
-                ""
-            ],
             "x-enum-varnames": [
                 "Acl2RorSubjecUnknown",
                 "Acl2RorSubjectCluster",
@@ -9512,6 +9548,25 @@ const docTemplate = `{
                 }
             }
         },
+        "apikeystypes.RegisterClusterRequest": {
+            "type": "object",
+            "properties": {
+                "clusterid": {
+                    "type": "string"
+                }
+            }
+        },
+        "apikeystypes.RegisterClusterResponse": {
+            "type": "object",
+            "properties": {
+                "apikey": {
+                    "type": "string"
+                },
+                "clusterid": {
+                    "type": "string"
+                }
+            }
+        },
         "apiresourcecontracts.CriticalityLevel": {
             "type": "integer",
             "enum": [
@@ -10554,7 +10609,6 @@ const docTemplate = `{
         },
         "intstr.Type": {
             "type": "integer",
-            "format": "int64",
             "enum": [
                 0,
                 1
@@ -10563,10 +10617,6 @@ const docTemplate = `{
                 "Int": "The IntOrString holds an int.",
                 "String": "The IntOrString holds a string."
             },
-            "x-enum-descriptions": [
-                "The IntOrString holds an int.",
-                "The IntOrString holds a string."
-            ],
             "x-enum-varnames": [
                 "Int",
                 "String"
@@ -10777,11 +10827,6 @@ const docTemplate = `{
                         "DecimalExponent": "e.g., 12e6",
                         "DecimalSI": "e.g., 12M  (12 * 10^6)"
                     },
-                    "x-enum-descriptions": [
-                        "e.g., 12e6",
-                        "e.g., 12Mi (12 * 2^20)",
-                        "e.g., 12M  (12 * 10^6)"
-                    ],
                     "x-enum-varnames": [
                         "DecimalExponent",
                         "BinarySI",
