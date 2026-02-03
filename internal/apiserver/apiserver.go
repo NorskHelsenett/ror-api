@@ -38,7 +38,7 @@ func Run() {
 	rlog.Infoc(ctx, "ROR Api startup ")
 	rlog.Infof("API-version: %s (%s) Library-version: %s", rorversion.GetRorVersion().GetVersion(), rorversion.GetRorVersion().GetCommit(), rorversion.GetRorVersion().GetLibVer())
 
-	//TODO: Refactor the init funcitons called to respect context cancelations
+	//TODO: Refactor the init functions called to respect context cancelations
 	apiconnections.InitConnections(ctx)
 
 	//TODO: refactor the trace package to respect context cancelations
