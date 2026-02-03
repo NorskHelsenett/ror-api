@@ -1,4 +1,4 @@
-package rorapi
+package apiserver
 
 import (
 	"fmt"
