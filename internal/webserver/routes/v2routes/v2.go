@@ -25,7 +25,7 @@ import (
 
 var (
 	resourceV2rorratelimiter = rorratelimiter.NewNamedRorRateLimiter("/v2/resource", 50, 100)
-	defaultV1Timeout         = 15 * time.Second
+	defaultV2Timeout         = 15 * time.Second
 	timeoutduration          time.Duration
 )
 
@@ -34,7 +34,7 @@ func SetupRoutes(router *gin.Engine) error {
 	timeoutduration, err = time.ParseDuration(rorconfig.GetString(rorconfig.HTTP_TIMEOUT))
 	if err != nil {
 		rlog.Warn("Could not parse timeout, defaulting to defaultTimeout", rlog.String("error", err.Error()))
-		timeoutduration = defaultV1Timeout
+		timeoutduration = defaultV2Timeout
 	}
 
 	// V2 Events no default timeout in SSE
