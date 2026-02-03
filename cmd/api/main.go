@@ -1,7 +1,7 @@
 package main
 
 import (
-	apiserver "github.com/NorskHelsenett/ror-api/internal/apiserver"
+	"github.com/NorskHelsenett/ror-api/internal/apiserver"
 )
 
 //	@title			Swagger ROR-API
