@@ -2,11 +2,11 @@ package aclrepository
 
 import (
 	"context"
+	"slices"
 
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
-	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/rorresourceowner"
 
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
@@ -18,9 +18,35 @@ import (
 )
 
 // dbcollection
-var collectionName = "acl"
-var denyallACL = aclmodels.AclV2ListItemAccess{Read: false, Create: false, Update: false, Delete: false, Owner: false}
-var denyAllOwnerref = rorresourceowner.RorResourceOwnerReference{Scope: "NA-UNKNOWN", Subject: "NA-UNKNOWN"}
+var (
+	collectionName  = "acl"
+	denyallACL      = aclmodels.AclV2ListItemAccess{Read: false, Create: false, Update: false, Delete: false, Owner: false}
+	denyAllOwnerref = bson.M{"$match": bson.M{"scope": "NA-UNKNOWN", "subject": "NA-UNKNOWN"}}
+)
+
+type ownerRefs map[aclmodels.Acl2Scope][]aclmodels.Acl2Subject
+
+func (o ownerRefs) Add(scope aclmodels.Acl2Scope, subject aclmodels.Acl2Subject) {
+	if o[scope] == nil {
+		o[scope] = []aclmodels.Acl2Subject{}
+	}
+	if !slices.Contains(o[scope], subject) {
+		o[scope] = append(o[scope], subject)
+	}
+}
+func (o ownerRefs) ScopeIsSet(scope aclmodels.Acl2Scope) bool {
+	if len(o[scope]) > 0 {
+		return true
+	}
+	return false
+}
+
+func (o ownerRefs) SubjectIsSet(scope aclmodels.Acl2Scope, subject aclmodels.Acl2Subject) bool {
+	if o[scope] != nil && slices.Contains(o[scope], subject) {
+		return true
+	}
+	return false
+}
 
 type mongoAggregateFunc func(ctx context.Context, col string, query []bson.M, value interface{}) error
 
@@ -127,8 +153,8 @@ func CheckAcl2ByCluster(ctx context.Context, aclQuery aclmodels.AclV2QueryAccess
 }
 
 // GetOwnerrefsAcl2ByIdentityAccess Gets ownerrefs for identity with specific access returns []rorresourceowner.RorResourceOwnerReference
-func GetOwnerrefsAcl2ByIdentityAccess(ctx context.Context, access aclmodels.AccessType) []rorresourceowner.RorResourceOwnerReference {
-	denyall := []rorresourceowner.RorResourceOwnerReference{denyAllOwnerref}
+func GetOwnerrefsQueryAcl2ByIdentityAccess(ctx context.Context, access aclmodels.AccessType) bson.M {
+
 	identity := rorcontext.GetIdentityFromRorContext(ctx)
 
 	if !identity.IsCluster() {
@@ -139,35 +165,83 @@ func GetOwnerrefsAcl2ByIdentityAccess(ctx context.Context, access aclmodels.Acce
 		err := mongoAggregate(ctx, AclCollectionName, aggregationPipeline, &dbResult)
 		if err != nil {
 			rlog.Error("could not query mongodb", err)
-			return denyall
+			return denyAllOwnerref
 		}
 
 		return compileOwnerrefs(dbResult, access)
 	}
 
-	if identity.IsCluster() {
-		return []rorresourceowner.RorResourceOwnerReference{{Scope: aclmodels.Acl2ScopeCluster, Subject: aclmodels.Acl2Subject(identity.GetId())}}
+	clusterMatch := bson.M{
+		"$match": bson.M{
+			"scope":   aclmodels.Acl2ScopeCluster,
+			"subject": aclmodels.Acl2Subject(identity.GetId()),
+		},
 	}
 
-	return denyall
+	return clusterMatch
+
 }
 
-func compileOwnerrefs(acls []aclmodels.AclV2ListItem, access aclmodels.AccessType) []rorresourceowner.RorResourceOwnerReference {
+func compileOwnerrefs(acls []aclmodels.AclV2ListItem, access aclmodels.AccessType) bson.M {
 	if len(acls) == 0 {
-		return []rorresourceowner.RorResourceOwnerReference{denyAllOwnerref}
+		return denyAllOwnerref
 	}
-	ownerrefs := make([]rorresourceowner.RorResourceOwnerReference, 0, len(acls))
-	for _, result := range acls {
-		if checkAccess(result, access) {
-			ownerref := rorresourceowner.RorResourceOwnerReference{
-				Scope:   result.Scope,
-				Subject: result.Subject,
-			}
-			ownerrefs = append(ownerrefs, ownerref)
+
+	ownerrefs := compileUniqueOwnerrefs(acls, access)
+	if len(ownerrefs) == 0 {
+		return denyAllOwnerref
+	}
+	orquery := bson.A{}
+	globalScopes := []aclmodels.Acl2Scope{}
+	if ownerrefs.ScopeIsSet(aclmodels.Acl2ScopeRor) {
+		if ownerrefs.SubjectIsSet(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal) {
+			return bson.M{}
+		}
+		for _, subject := range ownerrefs[aclmodels.Acl2ScopeRor] {
+			orquery = append(orquery, bson.M{
+				"rormeta.ownerref.scope": subject,
+			})
+			globalScopes = append(globalScopes, aclmodels.Acl2Scope(subject))
 		}
 	}
-	if len(ownerrefs) == 0 {
-		return []rorresourceowner.RorResourceOwnerReference{denyAllOwnerref}
+	inquery := bson.A{}
+	for scope, subjects := range ownerrefs {
+		if scope == aclmodels.Acl2ScopeRor {
+			continue
+		}
+		if slices.Contains(globalScopes, scope) {
+			continue
+		}
+		for _, subject := range subjects {
+			inquery = append(inquery, bson.M{
+				"scope":   scope,
+				"subject": subject,
+			})
+		}
+	}
+	if len(inquery) > 0 {
+		orquery = append(orquery, bson.M{
+			"rormeta.ownerref": bson.M{"$in": inquery},
+		})
+	}
+
+	return bson.M{
+		"$match": bson.M{
+			"$or": orquery,
+		},
+	}
+}
+
+func compileUniqueOwnerrefs(acls []aclmodels.AclV2ListItem, access aclmodels.AccessType) ownerRefs {
+	//ownerrefs := []rorresourceowner.RorResourceOwnerReference{}
+
+	var ownerrefs = make(ownerRefs)
+
+	for _, result := range acls {
+		if !checkAccess(result, access) {
+			continue
+		}
+		ownerrefs.Add(result.Scope, result.Subject)
 	}
 	return ownerrefs
 }

@@ -95,14 +95,16 @@ func (r *ResourceMongoDB) GetHashlistByQuery(ctx context.Context, rorResourceQue
 
 func GenerateAggregateQuery(ctx context.Context, rorResourceQuery *rorresources.ResourceQuery) []bson.M {
 	query := make([]bson.M, 0)
-	match := bson.M{}
-	authorizedOwnerRefs := aclservice.GetOwnerrefByContextAccess(ctx, aclmodels.AccessTypeRead)
-	match["rormeta.ownerref"] = bson.M{"$in": authorizedOwnerRefs}
+	authorizedOwnerRefsQuery := aclservice.GetOwnerrefByContextAccess(ctx, aclmodels.AccessTypeRead)
+	if len(authorizedOwnerRefsQuery) > 0 {
+		query = append(query, authorizedOwnerRefsQuery)
+	}
 
 	if rorResourceQuery == nil {
 		return query
 	}
 
+	match := bson.M{}
 	// Add filters
 	if !rorResourceQuery.VersionKind.Empty() {
 		apiversion, kind := rorResourceQuery.VersionKind.ToAPIVersionAndKind()

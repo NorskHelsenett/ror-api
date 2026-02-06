@@ -8,6 +8,7 @@ import (
 	aclrepository "github.com/NorskHelsenett/ror-api/internal/acl/repositories"
 	"github.com/NorskHelsenett/ror-api/internal/auditlog"
 	"github.com/NorskHelsenett/ror-api/internal/models"
+	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 
@@ -135,10 +136,10 @@ func CheckAccessByRorOwnerref(ctx context.Context, ownerref rorresourceowner.Ror
 	return aclrepository.CheckAcl2ByIdentityQuery(ctx, aclModel)
 }
 
-func GetOwnerrefByContextAccess(ctx context.Context, access aclmodels.AccessType) []rorresourceowner.RorResourceOwnerReference {
+func GetOwnerrefByContextAccess(ctx context.Context, access aclmodels.AccessType) bson.M {
 	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "aclService.GetAccessByContext")
 	defer span.End()
 
-	return aclrepository.GetOwnerrefsAcl2ByIdentityAccess(ctx, access)
+	return aclrepository.GetOwnerrefsQueryAcl2ByIdentityAccess(ctx, access)
 
 }
