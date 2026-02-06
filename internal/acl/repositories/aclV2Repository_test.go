@@ -1,18 +1,182 @@
 package aclrepository
 
 import (
+	"context"
+	"errors"
 	"reflect"
 	"testing"
 
 	"github.com/NorskHelsenett/ror-api/internal/mocks/identitymocks"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/rorresourceowner"
 
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
 	"github.com/google/go-cmp/cmp"
 	"go.mongodb.org/mongo-driver/bson"
 )
+
+func Test_compileOwnerrefs(t *testing.T) {
+	t.Parallel()
+
+	t.Run("empty input returns denyAll", func(t *testing.T) {
+		got := compileOwnerrefs(nil, aclmodels.AccessTypeRead)
+		want := []rorresourceowner.RorResourceOwnerReference{denyAllOwnerref}
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Fatalf("compileOwnerrefs() mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("no matching access returns denyAll", func(t *testing.T) {
+		acls := []aclmodels.AclV2ListItem{
+			{Scope: aclmodels.Acl2ScopeCluster, Subject: "c1", Access: aclmodels.AclV2ListItemAccess{Read: false}},
+			{Scope: aclmodels.Acl2ScopeProject, Subject: "p1", Access: aclmodels.AclV2ListItemAccess{Read: false}},
+		}
+		got := compileOwnerrefs(acls, aclmodels.AccessTypeRead)
+		want := []rorresourceowner.RorResourceOwnerReference{denyAllOwnerref}
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Fatalf("compileOwnerrefs() mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("filters and returns matching ownerrefs", func(t *testing.T) {
+		acls := []aclmodels.AclV2ListItem{
+			{Scope: aclmodels.Acl2ScopeCluster, Subject: "c1", Access: aclmodels.AclV2ListItemAccess{Read: true}},
+			{Scope: aclmodels.Acl2ScopeProject, Subject: "p1", Access: aclmodels.AclV2ListItemAccess{Read: false}},
+			{Scope: aclmodels.Acl2ScopeCluster, Subject: "c2", Access: aclmodels.AclV2ListItemAccess{Read: true}},
+		}
+		got := compileOwnerrefs(acls, aclmodels.AccessTypeRead)
+		want := []rorresourceowner.RorResourceOwnerReference{
+			{Scope: aclmodels.Acl2ScopeCluster, Subject: "c1"},
+			{Scope: aclmodels.Acl2ScopeCluster, Subject: "c2"},
+		}
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Fatalf("compileOwnerrefs() mismatch (-want +got):\n%s", diff)
+		}
+	})
+}
+
+func Test_checkAccess(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		acl    aclmodels.AclV2ListItem
+		access aclmodels.AccessType
+		want   bool
+	}{
+		{
+			name:   "read true",
+			acl:    aclmodels.AclV2ListItem{Access: aclmodels.AclV2ListItemAccess{Read: true}},
+			access: aclmodels.AccessTypeRead,
+			want:   true,
+		},
+		{
+			name:   "create true",
+			acl:    aclmodels.AclV2ListItem{Access: aclmodels.AclV2ListItemAccess{Create: true}},
+			access: aclmodels.AccessTypeCreate,
+			want:   true,
+		},
+		{
+			name:   "update true",
+			acl:    aclmodels.AclV2ListItem{Access: aclmodels.AclV2ListItemAccess{Update: true}},
+			access: aclmodels.AccessTypeUpdate,
+			want:   true,
+		},
+		{
+			name:   "delete true",
+			acl:    aclmodels.AclV2ListItem{Access: aclmodels.AclV2ListItemAccess{Delete: true}},
+			access: aclmodels.AccessTypeDelete,
+			want:   true,
+		},
+		{
+			name:   "owner true",
+			acl:    aclmodels.AclV2ListItem{Access: aclmodels.AclV2ListItemAccess{Owner: true}},
+			access: aclmodels.AccessTypeOwner,
+			want:   true,
+		},
+		{
+			name:   "cluster logon true",
+			acl:    aclmodels.AclV2ListItem{Kubernetes: aclmodels.AclV2ListItemKubernetes{Logon: true}},
+			access: aclmodels.AccessTypeClusterLogon,
+			want:   true,
+		},
+		{
+			name:   "unknown access type returns false",
+			acl:    aclmodels.AclV2ListItem{Access: aclmodels.AclV2ListItemAccess{Read: true, Create: true, Update: true, Delete: true, Owner: true}},
+			access: aclmodels.AccessTypeRorMetadata,
+			want:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := checkAccess(tt.acl, tt.access); got != tt.want {
+				t.Fatalf("checkAccess() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_GetOwnerrefsAcl2ByIdentityAccess(t *testing.T) {
+	t.Run("cluster identity returns cluster ownerref without DB", func(t *testing.T) {
+		ctx := context.WithValue(context.Background(), identitymodels.ContexIdentity, identitymocks.IdentityClusterValid)
+		got := GetOwnerrefsAcl2ByIdentityAccess(ctx, aclmodels.AccessTypeRead)
+		want := []rorresourceowner.RorResourceOwnerReference{{
+			Scope:   aclmodels.Acl2ScopeCluster,
+			Subject: aclmodels.Acl2Subject(identitymocks.IdentityClusterValid.GetId()),
+		}}
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Fatalf("GetOwnerrefsAcl2ByIdentityAccess() mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("non-cluster identity uses aggregate results", func(t *testing.T) {
+		orig := mongoAggregate
+		t.Cleanup(func() { mongoAggregate = orig })
+
+		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value interface{}) error {
+			if col != AclCollectionName {
+				return errors.New("unexpected collection")
+			}
+			ptr, ok := value.(*[]aclmodels.AclV2ListItem)
+			if !ok {
+				return errors.New("unexpected value type")
+			}
+			*ptr = []aclmodels.AclV2ListItem{
+				{Scope: aclmodels.Acl2ScopeCluster, Subject: "c1", Access: aclmodels.AclV2ListItemAccess{Read: true}},
+				{Scope: aclmodels.Acl2ScopeProject, Subject: "p1", Access: aclmodels.AclV2ListItemAccess{Read: false}},
+			}
+			return nil
+		}
+
+		ctx := context.WithValue(context.Background(), identitymodels.ContexIdentity, identitymocks.IdentityUserValid)
+		got := GetOwnerrefsAcl2ByIdentityAccess(ctx, aclmodels.AccessTypeRead)
+		want := []rorresourceowner.RorResourceOwnerReference{{Scope: aclmodels.Acl2ScopeCluster, Subject: "c1"}}
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Fatalf("GetOwnerrefsAcl2ByIdentityAccess() mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("aggregate error returns denyAll", func(t *testing.T) {
+		orig := mongoAggregate
+		t.Cleanup(func() { mongoAggregate = orig })
+
+		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value interface{}) error {
+			return errors.New("boom")
+		}
+
+		ctx := context.WithValue(context.Background(), identitymodels.ContexIdentity, identitymocks.IdentityUserValid)
+		got := GetOwnerrefsAcl2ByIdentityAccess(ctx, aclmodels.AccessTypeRead)
+		want := []rorresourceowner.RorResourceOwnerReference{denyAllOwnerref}
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Fatalf("GetOwnerrefsAcl2ByIdentityAccess() mismatch (-want +got):\n%s", diff)
+		}
+	})
+}
 
 func Test_createACLV2FilterByScope(t *testing.T) {
 	type args struct {

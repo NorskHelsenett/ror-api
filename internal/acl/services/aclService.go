@@ -134,3 +134,11 @@ func CheckAccessByRorOwnerref(ctx context.Context, ownerref rorresourceowner.Ror
 
 	return aclrepository.CheckAcl2ByIdentityQuery(ctx, aclModel)
 }
+
+func GetOwnerrefByContextAccess(ctx context.Context, access aclmodels.AccessType) []rorresourceowner.RorResourceOwnerReference {
+	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "aclService.GetAccessByContext")
+	defer span.End()
+
+	return aclrepository.GetOwnerrefsAcl2ByIdentityAccess(ctx, access)
+
+}
