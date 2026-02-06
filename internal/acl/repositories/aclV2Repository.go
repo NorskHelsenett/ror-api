@@ -2,6 +2,7 @@ package aclrepository
 
 import (
 	"context"
+	"slices"
 
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
@@ -17,15 +18,46 @@ import (
 )
 
 // dbcollection
-var collectionName = "acl"
-var denyallACL = aclmodels.AclV2ListItemAccess{Read: false, Create: false, Update: false, Delete: false, Owner: false}
+var (
+	collectionName  = "acl"
+	denyallACL      = aclmodels.AclV2ListItemAccess{Read: false, Create: false, Update: false, Delete: false, Owner: false}
+	denyAllOwnerref = bson.M{"$match": bson.M{"scope": "NA-UNKNOWN", "subject": "NA-UNKNOWN"}}
+)
+
+type ownerRefs map[aclmodels.Acl2Scope][]aclmodels.Acl2Subject
+
+func (o ownerRefs) Add(scope aclmodels.Acl2Scope, subject aclmodels.Acl2Subject) {
+	if o[scope] == nil {
+		o[scope] = []aclmodels.Acl2Subject{}
+	}
+	if !slices.Contains(o[scope], subject) {
+		o[scope] = append(o[scope], subject)
+	}
+}
+func (o ownerRefs) ScopeIsSet(scope aclmodels.Acl2Scope) bool {
+	if len(o[scope]) > 0 {
+		return true
+	}
+	return false
+}
+
+func (o ownerRefs) SubjectIsSet(scope aclmodels.Acl2Scope, subject aclmodels.Acl2Subject) bool {
+	if o[scope] != nil && slices.Contains(o[scope], subject) {
+		return true
+	}
+	return false
+}
+
+type mongoAggregateFunc func(ctx context.Context, col string, query []bson.M, value interface{}) error
+
+var mongoAggregate mongoAggregateFunc = mongodb.Aggregate
 
 // GetAllACL2 Gets all ACL2 items returns []aclmodels.AclV2ListItem
 func GetAllACL2(ctx context.Context) ([]aclmodels.AclV2ListItem, error) {
 	var aggregationPipeline []bson.M
 
 	results := make([]aclmodels.AclV2ListItem, 0)
-	err := mongodb.Aggregate(ctx, AclCollectionName, aggregationPipeline, &results)
+	err := mongoAggregate(ctx, AclCollectionName, aggregationPipeline, &results)
 
 	return results, err
 }
@@ -47,7 +79,7 @@ func GetACL2ByIdentityQuery(ctx context.Context, aclQuery aclmodels.AclV2QueryAc
 		var aggregationPipeline []bson.M
 		aggregationPipeline = append(aggregationPipeline, createACLV2FilterByScope(identity, aclQuery.Scope)...)
 
-		err := mongodb.Aggregate(ctx, AclCollectionName, aggregationPipeline, &dbResult)
+		err := mongoAggregate(ctx, AclCollectionName, aggregationPipeline, &dbResult)
 		if err != nil {
 			rlog.Error("could not query mongodb", err)
 			return aclReturnArray
@@ -88,7 +120,7 @@ func CheckAcl2ByIdentityQuery(ctx context.Context, aclQuery aclmodels.AclV2Query
 		var aggregationPipeline []bson.M
 		aggregationPipeline = append(aggregationPipeline, createACLV2FilterByScopeSubject(identity, aclQuery.Scope, aclQuery.Subject)...)
 
-		err := mongodb.Aggregate(ctx, AclCollectionName, aggregationPipeline, &dbResult)
+		err := mongoAggregate(ctx, AclCollectionName, aggregationPipeline, &dbResult)
 		if err != nil {
 			rlog.Error("could not query mongodb", err)
 			return denyall
@@ -111,13 +143,139 @@ func CheckAcl2ByCluster(ctx context.Context, aclQuery aclmodels.AclV2QueryAccess
 	var aggregationPipeline []bson.M
 	aggregationPipeline = append(aggregationPipeline, createACLV2FilterByScopeSubject(identity, aclQuery.Scope, aclQuery.Subject)...)
 
-	err := mongodb.Aggregate(ctx, AclCollectionName, aggregationPipeline, &result)
+	err := mongoAggregate(ctx, AclCollectionName, aggregationPipeline, &result)
 	if err != nil {
 		rlog.Error("could not query mongodb", err)
 		return result
 	}
 
 	return result
+}
+
+// GetOwnerrefsAcl2ByIdentityAccess Gets ownerrefs for identity with specific access returns []rorresourceowner.RorResourceOwnerReference
+func GetOwnerrefsQueryAcl2ByIdentityAccess(ctx context.Context, access aclmodels.AccessType) bson.M {
+
+	identity := rorcontext.GetIdentityFromRorContext(ctx)
+
+	if !identity.IsCluster() {
+		dbResult := make([]aclmodels.AclV2ListItem, 0)
+		var aggregationPipeline []bson.M
+		aggregationPipeline = append(aggregationPipeline, createACLV2Filter(identity)...)
+
+		err := mongoAggregate(ctx, AclCollectionName, aggregationPipeline, &dbResult)
+		if err != nil {
+			rlog.Error("could not query mongodb", err)
+			return denyAllOwnerref
+		}
+
+		return compileOwnerrefs(dbResult, access)
+	}
+
+	clusterMatch := bson.M{
+		"$match": bson.M{
+			"scope":   aclmodels.Acl2ScopeCluster,
+			"subject": aclmodels.Acl2Subject(identity.GetId()),
+		},
+	}
+
+	return clusterMatch
+
+}
+
+func compileOwnerrefs(acls []aclmodels.AclV2ListItem, access aclmodels.AccessType) bson.M {
+	if len(acls) == 0 {
+		return denyAllOwnerref
+	}
+
+	ownerrefs := compileUniqueOwnerrefs(acls, access)
+	if len(ownerrefs) == 0 {
+		return denyAllOwnerref
+	}
+	orquery := bson.A{}
+	globalScopes := []aclmodels.Acl2Scope{}
+	if ownerrefs.ScopeIsSet(aclmodels.Acl2ScopeRor) {
+		if ownerrefs.SubjectIsSet(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal) {
+			return bson.M{}
+		}
+		for _, subject := range ownerrefs[aclmodels.Acl2ScopeRor] {
+			orquery = append(orquery, bson.M{
+				"rormeta.ownerref.scope": subject,
+			})
+			globalScopes = append(globalScopes, aclmodels.Acl2Scope(subject))
+		}
+	}
+	inquery := bson.A{}
+	for scope, subjects := range ownerrefs {
+		if scope == aclmodels.Acl2ScopeRor {
+			continue
+		}
+		if slices.Contains(globalScopes, scope) {
+			continue
+		}
+		for _, subject := range subjects {
+			inquery = append(inquery, bson.M{
+				"scope":   scope,
+				"subject": subject,
+			})
+		}
+	}
+	if len(inquery) > 0 {
+		orquery = append(orquery, bson.M{
+			"rormeta.ownerref": bson.M{"$in": inquery},
+		})
+	}
+
+	return bson.M{
+		"$match": bson.M{
+			"$or": orquery,
+		},
+	}
+}
+
+func compileUniqueOwnerrefs(acls []aclmodels.AclV2ListItem, access aclmodels.AccessType) ownerRefs {
+	//ownerrefs := []rorresourceowner.RorResourceOwnerReference{}
+
+	var ownerrefs = make(ownerRefs)
+
+	for _, result := range acls {
+		if !checkAccess(result, access) {
+			continue
+		}
+		ownerrefs.Add(result.Scope, result.Subject)
+	}
+	return ownerrefs
+}
+
+func checkAccess(acl aclmodels.AclV2ListItem, access aclmodels.AccessType) bool {
+	switch access {
+	case aclmodels.AccessTypeRead:
+		if acl.Access.Read {
+			return true
+		}
+	case aclmodels.AccessTypeCreate:
+		if acl.Access.Create {
+			return true
+		}
+	case aclmodels.AccessTypeUpdate:
+		if acl.Access.Update {
+			return true
+		}
+	case aclmodels.AccessTypeDelete:
+		if acl.Access.Delete {
+			return true
+		}
+	case aclmodels.AccessTypeOwner:
+		if acl.Access.Owner {
+			return true
+		}
+	case aclmodels.AccessTypeClusterLogon:
+		if acl.Kubernetes.Logon {
+			return true
+		}
+	}
+
+	return false
+
 }
 
 func compileAccess(acls []aclmodels.AclV2ListItem) aclmodels.AclV2ListItemAccess {
@@ -233,6 +391,41 @@ func createACLV2FilterByScope(identity identitymodels.Identity, scope aclmodels.
 			},
 		},
 	})
+	return filters
+}
+
+func createACLV2Filter(identity identitymodels.Identity) []bson.M {
+	var filters []bson.M
+	var filterGroups bson.A
+	denyallGroups := []bson.M{{"$match": bson.M{"group": bson.M{"$in": bson.A{"Unknown-Unauthorized"}}}}}
+
+	groups, err := identity.ReturnGroupQuery()
+	if err != nil {
+		rlog.Error("could not extract groups from user", err)
+		return denyallGroups
+	}
+
+	filterGroups = groups
+
+	if len(groups) == 0 {
+
+		filterGroups = bson.A{"Unknown-Unauthorized"}
+	}
+
+	if filterGroups[0] == "" {
+
+		filterGroups = bson.A{"Unknown-Unauthorized"}
+	}
+
+	filters = append(filters, bson.M{
+		"$match": bson.M{
+			"version": 2,
+			"group": bson.M{
+				"$in": filterGroups,
+			},
+		},
+	})
+
 	return filters
 }
 
