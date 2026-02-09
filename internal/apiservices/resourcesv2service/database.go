@@ -184,16 +184,19 @@ func GenerateAggregateQuery(ctx context.Context, rorResourceQuery *rorresources.
 		query = append(query, bson.M{"$skip": rorResourceQuery.Offset})
 	}
 
-	if rorResourceQuery.Limit > 1000 {
-		rorResourceQuery.Limit = 1000
+	// Compute an effective limit without mutating the original query.
+	effectiveLimit := rorResourceQuery.Limit
+	if effectiveLimit == 0 {
+		// Default limit when none is specified.
+		effectiveLimit = 100
+	} else if effectiveLimit > 1000 {
+		// Cap the limit to a maximum of 1000.
+		effectiveLimit = 1000
 	}
 
-	if rorResourceQuery.Limit == 0 {
-		query = append(query, bson.M{"$limit": 100})
-	}
-
-	if rorResourceQuery.Limit != -1 {
-		query = append(query, bson.M{"$limit": rorResourceQuery.Limit})
+	// Treat -1 as "no limit" (omit $limit stage).
+	if effectiveLimit != -1 {
+		query = append(query, bson.M{"$limit": effectiveLimit})
 	}
 	return query
 }
