@@ -6,7 +6,7 @@ WebAPI made with Golang and Gin WebAPI framework
 
 # Prerequisites
 
-- Golang 1.25.4
+- Golang 1.26
 - Vault, Valkey, RabbitMQ, MongoDB, OpenIDConnect service (see requirements on how to start)
 
 # Get started
