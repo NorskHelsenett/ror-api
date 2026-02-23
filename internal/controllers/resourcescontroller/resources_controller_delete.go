@@ -37,49 +37,112 @@ func DeleteResource() gin.HandlerFunc {
 		defer cancel()
 		var input apiresourcecontracts.ResourceUpdateModel
 
-		//validate the request body
-		if err := c.BindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
-			return
-		}
-		//use the validator library to validate required fields
-		if validationErr := validate.Struct(&input); validationErr != nil {
-			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": validationErr.Error()}})
-			return
+		var hasBody bool
+
+		if !(c.Request.Body == http.NoBody || c.Request.ContentLength == 0) {
+			hasBody = true
 		}
 
-		// Validate that the correct uid is provided
-		if input.Uid != c.Param("uid") {
-			c.JSON(http.StatusNotImplemented, "501: Wrong uid")
+		// Body is not allowed for delete, but we want to keep this for compatibility with old clients until we have removed the old v1 endpoint.
+		if hasBody {
+			//validate the request body
+			if err := c.BindJSON(&input); err != nil {
+				c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				return
+			}
+			//use the validator library to validate required fields
+			if validationErr := validate.Struct(&input); validationErr != nil {
+				c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": validationErr.Error()}})
+				return
+			}
+
+			// Validate that the correct uid is provided
+			if input.Uid != c.Param("uid") {
+				c.JSON(http.StatusNotImplemented, "501: Wrong uid")
+				return
+			}
+
+			scope := aclmodels.Acl2Scope(input.Owner.Scope)
+			subject := input.Owner.Subject
+
+			if subject == "" || scope == "" {
+				c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": "owner scope and subject must be set"}})
+				return
+			}
+
+			// Access check
+			// Scope: input.Owner.Scope
+			// Subject: input.Owner.Subject
+			// Access: update
+			accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(scope, subject)
+			accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
+			if !accessObject.Update {
+				c.JSON(http.StatusForbidden, "403: No access")
+				return
+			}
+
+			err := resourcesservice.ResourceDeleteService(ctx, input)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				return
+			}
+
+			c.JSON(http.StatusCreated, nil)
+			return // Return here to avoid executing the code below which is used for delete without body
+		} else {
+			uid := c.Param("uid")
+			if uid == "" {
+				c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": "uid must be set"}})
+				return
+			}
+			resourcemeta, err := resourcesservice.GetResourceMetadataByUid(ctx, uid)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				return
+			}
+
+			if resourcemeta.Uid == "" {
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": "resource not found"}})
+				return
+			}
+
+			scope := resourcemeta.Owner.Scope
+			subject := resourcemeta.Owner.Subject
+
+			if subject == "" || scope == "" {
+				c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": "owner scope and subject must be set"}})
+				return
+			}
+
+			// Access check
+			// Scope: input.Owner.Scope
+			// Subject: input.Owner.Subject
+			// Access: update
+			accessObject := aclservice.CheckAccessByContextScopeSubject(ctx, scope, subject)
+			if !accessObject.Update {
+				c.JSON(http.StatusForbidden, "403: No access")
+				return
+			}
+
+			err = resourcesservice.ResourceDeleteService(ctx, apiresourcecontracts.ResourceUpdateModel{
+				Uid:        uid,
+				Owner:      resourcemeta.Owner,
+				ApiVersion: resourcemeta.ApiVersion,
+				Kind:       resourcemeta.Kind,
+				Action:     apiresourcecontracts.K8sActionDelete,
+				Hash:       resourcemeta.Hash,
+				Version:    resourcemeta.Version,
+				Resource:   nil, // Resource is not needed for delete
+			})
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				return
+			}
+
+			c.JSON(http.StatusNoContent, nil)
 			return
+
 		}
-
-		scope := aclmodels.Acl2Scope(input.Owner.Scope)
-		subject := input.Owner.Subject
-
-		if subject == "" || scope == "" {
-			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": "owner scope and subject must be set"}})
-			return
-		}
-
-		// Access check
-		// Scope: input.Owner.Scope
-		// Subject: input.Owner.Subject
-		// Access: update
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(scope, subject)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Update {
-			c.JSON(http.StatusForbidden, "403: No access")
-			return
-		}
-
-		err := resourcesservice.ResourceDeleteService(ctx, input)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
-			return
-		}
-
-		c.JSON(http.StatusCreated, nil)
 
 	}
 }
