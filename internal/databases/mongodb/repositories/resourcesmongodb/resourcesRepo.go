@@ -205,6 +205,17 @@ func GetResourceByUid[T apiresourcecontracts.Resourcetypes](ctx context.Context,
 	if err != nil {
 		return returnvalue, fmt.Errorf("could not decode mongo document: %w", err)
 	}
+	return returnvalue, nil
+}
+
+// Only internal use, does not implement owner check
+func GetResourceMetadataByUid(ctx context.Context, uid string) (apiresourcecontracts.ResourceModelMetadata, error) {
+	var returnvalue apiresourcecontracts.ResourceModelMetadata
+
+	err := mongodb.FindOne(ctx, ResourceCollectionName, bson.M{"uid": uid}, &returnvalue)
+	if err != nil {
+		return returnvalue, fmt.Errorf("could not decode mongo document: %w", err)
+	}
 
 	return returnvalue, nil
 }

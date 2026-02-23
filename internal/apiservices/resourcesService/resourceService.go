@@ -27,6 +27,20 @@ func CheckResourceExist(ctx context.Context, uid string) bool {
 	return resourcesmongodb.ResourceExistbyUid(uid, ctx)
 }
 
+func GetResourceMetadataByUid(ctx context.Context, uid string) (apiresourcecontracts.ResourceModelMetadata, error) {
+	var emptyresult apiresourcecontracts.ResourceModelMetadata
+
+	if uid == "" {
+		err := fmt.Errorf("uid is empty")
+		return emptyresult, err
+	}
+	result, err := resourcesmongodb.GetResourceMetadataByUid(ctx, uid)
+	if err != nil {
+		return emptyresult, err
+	}
+	return result, nil
+}
+
 // GetResources retrieves resources of type `T` from Mongo DB based on the provided `ResourceQuery`.
 // The function queries the `resourcesmongodb` using `GetResourcesByQuery[T]` method and returns a slice of the retrieved resources if successful.
 // The function returns an error if the resource retrieval process fails.
