@@ -129,10 +129,12 @@ func GetResourceHashList() gin.HandlerFunc {
 			return
 		}
 
-		if len(hashList.Items) == 0 {
-			c.JSON(http.StatusNotFound, nil)
-			return
-		}
+		// Note: We return 200 with empty list if no hashes are found, as the resource owner may have access to the resource but simply not have any resources saved.
+		// Returning 404 in this case would be misleading, as it would indicate that the resource owner does not have access to the resource at all.
+		//		if len(hashList.Items) == 0 {
+		//			c.JSON(http.StatusNotFound, nil)
+		//			return
+		//		}
 
 		c.JSON(http.StatusOK, hashList)
 	}
