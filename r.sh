@@ -1,6 +1,5 @@
 #!/usr/bin/bash
 
-# 1.  Paths 
 TEMPLATE="./hacks/vscode/launch.json"  
 DEST="./.vscode/launch.json"           
 
@@ -9,7 +8,7 @@ if [ ! -d ./.vscode ]; then
 fi
 
 if [ ! -f "$DEST" ]; then
-    cp "$TEMPLATE" "$DEST"
+    cp "$TEMPLATE" "$DEST";
 fi
     
 
