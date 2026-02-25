@@ -138,17 +138,17 @@ func GetApiKeysByFilter() gin.HandlerFunc {
 
 // @Summary	Create api key
 // @Schemes
-// @Description	Create a api key
+// @Description	Create an api key for the current user
 // @Tags			users
 // @Accept			application/json
 // @Produce		application/json
-// @Success		200						{string}	api	key
+// @Success		200						{string}	string
 // @Failure		403						{object}	rorerror.ErrorData
 // @Failure		400						{object}	rorerror.ErrorData
 // @Failure		401						{object}	rorerror.ErrorData
 // @Failure		500						{object}	rorerror.ErrorData
 // @Router			/v1/users/self/apikeys	[post]
-// @Param			project					body	apicontracts.ApiKey	true	"Api key"
+// @Param			apikey					body	apicontracts.ApiKey	true	"Api key"
 // @Security		ApiKey || AccessToken
 func CreateApikey() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -197,11 +197,11 @@ func CreateApikey() gin.HandlerFunc {
 
 // @Summary	Delete api key for user
 // @Schemes
-// @Description	Delete a api key by id for user
-// @Tags			user
+// @Description	Delete an api key by id for user
+// @Tags			users
 // @Accept			application/json
 // @Produce		application/json
-// @Success		200									{bool}		bool
+// @Success		200									{boolean}	bool
 // @Failure		403									{object}	rorerror.ErrorData
 // @Failure		400									{object}	rorerror.ErrorData
 // @Failure		401									{object}	rorerror.ErrorData

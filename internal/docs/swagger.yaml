@@ -13,6 +13,14 @@ definitions:
     x-enum-comments:
       Acl2ScopeRor: ROR
       Acl2ScopeUnknown: unknown
+    x-enum-descriptions:
+    - unknown
+    - ROR
+    - ""
+    - ""
+    - ""
+    - ""
+    - ""
     x-enum-varnames:
     - Acl2ScopeUnknown
     - Acl2ScopeRor
@@ -39,6 +47,18 @@ definitions:
       Acl2RorSubjectAcl: 'for subject, not scope, TODO: new const'
       Acl2RorSubjectApiKey: api key
       Acl2RorSubjectGlobal: 'for subject, not scope, TODO: new const'
+    x-enum-descriptions:
+    - ""
+    - ""
+    - ""
+    - 'for subject, not scope, TODO: new const'
+    - 'for subject, not scope, TODO: new const'
+    - api key
+    - ""
+    - ""
+    - ""
+    - ""
+    - ""
     x-enum-varnames:
     - Acl2RorSubjecUnknown
     - Acl2RorSubjectCluster
@@ -174,10 +194,41 @@ definitions:
     - ApiKeyTypeCluster
     - ApiKeyTypeUser
     - ApiKeyTypeService
+  apicontracts.AuditLog:
+    properties:
+      data:
+        additionalProperties: {}
+        type: object
+      id:
+        type: string
+      metadata:
+        $ref: '#/definitions/apicontracts.AuditLogMetadata'
+    type: object
+  apicontracts.AuditLogMetadata:
+    properties:
+      action:
+        type: string
+      category:
+        type: string
+      msg:
+        type: string
+      timestamp:
+        type: string
+      user:
+        $ref: '#/definitions/apicontracts.User'
+    type: object
   apicontracts.Billing:
     properties:
       workorder:
         type: string
+    type: object
+  apicontracts.BillingModel:
+    properties:
+      workorder:
+        minLength: 1
+        type: string
+    required:
+    - workorder
     type: object
   apicontracts.Cluster:
     properties:
@@ -338,6 +389,40 @@ definitions:
           type: string
         type: object
     type: object
+  apicontracts.ClusterMetadataModel:
+    properties:
+      billing:
+        $ref: '#/definitions/apicontracts.BillingModel'
+      criticality:
+        allOf:
+        - $ref: '#/definitions/apicontracts.CriticalityLevel'
+        maximum: 4
+        minimum: 1
+      description:
+        minLength: 1
+        type: string
+      projectId:
+        minLength: 1
+        type: string
+      roles:
+        items:
+          $ref: '#/definitions/apicontracts.ProjectRole'
+        type: array
+      sensitivity:
+        allOf:
+        - $ref: '#/definitions/apicontracts.SensitivityLevel'
+        maximum: 4
+        minimum: 1
+      serviceTags:
+        additionalProperties:
+          type: string
+        type: object
+    required:
+    - criticality
+    - projectId
+    - roles
+    - sensitivity
+    type: object
   apicontracts.ClusterPhase:
     enum:
     - Unknown
@@ -356,6 +441,11 @@ definitions:
     - ClusterPhaseDeleting
     - ClusterPhaseDeleted
     - ClusterPhaseError
+  apicontracts.ClusterSelf:
+    properties:
+      clusterId:
+        type: string
+    type: object
   apicontracts.ClusterState:
     enum:
     - Unknown
@@ -831,6 +921,19 @@ definitions:
       totalCount:
         type: integer
     type: object
+  apicontracts.PaginatedResult-apicontracts_AuditLog:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/apicontracts.AuditLog'
+        type: array
+      dataCount:
+        type: integer
+      offset:
+        type: integer
+      totalCount:
+        type: integer
+    type: object
   apicontracts.PaginatedResult-apicontracts_Cluster:
     properties:
       data:
@@ -942,11 +1045,13 @@ definitions:
     - ""
     - Owner
     - Responsible
+    - TechnicalContact
     type: string
     x-enum-varnames:
     - ProjectRoleUnknown
     - ProjectRoleOwner
     - ProjectRoleResponsible
+    - ProjectRoleTechnicalContact
   apicontracts.SensitivityLevel:
     enum:
     - 0
@@ -1742,6 +1847,16 @@ definitions:
       resourceUid:
         type: string
     type: object
+  github_com_NorskHelsenett_ror-api_internal_models_responses.Cluster:
+    properties:
+      data:
+        additionalProperties: true
+        type: object
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
   github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReport:
     properties:
       clusterid:
@@ -1933,10 +2048,14 @@ definitions:
     enum:
     - 0
     - 1
+    format: int64
     type: integer
     x-enum-comments:
       Int: The IntOrString holds an int.
       String: The IntOrString holds a string.
+    x-enum-descriptions:
+    - The IntOrString holds an int.
+    - The IntOrString holds a string.
     x-enum-varnames:
     - Int
     - String
@@ -2058,6 +2177,15 @@ definitions:
       type:
         $ref: '#/definitions/providermodels.ProviderType'
     type: object
+  providermodels.ProviderKubernetesVersion:
+    properties:
+      disabled:
+        type: boolean
+      name:
+        type: string
+      version:
+        type: string
+    type: object
   providermodels.ProviderType:
     enum:
     - unknown
@@ -2090,6 +2218,10 @@ definitions:
           BinarySI: e.g., 12Mi (12 * 2^20)
           DecimalExponent: e.g., 12e6
           DecimalSI: e.g., 12M  (12 * 10^6)
+        x-enum-descriptions:
+        - e.g., 12e6
+        - e.g., 12Mi (12 * 2^20)
+        - e.g., 12M  (12 * 10^6)
         x-enum-varnames:
         - DecimalExponent
         - BinarySI
@@ -2200,6 +2332,8 @@ definitions:
         $ref: '#/definitions/rortypes.ResourceRorMeta'
       route:
         $ref: '#/definitions/rortypes.ResourceRoute'
+      sbomreport:
+        $ref: '#/definitions/rortypes.ResourceSbomReport'
       service:
         $ref: '#/definitions/rortypes.ResourceService'
       slackmessage:
@@ -2231,6 +2365,20 @@ definitions:
         items:
           $ref: '#/definitions/rorresources.Resource'
         type: array
+    type: object
+  rorresources.ResourceUpdateResult:
+    properties:
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
+  rorresources.ResourceUpdateResults:
+    properties:
+      results:
+        additionalProperties:
+          $ref: '#/definitions/rorresources.ResourceUpdateResult'
+        type: object
     type: object
   rortypes.AquaReportScanner:
     properties:
@@ -3779,6 +3927,176 @@ definitions:
         $ref: '#/definitions/rortypes.ResourceRouteMessageType'
       receivers:
         $ref: '#/definitions/rortypes.ResourceRouteReceiver'
+    type: object
+  rortypes.ResourceSbomReport:
+    properties:
+      report:
+        $ref: '#/definitions/rortypes.ResourceSbomReportsReport'
+    type: object
+  rortypes.ResourceSbomReportsArtifact:
+    properties:
+      digest:
+        type: string
+      mimeType:
+        type: string
+      repository:
+        type: string
+      tag:
+        type: string
+    type: object
+  rortypes.ResourceSbomReportsBom:
+    properties:
+      bomFormat:
+        type: string
+      components:
+        items:
+          $ref: '#/definitions/rortypes.ResourceSbomReportsComponent'
+        type: array
+      dependencies:
+        items:
+          $ref: '#/definitions/rortypes.ResourceSbomReportsComponentDep'
+        type: array
+      metadata:
+        $ref: '#/definitions/rortypes.ResourceSbomReportsBomMetadata'
+      serialNumber:
+        type: string
+      specVersion:
+        type: string
+      version:
+        type: integer
+    type: object
+  rortypes.ResourceSbomReportsBomMetadata:
+    properties:
+      component:
+        $ref: '#/definitions/rortypes.ResourceSbomReportsComponent'
+      timestamp:
+        type: string
+      tools:
+        $ref: '#/definitions/rortypes.ResourceSbomReportsBomMetadataTools'
+    type: object
+  rortypes.ResourceSbomReportsBomMetadataTools:
+    properties:
+      components:
+        items:
+          $ref: '#/definitions/rortypes.ResourceSbomReportsComponent'
+        type: array
+    type: object
+  rortypes.ResourceSbomReportsComponent:
+    properties:
+      bom-ref:
+        type: string
+      group:
+        type: string
+      hashes:
+        items:
+          $ref: '#/definitions/rortypes.ResourceSbomReportsComponentHash'
+        type: array
+      licenses:
+        items:
+          $ref: '#/definitions/rortypes.ResourceSbomReportsComponentLicense'
+        type: array
+      name:
+        type: string
+      properties:
+        items:
+          $ref: '#/definitions/rortypes.ResourceSbomReportsComponentProperty'
+        type: array
+      purl:
+        type: string
+      supplier:
+        $ref: '#/definitions/rortypes.ResourceSbomReportsComponentSupplier'
+      type:
+        type: string
+      version:
+        type: string
+    type: object
+  rortypes.ResourceSbomReportsComponentDep:
+    properties:
+      dependsOn:
+        items:
+          type: string
+        type: array
+      ref:
+        type: string
+    type: object
+  rortypes.ResourceSbomReportsComponentHash:
+    properties:
+      alg:
+        type: string
+      content:
+        type: string
+    type: object
+  rortypes.ResourceSbomReportsComponentLicense:
+    properties:
+      expression:
+        type: string
+      license:
+        $ref: '#/definitions/rortypes.ResourceSbomReportsComponentLicenseDetails'
+    type: object
+  rortypes.ResourceSbomReportsComponentLicenseDetails:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      url:
+        type: string
+    type: object
+  rortypes.ResourceSbomReportsComponentProperty:
+    properties:
+      name:
+        type: string
+      value:
+        type: string
+    type: object
+  rortypes.ResourceSbomReportsComponentSupplier:
+    properties:
+      contact:
+        items:
+          $ref: '#/definitions/rortypes.ResourceSbomReportsComponentSupplierContact'
+        type: array
+      name:
+        type: string
+      url:
+        items:
+          type: string
+        type: array
+    type: object
+  rortypes.ResourceSbomReportsComponentSupplierContact:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+    type: object
+  rortypes.ResourceSbomReportsRegistry:
+    properties:
+      server:
+        type: string
+    type: object
+  rortypes.ResourceSbomReportsReport:
+    properties:
+      artifact:
+        $ref: '#/definitions/rortypes.ResourceSbomReportsArtifact'
+      components:
+        $ref: '#/definitions/rortypes.ResourceSbomReportsBom'
+      registry:
+        $ref: '#/definitions/rortypes.ResourceSbomReportsRegistry'
+      scanner:
+        $ref: '#/definitions/rortypes.AquaReportScanner'
+      summary:
+        $ref: '#/definitions/rortypes.ResourceSbomReportsSummary'
+      updateTimestamp:
+        type: string
+    type: object
+  rortypes.ResourceSbomReportsSummary:
+    properties:
+      componentsCount:
+        type: integer
+      dependenciesCount:
+        type: integer
     type: object
   rortypes.ResourceService:
     properties:
@@ -5383,9 +5701,9 @@ paths:
       - application/json
       description: Get acl by id
       parameters:
-      - description: id
+      - description: aclId
         in: path
-        name: id
+        name: aclId
         required: true
         type: string
       produces:
@@ -5394,7 +5712,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/apicontracts.PaginatedResult-aclmodels_AclV2ListItem'
+            $ref: '#/definitions/aclmodels.AclV2ListItem'
         "400":
           description: Bad Request
           schema:
@@ -5538,20 +5856,15 @@ paths:
     get:
       consumes:
       - application/json
-      description: Migrate acl
-      parameters:
-      - description: id
-        in: path
-        name: id
-        required: true
-        type: string
+      description: Migrate acl from v1 to v2
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            type: string
+            additionalProperties: true
+            type: object
         "401":
           description: Unauthorized
           schema:
@@ -5594,51 +5907,15 @@ paths:
       summary: Get acl scopes
       tags:
       - acl
-  /v1/apikeys/{apikeyId}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete a api key by id
-      parameters:
-      - description: apikeyId
-        in: path
-        name: apikeyId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: bool
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/rorerror.ErrorData'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/rorerror.ErrorData'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/rorerror.ErrorData'
-      security:
-      - AccessToken: []
-        ApiKey: []
-      summary: Delete api key
-      tags:
-      - api keys
-  /v1/apikeys/apikeys:
+  /v1/apikeys:
     post:
       consumes:
       - application/json
-      description: Create a api key
+      description: Create an api key
       parameters:
       - description: Api key
         in: body
-        name: project
+        name: apikey
         required: true
         schema:
           $ref: '#/definitions/apicontracts.ApiKey'
@@ -5665,6 +5942,42 @@ paths:
       - AccessToken: []
         ApiKey: []
       summary: Create api key
+      tags:
+      - apikeys
+  /v1/apikeys/{apikeyId}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an api key by id
+      parameters:
+      - description: apikeyId
+        in: path
+        name: apikeyId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: boolean
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Delete api key
       tags:
       - apikeys
   /v1/apikeys/filter:
@@ -5703,16 +6016,126 @@ paths:
         ApiKey: []
       summary: Get apikeys by filter
       tags:
-      - api keys
+      - apikeys
+  /v1/auditlogs/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a single audit log by its id
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apicontracts.AuditLog'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Get audit log by id
+      tags:
+      - auditlogs
+  /v1/auditlogs/filter:
+    post:
+      consumes:
+      - application/json
+      description: Get audit logs by filter
+      parameters:
+      - description: Filter
+        in: body
+        name: filter
+        required: true
+        schema:
+          $ref: '#/definitions/apicontracts.Filter'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apicontracts.PaginatedResult-apicontracts_AuditLog'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Get audit logs by filter
+      tags:
+      - auditlogs
+  /v1/auditlogs/metadata:
+    get:
+      consumes:
+      - application/json
+      description: Get metadata for audit logs
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Get audit log metadata
+      tags:
+      - auditlogs
   /v1/cluster/{clusterid}:
     get:
       consumes:
       - application/json
       description: Get a cluster by id
       parameters:
-      - description: id
+      - description: clusterid
         in: path
-        name: id
+        name: clusterid
         required: true
         type: string
       produces:
@@ -5728,6 +6151,10 @@ paths:
             $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
+          schema:
+            type: string
+        "404":
+          description: Not Found
           schema:
             type: string
         "500":
@@ -5746,9 +6173,9 @@ paths:
       - application/json
       description: Check if clusterId exists
       parameters:
-      - description: id
+      - description: clusterid
         in: path
-        name: id
+        name: clusterid
         required: true
         type: string
       produces:
@@ -5757,7 +6184,8 @@ paths:
         "200":
           description: OK
           schema:
-            type: bool
+            additionalProperties: true
+            type: object
         "400":
           description: Bad Request
           schema:
@@ -5786,18 +6214,23 @@ paths:
       - application/json
       description: Update cluster metadata
       parameters:
-      - description: id
+      - description: clusterid
         in: path
-        name: id
+        name: clusterid
         required: true
         type: string
+      - description: Metadata
+        in: body
+        name: metadata
+        required: true
+        schema:
+          $ref: '#/definitions/apicontracts.ClusterMetadataModel'
       produces:
       - application/json
       responses:
         "200":
           description: OK
-          schema:
-            type: bool
+          schema: {}
         "400":
           description: Bad Request
           schema:
@@ -5835,10 +6268,10 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            type: bool
+            $ref: '#/definitions/github_com_NorskHelsenett_ror-api_internal_models_responses.Cluster'
         "400":
           description: Bad Request
           schema:
@@ -5867,9 +6300,9 @@ paths:
       - application/json
       description: Create a cluster
       parameters:
-      - description: Credentials
+      - description: Cluster
         in: body
-        name: credentials
+        name: cluster
         required: true
         schema:
           $ref: '#/definitions/apicontracts.Cluster'
@@ -5902,57 +6335,15 @@ paths:
       summary: Create a cluster
       tags:
       - clusters
-  /v1/clusters/:clusterid/views/compliancereports:
-    get:
-      consumes:
-      - application/json
-      description: A structured presentation of compliance reports
-      parameters:
-      - description: clusterid
-        in: path
-        name: clusterid
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReport'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/rorerror.ErrorData'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/rorerror.ErrorData'
-        "403":
-          description: Forbidden
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      security:
-      - AccessToken: []
-        ApiKey: []
-      summary: Compliance reports view
-      tags:
-      - clusters
   /v1/clusters/{clusterid}:
     get:
       consumes:
       - application/json
       description: Get a cluster by id
       parameters:
-      - description: id
+      - description: clusterid
         in: path
-        name: id
+        name: clusterid
         required: true
         type: string
       produces:
@@ -5968,6 +6359,10 @@ paths:
             $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
+          schema:
+            type: string
+        "404":
+          description: Not Found
           schema:
             type: string
         "500":
@@ -5986,9 +6381,9 @@ paths:
       - application/json
       description: Check if clusterId exists
       parameters:
-      - description: id
+      - description: clusterid
         in: path
-        name: id
+        name: clusterid
         required: true
         type: string
       produces:
@@ -5997,7 +6392,8 @@ paths:
         "200":
           description: OK
           schema:
-            type: bool
+            additionalProperties: true
+            type: object
         "400":
           description: Bad Request
           schema:
@@ -6067,58 +6463,28 @@ paths:
       tags:
       - clusters
   /v1/clusters/{clusterid}/metadata:
-    get:
-      consumes:
-      - application/json
-      description: Get cluster metadata
-      parameters:
-      - description: id
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: bool
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/rorerror.ErrorData'
-        "403":
-          description: Forbidden
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      security:
-      - AccessToken: []
-        ApiKey: []
-      summary: get metadata
-      tags:
-      - clusters
     patch:
       consumes:
       - application/json
       description: Update cluster metadata
       parameters:
-      - description: id
+      - description: clusterid
         in: path
-        name: id
+        name: clusterid
         required: true
         type: string
+      - description: Metadata
+        in: body
+        name: metadata
+        required: true
+        schema:
+          $ref: '#/definitions/apicontracts.ClusterMetadataModel'
       produces:
       - application/json
       responses:
         "200":
           description: OK
-          schema:
-            type: bool
+          schema: {}
         "400":
           description: Bad Request
           schema:
@@ -6145,11 +6511,11 @@ paths:
     get:
       consumes:
       - application/json
-      description: Just a dummy view
+      description: Just a dummy view, not yet implemented
       parameters:
-      - description: id
+      - description: clusterid
         in: path
-        name: id
+        name: clusterid
         required: true
         type: string
       produces:
@@ -6177,15 +6543,57 @@ paths:
       summary: This is a dummy view
       tags:
       - clusters
+  /v1/clusters/{clusterid}/views/compliancereports:
+    get:
+      consumes:
+      - application/json
+      description: A structured presentation of compliance reports
+      parameters:
+      - description: clusterid
+        in: path
+        name: clusterid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReport'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Compliance reports view
+      tags:
+      - clusters
   /v1/clusters/{clusterid}/views/ingresses:
     get:
       consumes:
       - application/json
-      description: Just a dummy view
+      description: Just a dummy view, not yet implemented
       parameters:
-      - description: id
+      - description: clusterid
         in: path
-        name: id
+        name: clusterid
         required: true
         type: string
       produces:
@@ -6217,11 +6625,11 @@ paths:
     get:
       consumes:
       - application/json
-      description: Just a dummy view
+      description: Just a dummy view, not yet implemented
       parameters:
-      - description: id
+      - description: clusterid
         in: path
-        name: id
+        name: clusterid
         required: true
         type: string
       produces:
@@ -6253,15 +6661,11 @@ paths:
     get:
       consumes:
       - application/json
-      description: A structured presentation of policyreports
+      description: A structured presentation of policyreports for a cluster
       parameters:
-      - description: type
-        enum:
-        - Unknown
-        - Cluster
-        - Policy
-        in: query
-        name: type
+      - description: clusterid
+        in: path
+        name: clusterid
         required: true
         type: string
       produces:
@@ -6269,8 +6673,7 @@ paths:
       responses:
         "200":
           description: OK
-          schema:
-            type: string
+          schema: {}
         "400":
           description: Bad Request
           schema:
@@ -6297,11 +6700,11 @@ paths:
     get:
       consumes:
       - application/json
-      description: A structured presentation of vulnerability reports
+      description: A structured presentation of vulnerability reports for a cluster
       parameters:
-      - description: id
+      - description: clusterid
         in: path
-        name: id
+        name: clusterid
         required: true
         type: string
       produces:
@@ -6309,8 +6712,7 @@ paths:
       responses:
         "200":
           description: OK
-          schema:
-            type: string
+          schema: {}
         "400":
           description: Bad Request
           schema:
@@ -6421,10 +6823,10 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            type: bool
+            $ref: '#/definitions/github_com_NorskHelsenett_ror-api_internal_models_responses.Cluster'
         "400":
           description: Bad Request
           schema:
@@ -6447,6 +6849,35 @@ paths:
       summary: Register cluster heartbeat
       tags:
       - clusters
+  /v1/clusters/metadata:
+    get:
+      consumes:
+      - application/json
+      description: Get cluster metadata
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Get cluster metadata
+      tags:
+      - clusters
   /v1/clusters/self:
     get:
       consumes:
@@ -6458,13 +6889,17 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/apicontracts.ClusterSelf'
         "401":
           description: Unauthorized
           schema:
             type: string
         "403":
           description: Forbidden
+          schema:
+            type: string
+        "404":
+          description: Not Found
           schema:
             type: string
         "500":
@@ -6481,7 +6916,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Just a dummy view
+      description: Just a dummy view, not yet implemented
       produces:
       - application/json
       responses:
@@ -6544,7 +6979,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Just a dummy view
+      description: Just a dummy view, not yet implemented
       produces:
       - application/json
       responses:
@@ -6568,6 +7003,53 @@ paths:
       - AccessToken: []
         ApiKey: []
       summary: This is a dummy view
+      tags:
+      - clusters
+  /v1/clusters/views/policyreports:
+    get:
+      consumes:
+      - application/json
+      description: A global summary of policyreports across clusters
+      parameters:
+      - description: type
+        enum:
+        - Unknown
+        - Cluster
+        - Policy
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: clusterid
+        in: query
+        name: clusterid
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Policy report summary view
       tags:
       - clusters
   /v1/clusters/views/vulnerabilityreports:
@@ -6607,14 +7089,60 @@ paths:
     get:
       consumes:
       - application/json
-      description: A structured presentation of vulnerability reports by CVE ID
+      description: A global presentation of vulnerability reports filtered by CVE
+        ID
+      parameters:
+      - description: cveid
+        in: query
+        name: cveid
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
+          schema: {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
           schema:
             type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Global vulnerability reports view by CVE ID
+      tags:
+      - clusters
+  /v1/clusters/views/vulnerabilityreports/byid/{cveid}:
+    get:
+      consumes:
+      - application/json
+      description: A structured presentation of vulnerability reports filtered by
+        CVE ID
+      parameters:
+      - description: cveid
+        in: path
+        name: cveid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
         "400":
           description: Bad Request
           schema:
@@ -6635,24 +7163,33 @@ paths:
       - AccessToken: []
         ApiKey: []
       summary: Vulnerability reports view by CVE ID
-  /v1/clusters/views/vulnerabilityreports/byid/:cveid:
+      tags:
+      - clusters
+  /v1/clusters/views/vulnerabilityreports/summary:
     get:
       consumes:
       - application/json
-      description: A structured presentation of vulnerability reports
+      description: A global summary of vulnerability reports across clusters
       parameters:
-      - description: cveid
-        in: path
-        name: cveid
+      - description: type
+        enum:
+        - Unknown
+        - Cluster
+        - Policy
+        in: query
+        name: type
         required: true
+        type: string
+      - description: clusterid
+        in: query
+        name: clusterid
         type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
-          schema:
-            type: string
+          schema: {}
         "400":
           description: Bad Request
           schema:
@@ -6672,7 +7209,7 @@ paths:
       security:
       - AccessToken: []
         ApiKey: []
-      summary: Vulnerability reports view
+      summary: Vulnerability report summary view
       tags:
       - clusters
   /v1/clusters/workspace/{workspaceId}/filter:
@@ -6772,9 +7309,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/apicontracts.Datacenter'
-            type: array
+            $ref: '#/definitions/apicontracts.Datacenter'
         "400":
           description: Bad Request
           schema:
@@ -6820,9 +7355,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/apicontracts.Datacenter'
-            type: array
+            $ref: '#/definitions/apicontracts.Datacenter'
         "400":
           description: Bad Request
           schema:
@@ -6929,14 +7462,15 @@ paths:
           description: OK
           schema:
             items:
-              items:
-                $ref: '#/definitions/apicontracts.DesiredVersion'
-              type: array
+              $ref: '#/definitions/apicontracts.DesiredVersion'
             type: array
         "500":
           description: Internal Server Error
           schema:
             type: string
+      security:
+      - AccessToken: []
+        ApiKey: []
       summary: Get all desired versions
       tags:
       - desired_version
@@ -7195,10 +7729,10 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            $ref: '#/definitions/apicontracts.MetricsTotal'
+            type: string
         "401":
           description: Unauthorized
           schema:
@@ -7355,15 +7889,15 @@ paths:
       summary: Get metrics for clusters by a property
       tags:
       - metrics
-  /v1/metrics/datacenter/{datacenterName}:
+  /v1/metrics/datacenter/{datacenterId}:
     get:
       consumes:
       - application/json
       description: Get metrics for datacenter name
       parameters:
-      - description: datacenterName
+      - description: datacenterId
         in: path
-        name: datacenterName
+        name: datacenterId
         required: true
         type: string
       produces:
@@ -7609,96 +8143,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a operator config
+      description: Create an operator config
       parameters:
-      - description: Add a operator config
-        in: body
-        name: operatorconfig
-        required: true
-        schema:
-          $ref: '#/definitions/apicontracts.OperatorConfig'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/apicontracts.OperatorConfig'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/rorerror.ErrorData'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/rorerror.ErrorData'
-        "403":
-          description: Forbidden
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      security:
-      - AccessToken: []
-        ApiKey: []
-      summary: Create a operator config
-      tags:
-      - operatorconfigs
-  /v1/operatorconfigs/:id:
-    delete:
-      consumes:
-      - application/json
-      description: Delete a operator config by id
-      parameters:
-      - description: id
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: bool
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/rorerror.ErrorData'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/rorerror.ErrorData'
-        "403":
-          description: Forbidden
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      security:
-      - AccessToken: []
-        ApiKey: []
-      summary: Delete a operator config
-      tags:
-      - operatorconfigs
-    get:
-      consumes:
-      - application/json
-      description: Get a operator config by id
-      parameters:
-      - description: id
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Get a operator config
+      - description: Add an operator config
         in: body
         name: operatorconfig
         required: true
@@ -7730,13 +8177,92 @@ paths:
       security:
       - AccessToken: []
         ApiKey: []
-      summary: Get a operator config
+      summary: Create an operator config
+      tags:
+      - operatorconfigs
+  /v1/operatorconfigs/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an operator config by id
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: boolean
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Delete an operator config
+      tags:
+      - operatorconfigs
+    get:
+      consumes:
+      - application/json
+      description: Get an operator config by id
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apicontracts.OperatorConfig'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Get an operator config
       tags:
       - operatorconfigs
     put:
       consumes:
       - application/json
-      description: Update a operator config by id
+      description: Update an operator config by id
       parameters:
       - description: id
         in: path
@@ -7775,81 +8301,14 @@ paths:
       security:
       - AccessToken: []
         ApiKey: []
-      summary: Update a operator config
+      summary: Update an operator config
       tags:
       - operatorconfigs
   /v1/orders:
     get:
       consumes:
       - application/json
-      description: Orders
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/apicontracts.PaginatedResult-apicontracts_Cluster'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/rorerror.ErrorData'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/rorerror.ErrorData'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/rorerror.ErrorData'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/rorerror.ErrorData'
-      security:
-      - AccessToken: []
-        ApiKey: []
-      summary: Get orders
-      tags:
-      - orders
-  /v1/orders/{uid}:
-    delete:
-      consumes:
-      - application/json
-      description: Orders
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: bool
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/rorerror.ErrorData'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/rorerror.ErrorData'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/rorerror.ErrorData'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/rorerror.ErrorData'
-      security:
-      - AccessToken: []
-        ApiKey: []
-      summary: Delete a order by uid
-      tags:
-      - orders
-    get:
-      consumes:
-      - application/json
-      description: Orders
+      description: Get all orders
       produces:
       - application/json
       responses:
@@ -7876,28 +8335,27 @@ paths:
       security:
       - AccessToken: []
         ApiKey: []
-      summary: Get order by uid
+      summary: Get orders
       tags:
       - orders
-  /v1/orders/cluster:
+  /v1/orders/{uid}:
     delete:
       consumes:
       - application/json
-      description: Order a kubernetes cluster
+      description: Delete a specific order by uid
       parameters:
-      - description: Filter
-        in: body
-        name: filter
+      - description: uid
+        in: path
+        name: uid
         required: true
-        schema:
-          $ref: '#/definitions/apiresourcecontracts.ResourceClusterOrderSpec'
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/apicontracts.PaginatedResult-apicontracts_Cluster'
+            type: boolean
         "400":
           description: Bad Request
           schema:
@@ -7917,7 +8375,87 @@ paths:
       security:
       - AccessToken: []
         ApiKey: []
-      summary: Order deletion a kubernetes cluster
+      summary: Delete an order by uid
+      tags:
+      - orders
+    get:
+      consumes:
+      - application/json
+      description: Get a specific order by uid
+      parameters:
+      - description: uid
+        in: path
+        name: uid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apiresourcecontracts.ResourceClusterOrder'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Get order by uid
+      tags:
+      - orders
+  /v1/orders/cluster:
+    delete:
+      consumes:
+      - application/json
+      description: Order deletion of a kubernetes cluster
+      parameters:
+      - description: Order
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/apiresourcecontracts.ResourceClusterOrderSpec'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Order deletion of a kubernetes cluster
       tags:
       - orders
     post:
@@ -7925,19 +8463,19 @@ paths:
       - application/json
       description: Order a kubernetes cluster
       parameters:
-      - description: Filter
+      - description: Order
         in: body
-        name: filter
+        name: order
         required: true
         schema:
           $ref: '#/definitions/apiresourcecontracts.ResourceClusterOrderSpec'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            $ref: '#/definitions/apicontracts.PaginatedResult-apicontracts_Cluster'
+            type: string
         "400":
           description: Bad Request
           schema:
@@ -8006,16 +8544,14 @@ paths:
         name: price
         required: true
         schema:
-          $ref: '#/definitions/apicontracts.Cluster'
+          $ref: '#/definitions/apicontracts.Price'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/apicontracts.Price'
-            type: array
+            $ref: '#/definitions/apicontracts.Price'
         "400":
           description: Bad Request
           schema:
@@ -8038,7 +8574,7 @@ paths:
       summary: Create a price
       tags:
       - prices
-  /v1/prices/:id:
+  /v1/prices/{id}:
     delete:
       consumes:
       - application/json
@@ -8055,7 +8591,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: bool
+            type: boolean
         "400":
           description: Bad Request
           schema:
@@ -8121,6 +8657,46 @@ paths:
       - AccessToken: []
         ApiKey: []
       summary: Update a price
+      tags:
+      - prices
+  /v1/prices/{priceId}:
+    get:
+      consumes:
+      - application/json
+      description: Get a price by id
+      parameters:
+      - description: priceId
+        in: path
+        name: priceId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apicontracts.Price'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Get a price by id
       tags:
       - prices
   /v1/prices/provider/{providerName}:
@@ -8223,7 +8799,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: bool
+            type: boolean
         "400":
           description: Bad Request
           schema:
@@ -8307,7 +8883,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/apicontracts.PaginatedResult-apicontracts_Project'
+            $ref: '#/definitions/apicontracts.Project'
         "400":
           description: Bad Request
           schema:
@@ -8373,7 +8949,7 @@ paths:
       tags:
       - projects
   /v1/projects/filter:
-    get:
+    post:
       consumes:
       - application/json
       description: Get projects by filter
@@ -8453,7 +9029,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get supported kubernetes versions by provider
+      description: Get configuration parameters by provider type
       parameters:
       - description: providerType
         in: path
@@ -8465,10 +9041,7 @@ paths:
       responses:
         "200":
           description: OK
-          schema:
-            items:
-              $ref: '#/definitions/providermodels.Provider'
-            type: array
+          schema: {}
         "400":
           description: Bad Request
           schema:
@@ -8488,7 +9061,7 @@ paths:
       security:
       - AccessToken: []
         ApiKey: []
-      summary: Get kuberntes versions by provider
+      summary: Get config parameters by provider
       tags:
       - providers
   /v1/providers/{providerType}/kubernetes/versions:
@@ -8509,7 +9082,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/providermodels.Provider'
+              $ref: '#/definitions/providermodels.ProviderKubernetesVersion'
             type: array
         "400":
           description: Bad Request
@@ -8530,7 +9103,7 @@ paths:
       security:
       - AccessToken: []
         ApiKey: []
-      summary: Get kuberntes versions by provider
+      summary: Get kubernetes versions by provider
       tags:
       - providers
   /v1/resource/uid/{uid}:
@@ -8910,13 +9483,11 @@ paths:
           schema:
             type: string
       security:
-      - ApiKeyAuth: []
-      - OAuth2Application:
-        - write
-        - admin
+      - AccessToken: []
+        ApiKey: []
       summary: Add a resource onto the ruleset
       tags:
-      - rulesetsController
+      - rulesets
   /v1/rulesets/{rulesetId}/resources/{resourceId}:
     delete:
       consumes:
@@ -8939,7 +9510,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: bool
+            type: boolean
         "400":
           description: Bad Request
           schema:
@@ -8957,13 +9528,11 @@ paths:
           schema:
             type: string
       security:
-      - ApiKeyAuth: []
-      - OAuth2Application:
-        - write
-        - admin
+      - AccessToken: []
+        ApiKey: []
       summary: Delete a resource
       tags:
-      - rulesetsController
+      - rulesets
   /v1/rulesets/{rulesetId}/resources/{resourceId}/rules:
     post:
       consumes:
@@ -9004,18 +9573,16 @@ paths:
           schema:
             type: string
       security:
-      - ApiKeyAuth: []
-      - OAuth2Application:
-        - write
-        - admin
+      - AccessToken: []
+        ApiKey: []
       summary: Add a resource rule
       tags:
-      - rulesetsController
+      - rulesets
   /v1/rulesets/{rulesetId}/resources/{resourceId}/rules/{ruleId}:
-    post:
+    delete:
       consumes:
       - application/json
-      description: Add a resource rule
+      description: Delete a resource rule
       parameters:
       - description: rulesetId
         in: path
@@ -9038,7 +9605,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: bool
+            type: boolean
         "401":
           description: Unauthorized
           schema:
@@ -9052,13 +9619,11 @@ paths:
           schema:
             type: string
       security:
-      - ApiKeyAuth: []
-      - OAuth2Application:
-        - write
-        - admin
-      summary: Add a resource rule
+      - AccessToken: []
+        ApiKey: []
+      summary: Delete a resource rule
       tags:
-      - rulesetsController
+      - rulesets
   /v1/rulesets/cluster/{clusterId}:
     get:
       consumes:
@@ -9094,13 +9659,11 @@ paths:
           schema:
             type: string
       security:
-      - ApiKeyAuth: []
-      - OAuth2Application:
-        - write
-        - admin
+      - AccessToken: []
+        ApiKey: []
       summary: Get ruleset by cluster
       tags:
-      - rulesetsController
+      - rulesets
   /v1/rulesets/internal:
     get:
       consumes:
@@ -9126,13 +9689,11 @@ paths:
           schema:
             type: string
       security:
-      - ApiKeyAuth: []
-      - OAuth2Application:
-        - write
-        - admin
+      - AccessToken: []
+        ApiKey: []
       summary: Get internal ruleset
       tags:
-      - rulesetsController
+      - rulesets
   /v1/tasks:
     get:
       consumes:
@@ -9186,9 +9747,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/apicontracts.Task'
-            type: array
+            $ref: '#/definitions/apicontracts.Task'
         "400":
           description: Bad Request
           schema:
@@ -9211,7 +9770,7 @@ paths:
       summary: Create a task
       tags:
       - tasks
-  /v1/tasks/:id:
+  /v1/tasks/{id}:
     delete:
       consumes:
       - application/json
@@ -9228,7 +9787,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: bool
+            type: boolean
         "400":
           description: Bad Request
           schema:
@@ -9261,12 +9820,6 @@ paths:
         name: id
         required: true
         type: string
-      - description: Get a task
-        in: body
-        name: task
-        required: true
-        schema:
-          $ref: '#/definitions/apicontracts.Task'
       produces:
       - application/json
       responses:
@@ -9379,11 +9932,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a api key
+      description: Create an api key for the current user
       parameters:
       - description: Api key
         in: body
-        name: project
+        name: apikey
         required: true
         schema:
           $ref: '#/definitions/apicontracts.ApiKey'
@@ -9420,7 +9973,7 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Delete a api key by id for user
+      description: Delete an api key by id for user
       parameters:
       - description: apikeyId
         in: path
@@ -9433,7 +9986,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: bool
+            type: boolean
         "400":
           description: Bad Request
           schema:
@@ -9455,7 +10008,7 @@ paths:
         ApiKey: []
       summary: Delete api key for user
       tags:
-      - user
+      - users
   /v1/users/self/apikeys/filter:
     post:
       consumes:
@@ -9522,13 +10075,57 @@ paths:
         "404":
           description: Not Found
           schema:
-            items:
-              $ref: '#/definitions/apicontracts.Workspace'
-            type: array
+            type: string
       security:
       - AccessToken: []
         ApiKey: []
       summary: Get workspaces
+      tags:
+      - workspaces
+  /v1/workspaces/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update a workspace by id
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Workspace
+        in: body
+        name: workspace
+        required: true
+        schema:
+          $ref: '#/definitions/apicontracts.Workspace'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apicontracts.Workspace'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Update a workspace
       tags:
       - workspaces
   /v1/workspaces/{workspaceName}:
@@ -9613,7 +10210,7 @@ paths:
       summary: Get kubeconfig for workspace
       tags:
       - workspaces
-  /v1/workspaces/id/{workspaceName}:
+  /v1/workspaces/id/{id}:
     get:
       consumes:
       - application/json
@@ -9657,7 +10254,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Register an cluster.
+      description: Register a cluster agent.
       parameters:
       - description: data
         in: body
@@ -9679,7 +10276,7 @@ paths:
         "403":
           description: Forbidden
           schema:
-            type: string
+            $ref: '#/definitions/rorerror.ErrorData'
         "500":
           description: Internal Server Error
           schema:
@@ -9689,7 +10286,7 @@ paths:
         ApiKey: []
       summary: Register an agent
       tags:
-      - clusters
+      - apikeys
   /v2/events/listen:
     get:
       consumes:
@@ -9804,7 +10401,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Registers a  resource
+      description: Registers a resource
       parameters:
       - description: ResourceUpdate
         in: body
@@ -9815,10 +10412,10 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            type: bool
+            $ref: '#/definitions/rorresources.ResourceUpdateResults'
         "401":
           description: Unauthorized
           schema:
@@ -9834,7 +10431,7 @@ paths:
       security:
       - AccessToken: []
         ApiKey: []
-      summary: Register  resource
+      summary: Register resource
       tags:
       - resources
   /v2/resources/hashes:
@@ -9892,7 +10489,7 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Delete a resources
+      description: Delete a resource
       parameters:
       - description: UID
         in: path
@@ -9905,7 +10502,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: bool
+            $ref: '#/definitions/rorresources.ResourceUpdateResults'
         "401":
           description: Unauthorized
           schema:
@@ -10015,7 +10612,7 @@ paths:
     put:
       consumes:
       - application/json
-      description: Update a resources
+      description: Update a resource
       parameters:
       - description: UID
         in: path
@@ -10031,10 +10628,10 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            type: bool
+            type: string
         "401":
           description: Unauthorized
           schema:
@@ -10082,16 +10679,16 @@ paths:
         ApiKey: []
       summary: Get self
       tags:
-      - users
+      - self
   /v2/self/apikeys:
     post:
       consumes:
       - application/json
-      description: Create a api key
+      description: Create or renew an api key
       parameters:
       - description: Api key
         in: body
-        name: project
+        name: apikey
         required: true
         schema:
           $ref: '#/definitions/apicontractsv2self.CreateOrRenewApikeyRequest'
@@ -10121,14 +10718,14 @@ paths:
       security:
       - AccessToken: []
         ApiKey: []
-      summary: Create api key
+      summary: Create or renew api key
       tags:
-      - users
+      - self
   /v2/self/apikeys/{apikeyId}:
     delete:
       consumes:
       - application/json
-      description: Delete a api key by id for user
+      description: Delete an api key by id for user
       parameters:
       - description: apikeyId
         in: path
@@ -10141,7 +10738,7 @@ paths:
         "200":
           description: OK
           schema:
-            type: bool
+            type: boolean
         "400":
           description: Bad Request
           schema:
@@ -10161,14 +10758,14 @@ paths:
       security:
       - AccessToken: []
         ApiKey: []
-      summary: Delete api key for user
+      summary: Delete api key
       tags:
-      - user
+      - self
   /v2/token/exchange:
     post:
       consumes:
       - application/json
-      description: Create a api key
+      description: Exchange a token for a new resigned token to access a cluster
       parameters:
       - description: token to exchange
         in: body
@@ -10202,9 +10799,9 @@ paths:
       security:
       - AccessToken: []
         ApiKey: []
-      summary: Excahnges a token for a new resigned token
+      summary: Exchange token for a new resigned token
       tags:
-      - users
+      - token
   /v2/token/jwks:
     get:
       consumes:
@@ -10220,17 +10817,14 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/rorerror.ErrorData'
-      security:
-      - AccessToken: []
-        ApiKey: []
       summary: Get JWKS
       tags:
-      - users
+      - token
   /v2/views:
     get:
       consumes:
       - application/json
-      description: Get view
+      description: List available views
       produces:
       - application/json
       responses:
@@ -10255,9 +10849,9 @@ paths:
       security:
       - AccessToken: []
         ApiKey: []
-      summary: Get view
+      summary: List views
       tags:
-      - view
+      - views
   /v2/views/{viewid}:
     get:
       consumes:
@@ -10315,7 +10909,7 @@ paths:
         ApiKey: []
       summary: Get view
       tags:
-      - view
+      - views
 securityDefinitions:
   AccessToken:
     in: header

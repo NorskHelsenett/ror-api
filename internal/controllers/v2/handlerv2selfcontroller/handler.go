@@ -25,7 +25,7 @@ func init() {
 // @Summary	Get self
 // @Schemes
 // @Description	Get user details
-// @Tags			users
+// @Tags			self
 // @Accept			application/json
 // @Produce		application/json
 // @Success		200	{object}	apicontractsv2self.SelfData

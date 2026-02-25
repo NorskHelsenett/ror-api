@@ -42,13 +42,13 @@ func init() {
 //	@Tags			orders
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200					{object}	apicontracts.PaginatedResult[apicontracts.Cluster]
+//	@Param			order				body	apiresourcecontracts.ResourceClusterOrderSpec	true	"Order"
+//	@Success		201					{string}	string
 //	@Failure		403					{object}	rorerror.ErrorData
 //	@Failure		400					{object}	rorerror.ErrorData
 //	@Failure		401					{object}	rorerror.ErrorData
 //	@Failure		500					{object}	rorerror.ErrorData
 //	@Router			/v1/orders/cluster	[post]
-//	@Param			filter				body	apiresourcecontracts.ResourceClusterOrderSpec	true	"Filter"
 //	@Security		ApiKey || AccessToken
 func OrderCluster() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -97,19 +97,19 @@ func OrderCluster() gin.HandlerFunc {
 // Order deletion of a kubernetes cluster by a apiresourcecontracts.ResourceClusterOrderSpec in the body
 // Will only provide clusters the identity is authorized to view
 //
-//	@Summary	Order deletion a kubernetes cluster
+//	@Summary	Order deletion of a kubernetes cluster
 //	@Schemes
-//	@Description	Order a kubernetes cluster
+//	@Description	Order deletion of a kubernetes cluster
 //	@Tags			orders
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200					{object}	apicontracts.PaginatedResult[apicontracts.Cluster]
+//	@Param			order				body	apiresourcecontracts.ResourceClusterOrderSpec	true	"Order"
+//	@Success		201					{string}	string
 //	@Failure		403					{object}	rorerror.ErrorData
 //	@Failure		400					{object}	rorerror.ErrorData
 //	@Failure		401					{object}	rorerror.ErrorData
 //	@Failure		500					{object}	rorerror.ErrorData
 //	@Router			/v1/orders/cluster	[delete]
-//	@Param			filter				body	apiresourcecontracts.ResourceClusterOrderSpec	true	"Filter"
 //	@Security		ApiKey || AccessToken
 func DeleteCluster() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -161,11 +161,11 @@ func DeleteCluster() gin.HandlerFunc {
 //
 //	@Summary	Get orders
 //	@Schemes
-//	@Description	Orders
+//	@Description	Get all orders
 //	@Tags			orders
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200			{object}	apicontracts.PaginatedResult[apicontracts.Cluster]
+//	@Success		200			{object}	apiresourcecontracts.ResourceListClusterorders
 //	@Failure		403			{object}	rorerror.ErrorData
 //	@Failure		400			{object}	rorerror.ErrorData
 //	@Failure		401			{object}	rorerror.ErrorData
@@ -207,11 +207,12 @@ func GetOrders() gin.HandlerFunc {
 //
 //	@Summary	Get order by uid
 //	@Schemes
-//	@Description	Orders
+//	@Description	Get a specific order by uid
 //	@Tags			orders
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200					{object}	apiresourcecontracts.ResourceListClusterorders
+//	@Param			uid					path	string	true	"uid"
+//	@Success		200					{object}	apiresourcecontracts.ResourceClusterOrder
 //	@Failure		403					{object}	rorerror.ErrorData
 //	@Failure		400					{object}	rorerror.ErrorData
 //	@Failure		401					{object}	rorerror.ErrorData
@@ -263,13 +264,14 @@ func GetOrder() gin.HandlerFunc {
 
 // Delete order
 //
-//	@Summary	Delete a order by uid
+//	@Summary	Delete an order by uid
 //	@Schemes
-//	@Description	Orders
+//	@Description	Delete a specific order by uid
 //	@Tags			orders
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200					{bool}		bool
+//	@Param			uid					path	string	true	"uid"
+//	@Success		200					{boolean}	bool
 //	@Failure		403					{object}	rorerror.ErrorData
 //	@Failure		400					{object}	rorerror.ErrorData
 //	@Failure		401					{object}	rorerror.ErrorData
