@@ -380,7 +380,11 @@ func GetKubeconfig(ctx context.Context, clusterId string, credentials apicontrac
 }
 
 func PopulateDatacenter(ctx context.Context, input *apicontracts.Cluster) {
-	// input.ClusterName, input.Workspace.DatacenterID, input.WorkspaceId, input.Workspace.Name, input.Metadata.ProjectID
+	// PopulateDatacenter ensures that a cluster has a stable identifier and a resolved datacenter.
+	// It should be called before persisting or updating a cluster. If Identifier is empty but
+	// ClusterId is set, Identifier is derived from ClusterId. It also ensures Workspace.DatacenterID
+	// and Workspace.Datacenter are populated by looking up (or creating) the datacenter based on
+	// Workspace.Datacenter.Name, Workspace.Datacenter.Provider, and Workspace.Datacenter.Location.
 	if input.Identifier == "" && input.ClusterId != "" {
 		input.Identifier = input.ClusterId
 	}
