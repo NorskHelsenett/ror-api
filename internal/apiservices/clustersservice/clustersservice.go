@@ -389,8 +389,7 @@ func PopulateDatacenter(ctx context.Context, input *apicontracts.Cluster) {
 		input.Identifier = input.ClusterId
 	}
 
-	if input.WorkspaceId == "" {
-		var err error
+	if input.Workspace.DatacenterID == "" {
 		dc, err := mongodatacenters.FindByNameProvider(ctx, input.Workspace.Datacenter.Name, input.Workspace.Datacenter.Provider)
 		if err != nil {
 			rlog.Errorc(ctx, "could not lookup datacenter for cluster", err, rlog.Any("datacenterName", input.Workspace.Datacenter.Name), rlog.Any("provider", input.Workspace.Datacenter.Provider))
