@@ -10,6 +10,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	services "github.com/NorskHelsenett/ror-api/internal/apiservices"
 	mongoclusters "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/clusters"
+	mongodatacenters "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/datacenters"
 	"github.com/NorskHelsenett/ror-api/internal/services/clusterservice"
 	"github.com/NorskHelsenett/ror-api/internal/services/kubeconfigservice"
 	"github.com/NorskHelsenett/ror-api/internal/webserver/sse"
@@ -110,6 +111,7 @@ func CreateOrUpdate(ctx context.Context, input *apicontracts.Cluster, clusterId 
 
 	CpuMemPercentageCalc(input)
 	FindMachineClass(ctx, input)
+	PopulateDatacenter(ctx, input)
 
 	if existing != nil {
 		_, span1 = otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Run service update")
@@ -130,7 +132,7 @@ func CreateOrUpdate(ctx context.Context, input *apicontracts.Cluster, clusterId 
 }
 
 func Create(ctx context.Context, input *apicontracts.Cluster) (string, error) {
-	clusterId, err := clusterservice.Create(ctx, input.ClusterName, input.Workspace.DatacenterID, input.WorkspaceId, input.Workspace.Name, input.Metadata.ProjectID)
+	clusterId, err := clusterservice.Create(ctx, input.ClusterName, input.ClusterId, input.Workspace.DatacenterID, input.WorkspaceId, input.Workspace.Name, input.Metadata.ProjectID)
 	if err != nil {
 		rlog.Errorc(ctx, "could not create cluster", err, rlog.String("clusterName", input.ClusterName))
 		return "", fmt.Errorf("could not create cluster with id: %s", input.ClusterId)
@@ -375,4 +377,41 @@ func GetKubeconfig(ctx context.Context, clusterId string, credentials apicontrac
 	}
 
 	return kubeconfigString, nil
+}
+
+func PopulateDatacenter(ctx context.Context, input *apicontracts.Cluster) {
+	// input.ClusterName, input.Workspace.DatacenterID, input.WorkspaceId, input.Workspace.Name, input.Metadata.ProjectID
+	if input.Identifier == "" && input.ClusterId != "" {
+		input.Identifier = input.ClusterId
+	}
+
+	if input.WorkspaceId == "" {
+		var err error
+		dc, err := mongodatacenters.FindByNameProvider(ctx, input.Workspace.Datacenter.Name, input.Workspace.Datacenter.Provider)
+		if err != nil {
+			rlog.Errorc(ctx, "could not lookup datacenter for cluster", err, rlog.Any("datacenterName", input.Workspace.Datacenter.Name), rlog.Any("provider", input.Workspace.Datacenter.Provider))
+			return
+		}
+		if dc == nil {
+			rlog.Warn("Could not find datacenter, creating new datacenter", rlog.Any("datacenterName", input.Workspace.Datacenter.Name), rlog.Any("provider", input.Workspace.Datacenter.Provider))
+			newdc := apicontracts.DatacenterModel{
+				Name:     input.Workspace.Datacenter.Name,
+				Provider: input.Workspace.Datacenter.Provider.String(),
+				Location: apicontracts.DatacenterLocationModel{
+					Region:  input.Workspace.Datacenter.Location.Region,
+					Country: input.Workspace.Datacenter.Location.Country,
+				},
+			}
+			dc, err = mongodatacenters.Create(ctx, &newdc, nil)
+			if err != nil {
+				rlog.Errorc(ctx, "could not create datacenter for cluster", err, rlog.Any("datacenterName", input.Workspace.Datacenter.Name), rlog.Any("provider", input.Workspace.Datacenter.Provider))
+				return
+			}
+
+		}
+		input.Workspace.DatacenterID = dc.ID
+		input.Workspace.Datacenter = *dc
+
+	}
+
 }

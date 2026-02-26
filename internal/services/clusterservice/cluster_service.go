@@ -30,7 +30,7 @@ import (
 // - workspaceName: name of the workspace, or what the name of the new workspace should be
 //
 // - datacenterId: id of the datacenter
-func Create(ctx context.Context, clusterName, datacenterId, workspaceId, workspaceName, projectId string) (string, error) {
+func Create(ctx context.Context, clusterName, clusterId, datacenterId, workspaceId, workspaceName, projectId string) (string, error) {
 	if datacenterId == "" {
 		return "", fmt.Errorf("datacenterId must be set")
 	}
@@ -48,7 +48,7 @@ func Create(ctx context.Context, clusterName, datacenterId, workspaceId, workspa
 		return "", fmt.Errorf("could not find datacenter with id: %s", datacenterId)
 	}
 
-	workspace, _ := mongoworkspaces.FindByName(ctx, workspaceName)
+	workspace, _ := mongoworkspaces.FindByNameAndDatacenterId(ctx, workspaceName, datacenterId)
 	if workspace != nil {
 		clusterInput.Workspace = *workspace
 		clusterInput.WorkspaceId = workspace.ID
@@ -68,7 +68,11 @@ func Create(ctx context.Context, clusterName, datacenterId, workspaceId, workspa
 	now := time.Now()
 	clusterInput.FirstObserved = now
 	clusterInput.LastObserved = now
-	clusterInput.Identifier = idhelper.GetIdentifier(clusterName)
+	if clusterId != "" {
+		clusterInput.Identifier = clusterId
+	} else {
+		clusterInput.Identifier = idhelper.GetIdentifier(clusterName)
+	}
 	clusterInput.ClusterId = clusterInput.Identifier
 
 	err := mongoclusters.Create(ctx, &clusterInput)
