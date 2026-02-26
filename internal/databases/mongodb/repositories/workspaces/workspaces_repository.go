@@ -241,6 +241,29 @@ func FindByName(ctx context.Context, name string) (*apicontracts.Workspace, erro
 	return &mapped, nil
 }
 
+func FindByNameAndDatacenterId(ctx context.Context, name string, datacenterId string) (*apicontracts.Workspace, error) {
+	db := mongodb.GetMongoDb()
+	var wsResult mongoTypes.MongoWorkspace
+	mongoid, err := primitive.ObjectIDFromHex(datacenterId)
+	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{"name": name, "datacenterid": mongoid}).Decode(&wsResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+		msg := "could not find workspace"
+		rlog.Error(msg, err)
+		return nil, errors.New(msg)
+	}
+
+	if wsResult.Name == "" {
+		return nil, nil
+	}
+
+	var mapped apicontracts.Workspace
+	err = mapping.Map(wsResult, &mapped)
+	if err != nil {
+		return nil, nil
+	}
+
+	return &mapped, nil
+}
+
 func GetById(ctx context.Context, id string) (*apicontracts.Workspace, error) {
 	if id == "" {
 		return nil, nil

@@ -25,12 +25,17 @@ import (
 //
 // - clusterName: name of the cluster
 //
-// - workspaceId: id of the workspace
-//
-// - workspaceName: name of the workspace, or what the name of the new workspace should be
+// - clusterId: optional explicit cluster identifier; if empty, one is derived from clusterName
 //
 // - datacenterId: id of the datacenter
-func Create(ctx context.Context, clusterName, datacenterId, workspaceId, workspaceName, projectId string) (string, error) {
+//
+// - workspaceId: optional id of an existing workspace; when provided the workspace is looked up
+// directly by id and workspaceName is ignored for the lookup
+//
+// - workspaceName: name of the workspace, used when workspaceId is empty to find or create one
+//
+// - projectId: id of the project
+func Create(ctx context.Context, clusterName, clusterId, datacenterId, workspaceId, workspaceName, projectId string) (string, error) {
 	if datacenterId == "" {
 		return "", fmt.Errorf("datacenterId must be set")
 	}
@@ -48,27 +53,48 @@ func Create(ctx context.Context, clusterName, datacenterId, workspaceId, workspa
 		return "", fmt.Errorf("could not find datacenter with id: %s", datacenterId)
 	}
 
-	workspace, _ := mongoworkspaces.FindByName(ctx, workspaceName)
-	if workspace != nil {
-		clusterInput.Workspace = *workspace
-		clusterInput.WorkspaceId = workspace.ID
-	} else {
-		w, err := mongoworkspaces.Create(ctx, &apicontracts.Workspace{
-			Name:         workspaceName,
-			DatacenterID: datacenter.ID,
-		})
+	if workspaceId != "" {
+		workspace, err := mongoworkspaces.GetById(ctx, workspaceId)
 		if err != nil {
-			rlog.Errorc(ctx, "could not create workspace", err, rlog.String("name", workspaceName))
-			return "", fmt.Errorf("could not create workspace with name: %s", workspaceName)
+			rlog.Errorc(ctx, "could not look up workspace by id", err, rlog.String("workspaceId", workspaceId))
+			return "", fmt.Errorf("could not look up workspace with id: %s", workspaceId)
 		}
-		clusterInput.Workspace.ID = w.ID
-		clusterInput.WorkspaceId = w.ID
+		if workspace != nil {
+			clusterInput.Workspace = *workspace
+			clusterInput.WorkspaceId = workspace.ID
+		} else {
+			return "", fmt.Errorf("could not find workspace with id: %s", workspaceId)
+		}
+	} else {
+		workspace, err := mongoworkspaces.FindByNameAndDatacenterId(ctx, workspaceName, datacenterId)
+		if err != nil {
+			rlog.Errorc(ctx, "could not look up workspace by name and datacenter", err, rlog.String("name", workspaceName), rlog.String("datacenterId", datacenterId))
+		}
+		if workspace != nil {
+			clusterInput.Workspace = *workspace
+			clusterInput.WorkspaceId = workspace.ID
+		} else {
+			w, err := mongoworkspaces.Create(ctx, &apicontracts.Workspace{
+				Name:         workspaceName,
+				DatacenterID: datacenter.ID,
+			})
+			if err != nil {
+				rlog.Errorc(ctx, "could not create workspace", err, rlog.String("name", workspaceName))
+				return "", fmt.Errorf("could not create workspace with name: %s", workspaceName)
+			}
+			clusterInput.Workspace.ID = w.ID
+			clusterInput.WorkspaceId = w.ID
+		}
 	}
 
 	now := time.Now()
 	clusterInput.FirstObserved = now
 	clusterInput.LastObserved = now
-	clusterInput.Identifier = idhelper.GetIdentifier(clusterName)
+	if clusterId != "" {
+		clusterInput.Identifier = clusterId
+	} else {
+		clusterInput.Identifier = idhelper.GetIdentifier(clusterName)
+	}
 	clusterInput.ClusterId = clusterInput.Identifier
 
 	err := mongoclusters.Create(ctx, &clusterInput)
