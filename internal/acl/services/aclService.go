@@ -143,3 +143,13 @@ func GetOwnerrefByContextAccess(ctx context.Context, access aclmodels.AccessType
 	return aclrepository.GetOwnerrefsQueryAcl2ByIdentityAccess(ctx, access)
 
 }
+func CheckAcl2AccessByIdentityQueryAccess(ctx context.Context, aclQuery aclmodels.AclV2QueryAccessScopeSubject, access aclmodels.AccessType) bool {
+	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "aclService.CheckAcl2AccessByIdentityQueryAccess")
+	defer span.End()
+
+	if !aclQuery.IsValid() {
+		return false
+	}
+
+	return aclrepository.CheckAcl2AccessByIdentityQueryAccess(ctx, aclQuery, access)
+}
