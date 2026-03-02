@@ -38,6 +38,8 @@ The current available profiles are:
 
 - **tracing**: otel collector and jaeger
 
+- **mocc**: openid OIDC mocc
+
 Docker compose profiles can be utilized like this:
 
 Single profiles:
@@ -50,10 +52,14 @@ docker compose --profile ui up -d
 docker compose --profile tracing up -d
 ```
 
+```bash
+docker compose --profile mocc up -d
+```
+
 Or multiple profiles:
 
 ```bash
-docker compose --profile ui,tracing up -d
+docker compose --profile ui,tracing,mocc up -d
 ```
 
 To bring profiled docker compose manifests down, use the following:
@@ -66,10 +72,14 @@ docker compose --profile ui down
 docker compose --profile tracing down
 ```
 
+```bash
+docker compose --profile mocc down
+```
+
 Or multiple profiles:
 
 ```bash
-docker compose --profile ui,tracing down
+docker compose --profile ui,tracing,mocc down
 ```
 
 Failure to do so will result in the containers related to that profile to keep running.
@@ -257,3 +267,7 @@ make lint
 ```
 
 Configuration is in `.golangci.yml`.
+
+## License
+
+See [LICENSE](https://github.com/NorskHelsenett/ror-api/blob/main/LICENSE) for details.
