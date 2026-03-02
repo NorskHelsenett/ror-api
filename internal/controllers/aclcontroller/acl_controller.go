@@ -93,44 +93,45 @@ func CheckAcl() gin.HandlerFunc {
 			return
 		}
 
-		// Check access
-		// Scope: c.Param("scope")
-		// Subject: c.Param("subject")
-		// Access: c.Param("access")
+		accesstype, ok := parseAccessType(access)
+		if !ok {
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid access")
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
 		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(scope, subject)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		switch access {
-		case "read":
-			if accessObject.Read {
-				c.Status(http.StatusOK)
-				return
-			}
-		case "create":
-			if accessObject.Create {
-				c.Status(http.StatusOK)
-				return
-			}
-		case "update":
-			if accessObject.Update {
-				c.Status(http.StatusOK)
-				return
-			}
-		case "delete":
-			if accessObject.Delete {
-				c.Status(http.StatusOK)
-				return
-			}
-		case "owner":
-			if accessObject.Owner {
-				c.Status(http.StatusOK)
-				return
-			}
-		default:
-			c.Status(http.StatusForbidden)
+		if aclservice.CheckAcl2AccessByIdentityQueryAccess(ctx, accessQuery, accesstype) {
+			c.Status(http.StatusOK)
 			return
 		}
 
 		c.Status(http.StatusForbidden)
+	}
+}
+
+func parseAccessType(access string) (aclmodels.AccessType, bool) {
+	switch access {
+	case string(aclmodels.AccessTypeRead):
+		return aclmodels.AccessTypeRead, true
+	case string(aclmodels.AccessTypeCreate):
+		return aclmodels.AccessTypeCreate, true
+	case "write":
+		return aclmodels.AccessTypeCreate, true
+	case string(aclmodels.AccessTypeUpdate):
+		return aclmodels.AccessTypeUpdate, true
+	case string(aclmodels.AccessTypeDelete):
+		return aclmodels.AccessTypeDelete, true
+	case string(aclmodels.AccessTypeOwner):
+		return aclmodels.AccessTypeOwner, true
+	case string(aclmodels.AccessTypeRorMetadata):
+		return aclmodels.AccessTypeRorMetadata, true
+	case string(aclmodels.AccessTypeRorVulnerability):
+		return aclmodels.AccessTypeRorVulnerability, true
+	case string(aclmodels.AccessTypeClusterLogon):
+		return aclmodels.AccessTypeClusterLogon, true
+	default:
+		return "", false
 	}
 }
 
