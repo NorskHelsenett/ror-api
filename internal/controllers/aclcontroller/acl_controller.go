@@ -142,13 +142,13 @@ func CheckAcl() gin.HandlerFunc {
 //	@Tags			acl
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200				{object}	apicontracts.PaginatedResult[aclmodels.AclV2ListItem]
+//	@Success		200				{object}	aclmodels.AclV2ListItem
 //	@Failure		403				{object}	rorerror.ErrorData
 //	@Failure		400				{object}	rorerror.ErrorData
 //	@Failure		401				{object}	rorerror.ErrorData
 //	@Failure		500				{object}	rorerror.ErrorData
 //	@Router			/v1/acl/{aclId}	[get]
-//	@Param			id				path	string	true	"id"
+//	@Param			aclId				path	string	true	"aclId"
 //	@Security		ApiKey || AccessToken
 func GetById() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -439,12 +439,11 @@ func Delete() gin.HandlerFunc {
 //
 //	@Summary	Migrate acl
 //	@Schemes
-//	@Description	Migrate acl
+//	@Description	Migrate acl from v1 to v2
 //	@Tags			acl
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			id	path		string	true	"id"
-//	@Success		200	{string}	Status
+//	@Success		200	{object}	map[string]interface{}
 //	@Failure		403	{string}	Forbidden
 //	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message

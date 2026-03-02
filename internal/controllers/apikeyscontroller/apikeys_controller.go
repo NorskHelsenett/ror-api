@@ -39,7 +39,7 @@ func init() {
 //	@Summary	Get apikeys by filter
 //	@Schemes
 //	@Description	Get apikeys by filter
-//	@Tags			api keys
+//	@Tags			apikeys
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200					{object}	apicontracts.PaginatedResult[apicontracts.ApiKey]
@@ -125,11 +125,11 @@ func CreateForAgent() gin.HandlerFunc {
 //
 //	@Summary	Delete api key
 //	@Schemes
-//	@Description	Delete a api key by id
-//	@Tags			api keys
+//	@Description	Delete an api key by id
+//	@Tags			apikeys
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200						{bool}		bool
+//	@Success		200						{boolean}	bool
 //	@Failure		403						{object}	rorerror.ErrorData
 //	@Failure		401						{object}	rorerror.ErrorData
 //	@Failure		500						{object}	rorerror.ErrorData
@@ -177,16 +177,16 @@ func Delete() gin.HandlerFunc {
 
 // @Summary	Create api key
 // @Schemes
-// @Description	Create a api key
+// @Description	Create an api key
 // @Tags			apikeys
 // @Accept			application/json
 // @Produce		application/json
-// @Success		200					{string}	api	key
+// @Success		200					{string}	string
 // @Failure		403					{object}	rorerror.ErrorData
 // @Failure		401					{object}	rorerror.ErrorData
 // @Failure		500					{object}	rorerror.ErrorData
-// @Router			/v1/apikeys/apikeys	[post]
-// @Param			project				body	apicontracts.ApiKey	true	"Api key"
+// @Router			/v1/apikeys			[post]
+// @Param			apikey				body	apicontracts.ApiKey	true	"Api key"
 // @Security		ApiKey || AccessToken
 func CreateApikey() gin.HandlerFunc {
 	return func(c *gin.Context) {

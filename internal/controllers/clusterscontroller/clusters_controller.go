@@ -49,10 +49,11 @@ func init() {
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			id	path		string	true	"id"
+//	@Param			clusterid	path		string	true	"clusterid"
 //	@Success		200	{object}	apicontracts.Cluster
 //	@Failure		403	{string}	Forbidden
 //	@Failure		401	{object}	rorerror.ErrorData
+//	@Failure		404	{string}	NotFound
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/cluster/{clusterid} [get]
 //	@Router			/v1/clusters/{clusterid} [get]
@@ -99,8 +100,8 @@ func ClusterGetById() gin.HandlerFunc {
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			id	path		string	true	"id"
-//	@Success		200	{bool}		bool
+//	@Param			clusterid	path		string	true	"clusterid"
+//	@Success		200	{object}	map[string]interface{}
 //	@Failure		403	{string}	Forbidden
 //	@Failure		400	{object}	rorerror.ErrorData
 //	@Failure		401	{object}	rorerror.ErrorData
@@ -262,18 +263,17 @@ func ClusterGetByWorkspaceId() gin.HandlerFunc {
 // TODO: Update swagger
 // TODO: Check if this is used
 //
-//	@Summary	get metadata
+//	@Summary	Get cluster metadata
 //	@Schemes
 //	@Description	Get cluster metadata
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			id	path		string	true	"id"
-//	@Success		200	{bool}		bool
+//	@Success		200	{object}	interface{}
 //	@Failure		403	{string}	Forbidden
 //	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
-//	@Router			/v1/clusters/{clusterid}/metadata [get]
+//	@Router			/v1/clusters/metadata [get]
 //	@Security		ApiKey || AccessToken
 func GetMetadata() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -300,8 +300,9 @@ func GetMetadata() gin.HandlerFunc {
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			id	path		string	true	"id"
-//	@Success		200	{bool}		bool
+//	@Param			clusterid	path		string								true	"clusterid"
+//	@Param			metadata	body		apicontracts.ClusterMetadataModel	true	"Metadata"
+//	@Success		200	{object}	interface{}
 //	@Failure		403	{string}	Forbidden
 //	@Failure		400	{object}	rorerror.ErrorData
 //	@Failure		401	{object}	rorerror.ErrorData
@@ -386,7 +387,7 @@ func UpdateMetadata() gin.HandlerFunc {
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200	{bool}		bool
+//	@Success		201	{object}	responses.Cluster
 //	@Failure		403	{string}	Forbidden
 //	@Failure		400	{object}	rorerror.ErrorData
 //	@Failure		401	{object}	rorerror.ErrorData
@@ -610,8 +611,8 @@ func GetKubeconfig() gin.HandlerFunc {
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			credentials	body		apicontracts.Cluster	true	"Credentials"
-//	@Success		200			{string}	ClusterId
+//	@Param			cluster	body		apicontracts.Cluster	true	"Cluster"
+//	@Success		200			{string}	string
 //	@Failure		403			{string}	Forbidden
 //	@Failure		400			{object}	rorerror.ErrorData
 //	@Failure		401			{object}	rorerror.ErrorData

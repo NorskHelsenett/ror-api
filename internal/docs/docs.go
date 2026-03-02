@@ -154,7 +154,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Migrate acl",
+                "description": "Migrate acl from v1 to v2",
                 "consumes": [
                     "application/json"
                 ],
@@ -165,20 +165,12 @@ const docTemplate = `{
                     "acl"
                 ],
                 "summary": "Migrate acl",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "401": {
@@ -262,8 +254,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
-                        "name": "id",
+                        "description": "aclId",
+                        "name": "aclId",
                         "in": "path",
                         "required": true
                     }
@@ -272,7 +264,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/apicontracts.PaginatedResult-aclmodels_AclV2ListItem"
+                            "$ref": "#/definitions/aclmodels.AclV2ListItem"
                         }
                     },
                     "400": {
@@ -480,7 +472,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/apikeys/apikeys": {
+        "/v1/apikeys": {
             "post": {
                 "security": [
                     {
@@ -488,7 +480,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Create a api key",
+                "description": "Create an api key",
                 "consumes": [
                     "application/json"
                 ],
@@ -502,7 +494,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "Api key",
-                        "name": "project",
+                        "name": "apikey",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -554,7 +546,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "api keys"
+                    "apikeys"
                 ],
                 "summary": "Get apikeys by filter",
                 "parameters": [
@@ -604,7 +596,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Delete a api key by id",
+                "description": "Delete an api key by id",
                 "consumes": [
                     "application/json"
                 ],
@@ -612,7 +604,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "api keys"
+                    "apikeys"
                 ],
                 "summary": "Delete api key",
                 "parameters": [
@@ -628,7 +620,178 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "bool"
+                            "type": "boolean"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/auditlogs/filter": {
+            "post": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Get audit logs by filter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auditlogs"
+                ],
+                "summary": "Get audit logs by filter",
+                "parameters": [
+                    {
+                        "description": "Filter",
+                        "name": "filter",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/apicontracts.Filter"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apicontracts.PaginatedResult-apicontracts_AuditLog"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/auditlogs/metadata": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Get metadata for audit logs",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auditlogs"
+                ],
+                "summary": "Get audit log metadata",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/auditlogs/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Get a single audit log by its id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auditlogs"
+                ],
+                "summary": "Get audit log by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apicontracts.AuditLog"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
@@ -683,10 +846,10 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "type": "bool"
+                            "$ref": "#/definitions/github_com_NorskHelsenett_ror-api_internal_models_responses.Cluster"
                         }
                     },
                     "400": {
@@ -738,8 +901,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
-                        "name": "id",
+                        "description": "clusterid",
+                        "name": "clusterid",
                         "in": "path",
                         "required": true
                     }
@@ -759,6 +922,12 @@ const docTemplate = `{
                     },
                     "403": {
                         "description": "Forbidden",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "type": "string"
                         }
@@ -794,8 +963,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
-                        "name": "id",
+                        "description": "clusterid",
+                        "name": "clusterid",
                         "in": "path",
                         "required": true
                     }
@@ -804,7 +973,8 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "bool"
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "400": {
@@ -856,18 +1026,25 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
-                        "name": "id",
+                        "description": "clusterid",
+                        "name": "clusterid",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "Metadata",
+                        "name": "metadata",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/apicontracts.ClusterMetadataModel"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "type": "bool"
-                        }
+                        "schema": {}
                     },
                     "400": {
                         "description": "Bad Request",
@@ -917,8 +1094,8 @@ const docTemplate = `{
                 "summary": "Create a cluster",
                 "parameters": [
                     {
-                        "description": "Credentials",
-                        "name": "credentials",
+                        "description": "Cluster",
+                        "name": "cluster",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -931,71 +1108,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/rorerror.ErrorData"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/rorerror.ErrorData"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/clusters/:clusterid/views/compliancereports": {
-            "get": {
-                "security": [
-                    {
-                        "AccessToken": [],
-                        "ApiKey": []
-                    }
-                ],
-                "description": "A structured presentation of compliance reports",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "clusters"
-                ],
-                "summary": "Compliance reports view",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "clusterid",
-                        "name": "clusterid",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReport"
-                            }
                         }
                     },
                     "400": {
@@ -1170,10 +1282,10 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "type": "bool"
+                            "$ref": "#/definitions/github_com_NorskHelsenett_ror-api_internal_models_responses.Cluster"
                         }
                     },
                     "400": {
@@ -1181,6 +1293,51 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/rorerror.ErrorData"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/clusters/metadata": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Get cluster metadata",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clusters"
+                ],
+                "summary": "Get cluster metadata",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
                     },
                     "401": {
                         "description": "Unauthorized",
@@ -1226,7 +1383,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/apicontracts.ClusterSelf"
                         }
                     },
                     "401": {
@@ -1237,6 +1394,12 @@ const docTemplate = `{
                     },
                     "403": {
                         "description": "Forbidden",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "type": "string"
                         }
@@ -1258,7 +1421,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Just a dummy view",
+                "description": "Just a dummy view, not yet implemented",
                 "consumes": [
                     "application/json"
                 ],
@@ -1355,7 +1518,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Just a dummy view",
+                "description": "Just a dummy view, not yet implemented",
                 "consumes": [
                     "application/json"
                 ],
@@ -1371,6 +1534,77 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/clusters/views/policyreports": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "A global summary of policyreports across clusters",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clusters"
+                ],
+                "summary": "Policy report summary view",
+                "parameters": [
+                    {
+                        "enum": [
+                            "Unknown",
+                            "Cluster",
+                            "Policy"
+                        ],
+                        "type": "string",
+                        "description": "type",
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "clusterid",
+                        "name": "clusterid",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "401": {
@@ -1452,20 +1686,30 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "A structured presentation of vulnerability reports by CVE ID",
+                "description": "A global presentation of vulnerability reports filtered by CVE ID",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Vulnerability reports view by CVE ID",
+                "tags": [
+                    "clusters"
+                ],
+                "summary": "Global vulnerability reports view by CVE ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "cveid",
+                        "name": "cveid",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
+                        "schema": {}
                     },
                     "400": {
                         "description": "Bad Request",
@@ -1494,7 +1738,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/clusters/views/vulnerabilityreports/byid/:cveid": {
+        "/v1/clusters/views/vulnerabilityreports/byid/{cveid}": {
             "get": {
                 "security": [
                     {
@@ -1502,7 +1746,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "A structured presentation of vulnerability reports",
+                "description": "A structured presentation of vulnerability reports filtered by CVE ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -1512,7 +1756,7 @@ const docTemplate = `{
                 "tags": [
                     "clusters"
                 ],
-                "summary": "Vulnerability reports view",
+                "summary": "Vulnerability reports view by CVE ID",
                 "parameters": [
                     {
                         "type": "string",
@@ -1525,9 +1769,78 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK",
+                        "schema": {}
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/clusters/views/vulnerabilityreports/summary": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "A global summary of vulnerability reports across clusters",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clusters"
+                ],
+                "summary": "Vulnerability report summary view",
+                "parameters": [
+                    {
+                        "enum": [
+                            "Unknown",
+                            "Cluster",
+                            "Policy"
+                        ],
+                        "type": "string",
+                        "description": "type",
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "clusterid",
+                        "name": "clusterid",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
                     },
                     "400": {
                         "description": "Bad Request",
@@ -1652,8 +1965,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
-                        "name": "id",
+                        "description": "clusterid",
+                        "name": "clusterid",
                         "in": "path",
                         "required": true
                     }
@@ -1673,6 +1986,12 @@ const docTemplate = `{
                     },
                     "403": {
                         "description": "Forbidden",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "type": "string"
                         }
@@ -1708,8 +2027,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
-                        "name": "id",
+                        "description": "clusterid",
+                        "name": "clusterid",
                         "in": "path",
                         "required": true
                     }
@@ -1718,7 +2037,8 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "bool"
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "400": {
@@ -1820,60 +2140,6 @@ const docTemplate = `{
             }
         },
         "/v1/clusters/{clusterid}/metadata": {
-            "get": {
-                "security": [
-                    {
-                        "AccessToken": [],
-                        "ApiKey": []
-                    }
-                ],
-                "description": "Get cluster metadata",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "clusters"
-                ],
-                "summary": "get metadata",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "bool"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/rorerror.ErrorData"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
             "patch": {
                 "security": [
                     {
@@ -1895,18 +2161,25 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
-                        "name": "id",
+                        "description": "clusterid",
+                        "name": "clusterid",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "Metadata",
+                        "name": "metadata",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/apicontracts.ClusterMetadataModel"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "type": "bool"
-                        }
+                        "schema": {}
                     },
                     "400": {
                         "description": "Bad Request",
@@ -1943,7 +2216,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Just a dummy view",
+                "description": "Just a dummy view, not yet implemented",
                 "consumes": [
                     "application/json"
                 ],
@@ -1957,8 +2230,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
-                        "name": "id",
+                        "description": "clusterid",
+                        "name": "clusterid",
                         "in": "path",
                         "required": true
                     }
@@ -1991,6 +2264,71 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/clusters/{clusterid}/views/compliancereports": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "A structured presentation of compliance reports",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clusters"
+                ],
+                "summary": "Compliance reports view",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "clusterid",
+                        "name": "clusterid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReport"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/clusters/{clusterid}/views/ingresses": {
             "get": {
                 "security": [
@@ -1999,7 +2337,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Just a dummy view",
+                "description": "Just a dummy view, not yet implemented",
                 "consumes": [
                     "application/json"
                 ],
@@ -2013,8 +2351,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
-                        "name": "id",
+                        "description": "clusterid",
+                        "name": "clusterid",
                         "in": "path",
                         "required": true
                     }
@@ -2055,7 +2393,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Just a dummy view",
+                "description": "Just a dummy view, not yet implemented",
                 "consumes": [
                     "application/json"
                 ],
@@ -2069,8 +2407,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
-                        "name": "id",
+                        "description": "clusterid",
+                        "name": "clusterid",
                         "in": "path",
                         "required": true
                     }
@@ -2111,7 +2449,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "A structured presentation of policyreports",
+                "description": "A structured presentation of policyreports for a cluster",
                 "consumes": [
                     "application/json"
                 ],
@@ -2124,24 +2462,17 @@ const docTemplate = `{
                 "summary": "Policy report view",
                 "parameters": [
                     {
-                        "enum": [
-                            "Unknown",
-                            "Cluster",
-                            "Policy"
-                        ],
                         "type": "string",
-                        "description": "type",
-                        "name": "type",
-                        "in": "query",
+                        "description": "clusterid",
+                        "name": "clusterid",
+                        "in": "path",
                         "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
+                        "schema": {}
                     },
                     "400": {
                         "description": "Bad Request",
@@ -2178,7 +2509,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "A structured presentation of vulnerability reports",
+                "description": "A structured presentation of vulnerability reports for a cluster",
                 "consumes": [
                     "application/json"
                 ],
@@ -2192,8 +2523,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
-                        "name": "id",
+                        "description": "clusterid",
+                        "name": "clusterid",
                         "in": "path",
                         "required": true
                     }
@@ -2201,9 +2532,7 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
+                        "schema": {}
                     },
                     "400": {
                         "description": "Bad Request",
@@ -2314,10 +2643,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/apicontracts.Datacenter"
-                            }
+                            "$ref": "#/definitions/apicontracts.Datacenter"
                         }
                     },
                     "400": {
@@ -2444,10 +2770,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/apicontracts.Datacenter"
-                            }
+                            "$ref": "#/definitions/apicontracts.Datacenter"
                         }
                     },
                     "400": {
@@ -2535,6 +2858,12 @@ const docTemplate = `{
         },
         "/v1/desired_versions": {
             "get": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
                 "description": "Get all desired versions",
                 "consumes": [
                     "application/json"
@@ -2552,10 +2881,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/apicontracts.DesiredVersion"
-                                }
+                                "$ref": "#/definitions/apicontracts.DesiredVersion"
                             }
                         }
                     },
@@ -2968,10 +3294,10 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/apicontracts.MetricsTotal"
+                            "type": "string"
                         }
                     },
                     "401": {
@@ -3210,7 +3536,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/metrics/datacenter/{datacenterName}": {
+        "/v1/metrics/datacenter/{datacenterId}": {
             "get": {
                 "security": [
                     {
@@ -3232,8 +3558,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "datacenterName",
-                        "name": "datacenterName",
+                        "description": "datacenterId",
+                        "name": "datacenterId",
                         "in": "path",
                         "required": true
                     }
@@ -3607,7 +3933,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Create a operator config",
+                "description": "Create an operator config",
                 "consumes": [
                     "application/json"
                 ],
@@ -3617,10 +3943,10 @@ const docTemplate = `{
                 "tags": [
                     "operatorconfigs"
                 ],
-                "summary": "Create a operator config",
+                "summary": "Create an operator config",
                 "parameters": [
                     {
-                        "description": "Add a operator config",
+                        "description": "Add an operator config",
                         "name": "operatorconfig",
                         "in": "body",
                         "required": true,
@@ -3633,10 +3959,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/apicontracts.OperatorConfig"
-                            }
+                            "$ref": "#/definitions/apicontracts.OperatorConfig"
                         }
                     },
                     "400": {
@@ -3666,7 +3989,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/operatorconfigs/:id": {
+        "/v1/operatorconfigs/{id}": {
             "get": {
                 "security": [
                     {
@@ -3674,7 +3997,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Get a operator config by id",
+                "description": "Get an operator config by id",
                 "consumes": [
                     "application/json"
                 ],
@@ -3684,7 +4007,7 @@ const docTemplate = `{
                 "tags": [
                     "operatorconfigs"
                 ],
-                "summary": "Get a operator config",
+                "summary": "Get an operator config",
                 "parameters": [
                     {
                         "type": "string",
@@ -3692,15 +4015,6 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "Get a operator config",
-                        "name": "operatorconfig",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/apicontracts.OperatorConfig"
-                        }
                     }
                 ],
                 "responses": {
@@ -3743,7 +4057,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Update a operator config by id",
+                "description": "Update an operator config by id",
                 "consumes": [
                     "application/json"
                 ],
@@ -3753,7 +4067,7 @@ const docTemplate = `{
                 "tags": [
                     "operatorconfigs"
                 ],
-                "summary": "Update a operator config",
+                "summary": "Update an operator config",
                 "parameters": [
                     {
                         "type": "string",
@@ -3812,7 +4126,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Delete a operator config by id",
+                "description": "Delete an operator config by id",
                 "consumes": [
                     "application/json"
                 ],
@@ -3822,7 +4136,7 @@ const docTemplate = `{
                 "tags": [
                     "operatorconfigs"
                 ],
-                "summary": "Delete a operator config",
+                "summary": "Delete an operator config",
                 "parameters": [
                     {
                         "type": "string",
@@ -3836,7 +4150,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "bool"
+                            "type": "boolean"
                         }
                     },
                     "400": {
@@ -3874,7 +4188,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Orders",
+                "description": "Get all orders",
                 "consumes": [
                     "application/json"
                 ],
@@ -3889,7 +4203,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/apicontracts.PaginatedResult-apicontracts_Cluster"
+                            "$ref": "#/definitions/apiresourcecontracts.ResourceListClusterorders"
                         }
                     },
                     "400": {
@@ -3940,8 +4254,8 @@ const docTemplate = `{
                 "summary": "Order a kubernetes cluster",
                 "parameters": [
                     {
-                        "description": "Filter",
-                        "name": "filter",
+                        "description": "Order",
+                        "name": "order",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -3950,10 +4264,10 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/apicontracts.PaginatedResult-apicontracts_Cluster"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -3989,7 +4303,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Order a kubernetes cluster",
+                "description": "Order deletion of a kubernetes cluster",
                 "consumes": [
                     "application/json"
                 ],
@@ -3999,11 +4313,11 @@ const docTemplate = `{
                 "tags": [
                     "orders"
                 ],
-                "summary": "Order deletion a kubernetes cluster",
+                "summary": "Order deletion of a kubernetes cluster",
                 "parameters": [
                     {
-                        "description": "Filter",
-                        "name": "filter",
+                        "description": "Order",
+                        "name": "order",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -4012,10 +4326,10 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/apicontracts.PaginatedResult-apicontracts_Cluster"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -4053,7 +4367,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Orders",
+                "description": "Get a specific order by uid",
                 "consumes": [
                     "application/json"
                 ],
@@ -4064,11 +4378,20 @@ const docTemplate = `{
                     "orders"
                 ],
                 "summary": "Get order by uid",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "uid",
+                        "name": "uid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/apiresourcecontracts.ResourceListClusterorders"
+                            "$ref": "#/definitions/apiresourcecontracts.ResourceClusterOrder"
                         }
                     },
                     "400": {
@@ -4104,7 +4427,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Orders",
+                "description": "Delete a specific order by uid",
                 "consumes": [
                     "application/json"
                 ],
@@ -4114,12 +4437,21 @@ const docTemplate = `{
                 "tags": [
                     "orders"
                 ],
-                "summary": "Delete a order by uid",
+                "summary": "Delete an order by uid",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "uid",
+                        "name": "uid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "bool"
+                            "type": "boolean"
                         }
                     },
                     "400": {
@@ -4229,8 +4561,70 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/apicontracts.Cluster"
+                            "$ref": "#/definitions/apicontracts.Price"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apicontracts.Price"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/prices/provider/{providerName}": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Get prices by provider",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "prices"
+                ],
+                "summary": "Get prices by provider",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "providerName",
+                        "name": "providerName",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -4270,7 +4664,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/prices/:id": {
+        "/v1/prices/{id}": {
             "put": {
                 "security": [
                     {
@@ -4371,7 +4765,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "bool"
+                            "type": "boolean"
                         }
                     },
                     "400": {
@@ -4401,7 +4795,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/prices/provider/{providerName}": {
+        "/v1/prices/{priceId}": {
             "get": {
                 "security": [
                     {
@@ -4409,7 +4803,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Get prices by provider",
+                "description": "Get a price by id",
                 "consumes": [
                     "application/json"
                 ],
@@ -4419,12 +4813,12 @@ const docTemplate = `{
                 "tags": [
                     "prices"
                 ],
-                "summary": "Get prices by provider",
+                "summary": "Get a price by id",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "providerName",
-                        "name": "providerName",
+                        "description": "priceId",
+                        "name": "priceId",
                         "in": "path",
                         "required": true
                     }
@@ -4433,10 +4827,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/apicontracts.Price"
-                            }
+                            "$ref": "#/definitions/apicontracts.Price"
                         }
                     },
                     "400": {
@@ -4531,7 +4922,7 @@ const docTemplate = `{
             }
         },
         "/v1/projects/filter": {
-            "get": {
+            "post": {
                 "security": [
                     {
                         "AccessToken": [],
@@ -4695,7 +5086,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/apicontracts.PaginatedResult-apicontracts_Project"
+                            "$ref": "#/definitions/apicontracts.Project"
                         }
                     },
                     "400": {
@@ -4755,7 +5146,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "bool"
+                            "type": "boolean"
                         }
                     },
                     "400": {
@@ -4914,7 +5305,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Get supported kubernetes versions by provider",
+                "description": "Get configuration parameters by provider type",
                 "consumes": [
                     "application/json"
                 ],
@@ -4924,7 +5315,7 @@ const docTemplate = `{
                 "tags": [
                     "providers"
                 ],
-                "summary": "Get kuberntes versions by provider",
+                "summary": "Get config parameters by provider",
                 "parameters": [
                     {
                         "type": "string",
@@ -4937,12 +5328,7 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/providermodels.Provider"
-                            }
-                        }
+                        "schema": {}
                     },
                     "400": {
                         "description": "Bad Request",
@@ -4989,7 +5375,7 @@ const docTemplate = `{
                 "tags": [
                     "providers"
                 ],
-                "summary": "Get kuberntes versions by provider",
+                "summary": "Get kubernetes versions by provider",
                 "parameters": [
                     {
                         "type": "string",
@@ -5005,7 +5391,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/providermodels.Provider"
+                                "$ref": "#/definitions/providermodels.ProviderKubernetesVersion"
                             }
                         }
                     },
@@ -5549,13 +5935,8 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
-                    },
-                    {
-                        "OAuth2Application": [
-                            "write",
-                            "admin"
-                        ]
+                        "AccessToken": [],
+                        "ApiKey": []
                     }
                 ],
                 "description": "Get ruleset by cluster",
@@ -5566,7 +5947,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "rulesetsController"
+                    "rulesets"
                 ],
                 "summary": "Get ruleset by cluster",
                 "parameters": [
@@ -5616,13 +5997,8 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
-                    },
-                    {
-                        "OAuth2Application": [
-                            "write",
-                            "admin"
-                        ]
+                        "AccessToken": [],
+                        "ApiKey": []
                     }
                 ],
                 "description": "Get the internal ruleset",
@@ -5633,7 +6009,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "rulesetsController"
+                    "rulesets"
                 ],
                 "summary": "Get internal ruleset",
                 "responses": {
@@ -5668,13 +6044,8 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
-                    },
-                    {
-                        "OAuth2Application": [
-                            "write",
-                            "admin"
-                        ]
+                        "AccessToken": [],
+                        "ApiKey": []
                     }
                 ],
                 "description": "Append a resource onto the ruleset",
@@ -5685,7 +6056,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "rulesetsController"
+                    "rulesets"
                 ],
                 "summary": "Add a resource onto the ruleset",
                 "parameters": [
@@ -5735,13 +6106,8 @@ const docTemplate = `{
             "delete": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
-                    },
-                    {
-                        "OAuth2Application": [
-                            "write",
-                            "admin"
-                        ]
+                        "AccessToken": [],
+                        "ApiKey": []
                     }
                 ],
                 "description": "Delete a resource and all of its events.",
@@ -5752,7 +6118,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "rulesetsController"
+                    "rulesets"
                 ],
                 "summary": "Delete a resource",
                 "parameters": [
@@ -5775,7 +6141,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "bool"
+                            "type": "boolean"
                         }
                     },
                     "400": {
@@ -5809,13 +6175,8 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
-                    },
-                    {
-                        "OAuth2Application": [
-                            "write",
-                            "admin"
-                        ]
+                        "AccessToken": [],
+                        "ApiKey": []
                     }
                 ],
                 "description": "Add a resource rule",
@@ -5826,7 +6187,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "rulesetsController"
+                    "rulesets"
                 ],
                 "summary": "Add a resource rule",
                 "parameters": [
@@ -5880,19 +6241,14 @@ const docTemplate = `{
             }
         },
         "/v1/rulesets/{rulesetId}/resources/{resourceId}/rules/{ruleId}": {
-            "post": {
+            "delete": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
-                    },
-                    {
-                        "OAuth2Application": [
-                            "write",
-                            "admin"
-                        ]
+                        "AccessToken": [],
+                        "ApiKey": []
                     }
                 ],
-                "description": "Add a resource rule",
+                "description": "Delete a resource rule",
                 "consumes": [
                     "application/json"
                 ],
@@ -5900,9 +6256,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "rulesetsController"
+                    "rulesets"
                 ],
-                "summary": "Add a resource rule",
+                "summary": "Delete a resource rule",
                 "parameters": [
                     {
                         "type": "string",
@@ -5930,7 +6286,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "bool"
+                            "type": "boolean"
                         }
                     },
                     "401": {
@@ -6042,10 +6398,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/apicontracts.Task"
-                            }
+                            "$ref": "#/definitions/apicontracts.Task"
                         }
                     },
                     "400": {
@@ -6075,7 +6428,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/tasks/:id": {
+        "/v1/tasks/{id}": {
             "get": {
                 "security": [
                     {
@@ -6101,15 +6454,6 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "Get a task",
-                        "name": "task",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/apicontracts.Task"
-                        }
                     }
                 ],
                 "responses": {
@@ -6245,7 +6589,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "bool"
+                            "type": "boolean"
                         }
                     },
                     "400": {
@@ -6336,7 +6680,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Create a api key",
+                "description": "Create an api key for the current user",
                 "consumes": [
                     "application/json"
                 ],
@@ -6350,7 +6694,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "Api key",
-                        "name": "project",
+                        "name": "apikey",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -6464,7 +6808,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Delete a api key by id for user",
+                "description": "Delete an api key by id for user",
                 "consumes": [
                     "application/json"
                 ],
@@ -6472,7 +6816,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "user"
+                    "users"
                 ],
                 "summary": "Delete api key for user",
                 "parameters": [
@@ -6488,7 +6832,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "bool"
+                            "type": "boolean"
                         }
                     },
                     "400": {
@@ -6562,16 +6906,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/apicontracts.Workspace"
-                            }
+                            "type": "string"
                         }
                     }
                 }
             }
         },
-        "/v1/workspaces/id/{workspaceName}": {
+        "/v1/workspaces/id/{id}": {
             "get": {
                 "security": [
                     {
@@ -6628,6 +6969,77 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/workspaces/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Update a workspace by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workspaces"
+                ],
+                "summary": "Update a workspace",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Workspace",
+                        "name": "workspace",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/apicontracts.Workspace"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apicontracts.Workspace"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -6768,7 +7180,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Register an cluster.",
+                "description": "Register a cluster agent.",
                 "consumes": [
                     "application/json"
                 ],
@@ -6776,7 +7188,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "clusters"
+                    "apikeys"
                 ],
                 "summary": "Register an agent",
                 "parameters": [
@@ -6806,7 +7218,7 @@ const docTemplate = `{
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
@@ -6992,7 +7404,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Registers a  resource",
+                "description": "Registers a resource",
                 "consumes": [
                     "application/json"
                 ],
@@ -7002,7 +7414,7 @@ const docTemplate = `{
                 "tags": [
                     "resources"
                 ],
-                "summary": "Register  resource",
+                "summary": "Register resource",
                 "parameters": [
                     {
                         "description": "ResourceUpdate",
@@ -7015,10 +7427,10 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "type": "bool"
+                            "$ref": "#/definitions/rorresources.ResourceUpdateResults"
                         }
                     },
                     "401": {
@@ -7182,7 +7594,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Update a resources",
+                "description": "Update a resource",
                 "consumes": [
                     "application/json"
                 ],
@@ -7212,10 +7624,10 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "type": "bool"
+                            "type": "string"
                         }
                     },
                     "401": {
@@ -7245,7 +7657,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Delete a resources",
+                "description": "Delete a resource",
                 "consumes": [
                     "application/json"
                 ],
@@ -7269,7 +7681,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "bool"
+                            "$ref": "#/definitions/rorresources.ResourceUpdateResults"
                         }
                     },
                     "401": {
@@ -7383,7 +7795,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "users"
+                    "self"
                 ],
                 "summary": "Get self",
                 "responses": {
@@ -7422,7 +7834,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Create a api key",
+                "description": "Create or renew an api key",
                 "consumes": [
                     "application/json"
                 ],
@@ -7430,13 +7842,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "users"
+                    "self"
                 ],
-                "summary": "Create api key",
+                "summary": "Create or renew api key",
                 "parameters": [
                     {
                         "description": "Api key",
-                        "name": "project",
+                        "name": "apikey",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -7486,7 +7898,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Delete a api key by id for user",
+                "description": "Delete an api key by id for user",
                 "consumes": [
                     "application/json"
                 ],
@@ -7494,9 +7906,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "user"
+                    "self"
                 ],
-                "summary": "Delete api key for user",
+                "summary": "Delete api key",
                 "parameters": [
                     {
                         "type": "string",
@@ -7510,7 +7922,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "bool"
+                            "type": "boolean"
                         }
                     },
                     "400": {
@@ -7548,7 +7960,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Create a api key",
+                "description": "Exchange a token for a new resigned token to access a cluster",
                 "consumes": [
                     "application/json"
                 ],
@@ -7556,9 +7968,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "users"
+                    "token"
                 ],
-                "summary": "Excahnges a token for a new resigned token",
+                "summary": "Exchange token for a new resigned token",
                 "parameters": [
                     {
                         "description": "token to exchange",
@@ -7606,12 +8018,6 @@ const docTemplate = `{
         },
         "/v2/token/jwks": {
             "get": {
-                "security": [
-                    {
-                        "AccessToken": [],
-                        "ApiKey": []
-                    }
-                ],
                 "description": "Get JWKS for token verification",
                 "consumes": [
                     "application/json"
@@ -7620,7 +8026,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "users"
+                    "token"
                 ],
                 "summary": "Get JWKS",
                 "responses": {
@@ -7645,7 +8051,7 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Get view",
+                "description": "List available views",
                 "consumes": [
                     "application/json"
                 ],
@@ -7653,9 +8059,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "view"
+                    "views"
                 ],
-                "summary": "Get view",
+                "summary": "List views",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -7703,7 +8109,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "view"
+                    "views"
                 ],
                 "summary": "Get view",
                 "parameters": [
@@ -7790,6 +8196,15 @@ const docTemplate = `{
                 "Acl2ScopeRor": "ROR",
                 "Acl2ScopeUnknown": "unknown"
             },
+            "x-enum-descriptions": [
+                "unknown",
+                "ROR",
+                "",
+                "",
+                "",
+                "",
+                ""
+            ],
             "x-enum-varnames": [
                 "Acl2ScopeUnknown",
                 "Acl2ScopeRor",
@@ -7820,6 +8235,19 @@ const docTemplate = `{
                 "Acl2RorSubjectApiKey": "api key",
                 "Acl2RorSubjectGlobal": "for subject, not scope, TODO: new const"
             },
+            "x-enum-descriptions": [
+                "",
+                "",
+                "",
+                "for subject, not scope, TODO: new const",
+                "for subject, not scope, TODO: new const",
+                "api key",
+                "",
+                "",
+                "",
+                "",
+                ""
+            ],
             "x-enum-varnames": [
                 "Acl2RorSubjecUnknown",
                 "Acl2RorSubjectCluster",
@@ -8017,11 +8445,58 @@ const docTemplate = `{
                 "ApiKeyTypeService"
             ]
         },
+        "apicontracts.AuditLog": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "id": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/apicontracts.AuditLogMetadata"
+                }
+            }
+        },
+        "apicontracts.AuditLogMetadata": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/apicontracts.User"
+                }
+            }
+        },
         "apicontracts.Billing": {
             "type": "object",
             "properties": {
                 "workorder": {
                     "type": "string"
+                }
+            }
+        },
+        "apicontracts.BillingModel": {
+            "type": "object",
+            "required": [
+                "workorder"
+            ],
+            "properties": {
+                "workorder": {
+                    "type": "string",
+                    "minLength": 1
                 }
             }
         },
@@ -8262,6 +8737,58 @@ const docTemplate = `{
                 }
             }
         },
+        "apicontracts.ClusterMetadataModel": {
+            "type": "object",
+            "required": [
+                "criticality",
+                "projectId",
+                "roles",
+                "sensitivity"
+            ],
+            "properties": {
+                "billing": {
+                    "$ref": "#/definitions/apicontracts.BillingModel"
+                },
+                "criticality": {
+                    "maximum": 4,
+                    "minimum": 1,
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/apicontracts.CriticalityLevel"
+                        }
+                    ]
+                },
+                "description": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "projectId": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/apicontracts.ProjectRole"
+                    }
+                },
+                "sensitivity": {
+                    "maximum": 4,
+                    "minimum": 1,
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/apicontracts.SensitivityLevel"
+                        }
+                    ]
+                },
+                "serviceTags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "apicontracts.ClusterPhase": {
             "type": "string",
             "enum": [
@@ -8282,6 +8809,14 @@ const docTemplate = `{
                 "ClusterPhaseDeleted",
                 "ClusterPhaseError"
             ]
+        },
+        "apicontracts.ClusterSelf": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "type": "string"
+                }
+            }
         },
         "apicontracts.ClusterState": {
             "type": "string",
@@ -8991,6 +9526,26 @@ const docTemplate = `{
                 }
             }
         },
+        "apicontracts.PaginatedResult-apicontracts_AuditLog": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/apicontracts.AuditLog"
+                    }
+                },
+                "dataCount": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "totalCount": {
+                    "type": "integer"
+                }
+            }
+        },
         "apicontracts.PaginatedResult-apicontracts_Cluster": {
             "type": "object",
             "properties": {
@@ -9159,12 +9714,14 @@ const docTemplate = `{
             "enum": [
                 "",
                 "Owner",
-                "Responsible"
+                "Responsible",
+                "TechnicalContact"
             ],
             "x-enum-varnames": [
                 "ProjectRoleUnknown",
                 "ProjectRoleOwner",
-                "ProjectRoleResponsible"
+                "ProjectRoleResponsible",
+                "ProjectRoleTechnicalContact"
             ]
         },
         "apicontracts.SensitivityLevel": {
@@ -10328,6 +10885,21 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_NorskHelsenett_ror-api_internal_models_responses.Cluster": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
         "github_com_NorskHelsenett_ror-api_internal_models_viewsmodels.ComplianceReport": {
             "type": "object",
             "properties": {
@@ -10609,6 +11181,7 @@ const docTemplate = `{
         },
         "intstr.Type": {
             "type": "integer",
+            "format": "int64",
             "enum": [
                 0,
                 1
@@ -10617,6 +11190,10 @@ const docTemplate = `{
                 "Int": "The IntOrString holds an int.",
                 "String": "The IntOrString holds a string."
             },
+            "x-enum-descriptions": [
+                "The IntOrString holds an int.",
+                "The IntOrString holds a string."
+            ],
             "x-enum-varnames": [
                 "Int",
                 "String"
@@ -10789,6 +11366,20 @@ const docTemplate = `{
                 }
             }
         },
+        "providermodels.ProviderKubernetesVersion": {
+            "type": "object",
+            "properties": {
+                "disabled": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
         "providermodels.ProviderType": {
             "type": "string",
             "enum": [
@@ -10827,6 +11418,11 @@ const docTemplate = `{
                         "DecimalExponent": "e.g., 12e6",
                         "DecimalSI": "e.g., 12M  (12 * 10^6)"
                     },
+                    "x-enum-descriptions": [
+                        "e.g., 12e6",
+                        "e.g., 12Mi (12 * 2^20)",
+                        "e.g., 12M  (12 * 10^6)"
+                    ],
                     "x-enum-varnames": [
                         "DecimalExponent",
                         "BinarySI",
@@ -10978,6 +11574,9 @@ const docTemplate = `{
                 "route": {
                     "$ref": "#/definitions/rortypes.ResourceRoute"
                 },
+                "sbomreport": {
+                    "$ref": "#/definitions/rortypes.ResourceSbomReport"
+                },
                 "service": {
                     "$ref": "#/definitions/rortypes.ResourceService"
                 },
@@ -11023,6 +11622,28 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/rorresources.Resource"
+                    }
+                }
+            }
+        },
+        "rorresources.ResourceUpdateResult": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "rorresources.ResourceUpdateResults": {
+            "type": "object",
+            "properties": {
+                "results": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/rorresources.ResourceUpdateResult"
                     }
                 }
             }
@@ -13379,6 +14000,269 @@ const docTemplate = `{
                 },
                 "receivers": {
                     "$ref": "#/definitions/rortypes.ResourceRouteReceiver"
+                }
+            }
+        },
+        "rortypes.ResourceSbomReport": {
+            "type": "object",
+            "properties": {
+                "report": {
+                    "$ref": "#/definitions/rortypes.ResourceSbomReportsReport"
+                }
+            }
+        },
+        "rortypes.ResourceSbomReportsArtifact": {
+            "type": "object",
+            "properties": {
+                "digest": {
+                    "type": "string"
+                },
+                "mimeType": {
+                    "type": "string"
+                },
+                "repository": {
+                    "type": "string"
+                },
+                "tag": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceSbomReportsBom": {
+            "type": "object",
+            "properties": {
+                "bomFormat": {
+                    "type": "string"
+                },
+                "components": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceSbomReportsComponent"
+                    }
+                },
+                "dependencies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceSbomReportsComponentDep"
+                    }
+                },
+                "metadata": {
+                    "$ref": "#/definitions/rortypes.ResourceSbomReportsBomMetadata"
+                },
+                "serialNumber": {
+                    "type": "string"
+                },
+                "specVersion": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "rortypes.ResourceSbomReportsBomMetadata": {
+            "type": "object",
+            "properties": {
+                "component": {
+                    "$ref": "#/definitions/rortypes.ResourceSbomReportsComponent"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "tools": {
+                    "$ref": "#/definitions/rortypes.ResourceSbomReportsBomMetadataTools"
+                }
+            }
+        },
+        "rortypes.ResourceSbomReportsBomMetadataTools": {
+            "type": "object",
+            "properties": {
+                "components": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceSbomReportsComponent"
+                    }
+                }
+            }
+        },
+        "rortypes.ResourceSbomReportsComponent": {
+            "type": "object",
+            "properties": {
+                "bom-ref": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "hashes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceSbomReportsComponentHash"
+                    }
+                },
+                "licenses": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceSbomReportsComponentLicense"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "properties": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceSbomReportsComponentProperty"
+                    }
+                },
+                "purl": {
+                    "type": "string"
+                },
+                "supplier": {
+                    "$ref": "#/definitions/rortypes.ResourceSbomReportsComponentSupplier"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceSbomReportsComponentDep": {
+            "type": "object",
+            "properties": {
+                "dependsOn": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "ref": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceSbomReportsComponentHash": {
+            "type": "object",
+            "properties": {
+                "alg": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceSbomReportsComponentLicense": {
+            "type": "object",
+            "properties": {
+                "expression": {
+                    "type": "string"
+                },
+                "license": {
+                    "$ref": "#/definitions/rortypes.ResourceSbomReportsComponentLicenseDetails"
+                }
+            }
+        },
+        "rortypes.ResourceSbomReportsComponentLicenseDetails": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceSbomReportsComponentProperty": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceSbomReportsComponentSupplier": {
+            "type": "object",
+            "properties": {
+                "contact": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceSbomReportsComponentSupplierContact"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "rortypes.ResourceSbomReportsComponentSupplierContact": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceSbomReportsRegistry": {
+            "type": "object",
+            "properties": {
+                "server": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceSbomReportsReport": {
+            "type": "object",
+            "properties": {
+                "artifact": {
+                    "$ref": "#/definitions/rortypes.ResourceSbomReportsArtifact"
+                },
+                "components": {
+                    "$ref": "#/definitions/rortypes.ResourceSbomReportsBom"
+                },
+                "registry": {
+                    "$ref": "#/definitions/rortypes.ResourceSbomReportsRegistry"
+                },
+                "scanner": {
+                    "$ref": "#/definitions/rortypes.AquaReportScanner"
+                },
+                "summary": {
+                    "$ref": "#/definitions/rortypes.ResourceSbomReportsSummary"
+                },
+                "updateTimestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceSbomReportsSummary": {
+            "type": "object",
+            "properties": {
+                "componentsCount": {
+                    "type": "integer"
+                },
+                "dependenciesCount": {
+                    "type": "integer"
                 }
             }
         },

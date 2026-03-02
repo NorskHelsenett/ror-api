@@ -27,7 +27,7 @@ func init() {
 //	@Summary	Get ruleset by cluster
 //	@Schemes
 //	@Description	Get ruleset by cluster
-//	@Tags			rulesetsController
+//	@Tags			rulesets
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Param			clusterId	path		string	true	"clusterId"
@@ -37,8 +37,7 @@ func init() {
 //	@Failure		401			{object}	rorerror.ErrorData
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/rulesets/cluster/{clusterId} [get]
-//	@Security		ApiKeyAuth
-//	@Security		OAuth2Application[write, admin]
+//	@Security		ApiKey || AccessToken
 func GetByCluster() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
@@ -79,7 +78,7 @@ func GetByCluster() gin.HandlerFunc {
 //	@Summary	Get internal ruleset
 //	@Schemes
 //	@Description	Get the internal ruleset
-//	@Tags			rulesetsController
+//	@Tags			rulesets
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Success		200	{object}	messages.RulesetModel
@@ -87,8 +86,7 @@ func GetByCluster() gin.HandlerFunc {
 //	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/rulesets/internal [get]
-//	@Security		ApiKeyAuth
-//	@Security		OAuth2Application[write, admin]
+//	@Security		ApiKey || AccessToken
 func GetInternal() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
@@ -120,7 +118,7 @@ func GetInternal() gin.HandlerFunc {
 //	@Summary	Add a resource onto the ruleset
 //	@Schemes
 //	@Description	Append a resource onto the ruleset
-//	@Tags			rulesetsController
+//	@Tags			rulesets
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Param			rulesetId	path		string	true	"rulesetId"
@@ -130,8 +128,7 @@ func GetInternal() gin.HandlerFunc {
 //	@Failure		401			{object}	rorerror.ErrorData
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/rulesets/{rulesetId}/resources [post]
-//	@Security		ApiKeyAuth
-//	@Security		OAuth2Application[write, admin]
+//	@Security		ApiKey || AccessToken
 func AddResource() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
@@ -188,19 +185,18 @@ func AddResource() gin.HandlerFunc {
 //	@Summary	Delete a resource
 //	@Schemes
 //	@Description	Delete a resource and all of its events.
-//	@Tags			rulesetsController
+//	@Tags			rulesets
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Param			rulesetId	path		string	true	"rulesetId"
 //	@Param			resourceId	path		string	true	"resourceId"
-//	@Success		200			{bool}		Deleted
+//	@Success		200			{boolean}	true
 //	@Failure		403			{string}	Forbidden
 //	@Failure		400			{object}	rorerror.ErrorData
 //	@Failure		401			{object}	rorerror.ErrorData
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/rulesets/{rulesetId}/resources/{resourceId} [delete]
-//	@Security		ApiKeyAuth
-//	@Security		OAuth2Application[write, admin]
+//	@Security		ApiKey || AccessToken
 func DeleteResource() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
@@ -251,7 +247,7 @@ func DeleteResource() gin.HandlerFunc {
 //	@Summary	Add a resource rule
 //	@Schemes
 //	@Description	Add a resource rule
-//	@Tags			rulesetsController
+//	@Tags			rulesets
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Param			rulesetId	path		string	true	"rulesetId"
@@ -262,8 +258,7 @@ func DeleteResource() gin.HandlerFunc {
 //	@Failure		401			{object}	rorerror.ErrorData
 //	@Failure		500			{string}	Failure	message
 //	@Router			/v1/rulesets/{rulesetId}/resources/{resourceId}/rules [post]
-//	@Security		ApiKeyAuth
-//	@Security		OAuth2Application[write, admin]
+//	@Security		ApiKey || AccessToken
 func AddResourceRule() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
@@ -319,22 +314,21 @@ func AddResourceRule() gin.HandlerFunc {
 
 // TODO: Describe function
 //
-//	@Summary	Add a resource rule
+//	@Summary	Delete a resource rule
 //	@Schemes
-//	@Description	Add a resource rule
-//	@Tags			rulesetsController
+//	@Description	Delete a resource rule
+//	@Tags			rulesets
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Param			rulesetId	path		string	true	"rulesetId"
 //	@Param			resourceId	path		string	true	"resourceId"
 //	@Param			ruleId		path		string	true	"ruleId"
-//	@Success		200			{bool}		Deleted
+//	@Success		200			{boolean}	true
 //	@Failure		403			{string}	Forbidden
 //	@Failure		401			{object}	rorerror.ErrorData
 //	@Failure		500			{string}	Failure	message
-//	@Router			/v1/rulesets/{rulesetId}/resources/{resourceId}/rules/{ruleId} [post]
-//	@Security		ApiKeyAuth
-//	@Security		OAuth2Application[write, admin]
+//	@Router			/v1/rulesets/{rulesetId}/resources/{resourceId}/rules/{ruleId} [delete]
+//	@Security		ApiKey || AccessToken
 func DeleteResourceRule() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)

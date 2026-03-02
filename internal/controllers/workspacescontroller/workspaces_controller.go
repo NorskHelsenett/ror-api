@@ -39,7 +39,7 @@ func init() {
 // @Success		200				{array}		apicontracts.Workspace
 // @Failure		401				{object}	rorerror.ErrorData
 // @Failure		403				{object}	rorerror.ErrorData
-// @Success		404				{array}		apicontracts.Workspace
+// @Failure		404				{string}	NotFound
 // @Router			/v1/workspaces	[get]
 // @Security		ApiKey || AccessToken
 func GetAll() gin.HandlerFunc {
@@ -101,6 +101,21 @@ func GetByName() gin.HandlerFunc {
 	}
 }
 
+// @Summary	Update a workspace
+// @Schemes
+// @Description	Update a workspace by id
+// @Tags			workspaces
+// @Accept			application/json
+// @Produce		application/json
+// @Param			id			path		string					true	"id"
+// @Param			workspace	body		apicontracts.Workspace	true	"Workspace"
+// @Success		200			{object}	apicontracts.Workspace
+// @Failure		403			{string}	Forbidden
+// @Failure		400			{object}	rorerror.ErrorData
+// @Failure		401			{object}	rorerror.ErrorData
+// @Failure		500			{string}	Failure	message
+// @Router			/v1/workspaces/{id} [put]
+// @Security		ApiKey || AccessToken
 func Update() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
@@ -173,7 +188,7 @@ func Update() gin.HandlerFunc {
 // @Failure		400	{object}	rorerror.ErrorData
 // @Failure		401	{object}	rorerror.ErrorData
 // @Failure		500	{object}	rorerror.ErrorData
-// @Router			/v1/workspaces/id/{workspaceName} [get]
+// @Router			/v1/workspaces/id/{id} [get]
 // @Security		ApiKey || AccessToken
 func GetById() gin.HandlerFunc {
 	return func(c *gin.Context) {

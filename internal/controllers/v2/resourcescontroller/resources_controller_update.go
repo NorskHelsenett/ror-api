@@ -22,13 +22,13 @@ import (
 //
 //	@Summary	Update resource by uid
 //	@Schemes
-//	@Description	Update a resources
+//	@Description	Update a resource
 //	@Tags			resources
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			uid				path		string										true	"UID"
+//	@Param			uid				path		string									true	"UID"
 //	@Param			resourcereport	body		apiresourcecontracts.ResourceUpdateModel	true	"ResourceUpdate"
-//	@Success		200				{bool}		bool
+//	@Success		201				{string}	Created
 //	@Failure		403				{string}	Forbidden
 //	@Failure		401				{object}	rorerror.ErrorData
 //	@Failure		500				{string}	Failure	message
