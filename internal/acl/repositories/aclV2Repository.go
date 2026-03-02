@@ -133,6 +133,7 @@ func CheckAcl2ByIdentityQuery(ctx context.Context, aclQuery aclmodels.AclV2Query
 }
 
 func getAcl2ListByIdentityQuery(ctx context.Context, aclQuery aclmodels.AclV2QueryAccessScopeSubject) ([]aclmodels.AclV2ListItem, error) {
+	identity := rorcontext.GetIdentityFromRorContext(ctx)
 	dbResult := make([]aclmodels.AclV2ListItem, 0)
 	var aggregationPipeline []bson.M
 	aggregationPipeline = append(aggregationPipeline, createACLV2FilterByScopeSubject(identity, aclQuery.Scope, aclQuery.Subject)...)
