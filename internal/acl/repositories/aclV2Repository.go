@@ -116,11 +116,7 @@ func CheckAcl2ByIdentityQuery(ctx context.Context, aclQuery aclmodels.AclV2Query
 	identity := rorcontext.GetIdentityFromRorContext(ctx)
 
 	if !identity.IsCluster() {
-		dbResult := make([]aclmodels.AclV2ListItem, 0)
-		var aggregationPipeline []bson.M
-		aggregationPipeline = append(aggregationPipeline, createACLV2FilterByScopeSubject(identity, aclQuery.Scope, aclQuery.Subject)...)
-
-		err := mongoAggregate(ctx, AclCollectionName, aggregationPipeline, &dbResult)
+		dbResult, err := getAcl2ListByIdentityQuery(ctx, aclQuery)
 		if err != nil {
 			rlog.Error("could not query mongodb", err)
 			return denyall
@@ -134,6 +130,20 @@ func CheckAcl2ByIdentityQuery(ctx context.Context, aclQuery aclmodels.AclV2Query
 	}
 
 	return denyall
+}
+
+func getAcl2ListByIdentityQuery(ctx context.Context, aclQuery aclmodels.AclV2QueryAccessScopeSubject) ([]aclmodels.AclV2ListItem, error) {
+	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	dbResult := make([]aclmodels.AclV2ListItem, 0)
+	var aggregationPipeline []bson.M
+	aggregationPipeline = append(aggregationPipeline, createACLV2FilterByScopeSubject(identity, aclQuery.Scope, aclQuery.Subject)...)
+	err := mongoAggregate(ctx, AclCollectionName, aggregationPipeline, &dbResult)
+	if err != nil {
+		rlog.Error("could not query mongodb", err)
+		return nil, err
+	}
+
+	return dbResult, nil
 }
 
 func CheckAcl2ByCluster(ctx context.Context, aclQuery aclmodels.AclV2QueryAccessScopeSubject) []aclmodels.AclV2ListItem {
@@ -179,6 +189,30 @@ func GetOwnerrefsQueryAcl2ByIdentityAccess(ctx context.Context, access aclmodels
 	}
 
 	return clusterMatch
+
+}
+
+func CheckAcl2AccessByIdentityQueryAccess(ctx context.Context, aclQuery aclmodels.AclV2QueryAccessScopeSubject, access aclmodels.AccessType) bool {
+	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	if identity.IsCluster() && aclQuery.Subject == aclmodels.Acl2Subject(identity.GetId()) && aclQuery.Scope == aclmodels.Acl2ScopeCluster {
+		if access == aclmodels.AccessTypeRead || access == aclmodels.AccessTypeCreate || access == aclmodels.AccessTypeUpdate {
+			return true
+		}
+		return false
+	}
+
+	dbResult, err := getAcl2ListByIdentityQuery(ctx, aclQuery)
+	if err != nil {
+		rlog.Error("could not query mongodb", err)
+		return false
+	}
+	for _, acl := range dbResult {
+		if checkAccess(acl, access) {
+			return true
+		}
+	}
+
+	return false
 
 }
 
