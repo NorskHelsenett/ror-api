@@ -28,7 +28,7 @@ func (a *ApiKeyAuthProvider) IsOfType(c *gin.Context) bool {
 }
 
 func (a *ApiKeyAuthProvider) Authenticate(c *gin.Context, ctx context.Context) {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "apikeyauth.(ApiKeyAuthProvider).Authenticate")
+	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "apikeyauth.ApiKeyAuthProvider.Authenticate")
 	defer span.End()
 	apikey := c.Request.Header.Get("X-API-KEY")
 	if len(apikey) == 0 {
