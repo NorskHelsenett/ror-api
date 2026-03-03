@@ -43,6 +43,7 @@ func SetupRoutes(router *gin.Engine) error {
 
 	// apikeys register agent . unauthenticated
 	router.POST("/v2/apikeys/register/agent", apikeyscontroller.RegisterAgent())
+	router.GET("/v2/token/jwks", tokencontroller.GetJwks())
 
 	// V2 routes
 	v2 := router.Group("/v2",

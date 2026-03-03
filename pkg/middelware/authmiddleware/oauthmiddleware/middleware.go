@@ -8,13 +8,16 @@ import (
 	"time"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
 )
 
 type OauthMiddlewareInterface interface {
-	Authenticate(c *gin.Context)
+	Authenticate(c *gin.Context, ctx context.Context)
 	IsOfType(c *gin.Context) bool
 }
 
@@ -42,10 +45,14 @@ func (d *OauthMiddleware) IsOfType(c *gin.Context) bool {
 	return strings.HasPrefix(authorization, "Bearer ")
 }
 
-func (d *OauthMiddleware) Authenticate(c *gin.Context) {
+func (d *OauthMiddleware) Authenticate(c *gin.Context, ctx context.Context) {
+	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "OauthMiddleware.Authenticate")
+	defer span.End()
+
 	auth := c.Request.Header.Get("Authorization")
 	if auth == "" {
 		rerr := rorginerror.NewRorGinError(http.StatusUnauthorized, "No Authorization header provided ")
+		span.SetStatus(codes.Error, "No Authorization header provided")
 		rerr.GinLogErrorAbort(c)
 		return
 	}
@@ -53,6 +60,7 @@ func (d *OauthMiddleware) Authenticate(c *gin.Context) {
 	identity, rerr := d.getIdentityFromToken(c.Request.Context(), auth)
 
 	if rerr != nil {
+		span.SetStatus(codes.Error, "Could not get identity from token")
 		rerr.GinLogErrorAbort(c)
 		return
 	}
@@ -60,6 +68,7 @@ func (d *OauthMiddleware) Authenticate(c *gin.Context) {
 	token, _ := extractTokenFromAuthorizationHeader(auth)
 	identity.SetToken(token)
 	c.Set("identity", *identity)
+	span.SetStatus(codes.Ok, "Oauth authentication successful")
 }
 
 func NewOauthMiddleware(opts ...OauthProvidersOption) OauthMiddlewareInterface {
