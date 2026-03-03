@@ -2,6 +2,7 @@ package ginresourcequeryhandler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -25,7 +26,7 @@ import (
 // - filters: JSON array of filter objects [{"field":"field1","value":"value1","type":"string","operator":"eq"}]
 // - offset: Starting offset for pagination
 // - limit: Maximum number of results to return
-func ParseGinResourceQuery(c *gin.Context) *rorresources.ResourceQuery {
+func ParseGinResourceQuery(c *gin.Context) (*rorresources.ResourceQuery, error) {
 	// Initialize a new resource query
 	rq := rorresources.NewResourceQuery()
 
@@ -58,9 +59,12 @@ func ParseGinResourceQuery(c *gin.Context) *rorresources.ResourceQuery {
 	// Parse OwnerRefs
 	if ownerRefs := c.Query("ownerrefs"); ownerRefs != "" {
 		var refs []rorresourceowner.RorResourceOwnerReference
-		if err := json.Unmarshal([]byte(ownerRefs), &refs); err == nil {
-			rq.OwnerRefs = refs
+		err := json.Unmarshal([]byte(ownerRefs), &refs)
+		if err == nil {
+			return nil, fmt.Errorf("could not parse ownerRefs from query: %w", err)
+
 		}
+		rq.OwnerRefs = refs
 	}
 
 	// Parse Fields
@@ -99,16 +103,22 @@ func ParseGinResourceQuery(c *gin.Context) *rorresources.ResourceQuery {
 	// Parse Filters
 	if filters := c.Query("filters"); filters != "" {
 		var filterList []rorresources.ResourceQueryFilter
-		if err := json.Unmarshal([]byte(filters), &filterList); err == nil {
-			rq.Filters = filterList
+		err := json.Unmarshal([]byte(filters), &filterList)
+		if err != nil {
+			return nil, fmt.Errorf("could not unmarshal filters: %w", err)
 		}
+
+		rq.Filters = filterList
 	}
 
 	// Parse Offset
 	if offset := c.Query("offset"); offset != "" {
-		if off, err := strconv.Atoi(offset); err == nil {
-			rq.Offset = off
+		off, err := strconv.Atoi(offset)
+		if err == nil {
+			return nil, fmt.Errorf("could not parse offset from query: %w", err)
 		}
+
+		rq.Offset = off
 	}
 
 	// Parse Limit
@@ -124,7 +134,7 @@ func ParseGinResourceQuery(c *gin.Context) *rorresources.ResourceQuery {
 		// This could be used for full-text search or other purposes
 	}
 
-	return rq
+	return rq, nil
 }
 
 // ParseResourceQueryFromURL parses URL query parameters and returns a *rorresources.ResourceQuery object
@@ -141,5 +151,7 @@ func ParseResourceQueryFromURL(urlStr string) (*rorresources.ResourceQuery, erro
 		URL: parsedURL,
 	}
 
-	return ParseGinResourceQuery(mockContext), nil
+	query, err := ParseGinResourceQuery(mockContext)
+
+	return query, err
 }
