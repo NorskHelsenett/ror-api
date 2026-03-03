@@ -1,9 +1,14 @@
 package apikeyauth
 
 import (
+	"context"
+
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/apikeysservice"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
 
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
@@ -22,39 +27,45 @@ func (a *ApiKeyAuthProvider) IsOfType(c *gin.Context) bool {
 	return len(xapikey) > 0
 }
 
-func (a *ApiKeyAuthProvider) Authenticate(c *gin.Context) {
+func (a *ApiKeyAuthProvider) Authenticate(c *gin.Context, ctx context.Context) {
+	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "apikeyauth.(ApiKeyAuthProvider).Authenticate")
+	defer span.End()
 	apikey := c.Request.Header.Get("X-API-KEY")
-	ctx := c.Request.Context()
 	if len(apikey) == 0 {
 		rerr := rorginerror.NewRorGinError(401, "api key not provided")
+		span.SetStatus(codes.Error, "Api key not provided")
 		rerr.GinLogErrorAbort(c)
 		return
 	}
 
 	apikeyResult, err := apikeysservice.VerifyApiKey(ctx, apikey)
 	if rorginerror.GinHandleErrorAndAbort(c, 401, err) {
+		span.SetStatus(codes.Error, "failed to verify api key")
 		return
 	}
 
 	switch apikeyResult.Type {
 	case apicontracts.ApiKeyTypeCluster:
-		clusterAuth(c, apikeyResult)
+		clusterAuth(c, ctx, apikeyResult)
 	case apicontracts.ApiKeyTypeUser:
-		userAuth(c, apikeyResult)
+		userAuth(c, ctx, apikeyResult)
 	case apicontracts.ApiKeyTypeService:
-		serviceAuth(c, apikeyResult)
+		serviceAuth(c, ctx, apikeyResult)
 	default:
 		rerr := rorginerror.NewRorGinError(401, "error wrong api key type")
+		span.SetStatus(codes.Error, "Error wrong api key type")
 		rerr.GinLogErrorAbort(c)
 	}
+	span.SetStatus(codes.Ok, "API key authentication successful")
 }
 
 func NewApiKeyAuthProvider() *ApiKeyAuthProvider {
 	return &ApiKeyAuthProvider{}
 }
 
-func clusterAuth(c *gin.Context, apikey apicontracts.ApiKey) {
-	ctx := c.Request.Context()
+func clusterAuth(c *gin.Context, ctx context.Context, apikey apicontracts.ApiKey) {
+	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "apikeyauth.clusterauth")
+	defer span.End()
 	identifier := apikey.Identifier
 	c.Set("clusterId", identifier)
 	c.Set("identity", identitymodels.Identity{
@@ -76,8 +87,9 @@ func clusterAuth(c *gin.Context, apikey apicontracts.ApiKey) {
 
 }
 
-func serviceAuth(c *gin.Context, apikey apicontracts.ApiKey) {
-	ctx := c.Request.Context()
+func serviceAuth(c *gin.Context, ctx context.Context, apikey apicontracts.ApiKey) {
+	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "apikeyauth.serviceauth")
+	defer span.End()
 	identifier := apikey.Identifier
 	c.Set("clusterId", identifier)
 	c.Set("identity", identitymodels.Identity{
@@ -98,8 +110,9 @@ func serviceAuth(c *gin.Context, apikey apicontracts.ApiKey) {
 
 }
 
-func userAuth(c *gin.Context, apikey apicontracts.ApiKey) {
-	ctx := c.Request.Context()
+func userAuth(c *gin.Context, ctx context.Context, apikey apicontracts.ApiKey) {
+	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "apikeyauth.userAuth")
+	defer span.End()
 
 	user, err := apiconnections.DomainResolvers.GetUser(ctx, apikey.Identifier)
 	if err != nil {
