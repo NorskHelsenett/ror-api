@@ -56,7 +56,7 @@ func GetResources() gin.HandlerFunc {
 			var err error
 			rsQuery, err = ginresourcequeryhandler.ParseGinResourceQuery(c)
 			if err != nil {
-				c.JSON(http.StatusBadRequest, "400: Invalid query: "+err.Error())
+				c.JSON(http.StatusBadRequest, "400: Invalid query")
 				return
 			}
 		}
