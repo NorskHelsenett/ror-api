@@ -485,7 +485,10 @@ func compileAccessSum(existing aclmodels.AclV2ListItemAccess, added aclmodels.Ac
 }
 
 func GetGroupsInUse(ctx context.Context, groups []string) ([]string, error) {
-	var result []string
+	type groupResult struct {
+		ID string `bson:"_id"`
+	}
+	var rawResult []groupResult
 	var aggregationPipeline []bson.M
 
 	aggregationPipeline = append(aggregationPipeline, bson.M{
@@ -502,10 +505,15 @@ func GetGroupsInUse(ctx context.Context, groups []string) ([]string, error) {
 		},
 	})
 
-	err := mongoAggregate(ctx, AclCollectionName, aggregationPipeline, &result)
+	err := mongoAggregate(ctx, AclCollectionName, aggregationPipeline, &rawResult)
 	if err != nil {
 		rlog.Error("could not query mongodb", err)
 		return nil, err
+	}
+
+	result := make([]string, len(rawResult))
+	for i, r := range rawResult {
+		result[i] = r.ID
 	}
 
 	return result, nil
