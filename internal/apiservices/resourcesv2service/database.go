@@ -2,10 +2,12 @@ package resourcesv2service
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
@@ -47,11 +49,16 @@ func (r *ResourceMongoDB) Set(ctx context.Context, resource *rorresources.Resour
 }
 
 func (r *ResourceMongoDB) Get(ctx context.Context, rorResourceQuery *rorresources.ResourceQuery) (*rorresources.ResourceSet, error) {
-	query := GenerateAggregateQuery(ctx, rorResourceQuery)
-	var resources = make([]rorresources.Resource, 0)
-	err := r.db.Aggregate(ctx, RESOURCECOLLECTION, query, &resources)
+	query, err := GenerateAggregateQuery(ctx, rorResourceQuery)
 	if err != nil {
+		err := fmt.Errorf("could not generate aggregate query: %w", err)
 		return nil, err
+	}
+	var resources = make([]rorresources.Resource, 0)
+	err = r.db.Aggregate(ctx, RESOURCECOLLECTION, query, &resources)
+	if err != nil {
+		err := fmt.Errorf("could not execute aggregate query: %w", err)
+		return nil, rorerror.NewRorErrorFromError(500, err)
 	}
 	resourceSet := rorresources.NewResourceSet()
 	if len(resources) > 0 {
@@ -60,6 +67,8 @@ func (r *ResourceMongoDB) Get(ctx context.Context, rorResourceQuery *rorresource
 		}
 		return resourceSet, nil
 	}
+
+	err = fmt.Errorf("resource not found for versionKind: %s", rorResourceQuery.VersionKind)
 	return nil, nil
 }
 
@@ -74,7 +83,10 @@ func (r *ResourceMongoDB) Del(ctx context.Context, resource *rorresources.Resour
 
 func (r *ResourceMongoDB) GetHashlistByQuery(ctx context.Context, rorResourceQuery *rorresources.ResourceQuery) (apiresourcecontracts.HashList, error) {
 	hashList := apiresourcecontracts.HashList{}
-	query := GenerateAggregateQuery(ctx, rorResourceQuery)
+	query, err := GenerateAggregateQuery(ctx, rorResourceQuery)
+	if err != nil {
+		return hashList, err
+	}
 
 	project := bson.M{}
 	project["hash"] = "$rormeta.hash"
@@ -85,7 +97,7 @@ func (r *ResourceMongoDB) GetHashlistByQuery(ctx context.Context, rorResourceQue
 	mongodb.NewMongodbQuery(query).MongoshPrint(RESOURCECOLLECTION)
 
 	hashItems := []apiresourcecontracts.HashItem{}
-	err := r.db.Aggregate(ctx, RESOURCECOLLECTION, query, &hashItems)
+	err = r.db.Aggregate(ctx, RESOURCECOLLECTION, query, &hashItems)
 	if err != nil {
 		return hashList, err
 	}
@@ -93,7 +105,7 @@ func (r *ResourceMongoDB) GetHashlistByQuery(ctx context.Context, rorResourceQue
 	return hashList, nil
 }
 
-func GenerateAggregateQuery(ctx context.Context, rorResourceQuery *rorresources.ResourceQuery) []bson.M {
+func GenerateAggregateQuery(ctx context.Context, rorResourceQuery *rorresources.ResourceQuery) ([]bson.M, error) {
 	query := make([]bson.M, 0)
 	authorizedOwnerRefsQuery := aclservice.GetOwnerrefByContextAccess(ctx, aclmodels.AccessTypeRead)
 	if len(authorizedOwnerRefsQuery) > 0 {
@@ -101,7 +113,7 @@ func GenerateAggregateQuery(ctx context.Context, rorResourceQuery *rorresources.
 	}
 
 	if rorResourceQuery == nil {
-		return query
+		return query, fmt.Errorf("could not generate mongodb query: empty resource query")
 	}
 
 	match := bson.M{}
@@ -125,7 +137,10 @@ func GenerateAggregateQuery(ctx context.Context, rorResourceQuery *rorresources.
 	}
 
 	if len(rorResourceQuery.Filters) == 1 {
-		addMatchFilter(rorResourceQuery.Filters[0], match)
+		err := addMatchFilter(rorResourceQuery.Filters[0], match)
+		if err != nil {
+			return nil, fmt.Errorf("could not parse match filter: %w", err)
+		}
 	} else if len(rorResourceQuery.Filters) > 1 {
 		filterCount := map[string]int{}
 		for _, filter := range rorResourceQuery.Filters {
@@ -136,7 +151,10 @@ func GenerateAggregateQuery(ctx context.Context, rorResourceQuery *rorresources.
 			if value == 1 {
 				for _, filter := range rorResourceQuery.Filters {
 					if filter.Field == key {
-						addMatchFilter(filter, match)
+						err := addMatchFilter(filter, match)
+						if err != nil {
+							return nil, fmt.Errorf("could not parse match filter: %w", err)
+						}
 					}
 				}
 			} else {
@@ -198,43 +216,57 @@ func GenerateAggregateQuery(ctx context.Context, rorResourceQuery *rorresources.
 	if effectiveLimit != -1 {
 		query = append(query, bson.M{"$limit": effectiveLimit})
 	}
-	return query
+	return query, nil
 }
 
-func addMatchFilter(filter rorresources.ResourceQueryFilter, match bson.M) {
+func addMatchFilter(filter rorresources.ResourceQueryFilter, match bson.M) error {
 	switch filter.Type {
 	case rorresources.FilterTypeString:
-		if filter.Operator == "eq" {
+		switch filter.Operator {
+		case rorresources.FilterOperatorEq:
 			match[filter.Field] = bson.M{"$eq": filter.Value}
-		}
-		if filter.Operator == "ne" {
+
+		case rorresources.FilterOperatorNe:
 			match[filter.Field] = bson.M{"$ne": filter.Value}
-		}
-		if filter.Operator == "regexp" {
+
+		case rorresources.FilterOperatorRegexp:
 			match[filter.Field] = bson.M{"$regex": filter.Value, "$options": "i"}
+
+		default:
+			err := fmt.Errorf("invalid filter operator: %s", filter.Operator)
+			return rorerror.NewRorErrorFromError(400, err)
 		}
 	case rorresources.FilterTypeInt:
-		if filter.Operator == "eq" {
+		switch filter.Operator {
+		case rorresources.FilterOperatorEq:
 			match[filter.Field] = bson.M{"$eq": filter.Value}
-		}
-		if filter.Operator == "gt" {
+
+		case rorresources.FilterOperatorGt:
 			match[filter.Field] = bson.M{"$gt": filter.Value}
-		}
-		if filter.Operator == "lt" {
+
+		case rorresources.FilterOperatorLt:
 			match[filter.Field] = bson.M{"$lt": filter.Value}
-		}
-		if filter.Operator == "ge" {
+
+		case rorresources.FilterOperatorGe:
 			match[filter.Field] = bson.M{"$gte": filter.Value}
-		}
-		if filter.Operator == "le" {
+
+		case rorresources.FilterOperatorLe:
 			match[filter.Field] = bson.M{"$lte": filter.Value}
+
+		default:
+			err := fmt.Errorf("invalid filter operator: %s", filter.Operator)
+			return rorerror.NewRorErrorFromError(400, err)
 		}
 	case rorresources.FilterTypeBool:
-		if filter.Operator == "eq" {
+		if filter.Operator == rorresources.FilterOperatorEq {
 			boolfilter, err := strconv.ParseBool(filter.Value)
-			if err == nil {
-				match[filter.Field] = bson.M{"$eq": boolfilter}
+			if err != nil {
+				return rorerror.NewRorErrorFromError(400, err)
 			}
+			match[filter.Field] = bson.M{"$eq": boolfilter}
+		} else {
+			err := fmt.Errorf("invalid filter operator: %s", filter.Operator)
+			return rorerror.NewRorErrorFromError(400, err)
 		}
 		// case rorresources.FilterTypeTime:
 		// 	format := "2006-01-02 15:04:05.999999999 -0700 MST"
@@ -258,4 +290,5 @@ func addMatchFilter(filter rorresources.ResourceQueryFilter, match bson.M) {
 		// 		}
 		// 	}
 	}
+	return nil
 }

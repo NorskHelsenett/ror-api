@@ -192,18 +192,20 @@ func DeleteResource(ctx context.Context, resource *rorresources.Resource) error 
 	return databaseHelpers.Del(ctx, resource)
 }
 
-func GetResourceByQuery(ctx context.Context, query *rorresources.ResourceQuery) *rorresources.ResourceSet {
+func GetResourceByQuery(ctx context.Context, query *rorresources.ResourceQuery) (*rorresources.ResourceSet, error) {
 	start := time.Now()
 	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
 	mongoCtx, cancel := context.WithTimeout(ctx, getTimeout)
 	defer cancel()
+
 	rs, err := databaseHelpers.Get(mongoCtx, query)
 	if err != nil {
 		rlog.Error("Could not get resource by query", err, rlog.Any("error", err))
-		return nil
+		return nil, fmt.Errorf("could not get resource by query: %w", err)
 	}
+
 	if rs == nil {
-		return nil
+		return nil, nil
 	}
 
 	// Access check
@@ -230,7 +232,7 @@ func GetResourceByQuery(ctx context.Context, query *rorresources.ResourceQuery) 
 		}
 	}
 	rlog.Debug("Resource found in database", rlog.Any("number", len(rs.Resources)), rlog.Any("duration", time.Since(start)))
-	return returnrs
+	return returnrs, nil
 }
 
 func sendToMessageBus(ctx context.Context, resource *rorresources.Resource, action rortypes.ResourceAction) error {

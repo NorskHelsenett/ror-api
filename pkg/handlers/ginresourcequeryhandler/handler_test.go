@@ -22,7 +22,11 @@ func TestParseResourceQuery(t *testing.T) {
 	c.Request = req
 
 	// Parse the query
-	query := ParseGinResourceQuery(c)
+	query, err := ParseGinResourceQuery(c)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
 	// Validate the parsed query
 	assert.Equal(t, "general.ror.internal", query.VersionKind.Group)

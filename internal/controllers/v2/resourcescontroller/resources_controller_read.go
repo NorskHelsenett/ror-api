@@ -3,6 +3,7 @@ package resourcescontroller
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
@@ -10,6 +11,8 @@ import (
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
+	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 
 	"github.com/gin-gonic/gin"
@@ -50,7 +53,12 @@ func GetResources() gin.HandlerFunc {
 
 		testQuery := c.Query("query") == ""
 		if testQuery {
-			rsQuery = ginresourcequeryhandler.ParseGinResourceQuery(c)
+			var err error
+			rsQuery, err = ginresourcequeryhandler.ParseGinResourceQuery(c)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, "400: Invalid query")
+				return
+			}
 		}
 
 		if !testQuery {
@@ -79,7 +87,21 @@ func GetResources() gin.HandlerFunc {
 			return
 		}
 
-		rsSet := resourcesv2service.GetResourceByQuery(ctx, rsQuery)
+		rsSet, err := resourcesv2service.GetResourceByQuery(ctx, rsQuery)
+		if err != nil {
+			if rorErr, ok := errors.AsType[rorerror.RorError](err); ok {
+				rorginerror.GinHandleErrorAndAbort(c, rorErr.GetStatusCode(), rorErr, rlog.String("error:", rorErr.Error()))
+				return
+			}
+
+			// We might get errors that are non ROR errors, these should
+			// probably be tracked down and converted to ROR errors at the
+			// source or if that is not possible, handled and converted to ROR
+			// errors
+			rlog.Error("failed to get resource", err)
+			c.JSON(http.StatusInternalServerError, "failed to get resource")
+			return
+		}
 
 		c.JSON(http.StatusOK, rsSet)
 	}
