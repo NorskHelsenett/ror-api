@@ -261,9 +261,10 @@ func addMatchFilter(filter rorresources.ResourceQueryFilter, match bson.M) error
 	case rorresources.FilterTypeBool:
 		if filter.Operator == rorresources.FilterOperatorEq {
 			boolfilter, err := strconv.ParseBool(filter.Value)
-			if err == nil {
-				match[filter.Field] = bson.M{"$eq": boolfilter}
+			if err != nil {
+				return rorerror.NewRorErrorFromError(400, err)
 			}
+			match[filter.Field] = bson.M{"$eq": boolfilter}
 		} else {
 			err := fmt.Errorf("invalid filter operator: %s", filter.Operator)
 			return rorerror.NewRorErrorFromError(400, err)
