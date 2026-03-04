@@ -60,7 +60,7 @@ func ParseGinResourceQuery(c *gin.Context) (*rorresources.ResourceQuery, error) 
 	if ownerRefs := c.Query("ownerrefs"); ownerRefs != "" {
 		var refs []rorresourceowner.RorResourceOwnerReference
 		err := json.Unmarshal([]byte(ownerRefs), &refs)
-		if err == nil {
+		if err != nil {
 			return nil, fmt.Errorf("could not parse ownerRefs from query: %w", err)
 
 		}
@@ -114,7 +114,7 @@ func ParseGinResourceQuery(c *gin.Context) (*rorresources.ResourceQuery, error) 
 	// Parse Offset
 	if offset := c.Query("offset"); offset != "" {
 		off, err := strconv.Atoi(offset)
-		if err == nil {
+		if err != nil {
 			return nil, fmt.Errorf("could not parse offset from query: %w", err)
 		}
 

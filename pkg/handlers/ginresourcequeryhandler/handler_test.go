@@ -25,6 +25,7 @@ func TestParseResourceQuery(t *testing.T) {
 	query, err := ParseGinResourceQuery(c)
 	if err != nil {
 		t.Error(err)
+		return
 	}
 
 	// Validate the parsed query
