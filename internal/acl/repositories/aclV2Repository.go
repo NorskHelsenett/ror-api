@@ -483,3 +483,30 @@ func compileAccessSum(existing aclmodels.AclV2ListItemAccess, added aclmodels.Ac
 	}
 	return compiledAccess
 }
+
+func GetGroupsInUse(ctx context.Context, groups []string) ([]string, error) {
+	var result []string
+	var aggregationPipeline []bson.M
+
+	aggregationPipeline = append(aggregationPipeline, bson.M{
+		"$match": bson.M{
+			"group": bson.M{
+				"$in": groups,
+			},
+		},
+	})
+
+	aggregationPipeline = append(aggregationPipeline, bson.M{
+		"$group": bson.M{
+			"_id": "$group",
+		},
+	})
+
+	err := mongoAggregate(ctx, AclCollectionName, aggregationPipeline, &result)
+	if err != nil {
+		rlog.Error("could not query mongodb", err)
+		return nil, err
+	}
+
+	return result, nil
+}

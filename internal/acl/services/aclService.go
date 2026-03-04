@@ -153,3 +153,12 @@ func CheckAcl2AccessByIdentityQueryAccess(ctx context.Context, aclQuery aclmodel
 
 	return aclrepository.CheckAcl2AccessByIdentityQueryAccess(ctx, aclQuery, access)
 }
+
+func FilterGroupsInUse(ctx context.Context, groups []string) []string {
+	groupsinuse, error := aclrepository.GetGroupsInUse(ctx, groups)
+	if error != nil {
+		return []string{}
+	}
+
+	return groupsinuse
+}
