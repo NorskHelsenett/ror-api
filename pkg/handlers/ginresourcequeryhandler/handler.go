@@ -64,6 +64,7 @@ func ParseGinResourceQuery(c *gin.Context) (*rorresources.ResourceQuery, error) 
 			return nil, fmt.Errorf("could not parse ownerRefs from query: %w", err)
 
 		}
+
 		rq.OwnerRefs = refs
 	}
 
@@ -123,9 +124,12 @@ func ParseGinResourceQuery(c *gin.Context) (*rorresources.ResourceQuery, error) 
 
 	// Parse Limit
 	if limit := c.Query("limit"); limit != "" {
-		if lim, err := strconv.Atoi(limit); err == nil {
-			rq.Limit = lim
+		lim, err := strconv.Atoi(limit)
+		if err != nil {
+			return nil, fmt.Errorf("could not parse limit from query: %w", err)
 		}
+
+		rq.Limit = lim
 	}
 
 	// Parse general query parameter
