@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 	"github.com/NorskHelsenett/ror/pkg/helpers/fouramhelper"
 	"github.com/NorskHelsenett/ror/pkg/helpers/tokenstoragehelper"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
@@ -20,10 +21,14 @@ import (
 // 1. Move private key to secure storage OK
 // 2. Implement key rotation OK
 // 3. Implement support for multiple oidc providers and client ids with check on domain name
+// 4. Strip groupnames from internal domain from user
+
+const INTERNAL_DOMAIN = "ror.io"
 
 var (
-	oidcProviderURL string = "https://auth.sky.nhn.no/dex"
-	oidcClientId    string = "clusterauth"
+	oidcProviderURL    string = "https://auth.sky.nhn.no/dex"
+	oidcClientId       string = "clusterauth"
+	adminTokenDuration        = 1 * time.Hour
 )
 
 // ExchangeToken exchanges a token for a new resigned token
@@ -58,13 +63,24 @@ func ExchangeToken(ctx context.Context, clusterID string, token string, admin bo
 		return "", err
 	}
 
+	groupsWithDomain = aclservice.FilterGroupsInUse(ctx, groupsWithDomain)
+
+	// Filter out groups with internal domain
+	filtered := groupsWithDomain[:0]
+	for _, g := range groupsWithDomain {
+		if !strings.HasSuffix(g, "@"+INTERNAL_DOMAIN) {
+			filtered = append(filtered, g)
+		}
+	}
+	groupsWithDomain = filtered
+
 	user.Groups = groupsWithDomain
+	exp := fouramhelper.FourAm()
 
 	if admin {
-		user.Groups = append(user.Groups, "cluster-admin@ror.io")
+		exp = time.Now().Add(adminTokenDuration)
+		user.Groups = append(user.Groups, "cluster-admin@"+INTERNAL_DOMAIN)
 	}
-
-	exp := fouramhelper.FourAm()
 
 	claims := jwt.MapClaims{
 		"sub":              user.Email,
