@@ -89,10 +89,9 @@ func GetResources() gin.HandlerFunc {
 
 		rsSet, err := resourcesv2service.GetResourceByQuery(ctx, rsQuery)
 		if err != nil {
-			if err, ok := errors.AsType[rorerror.RorError](err); ok {
-				if rorginerror.GinHandleErrorAndAbort(c, err.GetStatusCode(), err, rlog.String("error:", err.Error())) {
-					return
-				}
+			if rorErr, ok := errors.AsType[rorerror.RorError](err); ok {
+				rorginerror.GinHandleErrorAndAbort(c, rorErr.GetStatusCode(), rorErr, rlog.String("error:", rorErr.Error()))
+				return
 			}
 
 			// We might get errors that are non ROR errors, these should
