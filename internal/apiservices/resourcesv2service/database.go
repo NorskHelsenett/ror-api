@@ -69,8 +69,7 @@ func (r *ResourceMongoDB) Get(ctx context.Context, rorResourceQuery *rorresource
 	}
 
 	err = fmt.Errorf("resource not found for versionKind: %s", rorResourceQuery.VersionKind)
-	rorErr := rorerror.NewRorErrorFromError(404, err)
-	return nil, rorErr
+	return nil, nil
 }
 
 func (r *ResourceMongoDB) Del(ctx context.Context, resource *rorresources.Resource) error {
