@@ -62,7 +62,6 @@ func ParseGinResourceQuery(c *gin.Context) (*rorresources.ResourceQuery, error) 
 		err := json.Unmarshal([]byte(ownerRefs), &refs)
 		if err != nil {
 			return nil, fmt.Errorf("could not parse ownerRefs from query: %w", err)
-
 		}
 
 		rq.OwnerRefs = refs
