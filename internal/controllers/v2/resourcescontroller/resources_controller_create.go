@@ -32,14 +32,14 @@ var (
 // Register a new resource, the resource is in the payload.
 // Parameter clusterid must match authorized clusterid
 //
-//	@Summary	Register  resource
+//	@Summary	Register resource
 //	@Schemes
-//	@Description	Registers a  resource
+//	@Description	Registers a resource
 //	@Tags			resources
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Param			rorresource	body		rorresources.ResourceSet	true	"ResourceUpdate"
-//	@Success		200			{bool}		bool
+//	@Success		201			{object}	rorresources.ResourceUpdateResults
 //	@Failure		403			{string}	Forbidden
 //	@Failure		401			{object}	rorerror.ErrorData
 //	@Failure		500			{string}	Failure	message

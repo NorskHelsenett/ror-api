@@ -154,13 +154,13 @@ func GetById() gin.HandlerFunc {
 //	@Tags			datacenters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200				{array}		apicontracts.Datacenter
-//	@Failure		403				{string}	Forbidden
-//	@Failure		400				{object}	rorerror.ErrorData
-//	@Failure		401				{object}	rorerror.ErrorData
-//	@Failure		500				{string}	Failure					message
-//	@Param			datacenter		body		apicontracts.Datacenter	true	"Datacenter"
-//	@Router			/v1/datacenters	[post]
+//	@Param			datacenter	body		apicontracts.Datacenter	true	"Datacenter"
+//	@Success		200			{object}	apicontracts.Datacenter
+//	@Failure		403			{string}	Forbidden
+//	@Failure		400			{object}	rorerror.ErrorData
+//	@Failure		401			{object}	rorerror.ErrorData
+//	@Failure		500			{string}	Failure	message
+//	@Router			/v1/datacenters [post]
 //	@Security		ApiKey || AccessToken
 func Create() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -221,14 +221,14 @@ func Create() gin.HandlerFunc {
 //	@Tags			datacenters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200								{array}		apicontracts.Datacenter
-//	@Failure		403								{string}	Forbidden
-//	@Failure		400								{object}	rorerror.ErrorData
-//	@Failure		401								{object}	rorerror.ErrorData
-//	@Failure		500								{string}	Failure					message
-//	@Param			datacenterId					path		string					true	"datacenterId"
-//	@Param			datacenter						body		apicontracts.Datacenter	true	"Datacenter"
-//	@Router			/v1/datacenters/{datacenterId}	[put]
+//	@Param			datacenterId	path		string					true	"datacenterId"
+//	@Param			datacenter		body		apicontracts.Datacenter	true	"Datacenter"
+//	@Success		200				{object}	apicontracts.Datacenter
+//	@Failure		403				{string}	Forbidden
+//	@Failure		400				{object}	rorerror.ErrorData
+//	@Failure		401				{object}	rorerror.ErrorData
+//	@Failure		500				{string}	Failure	message
+//	@Router			/v1/datacenters/{datacenterId} [put]
 //	@Security		ApiKey || AccessToken
 func Update() gin.HandlerFunc {
 	return func(c *gin.Context) {

@@ -98,7 +98,7 @@ func Create() gin.HandlerFunc {
 // @Failure		400					{object}	rorerror.ErrorData
 // @Failure		401					{object}	rorerror.ErrorData
 // @Failure		500					{object}	rorerror.ErrorData
-// @Router			/v1/projects/filter	[get]
+// @Router			/v1/projects/filter	[post]
 // @Param			filter				body	apicontracts.Filter	true	"Filter"
 // @Security		ApiKey || AccessToken
 func GetByFilter() gin.HandlerFunc {
@@ -212,7 +212,7 @@ func GetById() gin.HandlerFunc {
 // @Tags			projects
 // @Accept			application/json
 // @Produce		application/json
-// @Success		200							{object}	apicontracts.PaginatedResult[apicontracts.Project]
+// @Success		200							{object}	apicontracts.Project
 // @Failure		403							{object}	rorerror.ErrorData
 // @Failure		400							{object}	rorerror.ErrorData
 // @Failure		401							{object}	rorerror.ErrorData
@@ -287,7 +287,7 @@ func Update() gin.HandlerFunc {
 // @Tags			projects
 // @Accept			application/json
 // @Produce		application/json
-// @Success		200							{bool}		bool
+// @Success		200							{boolean}	bool
 // @Failure		403							{object}	rorerror.ErrorData
 // @Failure		400							{object}	rorerror.ErrorData
 // @Failure		401							{object}	rorerror.ErrorData

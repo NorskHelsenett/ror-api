@@ -22,10 +22,10 @@ var (
 	validate *validator.Validate
 )
 
-// @Summary	Excahnges a token for a new resigned token
+// @Summary	Exchange token for a new resigned token
 // @Schemes
-// @Description	Create a api key
-// @Tags			users
+// @Description	Exchange a token for a new resigned token to access a cluster
+// @Tags			token
 // @Accept			application/json
 // @Produce		application/json
 // @Success		200					{object}	string
@@ -90,13 +90,12 @@ func ExchangeToken() gin.HandlerFunc {
 // @Summary	Get JWKS
 // @Schemes
 // @Description	Get JWKS for token verification
-// @Tags			users
+// @Tags			token
 // @Accept			application/json
 // @Produce		application/json
 // @Success		200					{object}	interface{}
 // @Failure		500					{object}	rorerror.ErrorData
 // @Router			/v2/token/jwks		[get]
-// @Security		ApiKey || AccessToken
 func GetJwks() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		jwks, err := tokenservice.GetJwks()

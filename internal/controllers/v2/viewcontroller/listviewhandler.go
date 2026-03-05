@@ -16,7 +16,7 @@ import (
 // @Summary	Get view
 // @Schemes
 // @Description	Get view
-// @Tags			view
+// @Tags			views
 // @Accept			application/json
 // @Produce		application/json
 // @Success		200	{object}	apiview.View
@@ -52,13 +52,13 @@ func GetView() gin.HandlerFunc {
 	}
 }
 
-// @Summary	Get view
+// @Summary	List views
 // @Schemes
-// @Description	Get view
-// @Tags			view
+// @Description	List available views
+// @Tags			views
 // @Accept			application/json
 // @Produce		application/json
-// @Success		200	{object}	[]apiview.ViewMetadata
+// @Success		200	{array}		apiview.ViewMetadata
 // @Failure		403	{object}	rorerror.ErrorData
 // @Failure		401	{object}	rorerror.ErrorData
 // @Failure		500	{object}	rorerror.ErrorData

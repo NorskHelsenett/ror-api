@@ -27,15 +27,15 @@ import (
 //
 //	@Summary	This is a dummy view
 //	@Schemes
-//	@Description	Just a dummy view
+//	@Description	Just a dummy view, not yet implemented
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			id	path		string	true	"id"
-//	@Success		200	{string}	This	is		not	the	view	you	are	looking	for
-//	@Failure		403	{string}	Forbidden
-//	@Failure		401	{object}	rorerror.ErrorData
-//	@Failure		500	{string}	Failure	message
+//	@Param			clusterid	path		string	true	"clusterid"
+//	@Success		200			{string}	string
+//	@Failure		403			{string}	Forbidden
+//	@Failure		401			{object}	rorerror.ErrorData
+//	@Failure		500			{string}	Failure	message
 //	@Router			/v1/clusters/{clusterid}/views/ingresses [get]
 //	@Router			/v1/clusters/{clusterid}/views/nodes [get]
 //	@Router			/v1/clusters/{clusterid}/views/applications [get]
@@ -55,16 +55,16 @@ func DummyView() gin.HandlerFunc {
 //
 //	@Summary	Policy report view
 //	@Schemes
-//	@Description	A structured presentation of policyreports
+//	@Description	A structured presentation of policyreports for a cluster
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			id	path		string	true	"id"
-//	@Success		200	{string}	This	is		not	the	view	you	are	looking	for
-//	@Failure		403	{string}	Forbidden
-//	@Failure		400	{object}	rorerror.ErrorData
-//	@Failure		401	{object}	rorerror.ErrorData
-//	@Failure		500	{string}	Failure	message
+//	@Param			clusterid	path		string	true	"clusterid"
+//	@Success		200			{object}	interface{}
+//	@Failure		403			{string}	Forbidden
+//	@Failure		400			{object}	rorerror.ErrorData
+//	@Failure		401			{object}	rorerror.ErrorData
+//	@Failure		500			{string}	Failure	message
 //	@Router			/v1/clusters/{clusterid}/views/policyreports [get]
 //	@Security		ApiKey || AccessToken
 func PolicyreportsView() gin.HandlerFunc {
@@ -100,21 +100,22 @@ func PolicyreportsView() gin.HandlerFunc {
 	}
 }
 
-// View for policy reports
+// View for policy report summary
 //
-//	@Summary	Policy report view
+//	@Summary	Policy report summary view
 //	@Schemes
-//	@Description	A structured presentation of policyreports
+//	@Description	A global summary of policyreports across clusters
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			type	query		viewsmodels.PolicyreportGlobalQueryType	true	"type"
-//	@Success		200		{string}	This									is		not	the	view	you	are	looking	for
-//	@Failure		403		{string}	Forbidden
-//	@Failure		400		{object}	rorerror.ErrorData
-//	@Failure		401		{object}	rorerror.ErrorData
-//	@Failure		500		{string}	Failure	message
-//	@Router			/v1/clusters/{clusterid}/views/policyreports [get]
+//	@Param			type		query	viewsmodels.PolicyreportGlobalQueryType	true	"type"
+//	@Param			clusterid	query	string									false	"clusterid"
+//	@Success		200			{object}	interface{}
+//	@Failure		403			{string}	Forbidden
+//	@Failure		400			{object}	rorerror.ErrorData
+//	@Failure		401			{object}	rorerror.ErrorData
+//	@Failure		500			{string}	Failure	message
+//	@Router			/v1/clusters/views/policyreports [get]
 //	@Security		ApiKey || AccessToken
 func PolicyreportSummaryView() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -154,21 +155,22 @@ func PolicyreportSummaryView() gin.HandlerFunc {
 	}
 }
 
-// View for policy reports
+// View for vulnerability report summary (not currently registered in routes)
 //
-//	@Summary	Policy report view
+//	@Summary	Vulnerability report summary view
 //	@Schemes
-//	@Description	A structured presentation of policyreports
+//	@Description	A global summary of vulnerability reports across clusters
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			type	query		viewsmodels.PolicyreportGlobalQueryType	true	"type"
-//	@Success		200		{string}	This									is		not	the	view	you	are	looking	for
-//	@Failure		403		{string}	Forbidden
-//	@Failure		400		{object}	rorerror.ErrorData
-//	@Failure		401		{object}	rorerror.ErrorData
-//	@Failure		500		{string}	Failure	message
-//	@Router			/v1/clusters/{clusterid}/views/policyreports [get]
+//	@Param			type		query	viewsmodels.PolicyreportGlobalQueryType	true	"type"
+//	@Param			clusterid	query	string									false	"clusterid"
+//	@Success		200			{object}	interface{}
+//	@Failure		403			{string}	Forbidden
+//	@Failure		400			{object}	rorerror.ErrorData
+//	@Failure		401			{object}	rorerror.ErrorData
+//	@Failure		500			{string}	Failure	message
+//	@Router			/v1/clusters/views/vulnerabilityreports/summary [get]
 //	@Security		ApiKey || AccessToken
 func VulnerabilityreportSummaryView() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -210,16 +212,16 @@ func VulnerabilityreportSummaryView() gin.HandlerFunc {
 //
 //	@Summary	Vulnerability reports view
 //	@Schemes
-//	@Description	A structured presentation of vulnerability reports
+//	@Description	A structured presentation of vulnerability reports for a cluster
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			id	path		string	true	"id"
-//	@Success		200	{string}	This	is		not	the	view	you	are	looking	for
-//	@Failure		403	{string}	Forbidden
-//	@Failure		400	{object}	rorerror.ErrorData
-//	@Failure		401	{object}	rorerror.ErrorData
-//	@Failure		500	{string}	Failure	message
+//	@Param			clusterid	path		string	true	"clusterid"
+//	@Success		200			{object}	interface{}
+//	@Failure		403			{string}	Forbidden
+//	@Failure		400			{object}	rorerror.ErrorData
+//	@Failure		401			{object}	rorerror.ErrorData
+//	@Failure		500			{string}	Failure	message
 //	@Router			/v1/clusters/{clusterid}/views/vulnerabilityreports [get]
 //	@Security		ApiKey || AccessToken
 func VulnerabilityReportsView() gin.HandlerFunc {
@@ -257,19 +259,19 @@ func VulnerabilityReportsView() gin.HandlerFunc {
 
 // View for vulnerability reports
 //
-//	@Summary	Vulnerability reports view
+//	@Summary	Vulnerability reports view by CVE ID
 //	@Schemes
-//	@Description	A structured presentation of vulnerability reports
+//	@Description	A structured presentation of vulnerability reports filtered by CVE ID
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Param			cveid	path		string	true	"cveid"
-//	@Success		200		{string}	This	is		not	the	view	you	are	looking	for
+//	@Success		200		{object}	interface{}
 //	@Failure		403		{string}	Forbidden
 //	@Failure		400		{object}	rorerror.ErrorData
 //	@Failure		401		{object}	rorerror.ErrorData
 //	@Failure		500		{string}	Failure	message
-//	@Router			/v1/clusters/views/vulnerabilityreports/byid/:cveid [get]
+//	@Router			/v1/clusters/views/vulnerabilityreports/byid/{cveid} [get]
 //	@Security		ApiKey || AccessToken
 func VulnerabilityReportsViewById() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -347,13 +349,14 @@ func VulnerabilityReportsGlobal() gin.HandlerFunc {
 
 // View for vulnerability reports by CVE ID
 //
-//	@Summary	Vulnerability reports view by CVE ID
+//	@Summary	Global vulnerability reports view by CVE ID
 //	@Schemes
-//	@Description	A structured presentation of vulnerability reports by CVE ID
+//	@Description	A global presentation of vulnerability reports filtered by CVE ID
+//	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Query			cveid	{string}
-//	@Success		200		{string}	This	is	not	the	view	you	are	looking	for
+//	@Param			cveid	query		string	true	"cveid"
+//	@Success		200		{object}	interface{}
 //	@Failure		403		{string}	Forbidden
 //	@Failure		400		{object}	rorerror.ErrorData
 //	@Failure		401		{object}	rorerror.ErrorData
@@ -407,7 +410,7 @@ func GlobalVulnerabilityReportsViewById() gin.HandlerFunc {
 //	@Failure		400			{object}	rorerror.ErrorData
 //	@Failure		401			{object}	rorerror.ErrorData
 //	@Failure		500			{string}	Failure	message
-//	@Router			/v1/clusters/:clusterid/views/compliancereports [get]
+//	@Router			/v1/clusters/{clusterid}/views/compliancereports [get]
 //	@Security		ApiKey || AccessToken
 func ComplianceReports() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -484,15 +487,16 @@ func ComplianceReportsGlobal() gin.HandlerFunc {
 }
 
 // @Summary		Get cluster self data
-// @Schemes		https
+// @Schemes
 // @Description	Get cluster self data
 // @Tags			clusters
 // @Accept			application/json
 // @Produce		application/json
 //
-// @Success		200	{string}	Get	data	for	the	cluster
+// @Success		200	{object}	apicontracts.ClusterSelf
 // @Failure		403	{string}	Forbidden
 // @Failure		401	{string}	Unauthorized
+// @Failure		404	{string}	NotFound
 // @Failure		500	{string}	Failure	message
 // @Router			/v1/clusters/self [get]
 // @Security		ApiKey || AccessToken

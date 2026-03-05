@@ -39,8 +39,8 @@ func init() {
 //	@Tags			prices
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			price	body		apicontracts.Cluster	true	"Add a price"
-//	@Success		200		{array}		apicontracts.Price
+//	@Param			price	body		apicontracts.Price	true	"Add a price"
+//	@Success		200		{object}	apicontracts.Price
 //	@Failure		403		{string}	Forbidden
 //	@Failure		400		{object}	rorerror.ErrorData
 //	@Failure		401		{object}	rorerror.ErrorData
@@ -149,7 +149,7 @@ func GetByProvider() gin.HandlerFunc {
 //	@Failure		400		{object}	rorerror.ErrorData
 //	@Failure		401		{object}	rorerror.ErrorData
 //	@Failure		500		{string}	Failure	message
-//	@Router			/v1/prices/:id [put]
+//	@Router			/v1/prices/{id} [put]
 //	@Security		ApiKey || AccessToken
 func Update() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -220,12 +220,12 @@ func Update() gin.HandlerFunc {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Param			id	path		string	true	"id"
-//	@Success		200	{bool}		true
+//	@Success		200	{boolean}	true
 //	@Failure		403	{string}	Forbidden
 //	@Failure		400	{object}	rorerror.ErrorData
 //	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
-//	@Router			/v1/prices/:id [delete]
+//	@Router			/v1/prices/{id} [delete]
 //	@Security		ApiKey || AccessToken
 func Delete() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -293,6 +293,21 @@ func GetAll() gin.HandlerFunc {
 }
 
 // TODO: Describe function
+//
+//	@Summary	Get a price by id
+//	@Schemes
+//	@Description	Get a price by id
+//	@Tags			prices
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Param			priceId	path		string	true	"priceId"
+//	@Success		200		{object}	apicontracts.Price
+//	@Failure		403		{string}	Forbidden
+//	@Failure		400		{object}	rorerror.ErrorData
+//	@Failure		401		{object}	rorerror.ErrorData
+//	@Failure		500		{string}	Failure	message
+//	@Router			/v1/prices/{priceId} [get]
+//	@Security		ApiKey || AccessToken
 func GetById() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)

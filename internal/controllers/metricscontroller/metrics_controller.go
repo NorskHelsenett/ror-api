@@ -104,7 +104,7 @@ func GetTotal() gin.HandlerFunc {
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Param			metrics		body		apicontracts.MetricsReport	true	"MetricsReport"
-//	@Success		200			{object}	apicontracts.MetricsTotal
+//	@Success		201			{string}	Created
 //	@Failure		403			{string}	Forbidden
 //	@Failure		401			{object}	rorerror.ErrorData
 //	@Failure		500			{string}	Failure	message

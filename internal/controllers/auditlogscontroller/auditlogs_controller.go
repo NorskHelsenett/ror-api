@@ -28,9 +28,22 @@ func init() {
 	validate = validator.New()
 }
 
-// TODO: Describe function
+// GetByFilter returns audit logs filtered by the provided filter.
 //
-// TODO: Add swagger
+//	@Summary	Get audit logs by filter
+//	@Schemes
+//	@Description	Get audit logs by filter
+//	@Tags			auditlogs
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Success		200						{object}	apicontracts.PaginatedResult[apicontracts.AuditLog]
+//	@Failure		403						{object}	rorerror.ErrorData
+//	@Failure		400						{object}	rorerror.ErrorData
+//	@Failure		401						{object}	rorerror.ErrorData
+//	@Failure		500						{object}	rorerror.ErrorData
+//	@Router			/v1/auditlogs/filter	[post]
+//	@Param			filter					body	apicontracts.Filter	true	"Filter"
+//	@Security		ApiKey || AccessToken
 func GetByFilter() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
@@ -72,9 +85,22 @@ func GetByFilter() gin.HandlerFunc {
 	}
 }
 
-// TODO: Describe function
+// GetById returns a single audit log by its id.
 //
-// TODO: Add swagger
+//	@Summary	Get audit log by id
+//	@Schemes
+//	@Description	Get a single audit log by its id
+//	@Tags			auditlogs
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Param			id						path	string	true	"id"
+//	@Success		200						{object}	apicontracts.AuditLog
+//	@Failure		403						{object}	rorerror.ErrorData
+//	@Failure		400						{object}	rorerror.ErrorData
+//	@Failure		401						{object}	rorerror.ErrorData
+//	@Failure		500						{object}	rorerror.ErrorData
+//	@Router			/v1/auditlogs/{id}		[get]
+//	@Security		ApiKey || AccessToken
 func GetById() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
@@ -109,9 +135,20 @@ func GetById() gin.HandlerFunc {
 	}
 }
 
-// TODO: Describe function
+// GetMetadata returns metadata for audit logs.
 //
-// TODO: Add swagger
+//	@Summary	Get audit log metadata
+//	@Schemes
+//	@Description	Get metadata for audit logs
+//	@Tags			auditlogs
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Success		200							{object}	interface{}
+//	@Failure		403							{object}	rorerror.ErrorData
+//	@Failure		401							{object}	rorerror.ErrorData
+//	@Failure		500							{object}	rorerror.ErrorData
+//	@Router			/v1/auditlogs/metadata		[get]
+//	@Security		ApiKey || AccessToken
 func GetMetadata() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)

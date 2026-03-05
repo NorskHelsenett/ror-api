@@ -15,15 +15,15 @@ import (
 //
 //	@Summary	Register an agent
 //	@Schemes
-//	@Description	Register an cluster.
-//	@Tags			clusters
+//	@Description	Register a cluster agent.
+//	@Tags			apikeys
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Param			data	body		apikeystypes.RegisterClusterRequest	true	"data"
-//	@Success		200	{object}	apikeystypes.RegisterClusterResponse
-//	@Failure		403	{string}	rorerror.ErrorData
-//	@Failure		400	{object}	rorerror.ErrorData
-//	@Failure		500	{string}	Failure	message
+//	@Success		200		{object}	apikeystypes.RegisterClusterResponse
+//	@Failure		403		{object}	rorerror.ErrorData
+//	@Failure		400		{object}	rorerror.ErrorData
+//	@Failure		500		{string}	Failure	message
 //	@Router			/v2/apikeys/agent/register [post]
 //	@Security		ApiKey || AccessToken
 func RegisterAgent() gin.HandlerFunc {

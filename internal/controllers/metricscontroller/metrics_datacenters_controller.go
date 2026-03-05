@@ -64,8 +64,8 @@ func GetForDatacenters() gin.HandlerFunc {
 //	@Failure		403										{string}	Forbidden
 //	@Failure		401										{object}	rorerror.ErrorData
 //	@Failure		500										{string}	Failure	message
-//	@Router			/v1/metrics/datacenter/{datacenterName}	[get]
-//	@Param			datacenterName							path	string	true	"datacenterName"
+//	@Router			/v1/metrics/datacenter/{datacenterId}	[get]
+//	@Param			datacenterId										path	string	true	"datacenterId"
 //	@Security		ApiKey || AccessToken
 func GetByDatacenterId() gin.HandlerFunc {
 	return func(c *gin.Context) {

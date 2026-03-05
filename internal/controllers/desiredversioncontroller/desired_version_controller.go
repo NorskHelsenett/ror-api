@@ -67,9 +67,10 @@ func GetByKey() gin.HandlerFunc {
 //	@Tags			desired_version
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200	{array}		[]apicontracts.DesiredVersion
+//	@Success	200	{array}		apicontracts.DesiredVersion
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/desired_versions [get]
+//	@Security		ApiKey || AccessToken
 func GetAll() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)

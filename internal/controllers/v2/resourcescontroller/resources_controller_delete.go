@@ -16,12 +16,12 @@ import (
 //
 //	@Summary	Delete a resource by uid
 //	@Schemes
-//	@Description	Delete a resources
+//	@Description	Delete a resource
 //	@Tags			resources
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Param			uid	path		string	true	"UID"
-//	@Success		200	{bool}		bool
+//	@Success		200	{object}	rorresources.ResourceUpdateResults
 //	@Failure		403	{string}	Forbidden
 //	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message

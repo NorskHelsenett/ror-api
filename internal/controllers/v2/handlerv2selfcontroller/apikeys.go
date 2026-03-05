@@ -18,10 +18,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// @Summary	Create api key
+// @Summary	Create or renew api key
 // @Schemes
-// @Description	Create a api key
-// @Tags			users
+// @Description	Create or renew an api key
+// @Tags			self
 // @Accept			application/json
 // @Produce		application/json
 // @Success		200					{object}	apicontractsv2self.CreateOrRenewApikeyResponse
@@ -30,7 +30,7 @@ import (
 // @Failure		401					{object}	rorerror.ErrorData
 // @Failure		500					{object}	rorerror.ErrorData
 // @Router			/v2/self/apikeys	[post]
-// @Param			project				body	apicontractsv2self.CreateOrRenewApikeyRequest	true	"Api key"
+// @Param			apikey				body	apicontractsv2self.CreateOrRenewApikeyRequest	true	"Api key"
 // @Security		ApiKey || AccessToken
 func CreateOrRenewApikey() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -67,13 +67,13 @@ func CreateOrRenewApikey() gin.HandlerFunc {
 	}
 }
 
-// @Summary	Delete api key for user
+// @Summary	Delete api key
 // @Schemes
-// @Description	Delete a api key by id for user
-// @Tags			user
+// @Description	Delete an api key by id for user
+// @Tags			self
 // @Accept			application/json
 // @Produce		application/json
-// @Success		200							{bool}		bool
+// @Success		200							{boolean}	bool
 // @Failure		403							{object}	rorerror.ErrorData
 // @Failure		400							{object}	rorerror.ErrorData
 // @Failure		401							{object}	rorerror.ErrorData

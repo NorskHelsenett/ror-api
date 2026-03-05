@@ -69,14 +69,14 @@ func GetAll() gin.HandlerFunc {
 	}
 }
 
-// @Summary	Get kuberntes versions by provider
+// @Summary	Get kubernetes versions by provider
 // @Schemes
 // @Description	Get supported kubernetes versions by provider
 // @Tags			providers
 // @Accept			application/json
 // @Produce		application/json
 // @Param			providerType	path		string	true	"providerType"
-// @Success		200				{array}		providermodels.Provider
+// @Success		200				{array}		providermodels.ProviderKubernetesVersion
 // @Failure		403				{string}	Forbidden
 // @Failure		400				{object}	rorerror.ErrorData
 // @Failure		401				{string}	Unauthorized
@@ -119,14 +119,14 @@ func GetKubernetesVersionByProvider() gin.HandlerFunc {
 	}
 }
 
-// @Summary	Get kuberntes versions by provider
+// @Summary	Get config parameters by provider
 // @Schemes
-// @Description	Get supported kubernetes versions by provider
+// @Description	Get configuration parameters by provider type
 // @Tags			providers
 // @Accept			application/json
 // @Produce		application/json
 // @Param			providerType	path		string	true	"providerType"
-// @Success		200				{array}		providermodels.Provider
+// @Success		200				{object}	interface{}
 // @Failure		403				{string}	Forbidden
 // @Failure		400				{object}	rorerror.ErrorData
 // @Failure		401				{string}	Unauthorized

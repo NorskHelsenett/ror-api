@@ -33,20 +33,19 @@ func init() {
 
 // TODO: Describe function
 //
-//	@Summary	Get a operator config
+//	@Summary	Get an operator config
 //	@Schemes
-//	@Description	Get a operator config by id
+//	@Description	Get an operator config by id
 //	@Tags			operatorconfigs
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			id				path		string						true	"id"
-//	@Param			operatorconfig	body		apicontracts.OperatorConfig	true	"Get a operator config"
-//	@Success		200				{object}	apicontracts.OperatorConfig
-//	@Failure		403				{string}	Forbidden
-//	@Failure		400				{object}	rorerror.ErrorData
-//	@Failure		401				{object}	rorerror.ErrorData
-//	@Failure		500				{string}	Failure	message
-//	@Router			/v1/operatorconfigs/:id [get]
+//	@Param			id	path		string	true	"id"
+//	@Success		200	{object}	apicontracts.OperatorConfig
+//	@Failure		403	{string}	Forbidden
+//	@Failure		400	{object}	rorerror.ErrorData
+//	@Failure		401	{object}	rorerror.ErrorData
+//	@Failure		500	{string}	Failure	message
+//	@Router			/v1/operatorconfigs/{id} [get]
 //	@Security		ApiKey || AccessToken
 func GetById() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -123,14 +122,14 @@ func GetAll() gin.HandlerFunc {
 
 // TODO: Describe function
 //
-//	@Summary	Create a operator config
+//	@Summary	Create an operator config
 //	@Schemes
-//	@Description	Create a operator config
+//	@Description	Create an operator config
 //	@Tags			operatorconfigs
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			operatorconfig	body		apicontracts.OperatorConfig	true	"Add a operator config"
-//	@Success		200				{array}		apicontracts.OperatorConfig
+//	@Param			operatorconfig	body		apicontracts.OperatorConfig	true	"Add an operator config"
+//	@Success		200				{object}	apicontracts.OperatorConfig
 //	@Failure		403				{string}	Forbidden
 //	@Failure		400				{object}	rorerror.ErrorData
 //	@Failure		401				{object}	rorerror.ErrorData
@@ -188,9 +187,9 @@ func Create() gin.HandlerFunc {
 
 // TODO: Describe function
 //
-//	@Summary	Update a operator config
+//	@Summary	Update an operator config
 //	@Schemes
-//	@Description	Update a operator config by id
+//	@Description	Update an operator config by id
 //	@Tags			operatorconfigs
 //	@Accept			application/json
 //	@Produce		application/json
@@ -201,7 +200,7 @@ func Create() gin.HandlerFunc {
 //	@Failure		400				{object}	rorerror.ErrorData
 //	@Failure		401				{object}	rorerror.ErrorData
 //	@Failure		500				{string}	Failure	message
-//	@Router			/v1/operatorconfigs/:id [put]
+//	@Router			/v1/operatorconfigs/{id} [put]
 //	@Security		ApiKey || AccessToken
 func Update() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -263,19 +262,19 @@ func Update() gin.HandlerFunc {
 
 // TODO: Describe function
 //
-//	@Summary	Delete a operator config
+//	@Summary	Delete an operator config
 //	@Schemes
-//	@Description	Delete a operator config by id
+//	@Description	Delete an operator config by id
 //	@Tags			operatorconfigs
 //	@Accept			application/json
 //	@Produce		application/json
 //	@Param			id	path		string	true	"id"
-//	@Success		200	{bool}		true
+//	@Success		200	{boolean}	true
 //	@Failure		403	{string}	Forbidden
 //	@Failure		400	{object}	rorerror.ErrorData
 //	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
-//	@Router			/v1/operatorconfigs/:id [delete]
+//	@Router			/v1/operatorconfigs/{id} [delete]
 //	@Security		ApiKey || AccessToken
 func Delete() gin.HandlerFunc {
 	return func(c *gin.Context) {
