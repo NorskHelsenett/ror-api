@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/rorresourceowner"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 	"github.com/gin-gonic/gin"
@@ -61,7 +62,8 @@ func ParseGinResourceQuery(c *gin.Context) (*rorresources.ResourceQuery, error) 
 		var refs []rorresourceowner.RorResourceOwnerReference
 		err := json.Unmarshal([]byte(ownerRefs), &refs)
 		if err != nil {
-			return nil, fmt.Errorf("could not parse ownerRefs from query: %w", err)
+			err := fmt.Errorf("could not parse ownerRefs from query: %w", err)
+			return nil, rorerror.NewRorErrorFromError(400, err)
 		}
 
 		rq.OwnerRefs = refs
@@ -105,7 +107,8 @@ func ParseGinResourceQuery(c *gin.Context) (*rorresources.ResourceQuery, error) 
 		var filterList []rorresources.ResourceQueryFilter
 		err := json.Unmarshal([]byte(filters), &filterList)
 		if err != nil {
-			return nil, fmt.Errorf("could not unmarshal filters: %w", err)
+			err := fmt.Errorf("could not unmarshal filters: %w", err)
+			return nil, rorerror.NewRorErrorFromError(400, err)
 		}
 
 		rq.Filters = filterList
@@ -115,7 +118,8 @@ func ParseGinResourceQuery(c *gin.Context) (*rorresources.ResourceQuery, error) 
 	if offset := c.Query("offset"); offset != "" {
 		off, err := strconv.Atoi(offset)
 		if err != nil {
-			return nil, fmt.Errorf("could not parse offset from query: %w", err)
+			err := fmt.Errorf("could not parse offset from query: %w", err)
+			return nil, rorerror.NewRorErrorFromError(400, err)
 		}
 
 		rq.Offset = off
@@ -125,7 +129,8 @@ func ParseGinResourceQuery(c *gin.Context) (*rorresources.ResourceQuery, error) 
 	if limit := c.Query("limit"); limit != "" {
 		lim, err := strconv.Atoi(limit)
 		if err != nil {
-			return nil, fmt.Errorf("could not parse limit from query: %w", err)
+			err := fmt.Errorf("could not parse limit from query: %w", err)
+			return nil, rorerror.NewRorErrorFromError(400, err)
 		}
 
 		rq.Limit = lim
@@ -145,7 +150,8 @@ func ParseGinResourceQuery(c *gin.Context) (*rorresources.ResourceQuery, error) 
 func ParseResourceQueryFromURL(urlStr string) (*rorresources.ResourceQuery, error) {
 	parsedURL, err := url.Parse(urlStr)
 	if err != nil {
-		return nil, err
+		err := fmt.Errorf("could not parse url: %w", err)
+		return nil, rorerror.NewRorErrorFromError(400, err)
 	}
 
 	// Create a mock Gin context with the query parameters
@@ -154,7 +160,5 @@ func ParseResourceQueryFromURL(urlStr string) (*rorresources.ResourceQuery, erro
 		URL: parsedURL,
 	}
 
-	query, err := ParseGinResourceQuery(mockContext)
-
-	return query, err
+	return ParseGinResourceQuery(mockContext)
 }
