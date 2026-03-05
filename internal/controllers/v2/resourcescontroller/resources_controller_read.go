@@ -56,7 +56,12 @@ func GetResources() gin.HandlerFunc {
 			var err error
 			rsQuery, err = ginresourcequeryhandler.ParseGinResourceQuery(c)
 			if err != nil {
-				c.JSON(http.StatusBadRequest, "400: Invalid query")
+				if rorErr, ok := errors.AsType[rorerror.RorError](err); ok {
+					rorginerror.GinHandleErrorAndAbort(c, rorErr.GetStatusCode(), rorErr, rlog.String("error:", rorErr.Error()))
+					return
+				}
+
+				c.JSON(http.StatusBadRequest, "invalid query")
 				return
 			}
 		}
@@ -65,14 +70,14 @@ func GetResources() gin.HandlerFunc {
 			// Decode the base64 query
 			base64Query, err := base64.StdEncoding.DecodeString(c.Query("query"))
 			if err != nil {
-				c.JSON(http.StatusBadRequest, "400: Invalid base64 query")
+				rorginerror.GinHandleErrorAndAbort(c, http.StatusBadRequest, err, rlog.String("error:", err.Error()))
 				return
 			}
 
 			rsQuery = rorresources.NewResourceQuery()
 			err = json.Unmarshal(base64Query, rsQuery)
 			if err != nil {
-				c.JSON(http.StatusBadRequest, "400: Invalid query")
+				rorginerror.GinHandleErrorAndAbort(c, http.StatusBadRequest, err, rlog.String("error:", err.Error()))
 				return
 			}
 		}
