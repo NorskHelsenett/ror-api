@@ -30,7 +30,7 @@ require (
 	go.opentelemetry.io/otel v1.40.0
 	go.uber.org/zap v1.27.1
 	golang.org/x/exp v0.0.0-20251125195548-87e1e737ad39
-	golang.org/x/time v0.14.0
+	golang.org/x/time v0.15.0
 	k8s.io/apimachinery v0.35.2
 	sigs.k8s.io/yaml v1.6.0
 )
