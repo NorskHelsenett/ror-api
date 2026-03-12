@@ -183,8 +183,8 @@ func GetOwnerrefsQueryAcl2ByIdentityAccess(ctx context.Context, access aclmodels
 
 	clusterMatch := bson.M{
 		"$match": bson.M{
-			"scope":   aclmodels.Acl2ScopeCluster,
-			"subject": aclmodels.Acl2Subject(identity.GetId()),
+			"rormeta.ownerref.scope":   aclmodels.Acl2ScopeCluster,
+			"rormeta.ownerref.subject": aclmodels.Acl2Subject(identity.GetId()),
 		},
 	}
 
