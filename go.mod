@@ -26,7 +26,7 @@ require (
 	github.com/swaggo/gin-swagger v1.6.1
 	github.com/swaggo/swag v1.16.6
 	go.mongodb.org/mongo-driver v1.17.9
-	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.65.0
+	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.67.0
 	go.opentelemetry.io/otel v1.42.0
 	go.uber.org/zap v1.27.1
 	golang.org/x/exp v0.0.0-20251125195548-87e1e737ad39
@@ -148,7 +148,7 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/runtime v0.66.0 // indirect
 	go.opentelemetry.io/contrib/propagators/autoprop v0.66.0 // indirect
 	go.opentelemetry.io/contrib/propagators/aws v1.41.0 // indirect
-	go.opentelemetry.io/contrib/propagators/b3 v1.41.0 // indirect
+	go.opentelemetry.io/contrib/propagators/b3 v1.42.0 // indirect
 	go.opentelemetry.io/contrib/propagators/jaeger v1.41.0 // indirect
 	go.opentelemetry.io/contrib/propagators/ot v1.41.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.17.0 // indirect
@@ -161,7 +161,7 @@ require (
 	go.opentelemetry.io/otel/exporters/prometheus v0.64.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdoutlog v0.17.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.41.0 // indirect
-	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.41.0 // indirect
+	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.42.0 // indirect
 	go.opentelemetry.io/otel/log v0.17.0 // indirect
 	go.opentelemetry.io/otel/metric v1.42.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.42.0 // indirect
@@ -173,7 +173,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/arch v0.23.0 // indirect
+	golang.org/x/arch v0.24.0 // indirect
 	golang.org/x/crypto v0.48.0 // indirect
 	golang.org/x/mod v0.33.0 // indirect
 	golang.org/x/net v0.51.0 // indirect
