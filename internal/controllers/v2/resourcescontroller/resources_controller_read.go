@@ -11,11 +11,15 @@ import (
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 )
 
 // Get a list of cluster resources og given group/version/kind.
@@ -49,6 +53,9 @@ func GetResources() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
+		ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "v2.resourcescontroller.GetResources")
+		defer span.End()
+
 		var rsQuery *rorresources.ResourceQuery
 
 		testQuery := c.Query("query") == ""
@@ -56,6 +63,8 @@ func GetResources() gin.HandlerFunc {
 			var err error
 			rsQuery, err = ginresourcequeryhandler.ParseGinResourceQuery(c)
 			if err != nil {
+				span.RecordError(err)
+				span.SetStatus(codes.Error, "invalid query")
 				c.JSON(http.StatusBadRequest, "400: Invalid query")
 				return
 			}
@@ -65,6 +74,8 @@ func GetResources() gin.HandlerFunc {
 			// Decode the base64 query
 			base64Query, err := base64.StdEncoding.DecodeString(c.Query("query"))
 			if err != nil {
+				span.RecordError(err)
+				span.SetStatus(codes.Error, "invalid base64 query")
 				c.JSON(http.StatusBadRequest, "400: Invalid base64 query")
 				return
 			}
@@ -72,16 +83,21 @@ func GetResources() gin.HandlerFunc {
 			rsQuery = rorresources.NewResourceQuery()
 			err = json.Unmarshal(base64Query, rsQuery)
 			if err != nil {
+				span.RecordError(err)
+				span.SetStatus(codes.Error, "invalid query")
 				c.JSON(http.StatusBadRequest, "400: Invalid query")
 				return
 			}
 		}
 		if rsQuery == nil {
+			span.SetStatus(codes.Error, "nil query")
 			c.JSON(http.StatusBadRequest, "400: Invalid query")
 			return
 		}
 
 		if validationErr := validate.Struct(rsQuery); validationErr != nil {
+			span.RecordError(validationErr)
+			span.SetStatus(codes.Error, "query validation failed")
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, validationErr.Error())
 			rerr.GinLogErrorAbort(c)
 			return
@@ -89,6 +105,8 @@ func GetResources() gin.HandlerFunc {
 
 		rsSet, err := resourcesv2service.GetResourceByQuery(ctx, rsQuery)
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "failed to get resources")
 			if rorErr, ok := errors.AsType[rorerror.RorError](err); ok {
 				rorginerror.GinHandleErrorAndAbort(c, rorErr.GetStatusCode(), rorErr, rlog.String("error:", rorErr.Error()))
 				return
@@ -103,6 +121,7 @@ func GetResources() gin.HandlerFunc {
 			return
 		}
 
+		span.SetStatus(codes.Ok, "")
 		c.JSON(http.StatusOK, rsSet)
 	}
 }
@@ -127,16 +146,23 @@ func GetResource() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
+		ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "v2.resourcescontroller.GetResource")
+		defer span.End()
+		span.SetAttributes(attribute.String("resource.uid", c.Param("uid")))
+
 		if c.Param("uid") == "" {
+			span.SetStatus(codes.Error, "missing uid")
 			c.JSON(http.StatusBadRequest, "400: Missing uid")
 			return
 		}
 
 		resources := resourcesv2service.GetResourceByUID(ctx, c.Param("uid"))
 		if resources == nil {
+			span.SetStatus(codes.Error, "resource not found")
 			c.JSON(http.StatusNotFound, "404: Resource not found")
 			return
 		}
+		span.SetStatus(codes.Ok, "")
 		c.JSON(http.StatusOK, resources.GetAll())
 	}
 }

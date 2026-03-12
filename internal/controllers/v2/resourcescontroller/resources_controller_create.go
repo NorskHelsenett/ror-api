@@ -1,15 +1,17 @@
 package resourcescontroller
 
 import (
-	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
 	"github.com/NorskHelsenett/ror-api/internal/models/responses"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
@@ -49,28 +51,36 @@ func NewResource() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
-
+		ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "v2.resourcescontroller.NewResource")
+		defer span.End()
 		var input rorresources.ResourceSet
 
 		//validate the request body
 		if err := c.BindJSON(&input); err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "failed to bind JSON")
 			rlog.Error("error binding json", err)
 			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
 			return
 		}
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&input); validationErr != nil {
+			span.RecordError(validationErr)
+			span.SetStatus(codes.Error, "validation failed")
 			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": validationErr.Error()}})
 			return
 		}
+		span.AddEvent("request validated")
+
 		rs := rorresources.NewResourceSetFromStruct(input)
-		start := time.Now()
+		span.SetAttributes(attribute.Int("resources.count", len(rs.Resources)))
 
 		returnChannel := make(chan rorresources.ResourceUpdateResults, len(rs.Resources))
 
 		returnArray := rorresources.ResourceUpdateResults{}
 		returnArray.Results = make(map[string]rorresources.ResourceUpdateResult, len(rs.Resources))
 
+		span.AddEvent("processing started")
 		for _, resource := range rs.Resources {
 			go func(res *rorresources.Resource, returnChan chan rorresources.ResourceUpdateResults) {
 				returnChannel <- resourcesv2service.HandleResourceUpdate(ctx, res)
@@ -83,10 +93,12 @@ func NewResource() gin.HandlerFunc {
 				returnArray.Results[key] = result
 			}
 		}
-		rlog.Debug(fmt.Sprintf("%d resources changed in %s", len(rs.Resources), time.Since(start)))
+		span.AddEvent("processing complete")
+
 		resourcesProcessed.Add(float64(len(rs.Resources)))
 		resourcesRequests.Inc()
 
+		span.SetStatus(codes.Ok, "")
 		c.JSON(http.StatusCreated, returnArray)
 	}
 }

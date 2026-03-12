@@ -19,7 +19,11 @@ func init() {
 // Implement the ListViewGenerator interface for clusterlistgenerator
 func (g *clusterlistgenerator) GenerateView(ctx context.Context, opts ...ViewGeneratorsOption) (apiview.View, error) {
 	// Placeholder implementation
-	return apiview.View{}, nil
+	return apiview.View{
+		Type:    ClusterListView,
+		Columns: createClusterListHeaders(ctx, opts...),
+		Rows:    createClusterListData(ctx, opts...),
+	}, nil
 }
 
 func (g *clusterlistgenerator) GetMetadata() apiview.ViewMetadata {

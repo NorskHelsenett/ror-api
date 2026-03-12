@@ -11,12 +11,16 @@ import (
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/rorresourceowner"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 )
 
 var (
@@ -52,19 +56,26 @@ func ExistsResources() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
+		ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "v2.resourcescontroller.ExistsResources")
+		defer span.End()
+		span.SetAttributes(attribute.String("resource.uid", c.Param("uid")))
+
 		if c.Param("uid") == "" {
+			span.SetStatus(codes.Error, "missing uid")
 			c.JSON(http.StatusBadRequest, "empty uid")
 			return
 		}
 
 		resources := resourcesv2service.GetResourceByUID(ctx, c.Param("uid"))
 		if resources == nil {
+			span.SetStatus(codes.Error, "resource not found")
 			c.Status(http.StatusNotFound)
 			return
 		}
 
 		// Validate that the correct uid is provided
 		if len(resources.Resources) != 1 {
+			span.SetStatus(codes.Error, "unexpected number of resources")
 			c.JSON(http.StatusNotImplemented, "501: Wrong number of resources found")
 			return
 		}
@@ -72,6 +83,7 @@ func ExistsResources() gin.HandlerFunc {
 		resource := resources.Resources[0]
 
 		if c.Param("uid") != resource.GetUID() {
+			span.SetStatus(codes.Error, "uid mismatch")
 			c.JSON(http.StatusBadRequest, "400: Wrong resource found")
 			return
 		}
@@ -82,14 +94,17 @@ func ExistsResources() gin.HandlerFunc {
 		// Access: Read
 		accessModel := aclservice.CheckAccessByRorOwnerref(ctx, resource.GetRorMeta().Ownerref)
 		if !accessModel.Read {
+			span.SetStatus(codes.Error, "access denied")
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
 
 		if resources.Len() == 1 {
+			span.SetStatus(codes.Ok, "")
 			c.Status(http.StatusNoContent)
 			return
 		} else {
+			span.SetStatus(codes.Error, "resource not found")
 			c.Status(http.StatusNotFound)
 			return
 		}
@@ -118,6 +133,13 @@ func GetResourceHashList() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
+		ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "v2.resourcescontroller.GetResourceHashList")
+		defer span.End()
+		span.SetAttributes(
+			attribute.String("owner.scope", c.Query("ownerScope")),
+			attribute.String("owner.subject", c.Query("ownerSubject")),
+		)
+
 		resourceOwner := rorresourceowner.RorResourceOwnerReference{
 			Scope:   aclmodels.Acl2Scope(c.Query("ownerScope")),
 			Subject: aclmodels.Acl2Subject(c.Query("ownerSubject")),
@@ -129,17 +151,21 @@ func GetResourceHashList() gin.HandlerFunc {
 		// Access: update
 		accessObject := aclservice.CheckAccessByRorOwnerref(ctx, resourceOwner)
 		if !accessObject.Update {
+			span.SetStatus(codes.Error, "access denied")
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
 
 		hashList, err := resourcesv2service.ResourceGetHashlist(ctx, resourceOwner)
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "failed to get hash list")
 			rlog.Error("Error getting resource hash list:", err)
 			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
 			return
 		}
 
+		span.SetStatus(codes.Ok, "")
 		c.JSON(http.StatusOK, hashList)
 	}
 }

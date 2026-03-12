@@ -20,7 +20,7 @@ func init() {
 func (g *kubernetesversionchartmock) GenerateView(ctx context.Context, opts ...ViewGeneratorsOption) (apiview.View, error) {
 	// Placeholder implementation
 	return apiview.View{
-		Type:    apiview.ViewTypeList,
+		Type:    apiview.ViewTypeChart,
 		Columns: createKubernetesVersionMockHeders(),
 		Rows:    createKubernetesVersionMockData(),
 	}, nil
@@ -58,32 +58,26 @@ func createKubernetesVersionMockHeders() []apiview.ViewColumn {
 func createKubernetesVersionMockData() []apiview.ViewRow {
 	return []apiview.ViewRow{
 		{
-			{
-				FieldName:  "version",
+			"version": {
 				FieldValue: "v1.28.4",
 			},
-			{
-				FieldName:  "count",
+			"count": {
 				FieldValue: "5",
 			},
 		},
 		{
-			{
-				FieldName:  "version",
+			"version": {
 				FieldValue: "v1.32.4",
 			},
-			{
-				FieldName:  "count",
+			"count": {
 				FieldValue: "75",
 			},
 		},
 		{
-			{
-				FieldName:  "version",
+			"version": {
 				FieldValue: "v1.35.1",
 			},
-			{
-				FieldName:  "count",
+			"count": {
 				FieldValue: "15",
 			},
 		},
