@@ -16,6 +16,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 )
 
 // Update a cluster resource of given group/version/kind/uid.
@@ -39,39 +41,40 @@ func UpdateResource() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Resource update controller")
+		ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "v2.resourcescontroller.UpdateResource")
 		defer span.End()
-		var input apiresourcecontracts.ResourceUpdateModel
+		span.SetAttributes(attribute.String("resource.uid", c.Param("uid")))
 
-		_, span1 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Validate request")
-		defer span1.End()
+		var input apiresourcecontracts.ResourceUpdateModel
 
 		//validate the request body
 		if err := c.BindJSON(&input); err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "failed to bind JSON")
 			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
 			return
 		}
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&input); validationErr != nil {
+			span.RecordError(validationErr)
+			span.SetStatus(codes.Error, "validation failed")
 			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": validationErr.Error()}})
 			return
 		}
 
 		// Validate that the correct uid is provided
 		if input.Uid != c.Param("uid") {
+			span.SetStatus(codes.Error, "uid mismatch")
 			c.JSON(http.StatusNotImplemented, "501: Wrong uid")
 			return
 		}
-
-		span1.AddEvent("Request validated")
-		span1.End()
-		_, span2 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Check access")
-		defer span2.End()
+		span.AddEvent("request validated")
 
 		scope := aclmodels.Acl2Scope(input.Owner.Scope)
 		subject := input.Owner.Subject
 
 		if subject == "" || scope == "" {
+			span.SetStatus(codes.Error, "missing owner scope or subject")
 			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": "owner scope and subject must be set"}})
 			return
 		}
@@ -82,27 +85,22 @@ func UpdateResource() gin.HandlerFunc {
 		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(scope, subject)
 		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
 		if !accessObject.Update {
+			span.SetStatus(codes.Error, "access denied")
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
-
-		span2.AddEvent("Access checked")
-		span2.End()
-		_, span3 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Run service: resourceservice.ResourceNewCreateService")
-		defer span3.End()
+		span.AddEvent("access checked")
 
 		err := resourcesservice.ResourceNewCreateService(ctx, input)
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "service failed")
 			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
 			return
 		}
 
-		span3.AddEvent("Resource updated")
-		span3.End()
-		_, span4 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Return response")
-		defer span4.End()
-
+		span.AddEvent("resource updated")
+		span.SetStatus(codes.Ok, "")
 		c.JSON(http.StatusCreated, nil)
-
 	}
 }

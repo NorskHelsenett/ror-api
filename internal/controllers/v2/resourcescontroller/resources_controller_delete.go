@@ -8,8 +8,12 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/models/responses"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 )
 
 // Delete a cluster resource of given group/version/kind by uid.
@@ -32,15 +36,21 @@ func DeleteResource() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
+		ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "v2.resourcescontroller.DeleteResource")
+		defer span.End()
+		span.SetAttributes(attribute.String("resource.uid", c.Param("uid")))
+
 		resources := resourcesv2service.GetResourceByUID(ctx, c.Param("uid"))
 
 		if resources == nil {
+			span.SetStatus(codes.Error, "resource not found")
 			c.JSON(http.StatusNotFound, "404: Resource not found")
 			return
 		}
 
 		// Validate that the correct uid is provided
 		if len(resources.Resources) != 1 {
+			span.SetStatus(codes.Error, "unexpected number of resources")
 			c.JSON(http.StatusNotImplemented, "501: Wrong number of resources found")
 			return
 		}
@@ -48,6 +58,7 @@ func DeleteResource() gin.HandlerFunc {
 		resource := resources.Resources[0]
 
 		if c.Param("uid") != resource.GetUID() {
+			span.SetStatus(codes.Error, "uid mismatch")
 			c.JSON(http.StatusBadRequest, "400: Wrong resource found")
 			return
 		}
@@ -58,12 +69,15 @@ func DeleteResource() gin.HandlerFunc {
 		// Access: update
 		accessModel := aclservice.CheckAccessByRorOwnerref(ctx, resource.GetRorMeta().Ownerref)
 		if !accessModel.Update {
+			span.SetStatus(codes.Error, "access denied")
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
 
 		err := resourcesv2service.DeleteResource(ctx, resource)
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "delete failed")
 			c.JSON(
 				http.StatusInternalServerError,
 				responses.Cluster{
@@ -83,6 +97,7 @@ func DeleteResource() gin.HandlerFunc {
 			},
 		}
 
+		span.SetStatus(codes.Ok, "")
 		c.JSON(http.StatusOK, res)
 	}
 }
