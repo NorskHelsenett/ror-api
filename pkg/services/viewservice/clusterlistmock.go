@@ -3,7 +3,10 @@ package viewservice
 import (
 	"context"
 
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/v2/apiview"
+	"github.com/NorskHelsenett/ror/pkg/rorresources"
+	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
 )
 
 type clusterlistmockgenerator struct{}
@@ -21,7 +24,7 @@ func (g *clusterlistmockgenerator) GenerateView(ctx context.Context, opts ...Vie
 	// Placeholder implementation
 	return apiview.View{
 		Type:    apiview.ViewTypeList,
-		Columns: createMockHeders(),
+		Columns: createClusterListHeaders(ctx, opts...),
 		Rows:    []apiview.ViewRow{},
 	}, nil
 }
@@ -36,42 +39,43 @@ func (g *clusterlistmockgenerator) GetMetadata() apiview.ViewMetadata {
 	}
 }
 
-func createMockHeders() []apiview.ViewColumn {
+// BFF4EVAH
+func createClusterListHeaders(_ context.Context, _ ...ViewGeneratorsOption) []apiview.ViewColumn {
 	return []apiview.ViewColumn{
 		{
-			Name:        "id",
+			Name:        "clusterId",
 			Description: "The unique identifier of the cluster",
 			Default:     true,
 			Order:       1,
 			Type:        apiview.ViewFieldTypeString,
 		},
 		{
-			Name:        "name",
+			Name:        "clusterName",
 			Description: "The name of the cluster",
 			Default:     true,
 			Order:       2,
 			Type:        apiview.ViewFieldTypeString,
 		},
 		{
-			Name:        "status",
-			Description: "The status of the cluster",
+			Name:        "provider",
+			Description: "The provider of the cluster",
 			Default:     true,
 			Order:       3,
 			Type:        apiview.ViewFieldTypeString,
 		},
 		{
-			Name:        "createdAt",
-			Description: "The creation date of the cluster",
+			Name:        "availabilityZone",
+			Description: "The az of the cluster",
 			Default:     true,
 			Order:       4,
-			Type:        apiview.ViewFieldTypeDateTime,
+			Type:        apiview.ViewFieldTypeString,
 		},
 		{
-			Name:        "updatedAt",
-			Description: "The last update date of the cluster",
+			Name:        "country",
+			Description: "The country where the cluster is located",
 			Default:     true,
 			Order:       4,
-			Type:        apiview.ViewFieldTypeDateTime,
+			Type:        apiview.ViewFieldTypeString,
 		},
 		{
 			Name:        "region",
@@ -81,18 +85,152 @@ func createMockHeders() []apiview.ViewColumn {
 			Type:        apiview.ViewFieldTypeString,
 		},
 		{
-			Name:        "nodeCount",
-			Description: "The number of nodes in the cluster",
+			Name:        "workspace",
+			Description: "Workspace of the cluster",
 			Default:     true,
 			Order:       7,
-			Type:        apiview.ViewFieldTypeNumber,
+			Type:        apiview.ViewFieldTypeString,
 		},
 		{
-			Name:        "owner",
-			Description: "The owner of the cluster",
-			Default:     false,
+			Name:        "environment",
+			Description: "The environment of the cluster",
+			Default:     true,
 			Order:       8,
 			Type:        apiview.ViewFieldTypeString,
 		},
+		{
+			Name:        "resoures",
+			Description: "The resources of the cluster",
+			Default:     true,
+			Order:       9,
+			Type:        apiview.ViewFieldTypeObject,
+		},
+		{
+			Name:        "nodes",
+			Description: "The number of nodes in the cluster",
+			Default:     true,
+			Order:       10,
+			Type:        apiview.ViewFieldTypeNumber,
+		},
+		{
+			Name:        "nodePools",
+			Description: "The number of nodepools in the cluster",
+			Default:     true,
+			Order:       11,
+			Type:        apiview.ViewFieldTypeNumber,
+		},
+		{
+			Name:        "priceMonth",
+			Description: "The price of the cluster per month",
+			Default:     true,
+			Order:       12,
+			Type:        apiview.ViewFieldTypeNumber,
+		},
+		{
+			Name:        "priceYear",
+			Description: "The price of the cluster per year",
+			Default:     true,
+			Order:       13,
+			Type:        apiview.ViewFieldTypeNumber,
+		},
+		{
+			Name:        "ArgocdURL",
+			Description: "The URL to the ArgoCD instance for the cluster",
+			Default:     true,
+			Order:       14,
+			Type:        apiview.ViewFieldTypeString,
+		},
+		{
+			Name:        "grafanaURL",
+			Description: "The URL to the Grafana instance for the cluster",
+			Default:     true,
+			Order:       15,
+			Type:        apiview.ViewFieldTypeString,
+		},
+		{
+			Name:        "rorAgentVersion",
+			Description: "The version of the ROR agent running on the cluster",
+			Default:     true,
+			Order:       16,
+			Type:        apiview.ViewFieldTypeString,
+		},
+		{
+			Name:        "kubernetesVersion",
+			Description: "The version of Kubernetes running on the cluster",
+			Default:     true,
+			Order:       17,
+			Type:        apiview.ViewFieldTypeString,
+		},
+		{
+			Name:        "nhnToolVersion",
+			Description: "The version of the NHN tooling in the cluster",
+			Default:     true,
+			Order:       18,
+			Type:        apiview.ViewFieldTypeString,
+		},
+		{
+			Name:        "serviceID",
+			Description: "The service ID of the cluster",
+			Default:     true,
+			Order:       19,
+			Type:        apiview.ViewFieldTypeString,
+		},
+		{
+			Name:        "tags",
+			Description: "The tags of the cluster",
+			Default:     true,
+			Order:       20,
+			Type:        apiview.ViewFieldTypeObject,
+		},
+		{
+			Name:        "status",
+			Description: "The status of the cluster",
+			Default:     true,
+			Order:       21,
+			Type:        apiview.ViewFieldTypeString,
+		},
+		{
+			Name:        "created",
+			Description: "The date the cluster was created",
+			Default:     true,
+			Order:       22,
+			Type:        apiview.ViewFieldTypeDateTime,
+		},
+		{
+			Name:        "lastSeen",
+			Description: "The last time the cluster was seen",
+			Default:     true,
+			Order:       23,
+			Type:        apiview.ViewFieldTypeDateTime,
+		},
 	}
+}
+
+func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []apiview.ViewRow {
+
+	resourcesService, _ := resourcesv2service.GetResourceByQuery(ctx, &rorresources.ResourceQuery{
+		VersionKind: rortypes.ResourceKubernetesClusterGVK,
+	},
+	)
+	if resourcesService == nil {
+		return []apiview.ViewRow{}
+	}
+	ret := make([]apiview.ViewRow, 0, len(resourcesService.Resources))
+	for _, resource := range resourcesService.Resources {
+		cluster := resource.KubernetesClusterResource
+
+		row := apiview.ViewRow{
+			"clusterId": {
+				FieldValue: resource.GetUID(),
+			},
+			"clusterName": {
+				FieldValue: resource.GetName(),
+			},
+			"provider": {
+				FieldValue: cluster.Spec.VitiSpec.Cluster.Provider,
+			},
+		}
+		ret = append(ret, row)
+	}
+	return ret
 }
