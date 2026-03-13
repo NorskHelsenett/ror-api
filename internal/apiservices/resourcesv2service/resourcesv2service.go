@@ -189,8 +189,9 @@ func GetResourceByUID(ctx context.Context, uid string) *rorresources.ResourceSet
 	if returnrs == nil {
 		return nil
 	}
-	if time.Since(querystart) > slowQueryDuration {
-		rlog.Warn("Slow query detected in GetResourceByUID", rlog.String("uid", uid), rlog.Any("duration", time.Since(querystart)))
+	duration := time.Since(querystart)
+	if duration > slowQueryDuration {
+		rlog.Warn("Slow query detected in GetResourceByUID", rlog.String("uid", uid), rlog.Any("duration", duration))
 	}
 	//cache.Set(ctx, returnrs.Resources[0])
 
