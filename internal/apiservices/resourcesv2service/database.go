@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
+	mongohelper "github.com/NorskHelsenett/ror-api/internal/helpers/mongoHelper"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
@@ -55,10 +57,14 @@ func (r *ResourceMongoDB) Get(ctx context.Context, rorResourceQuery *rorresource
 		return nil, err
 	}
 	var resources = make([]rorresources.Resource, 0)
+	queryStart := time.Now()
 	err = r.db.Aggregate(ctx, RESOURCECOLLECTION, query, &resources)
 	if err != nil {
 		err := fmt.Errorf("could not execute aggregate query: %w", err)
 		return nil, rorerror.NewRorErrorFromError(500, err)
+	}
+	if time.Since(queryStart) > slowQueryDuration*2 {
+		rlog.Warn("Slow query detected in ResourceMongoDB.Get", rlog.Any("query", query), rlog.Any("duration", time.Since(queryStart)))
 	}
 	resourceSet := rorresources.NewResourceSet()
 	if len(resources) > 0 {
@@ -95,7 +101,7 @@ func (r *ResourceMongoDB) GetHashlistByQuery(ctx context.Context, rorResourceQue
 
 	//mongodb.NewMongodbQuery(query).PrettyPrint()
 	mongodb.NewMongodbQuery(query).MongoshPrint(RESOURCECOLLECTION)
-
+	mongohelper.PrettyprintBSON(query)
 	hashItems := []apiresourcecontracts.HashItem{}
 	err = r.db.Aggregate(ctx, RESOURCECOLLECTION, query, &hashItems)
 	if err != nil {
@@ -120,6 +126,7 @@ func GenerateAggregateQuery(ctx context.Context, rorResourceQuery *rorresources.
 	// Add filters
 	if !rorResourceQuery.VersionKind.Empty() {
 		apiversion, kind := rorResourceQuery.VersionKind.ToAPIVersionAndKind()
+
 		if apiversion != "" {
 			match["typemeta.apiversion"] = apiversion
 		}
@@ -216,6 +223,7 @@ func GenerateAggregateQuery(ctx context.Context, rorResourceQuery *rorresources.
 	if effectiveLimit != -1 {
 		query = append(query, bson.M{"$limit": effectiveLimit})
 	}
+	mongohelper.PrettyprintBSON(query)
 	return query, nil
 }
 

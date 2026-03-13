@@ -21,8 +21,9 @@ import (
 )
 
 var (
-	getTimeout = 500 * time.Millisecond
-	setTimeout = 1000 * time.Millisecond
+	slowQueryDuration = 500 * time.Millisecond
+	getTimeout        = 5000 * time.Millisecond
+	setTimeout        = 10000 * time.Millisecond
 )
 
 func HandleResourceUpdate(ctx context.Context, resource *rorresources.Resource) rorresources.ResourceUpdateResults {
@@ -131,7 +132,6 @@ func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) r
 
 func GetResourceByUID(ctx context.Context, uid string) *rorresources.ResourceSet {
 	var returnrs *rorresources.ResourceSet
-	start := time.Now()
 	//cache := GetResourceCache()
 	//resource := cache.Get(ctx, uid)
 	// if resource != nil {
@@ -143,7 +143,9 @@ func GetResourceByUID(ctx context.Context, uid string) *rorresources.ResourceSet
 	mongoCtx, cancel := context.WithTimeout(ctx, getTimeout)
 	defer cancel()
 	var err error
-	returnrs, err = databaseHelpers.Get(mongoCtx, rorresources.NewResourceQuery().WithUID(uid))
+	query := rorresources.NewResourceQuery().WithUID(uid)
+	querystart := time.Now()
+	returnrs, err = databaseHelpers.Get(mongoCtx, query)
 	if err != nil {
 		rlog.Error("Could not get resource by uid", err, rlog.String("uid", uid), rlog.Any("error", err))
 		return nil
@@ -151,9 +153,11 @@ func GetResourceByUID(ctx context.Context, uid string) *rorresources.ResourceSet
 	if returnrs == nil {
 		return nil
 	}
+	if time.Since(querystart) > slowQueryDuration {
+		rlog.Warn("Slow query detected in GetResourceByUID", rlog.String("uid", uid), rlog.Any("duration", time.Since(querystart)))
+	}
 	//cache.Set(ctx, returnrs.Resources[0])
 
-	rlog.Debug("Resource found in database", rlog.String("uid", uid), rlog.Any("duration", time.Since(start)))
 	// }
 
 	// Access check
@@ -193,17 +197,19 @@ func DeleteResource(ctx context.Context, resource *rorresources.Resource) error 
 }
 
 func GetResourceByQuery(ctx context.Context, query *rorresources.ResourceQuery) (*rorresources.ResourceSet, error) {
-	start := time.Now()
+
 	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
 	mongoCtx, cancel := context.WithTimeout(ctx, getTimeout)
 	defer cancel()
-
+	queryStart := time.Now()
 	rs, err := databaseHelpers.Get(mongoCtx, query)
 	if err != nil {
 		rlog.Error("Could not get resource by query", err, rlog.Any("error", err))
 		return nil, fmt.Errorf("could not get resource by query: %w", err)
 	}
-
+	if time.Since(queryStart) > slowQueryDuration {
+		rlog.Warn("Slow query detected in GetResourceByQuery", rlog.Any("query", query), rlog.Any("duration", time.Since(queryStart)))
+	}
 	if rs == nil {
 		return nil, nil
 	}
@@ -231,7 +237,6 @@ func GetResourceByQuery(ctx context.Context, query *rorresources.ResourceQuery) 
 			checkedOwnerRef[resource.GetRorMeta().Ownerref.String()] = -1
 		}
 	}
-	rlog.Debug("Resource found in database", rlog.Any("number", len(rs.Resources)), rlog.Any("duration", time.Since(start)))
 	return returnrs, nil
 }
 
