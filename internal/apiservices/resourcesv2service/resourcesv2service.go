@@ -178,7 +178,7 @@ func GetResourceByUID(ctx context.Context, uid string) *rorresources.ResourceSet
 	defer cancel()
 	var err error
 	query := rorresources.NewResourceQuery().WithUID(uid)
-	querystart := time.Now()
+	queryStart := time.Now()
 	returnrs, err = databaseHelpers.Get(mongoCtx, query)
 	if err != nil {
 		span.RecordError(err)
@@ -189,7 +189,7 @@ func GetResourceByUID(ctx context.Context, uid string) *rorresources.ResourceSet
 	if returnrs == nil {
 		return nil
 	}
-	duration := time.Since(querystart)
+	duration := time.Since(queryStart)
 	if duration > slowQueryDuration {
 		rlog.Warn("Slow query detected in GetResourceByUID", rlog.String("uid", uid), rlog.Any("duration", duration))
 	}
