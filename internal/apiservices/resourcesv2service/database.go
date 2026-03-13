@@ -7,7 +7,6 @@ import (
 	"time"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
-	mongohelper "github.com/NorskHelsenett/ror-api/internal/helpers/mongoHelper"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
@@ -101,7 +100,6 @@ func (r *ResourceMongoDB) GetHashlistByQuery(ctx context.Context, rorResourceQue
 
 	//mongodb.NewMongodbQuery(query).PrettyPrint()
 	mongodb.NewMongodbQuery(query).MongoshPrint(RESOURCECOLLECTION)
-	mongohelper.PrettyprintBSON(query)
 	hashItems := []apiresourcecontracts.HashItem{}
 	err = r.db.Aggregate(ctx, RESOURCECOLLECTION, query, &hashItems)
 	if err != nil {
@@ -223,7 +221,6 @@ func GenerateAggregateQuery(ctx context.Context, rorResourceQuery *rorresources.
 	if effectiveLimit != -1 {
 		query = append(query, bson.M{"$limit": effectiveLimit})
 	}
-	mongohelper.PrettyprintBSON(query)
 	return query, nil
 }
 
