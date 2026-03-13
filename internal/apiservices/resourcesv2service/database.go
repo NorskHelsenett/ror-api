@@ -2,6 +2,7 @@ package resourcesv2service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -59,6 +60,10 @@ func (r *ResourceMongoDB) Get(ctx context.Context, rorResourceQuery *rorresource
 	queryStart := time.Now()
 	err = r.db.Aggregate(ctx, RESOURCECOLLECTION, query, &resources)
 	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			rlog.Errorc(ctx, "Query timed out in ResourceMongoDB.Get", err, rlog.Any("query", query))
+			return nil, fmt.Errorf("query timed out: %w", err)
+		}
 		err := fmt.Errorf("could not execute aggregate query: %w", err)
 		return nil, rorerror.NewRorErrorFromError(500, err)
 	}

@@ -26,8 +26,8 @@ import (
 )
 
 var (
-	slowQueryDuration = 500 * time.Millisecond
-	getTimeout        = 5000 * time.Millisecond
+	slowQueryDuration = 1000 * time.Millisecond
+	getTimeout        = 10000 * time.Millisecond
 	setTimeout        = 10000 * time.Millisecond
 )
 
