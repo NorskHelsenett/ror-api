@@ -9,10 +9,12 @@ import (
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
+	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
+	"github.com/NorskHelsenett/ror/pkg/rorresources/rordefs"
 	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
@@ -98,13 +100,21 @@ func (r *ResourceMongoDB) GetHashlistByQuery(ctx context.Context, rorResourceQue
 		return hashList, err
 	}
 
+	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	if identity.IsCluster() {
+		agentResources := rordefs.Resourcedefs.GetResourcesByType(rordefs.ApiResourceTypeAgent)
+		apikindquery := bson.M{"$or": []bson.M{}}
+		for _, res := range agentResources {
+			apikindquery["$or"] = append(apikindquery["$or"].([]bson.M), bson.M{"typemeta.apiversion": res.GetApiVersion(), "typemeta.kind": res.GetKind()})
+		}
+		query = append(query, bson.M{"$match": apikindquery})
+	}
+
 	project := bson.M{}
 	project["hash"] = "$rormeta.hash"
 	project["uid"] = "$metadata.uid"
 	query = append(query, bson.M{"$project": project})
 
-	//mongodb.NewMongodbQuery(query).PrettyPrint()
-	//mongodb.NewMongodbQuery(query).MongoshPrint(RESOURCECOLLECTION)
 	hashItems := []apiresourcecontracts.HashItem{}
 	err = r.db.Aggregate(ctx, RESOURCECOLLECTION, query, &hashItems)
 	if err != nil {
