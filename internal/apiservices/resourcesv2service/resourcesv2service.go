@@ -21,8 +21,9 @@ import (
 )
 
 var (
-	getTimeout = 500 * time.Millisecond
-	setTimeout = 1000 * time.Millisecond
+	slowQueryDuration = 1000 * time.Millisecond
+	getTimeout        = 10000 * time.Millisecond
+	setTimeout        = 10000 * time.Millisecond
 )
 
 func HandleResourceUpdate(ctx context.Context, resource *rorresources.Resource) rorresources.ResourceUpdateResults {
