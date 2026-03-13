@@ -99,7 +99,7 @@ func (r *ResourceMongoDB) GetHashlistByQuery(ctx context.Context, rorResourceQue
 	query = append(query, bson.M{"$project": project})
 
 	//mongodb.NewMongodbQuery(query).PrettyPrint()
-	mongodb.NewMongodbQuery(query).MongoshPrint(RESOURCECOLLECTION)
+	//mongodb.NewMongodbQuery(query).MongoshPrint(RESOURCECOLLECTION)
 	hashItems := []apiresourcecontracts.HashItem{}
 	err = r.db.Aggregate(ctx, RESOURCECOLLECTION, query, &hashItems)
 	if err != nil {
