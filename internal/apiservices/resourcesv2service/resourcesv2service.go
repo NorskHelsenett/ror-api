@@ -265,8 +265,8 @@ func GetResourceByQuery(ctx context.Context, query *rorresources.ResourceQuery) 
 		rlog.Error("Could not get resource by query", err, rlog.Any("error", err))
 		return nil, fmt.Errorf("could not get resource by query: %w", err)
 	}
-	if time.Since(queryStart) > slowQueryDuration {
-		rlog.Warn("Slow query detected in GetResourceByQuery", rlog.Any("query", query), rlog.Any("duration", time.Since(queryStart)))
+	if elapsed := time.Since(queryStart); elapsed > slowQueryDuration {
+		rlog.Warn("Slow query detected in GetResourceByQuery", rlog.Any("duration", elapsed))
 	}
 	if rs == nil {
 		return nil, nil
