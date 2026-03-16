@@ -195,10 +195,17 @@ func GetByName(ctx context.Context, workspaceName string) (*apicontracts.Workspa
 	workspaceIds := make([]string, 0)
 	for i := 0; i < len(clusterPrimitivMap); i++ {
 		c := clusterPrimitivMap[i]
-		workspace := c["workspace"].(bson.M)
-
-		id := workspace["_id"].(bson.ObjectID)
-		workspaceIds = append(workspaceIds, id.Hex())
+		wsDoc, ok := c["workspace"].(bson.D)
+		if !ok {
+			continue
+		}
+		for _, elem := range wsDoc {
+			if elem.Key == "_id" {
+				id := elem.Value.(bson.ObjectID)
+				workspaceIds = append(workspaceIds, id.Hex())
+				break
+			}
+		}
 	}
 
 	for k := 0; k < len(workspaceIds); k++ {
