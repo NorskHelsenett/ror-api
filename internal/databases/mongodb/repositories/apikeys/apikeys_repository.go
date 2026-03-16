@@ -16,8 +16,7 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 const (
@@ -75,7 +74,7 @@ func UpdateByNameAndIdentifier(ctx context.Context, identifier string, name stri
 		return fmt.Errorf("failed to query existing apikey: %v", err)
 	}
 
-	objectId, err := primitive.ObjectIDFromHex(existing.Id)
+	objectId, err := bson.ObjectIDFromHex(existing.Id)
 	if err != nil {
 		return err
 	}
@@ -121,7 +120,7 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) ([]apicontrac
 
 func Delete(ctx context.Context, ID string) (bool, apicontracts.ApiKey, error) {
 	var originalObject apicontracts.ApiKey
-	mongoID, err := primitive.ObjectIDFromHex(ID)
+	mongoID, err := bson.ObjectIDFromHex(ID)
 	if err != nil {
 		return false, originalObject, fmt.Errorf("could not convert ID: %v", err)
 	}
@@ -158,7 +157,7 @@ func Create(ctx context.Context, input apicontracts.ApiKey) error {
 }
 
 func UpdateLastUsed(ctx context.Context, apikeyId string, identifier string) error {
-	mongoID, err := primitive.ObjectIDFromHex(apikeyId)
+	mongoID, err := bson.ObjectIDFromHex(apikeyId)
 	if err != nil {
 		return fmt.Errorf("could not convert ID: %v", err)
 	}

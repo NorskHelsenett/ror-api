@@ -15,14 +15,13 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 func GetById(ctx context.Context, Id string) (*aclmodels.AclV2ListItem, error) {
 	db := mongodb.GetMongoDb()
-	id, err := primitive.ObjectIDFromHex(Id)
+	id, err := bson.ObjectIDFromHex(Id)
 	if err != nil {
 		return nil, fmt.Errorf("invalid id: %v", err)
 	}
@@ -98,7 +97,7 @@ func Create(ctx context.Context, aclModel *aclmodels.AclV2ListItem) (*aclmodels.
 
 func Update(ctx context.Context, aclId string, aclModel *aclmodels.AclV2ListItem) (*aclmodels.AclV2ListItem, *aclmodels.AclV2ListItem, error) {
 	db := mongodb.GetMongoDb()
-	mongoId, err := primitive.ObjectIDFromHex(aclId)
+	mongoId, err := bson.ObjectIDFromHex(aclId)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not convert ID: %v", err)
 	}
@@ -143,7 +142,7 @@ func Update(ctx context.Context, aclId string, aclModel *aclmodels.AclV2ListItem
 
 func Delete(ctx context.Context, id string) (bool, *aclmodels.AclV2ListItem, error) {
 	db := mongodb.GetMongoDb()
-	mongoId, err := primitive.ObjectIDFromHex(id)
+	mongoId, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return false, nil, fmt.Errorf("could not convert ID: %v", err)
 	}

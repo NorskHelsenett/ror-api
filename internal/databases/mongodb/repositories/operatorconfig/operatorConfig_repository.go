@@ -16,9 +16,8 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 const (
@@ -142,7 +141,7 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 
 func GetById(ctx context.Context, operatorConfigId string) (*apicontracts.OperatorConfig, error) {
 	db := mongodb.GetMongoDb()
-	id, err := primitive.ObjectIDFromHex(operatorConfigId)
+	id, err := bson.ObjectIDFromHex(operatorConfigId)
 	if err != nil {
 		return nil, fmt.Errorf("invalid operator config id: %v", err)
 	}
@@ -230,7 +229,7 @@ func GetAll(ctx context.Context) (*[]apicontracts.OperatorConfig, error) {
 
 func Update(ctx context.Context, id string, input mongoTypes.MongoOperatorConfig) (*mongoTypes.MongoOperatorConfig, *mongoTypes.MongoOperatorConfig, error) {
 	db := mongodb.GetMongoDb()
-	mongoID, err := primitive.ObjectIDFromHex(id)
+	mongoID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not convert operatorConfigId: %v", err)
 	}
@@ -265,7 +264,7 @@ func Update(ctx context.Context, id string, input mongoTypes.MongoOperatorConfig
 
 func Delete(ctx context.Context, id string) (bool, error) {
 	db := mongodb.GetMongoDb()
-	mongoID, err := primitive.ObjectIDFromHex(id)
+	mongoID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return false, fmt.Errorf("could not convert string id to mongoid: %v", err)
 	}

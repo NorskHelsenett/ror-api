@@ -22,7 +22,7 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
 
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	"github.com/NorskHelsenett/ror-api/internal/auditlog"
 	"github.com/NorskHelsenett/ror-api/internal/models"
@@ -36,8 +36,8 @@ import (
 
 	"go.opentelemetry.io/otel"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func GetByClusterId(ctx context.Context, clusterId string) (*apicontracts.Cluster, error) {

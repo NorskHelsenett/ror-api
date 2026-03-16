@@ -11,14 +11,12 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	aclrepo "github.com/NorskHelsenett/ror-api/internal/acl/repositories"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
-
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func GetForClusters(ctx context.Context) (*apicontracts.MetricList, error) {
@@ -73,7 +71,7 @@ func GetForClusters(ctx context.Context) (*apicontracts.MetricList, error) {
 }
 
 func GetForClustersByWorkspaceId(ctx context.Context, workspaceId string) (*apicontracts.MetricList, error) {
-	wId, err := primitive.ObjectIDFromHex(workspaceId)
+	wId, err := bson.ObjectIDFromHex(workspaceId)
 	if err != nil {
 		return nil, errors.New("Could not get metrics for clusters by workspace")
 	}

@@ -14,9 +14,8 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 const (
@@ -41,7 +40,7 @@ func FindOne(ctx context.Context, property string, propertyValue string) (*apico
 
 func GetById(ctx context.Context, taskId string) (*apicontracts.Task, error) {
 	db := mongodb.GetMongoDb()
-	id, err := primitive.ObjectIDFromHex(taskId)
+	id, err := bson.ObjectIDFromHex(taskId)
 	if err != nil {
 		return nil, fmt.Errorf("invalid task id: %v", err)
 	}
@@ -163,7 +162,7 @@ func GetAll(ctx context.Context) (*[]apicontracts.Task, error) {
 
 func Update(ctx context.Context, taskId string, taskInput apicontracts.Task) (*apicontracts.Task, *apicontracts.Task, error) {
 	db := mongodb.GetMongoDb()
-	mongoId, err := primitive.ObjectIDFromHex(taskId)
+	mongoId, err := bson.ObjectIDFromHex(taskId)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not convert taskId: %v", err)
 	}
@@ -198,7 +197,7 @@ func Update(ctx context.Context, taskId string, taskInput apicontracts.Task) (*a
 
 func Delete(ctx context.Context, taskId string) (bool, *apicontracts.Task, error) {
 	db := mongodb.GetMongoDb()
-	mongoId, err := primitive.ObjectIDFromHex(taskId)
+	mongoId, err := bson.ObjectIDFromHex(taskId)
 	if err != nil {
 		return false, nil, fmt.Errorf("could not convert taskId: %v", err)
 	}

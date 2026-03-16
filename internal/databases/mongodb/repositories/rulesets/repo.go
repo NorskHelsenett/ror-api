@@ -7,9 +7,8 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/messages"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
 )
@@ -93,7 +92,7 @@ func FindById(ctx context.Context, hexId string) (*messages.RulesetModel, error)
 	db := mongodb.GetMongoDb()
 	coll := db.Collection("messagerulesets")
 
-	id, err := primitive.ObjectIDFromHex(hexId)
+	id, err := bson.ObjectIDFromHex(hexId)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +111,7 @@ func AddResource(ctx context.Context, set *messages.RulesetModel, resource *mess
 
 	resource.Rules = make([]messages.RulesetRuleModel, 0)
 
-	id, err := primitive.ObjectIDFromHex(set.ID)
+	id, err := bson.ObjectIDFromHex(set.ID)
 	if err != nil {
 		return err
 	}
@@ -138,7 +137,7 @@ func PullResource(ctx context.Context, set *messages.RulesetModel, resourceId st
 	db := mongodb.GetMongoDb()
 	coll := db.Collection("messagerulesets")
 
-	id, err := primitive.ObjectIDFromHex(set.ID)
+	id, err := bson.ObjectIDFromHex(set.ID)
 	if err != nil {
 		return err
 	}
@@ -166,7 +165,7 @@ func AddResourceRule(ctx context.Context, set *messages.RulesetModel, resource *
 	db := mongodb.GetMongoDb()
 	coll := db.Collection("messagerulesets")
 
-	setId, err := primitive.ObjectIDFromHex(set.ID)
+	setId, err := bson.ObjectIDFromHex(set.ID)
 	if err != nil {
 		return err
 	}
@@ -182,18 +181,11 @@ func AddResourceRule(ctx context.Context, set *messages.RulesetModel, resource *
 	}
 
 	// Specify the array filter for the positional $ operator to identify the resource
-	arrayFilters := options.ArrayFilters{
-		Filters: []interface{}{
-			bson.M{"resource.id": resource.Id},
-		},
-	}
+	opts := options.UpdateOne().SetArrayFilters([]any{
+		bson.M{"resource.id": resource.Id},
+	})
 
-	// Set the array filters option
-	opts := options.UpdateOptions{
-		ArrayFilters: &arrayFilters,
-	}
-
-	if _, err := coll.UpdateOne(ctx, filter, update, &opts); err != nil {
+	if _, err := coll.UpdateOne(ctx, filter, update, opts); err != nil {
 		return err
 	}
 
@@ -204,7 +196,7 @@ func PullResourceRule(ctx context.Context, set *messages.RulesetModel, resource 
 	db := mongodb.GetMongoDb()
 	coll := db.Collection("messagerulesets")
 
-	setId, err := primitive.ObjectIDFromHex(set.ID)
+	setId, err := bson.ObjectIDFromHex(set.ID)
 	if err != nil {
 		return err
 	}
@@ -221,17 +213,11 @@ func PullResourceRule(ctx context.Context, set *messages.RulesetModel, resource 
 		},
 	}
 
-	arrayFilters := options.ArrayFilters{
-		Filters: []interface{}{
-			bson.M{"resource.id": resource.Id},
-		},
-	}
+	opts := options.UpdateOne().SetArrayFilters([]any{
+		bson.M{"resource.id": resource.Id},
+	})
 
-	opts := options.UpdateOptions{
-		ArrayFilters: &arrayFilters,
-	}
-
-	if _, err := coll.UpdateOne(ctx, filter, update, &opts); err != nil {
+	if _, err := coll.UpdateOne(ctx, filter, update, opts); err != nil {
 		return err
 	}
 

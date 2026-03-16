@@ -15,10 +15,9 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 const (
@@ -221,7 +220,7 @@ func GetForDatacenters(ctx context.Context) (*apicontracts.MetricList, error) {
 }
 
 func GetForDatacenterId(ctx context.Context, datacenterId string) (*apicontracts.MetricItem, error) {
-	dcId, err := primitive.ObjectIDFromHex(datacenterId)
+	dcId, err := bson.ObjectIDFromHex(datacenterId)
 	if err != nil {
 		return nil, errors.New("Could not get metrics for datacenterid")
 	}
@@ -419,7 +418,7 @@ func GetForWorkspaces(ctx context.Context, filter *apicontracts.Filter) (*apicon
 }
 
 func GetForWorkspacesByDatacenterId(ctx context.Context, filter *apicontracts.Filter, datacenterId string) (*apicontracts.PaginatedResult[apicontracts.Metric], error) {
-	dcId, err := primitive.ObjectIDFromHex(datacenterId)
+	dcId, err := bson.ObjectIDFromHex(datacenterId)
 	if err != nil {
 		return nil, errors.New("Could not get metrics for workspaces by datacenter")
 	}
@@ -540,7 +539,7 @@ func GetForWorkspacesByDatacenterId(ctx context.Context, filter *apicontracts.Fi
 }
 
 func GetForWorkspaceId(ctx context.Context, workspaceName string) (*apicontracts.MetricItem, error) {
-	wId, err := primitive.ObjectIDFromHex(workspaceName)
+	wId, err := bson.ObjectIDFromHex(workspaceName)
 	if err != nil {
 		return nil, errors.New("Could not get metrics for workspace")
 	}
@@ -607,7 +606,7 @@ func GetForWorkspaceId(ctx context.Context, workspaceName string) (*apicontracts
 	return &response, nil
 }
 
-func GetMetricFromPrimitivM(data primitive.M) apicontracts.Metrics {
+func GetMetricFromPrimitivM(data bson.M) apicontracts.Metrics {
 	totalCpu, err := mapping.InterfaceToInt64(data["totalCpu"])
 	if err != nil {
 		totalCpu = 0
@@ -678,7 +677,7 @@ func GetMetricFromPrimitivM(data primitive.M) apicontracts.Metrics {
 	}
 }
 
-func GetMetricItemFromPrimitivM(data primitive.M) apicontracts.Metric {
+func GetMetricItemFromPrimitivM(data bson.M) apicontracts.Metric {
 	totalCpu, err := mapping.InterfaceToInt64(data["totalCpu"])
 	if err != nil {
 		totalCpu = 0

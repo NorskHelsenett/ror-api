@@ -10,11 +10,11 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type MongoDatacenter struct {
-	ID          primitive.ObjectID          `json:"id" bson:"_id,omitempty"`
+	ID          bson.ObjectID               `json:"id" bson:"_id,omitempty"`
 	Name        string                      `json:"name"`
 	Provider    providermodels.ProviderType `json:"provider"`
 	Location    MongoDatacenterLocation     `json:"location"`
@@ -28,18 +28,18 @@ type MongoDatacenterLocation struct {
 }
 
 type MongoWorkspace struct {
-	ID           primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	Name         string             `json:"name"`
-	DatacenterID primitive.ObjectID `json:"datacenterId" bson:"datacenterid,omitempty"`
+	ID           bson.ObjectID `json:"id" bson:"_id,omitempty"`
+	Name         string        `json:"name"`
+	DatacenterID bson.ObjectID `json:"datacenterId" bson:"datacenterid,omitempty"`
 }
 
 type MongoCluster struct {
-	ID            primitive.ObjectID     `json:"id" bson:"_id,omitempty"`
+	ID            bson.ObjectID          `json:"id" bson:"_id,omitempty"`
 	Identifier    string                 `json:"identifier"`
 	ACL           MongoAccessControlList `json:"acl"`
 	ClusterId     string                 `json:"clusterId"`
 	ClusterName   string                 `json:"clusterName"`
-	WorkspaceId   primitive.ObjectID     `json:"workspaceId" bson:"workspaceid"`
+	WorkspaceId   bson.ObjectID          `json:"workspaceId" bson:"workspaceid"`
 	Environment   string                 `json:"environment"`
 	Metrics       MongoMetrics           `json:"metrics"`
 	Topology      MongoTopology          `json:"topology"`
@@ -78,7 +78,7 @@ type MongoClusterCondition struct {
 }
 
 type ClusterMetadata struct {
-	ProjectID   primitive.ObjectID            `json:"projectId,omitempty" bson:"projectid,omitempty"`
+	ProjectID   bson.ObjectID                 `json:"projectId,omitempty" bson:"projectid,omitempty"`
 	Criticality apicontracts.CriticalityLevel `json:"criticality"`
 	Sensitivity apicontracts.SensitivityLevel `json:"sensitivity"`
 	Description string                        `json:"description"`
@@ -93,12 +93,12 @@ type MongoClusterConfig struct {
 }
 
 type MongoClusterWithWorkspace struct {
-	ID        primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	Workspace MongoWorkspace     `json:"workspace"`
+	ID        bson.ObjectID  `json:"id" bson:"_id,omitempty"`
+	Workspace MongoWorkspace `json:"workspace"`
 }
 type MongoClusterWithDatacenter struct {
-	ID         primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	Datacenter MongoDatacenter    `json:"datacenter"`
+	ID         bson.ObjectID   `json:"id" bson:"_id,omitempty"`
+	Datacenter MongoDatacenter `json:"datacenter"`
 }
 
 type MongoVersions struct {
@@ -245,7 +245,7 @@ type MongoMetrics struct {
 }
 
 type MongoPrice struct {
-	ID           primitive.ObjectID          `json:"id" bson:"_id,omitempty"`
+	ID           bson.ObjectID               `json:"id" bson:"_id,omitempty"`
 	Provider     providermodels.ProviderType `json:"provider"`
 	MachineClass string                      `json:"machineClass"`
 	Cpu          int                         `json:"cpu"`
@@ -258,7 +258,7 @@ type MongoPrice struct {
 
 func NewMongoPrice(provider providermodels.ProviderType, machineClass string, cpu int, memory, memoryBytes int64, price int, from time.Time) MongoPrice {
 	return MongoPrice{
-		ID:           primitive.NewObjectID(),
+		ID:           bson.NewObjectID(),
 		Provider:     provider,
 		MachineClass: machineClass,
 		Cpu:          cpu,
@@ -283,12 +283,12 @@ type MongoAuditLog struct {
 }
 
 type MongoTaskCollection struct {
-	ID    primitive.ObjectID  `json:"id" bson:"_id,omitempty"`
+	ID    bson.ObjectID       `json:"id" bson:"_id,omitempty"`
 	Tasks []MongoOperatorTask `json:"tasks"`
 }
 
 type MongoOperatorConfig struct {
-	Id         primitive.ObjectID `json:"id" bson:"_id"`
+	Id         bson.ObjectID      `json:"id" bson:"_id"`
 	ApiVersion string             `json:"apiVersion"`
 	Kind       string             `json:"kind"`
 	Spec       *MongoOperatorSpec `json:"spec"`
@@ -307,7 +307,7 @@ type MongoOperatorTask struct {
 }
 
 type MongoProject struct {
-	ID              primitive.ObjectID   `json:"id" bson:"_id,omitempty"`
+	ID              bson.ObjectID        `json:"id" bson:"_id,omitempty"`
 	Name            string               `json:"name"`
 	Description     string               `json:"description"`
 	Active          bool                 `json:"active"`

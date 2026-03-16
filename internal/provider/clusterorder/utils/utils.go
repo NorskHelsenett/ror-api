@@ -23,7 +23,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
 	"github.com/google/uuid"
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func NewClusterOrderResource(ctx context.Context, order apiresourcecontracts.ResourceClusterOrderSpec) (apiresourcecontracts.ResourceClusterOrder, error) {

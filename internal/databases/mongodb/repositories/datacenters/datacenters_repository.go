@@ -21,10 +21,9 @@ import (
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 const (
@@ -107,9 +106,9 @@ func GetAllByUser(ctx context.Context) (*[]apicontracts.Datacenter, error) {
 		if c["datacenter"] == nil {
 			continue
 		}
-		datacenter := c["datacenter"].(primitive.M)
+		datacenter := c["datacenter"].(bson.M)
 
-		id := datacenter["_id"].(primitive.ObjectID)
+		id := datacenter["_id"].(bson.ObjectID)
 		datacenterIds = append(datacenterIds, id.Hex())
 	}
 
@@ -188,7 +187,7 @@ func FindByNameProvider(ctx context.Context, name string, provider providermodel
 func GetById(ctx context.Context, id string) (*apicontracts.Datacenter, error) {
 	db := mongodb.GetMongoDb()
 	var datacenterResult mongoTypes.MongoDatacenter
-	mongoid, err := primitive.ObjectIDFromHex(id)
+	mongoid, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		msg := "could not convert datacenter id"
 		rlog.Error(msg, err)
@@ -253,13 +252,13 @@ func Update(ctx context.Context, datacenterInput *apicontracts.DatacenterModel, 
 	var mongoInput mongoTypes.MongoDatacenter
 	err := mapping.Map(datacenterInput, &mongoInput)
 
-	mongoInput.ID = primitive.NilObjectID
+	mongoInput.ID = bson.NilObjectID
 
 	if err != nil {
 		return nil, errors.New("could not parse input to mongo model")
 	}
 
-	mongoId, err := primitive.ObjectIDFromHex(datacenterInput.ID)
+	mongoId, err := bson.ObjectIDFromHex(datacenterInput.ID)
 	if err != nil {
 		return nil, errors.New("could not convert datacenter.ID")
 	}

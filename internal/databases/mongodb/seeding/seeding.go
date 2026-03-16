@@ -16,10 +16,9 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 var (
@@ -89,7 +88,7 @@ func ensureResourcesV2Indexes(ctx context.Context) {
 		"typemeta.kind_1_typemeta.apiversion_1",
 	}
 	for _, name := range redundantIndexes {
-		_, err := collection.Indexes().DropOne(ctx, name)
+		err := collection.Indexes().DropOne(ctx, name)
 		if err != nil {
 			// Ignore errors from indexes that don't exist
 			rlog.Debugc(ctx, "could not drop index (may not exist)", rlog.String("index", name), rlog.Any("error", err))
@@ -198,7 +197,7 @@ func seedDatacenters(ctx context.Context) {
 
 	datacenters := []mongoTypes.MongoDatacenter{
 		{
-			ID:       primitive.NewObjectID(),
+			ID:       bson.NewObjectID(),
 			Provider: providermodels.ProviderTypeUnknown,
 			Location: mongoTypes.MongoDatacenterLocation{
 				Country: "Norway",
@@ -208,7 +207,7 @@ func seedDatacenters(ctx context.Context) {
 			APIEndpoint: "localhost",
 		},
 		{
-			ID:       primitive.NewObjectID(),
+			ID:       bson.NewObjectID(),
 			Provider: providermodels.ProviderTypeK3d,
 			Location: mongoTypes.MongoDatacenterLocation{
 				Country: "Norway",
@@ -218,7 +217,7 @@ func seedDatacenters(ctx context.Context) {
 			APIEndpoint: "localhost",
 		},
 		{
-			ID:       primitive.NewObjectID(),
+			ID:       bson.NewObjectID(),
 			Provider: providermodels.ProviderTypeKind,
 			Location: mongoTypes.MongoDatacenterLocation{
 				Country: "Norway",
@@ -228,7 +227,7 @@ func seedDatacenters(ctx context.Context) {
 			APIEndpoint: "localhost",
 		},
 		{
-			ID:       primitive.NewObjectID(),
+			ID:       bson.NewObjectID(),
 			Provider: providermodels.ProviderTypeTalos,
 			Location: mongoTypes.MongoDatacenterLocation{
 				Country: "Norway",
@@ -238,7 +237,7 @@ func seedDatacenters(ctx context.Context) {
 			APIEndpoint: "localhost",
 		},
 		{
-			ID:       primitive.NewObjectID(),
+			ID:       bson.NewObjectID(),
 			Provider: providermodels.ProviderTypeTanzu,
 			Location: mongoTypes.MongoDatacenterLocation{
 				Country: "Norway",
@@ -248,7 +247,7 @@ func seedDatacenters(ctx context.Context) {
 			APIEndpoint: "ptr1-w02-cl01-api.sdi.nhn.no",
 		},
 		{
-			ID:       primitive.NewObjectID(),
+			ID:       bson.NewObjectID(),
 			Provider: providermodels.ProviderTypeTanzu,
 			Location: mongoTypes.MongoDatacenterLocation{
 				Country: "Norway",
@@ -258,7 +257,7 @@ func seedDatacenters(ctx context.Context) {
 			APIEndpoint: "ptr1-w02-cl02-api.sdi.nhn.no",
 		},
 		{
-			ID:       primitive.NewObjectID(),
+			ID:       bson.NewObjectID(),
 			Provider: providermodels.ProviderTypeTanzu,
 			Location: mongoTypes.MongoDatacenterLocation{
 				Country: "Norway",
@@ -268,7 +267,7 @@ func seedDatacenters(ctx context.Context) {
 			APIEndpoint: "ptr1-w02-cl02-api.sdi.nhn.no",
 		},
 		{
-			ID:       primitive.NewObjectID(),
+			ID:       bson.NewObjectID(),
 			Provider: providermodels.ProviderTypeTanzu,
 			Location: mongoTypes.MongoDatacenterLocation{
 				Country: "Norway",
@@ -302,7 +301,7 @@ kubectl apply -f /app/rolebinding.yaml
 `
 	tasks := []apicontracts.Task{
 		{
-			Id:   primitive.NewObjectID(),
+			Id:   bson.NewObjectID(),
 			Name: "argocd-installer",
 			Config: apicontracts.TaskSpec{
 				ImageName: "devops-base",
@@ -352,7 +351,7 @@ kubectl apply -f /app/rolebinding.yaml
 			},
 		},
 		{
-			Id:   primitive.NewObjectID(),
+			Id:   bson.NewObjectID(),
 			Name: "cluster-agent-installer",
 			Config: apicontracts.TaskSpec{
 				ImageName:        "devops-base",
@@ -365,7 +364,7 @@ kubectl apply -f /app/rolebinding.yaml
 			},
 		},
 		{
-			Id:   primitive.NewObjectID(),
+			Id:   bson.NewObjectID(),
 			Name: "nhn-tooling-installer",
 			Config: apicontracts.TaskSpec{
 				ImageName:        "devops-base",
@@ -396,7 +395,7 @@ func seedOperatorConfigs(ctx context.Context) {
 
 	operatorConfigs := []mongoTypes.MongoOperatorConfig{
 		{
-			Id:         primitive.NewObjectID(),
+			Id:         bson.NewObjectID(),
 			ApiVersion: "github.com/NorskHelsenett/ror/v1/config",
 			Kind:       "ror-operator",
 			Spec: &mongoTypes.MongoOperatorSpec{
@@ -647,7 +646,7 @@ func seedProjects(ctx context.Context) {
 
 	mongoProjects := []mongoTypes.MongoProject{
 		{
-			ID:          primitive.NewObjectID(),
+			ID:          bson.NewObjectID(),
 			Name:        "Project 1",
 			Description: "Project 1 description",
 			Created:     time.Now(),
