@@ -106,10 +106,17 @@ func GetAllByUser(ctx context.Context) (*[]apicontracts.Datacenter, error) {
 		if c["datacenter"] == nil {
 			continue
 		}
-		datacenter := c["datacenter"].(bson.M)
-
-		id := datacenter["_id"].(bson.ObjectID)
-		datacenterIds = append(datacenterIds, id.Hex())
+		dcDoc, ok := c["datacenter"].(bson.D)
+		if !ok {
+			continue
+		}
+		for _, elem := range dcDoc {
+			if elem.Key == "_id" {
+				id := elem.Value.(bson.ObjectID)
+				datacenterIds = append(datacenterIds, id.Hex())
+				break
+			}
+		}
 	}
 
 	datacenters := make([]apicontracts.Datacenter, 0)
