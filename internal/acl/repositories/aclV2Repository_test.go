@@ -13,7 +13,7 @@ import (
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
 	"github.com/google/go-cmp/cmp"
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func Test_createACLV2FilterByScopeSubject_ReturnGroupQueryError(t *testing.T) {

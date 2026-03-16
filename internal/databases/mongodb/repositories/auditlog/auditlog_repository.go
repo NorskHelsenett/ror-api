@@ -12,10 +12,9 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 const (
@@ -35,7 +34,7 @@ func Create(ctx context.Context, auditLog mongoTypes.MongoAuditLog) (string, err
 		return "", fmt.Errorf("unable to get id of saved auditlog")
 	}
 
-	return insertResult.InsertedID.(primitive.ObjectID).String(), nil
+	return insertResult.InsertedID.(bson.ObjectID).String(), nil
 }
 
 func GetByFilter(ctx context.Context, filter *apicontracts.Filter) ([]mongoTypes.MongoAuditLog, int, error) {
@@ -83,7 +82,7 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) ([]mongoTypes
 
 func GetByID(ctx context.Context, ID string) (*mongoTypes.MongoAuditLog, error) {
 	db := mongodb.GetMongoDb()
-	mongoID, err := primitive.ObjectIDFromHex(ID)
+	mongoID, err := bson.ObjectIDFromHex(ID)
 	if err != nil {
 		return nil, fmt.Errorf("could not get ID from string: %v", err)
 	}

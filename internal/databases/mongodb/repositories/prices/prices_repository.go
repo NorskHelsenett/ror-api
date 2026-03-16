@@ -15,9 +15,8 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 const (
@@ -85,7 +84,7 @@ func FindOne(ctx context.Context, property string, propertyValue string) (*apico
 
 func GetById(ctx context.Context, priceId string) (*apicontracts.Price, error) {
 	db := mongodb.GetMongoDb()
-	id, err := primitive.ObjectIDFromHex(priceId)
+	id, err := bson.ObjectIDFromHex(priceId)
 	if err != nil {
 		return nil, fmt.Errorf("invalid price id: %v", err)
 	}
@@ -157,7 +156,7 @@ func Create(ctx context.Context, priceInput *mongoTypes.MongoPrice) (*mongoTypes
 
 func Update(ctx context.Context, priceId string, priceInput mongoTypes.MongoPrice) (*mongoTypes.MongoPrice, *mongoTypes.MongoPrice, error) {
 	db := mongodb.GetMongoDb()
-	mongoID, err := primitive.ObjectIDFromHex(priceId)
+	mongoID, err := bson.ObjectIDFromHex(priceId)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not convert priceId: %v", err)
 	}
@@ -192,7 +191,7 @@ func Update(ctx context.Context, priceId string, priceInput mongoTypes.MongoPric
 
 func Delete(ctx context.Context, priceId string) (bool, *mongoTypes.MongoPrice, error) {
 	db := mongodb.GetMongoDb()
-	mongoID, err := primitive.ObjectIDFromHex(priceId)
+	mongoID, err := bson.ObjectIDFromHex(priceId)
 	if err != nil {
 		return false, nil, fmt.Errorf("could not convert priceId: %v", err)
 	}

@@ -10,9 +10,8 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 const (
@@ -39,7 +38,7 @@ func MigrateAcl1UpdateCreatreAcl2(ctx context.Context, aclListV1 []aclmodels.Acl
 
 		query := bson.M{"group": newline.Group, "scope": "cluster", "subject": newline.Subject}
 		update := bson.M{"$set": newline}
-		opts := options.Update().SetUpsert(true)
+		opts := options.UpdateOne().SetUpsert(true)
 		result, err := aclCollection.UpdateOne(ctx, query, update, opts)
 
 		if err != nil {
@@ -58,7 +57,7 @@ func MigrateAcl1UpdateCreatreAcl2(ctx context.Context, aclListV1 []aclmodels.Acl
 func MigrateAcl1DeleteRemovedAcl1(ctx context.Context, aclListV1 []aclmodels.AclV1ListItem, aclListV2 []aclmodels.AclV2ListItem) {
 	for _, listitem := range aclListV2 {
 		if !migrateAcl1checkV1Exists(listitem.Group, string(listitem.Subject), listitem.Access, listitem.Kubernetes, aclListV1) {
-			idPrimitive, _ := primitive.ObjectIDFromHex(listitem.Id)
+			idPrimitive, _ := bson.ObjectIDFromHex(listitem.Id)
 			rlog.Warn("might need to remove element from acl collection", rlog.String("listitem", listitem.Id))
 			rlog.Warn("db.acl.deleteone", rlog.String("id", idPrimitive.String()))
 		}

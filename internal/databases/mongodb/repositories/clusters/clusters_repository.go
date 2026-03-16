@@ -27,9 +27,8 @@ import (
 
 	"go.opentelemetry.io/otel"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 const (
@@ -342,7 +341,7 @@ func GetMetadata(ctx context.Context) (map[string][]string, error) {
 func GetByWorkspaceId(ctx context.Context,
 	filter *apicontracts.Filter,
 	workspaceId string) (*apicontracts.PaginatedResult[apicontracts.Cluster], error) {
-	wId, err := primitive.ObjectIDFromHex(workspaceId)
+	wId, err := bson.ObjectIDFromHex(workspaceId)
 	if err != nil {
 		return nil, errors.New("could not get cluster by workspace")
 	}
@@ -508,7 +507,7 @@ func FindByName(ctx context.Context, clusterName string) (*apicontracts.Cluster,
 
 func GetClusterIdByProjectId(ctx context.Context, projectId string) ([]*apicontracts.ClusterInfo, error) {
 	db := mongodb.GetMongoDb()
-	projectObjectId, _ := primitive.ObjectIDFromHex(projectId)
+	projectObjectId, _ := bson.ObjectIDFromHex(projectId)
 
 	var query []bson.M
 	query = []bson.M{}
@@ -595,7 +594,7 @@ func Update(ctx context.Context, clusterInput *apicontracts.Cluster) error {
 			workspace, _ := mongoworkspaces.FindByName(ctx, workspaceName)
 
 			if workspace != nil {
-				workspaceId, _ := primitive.ObjectIDFromHex(workspace.ID)
+				workspaceId, _ := bson.ObjectIDFromHex(workspace.ID)
 				mongoInput.WorkspaceId = workspaceId
 			} else {
 				rlog.Error("could not update", fmt.Errorf("workspace is nil"))
@@ -630,7 +629,7 @@ func mapToMongo(source *apicontracts.Cluster) (*mongoTypes.MongoCluster, error) 
 		return nil, errors.New("could not map to mongo cluster")
 	}
 
-	mongoInput.WorkspaceId, _ = primitive.ObjectIDFromHex(source.WorkspaceId)
+	mongoInput.WorkspaceId, _ = bson.ObjectIDFromHex(source.WorkspaceId)
 
 	return &mongoInput, nil
 }
@@ -644,7 +643,7 @@ func UpdateMetadata(ctx context.Context, input *apicontracts.ClusterMetadataMode
 		return fmt.Errorf("could not map data from cluster metadata model to cluster metadata for cluster: %s", existing.ClusterId)
 	}
 
-	mongoInput.ProjectID, _ = primitive.ObjectIDFromHex(input.ProjectID)
+	mongoInput.ProjectID, _ = bson.ObjectIDFromHex(input.ProjectID)
 
 	filter := bson.M{"clusterid": existing.ClusterId}
 	update := bson.M{"$set": bson.M{"metadata": mongoInput}}

@@ -8,7 +8,7 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
 
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 const (

@@ -18,7 +18,7 @@ import (
 	mongoclusters "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/clusters"
 	mongoprojects "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/projects"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontracts.PaginatedResult[apicontracts.Project], error) {
@@ -116,7 +116,7 @@ func Update(ctx context.Context, projectId string, input *apicontracts.ProjectMo
 		return nil, nil, fmt.Errorf("could not map from apitype to mongotype: %v", err)
 	}
 
-	mongoObject.ID = primitive.NilObjectID
+	mongoObject.ID = bson.NilObjectID
 	newObject, oldObject, err := mongoprojects.Update(ctx, mongoObject, projectId)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not update object: %v", err)

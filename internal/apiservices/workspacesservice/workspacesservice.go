@@ -18,7 +18,7 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func GetAll(ctx context.Context) (*[]apicontracts.Workspace, error) {
@@ -72,7 +72,7 @@ func Update(ctx context.Context, input *apicontracts.Workspace, id string) (*api
 	}
 
 	if input.DatacenterID != "" {
-		datacenterID, err := primitive.ObjectIDFromHex(input.DatacenterID)
+		datacenterID, err := bson.ObjectIDFromHex(input.DatacenterID)
 		if err != nil {
 			return nil, nil, fmt.Errorf("could not get datacenterID from input: %w", err)
 		}
@@ -80,7 +80,7 @@ func Update(ctx context.Context, input *apicontracts.Workspace, id string) (*api
 	}
 
 	// if input.ProjectID != "" {
-	// 	projectID, err := primitive.ObjectIDFromHex(input.ProjectID)
+	// 	projectID, err := bson.ObjectIDFromHex(input.ProjectID)
 	// 	if err != nil {
 	// 		return nil, nil, fmt.Errorf("could not get projectID from input: %w", err)
 	// 	}

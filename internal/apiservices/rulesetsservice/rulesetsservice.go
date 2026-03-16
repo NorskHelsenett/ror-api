@@ -16,7 +16,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
 	"github.com/google/uuid"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 func Create(ctx context.Context, clusterId string) (*messages.RulesetModel, error) {

@@ -20,10 +20,9 @@ import (
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 const (
@@ -196,9 +195,9 @@ func GetByName(ctx context.Context, workspaceName string) (*apicontracts.Workspa
 	workspaceIds := make([]string, 0)
 	for i := 0; i < len(clusterPrimitivMap); i++ {
 		c := clusterPrimitivMap[i]
-		workspace := c["workspace"].(primitive.M)
+		workspace := c["workspace"].(bson.M)
 
-		id := workspace["_id"].(primitive.ObjectID)
+		id := workspace["_id"].(bson.ObjectID)
 		workspaceIds = append(workspaceIds, id.Hex())
 	}
 
@@ -244,7 +243,7 @@ func FindByName(ctx context.Context, name string) (*apicontracts.Workspace, erro
 func FindByNameAndDatacenterId(ctx context.Context, name string, datacenterId string) (*apicontracts.Workspace, error) {
 	db := mongodb.GetMongoDb()
 	var wsResult mongoTypes.MongoWorkspace
-	mongoid, err := primitive.ObjectIDFromHex(datacenterId)
+	mongoid, err := bson.ObjectIDFromHex(datacenterId)
 	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{"name": name, "datacenterid": mongoid}).Decode(&wsResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		msg := "could not find workspace"
 		rlog.Error(msg, err)
@@ -269,7 +268,7 @@ func GetById(ctx context.Context, id string) (*apicontracts.Workspace, error) {
 		return nil, nil
 	}
 	db := mongodb.GetMongoDb()
-	mongoId, err := primitive.ObjectIDFromHex(id)
+	mongoId, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, fmt.Errorf("could not get object id from hex: %w", err)
 	}
@@ -325,7 +324,7 @@ func Create(ctx context.Context, workspaceInput *apicontracts.Workspace) (*apico
 
 func Update(ctx context.Context, input *mongoTypes.MongoWorkspace, id string) (*mongoTypes.MongoWorkspace, *mongoTypes.MongoWorkspace, error) {
 	db := mongodb.GetMongoDb()
-	mongoId, err := primitive.ObjectIDFromHex(id)
+	mongoId, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not convert id: %w", err)
 	}

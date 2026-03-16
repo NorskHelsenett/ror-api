@@ -16,8 +16,8 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 // CheckResourceExist checks whether a resource with the provided `uid` exists in the MongoDB database.

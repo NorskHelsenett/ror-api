@@ -16,9 +16,8 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 const (
@@ -46,7 +45,7 @@ func Create(ctx context.Context, projectInput *mongoTypes.MongoProject) (*mongoT
 
 func Update(ctx context.Context, updatedObject mongoTypes.MongoProject, projectId string) (*mongoTypes.MongoProject, *mongoTypes.MongoProject, error) {
 	db := mongodb.GetMongoDb()
-	mongoID, err := primitive.ObjectIDFromHex(projectId)
+	mongoID, err := bson.ObjectIDFromHex(projectId)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not convert ID: %v", err)
 	}
@@ -85,7 +84,7 @@ func Update(ctx context.Context, updatedObject mongoTypes.MongoProject, projectI
 
 func Delete(ctx context.Context, id string) (bool, *mongoTypes.MongoProject, error) {
 	db := mongodb.GetMongoDb()
-	mongoId, err := primitive.ObjectIDFromHex(id)
+	mongoId, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return false, nil, fmt.Errorf("could not convert ID: %v", err)
 	}
@@ -154,7 +153,7 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) ([]mongoTypes
 
 func GetById(ctx context.Context, projectId string) (*mongoTypes.MongoProject, error) {
 	db := mongodb.GetMongoDb()
-	id, err := primitive.ObjectIDFromHex(projectId)
+	id, err := bson.ObjectIDFromHex(projectId)
 	if err != nil {
 		return nil, fmt.Errorf("invalid ID: %v", err)
 	}
