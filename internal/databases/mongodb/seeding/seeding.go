@@ -19,6 +19,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var (
@@ -42,6 +43,58 @@ func CheckAndSeed(ctx context.Context) {
 	//seedInternalRuleset(ctx)
 	seedTasks(ctx)
 	seedOperatorConfigs(ctx)
+	ensureResourcesV2Indexes(ctx)
+}
+
+func ensureResourcesV2Indexes(ctx context.Context) {
+	db := mongodb.GetMongoDb()
+	collection := db.Collection("resourcesv2")
+
+	indexes := []mongo.IndexModel{
+		{
+			Keys:    bson.D{{Key: "uid", Value: 1}},
+			Options: options.Index().SetName("uid_1").SetUnique(true),
+		},
+		{
+			Keys:    bson.D{{Key: "rormeta.ownerref", Value: 1}},
+			Options: options.Index().SetName("rormeta.ownerref_1"),
+		},
+		{
+			Keys: bson.D{
+				{Key: "rormeta.ownerref.scope", Value: 1},
+				{Key: "rormeta.ownerref.subject", Value: 1},
+				{Key: "metadata.name", Value: 1},
+			},
+			Options: options.Index().SetName("rormeta.ownerref.scope_1_rormeta.ownerref.subject_1_metadata.name_1"),
+		},
+		{
+			Keys: bson.D{
+				{Key: "typemeta.kind", Value: 1},
+				{Key: "typemeta.apiversion", Value: 1},
+				{Key: "metadata.name", Value: 1},
+			},
+			Options: options.Index().SetName("typemeta.kind_1_typemeta.apiversion_1_metadata.name_1"),
+		},
+	}
+
+	_, err := collection.Indexes().CreateMany(ctx, indexes)
+	if err != nil {
+		rlog.Errorc(ctx, "could not ensure resourcesv2 indexes", err)
+	}
+
+	// Drop redundant indexes that are prefixes of the compound indexes above
+	redundantIndexes := []string{
+		"rormeta.ownerref.scope_1",
+		"rormeta.ownerref.scope_1_rormeta.ownerref.subject_1",
+		"typemeta.kind_1_typemeta.apiversion_1",
+	}
+	for _, name := range redundantIndexes {
+		_, err := collection.Indexes().DropOne(ctx, name)
+		if err != nil {
+			// Ignore errors from indexes that don't exist
+			rlog.Debugc(ctx, "could not drop index (may not exist)", rlog.String("index", name), rlog.Any("error", err))
+		}
+	}
 }
 
 // verifySeed will take a seed and a indentifier of the seed and attempt to find the object in the collection with the indentifer,
