@@ -221,14 +221,45 @@ func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []api
 
 		row := apiview.ViewRow{
 			"clusterId": {
-				FieldValue: resource.GetUID(),
+				FieldValue: cluster.Status.AgentStatus.ClusterId,
 			},
 			"clusterName": {
-				FieldValue: resource.GetName(),
+				FieldValue: cluster.Status.AgentStatus.ClusterName,
 			},
 			"provider": {
-				FieldValue: cluster.Spec.VitiSpec.Cluster.Provider,
+				FieldValue: cluster.Status.AgentStatus.KubernetesProvider.String(),
 			},
+			"availabilityZone": {
+				FieldValue: cluster.Status.AgentStatus.Az,
+			},
+			"country": {
+				FieldValue: cluster.Status.AgentStatus.Country,
+			},
+			"region": {
+				FieldValue: cluster.Status.AgentStatus.Region,
+			},
+			"workspace": {
+				FieldValue: cluster.Status.AgentStatus.Workspace,
+			},
+			"environment": {
+				FieldValue: cluster.Status.AgentStatus.Environment,
+			},
+			"nodes": {
+				FieldValue: 799,
+			},
+			"rorAgentVersion": {
+				FieldValue: cluster.Status.AgentStatus.Versions["RorAgent"],
+			},
+			"lastSeen": {
+				FieldValue: cluster.Status.AgentStatus.LastSeen,
+			},
+			"created": {
+				FieldValue: cluster.Status.AgentStatus.CreatedAt,
+			},
+			"status": {
+				FieldValue: "ok",
+			},
+			// Add more fields as needed
 		}
 		ret = append(ret, row)
 	}
