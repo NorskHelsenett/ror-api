@@ -8,10 +8,14 @@ import (
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/workspacesservice"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
@@ -234,6 +238,13 @@ func GetKubeconfig() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		workspaceName := c.Param("workspaceName")
+
+		ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "workspacecontroller.GetKubeconfig",
+			trace.WithAttributes(
+				attribute.String("workspace", workspaceName),
+			))
+		defer span.End()
+
 		if workspaceName == "" {
 			rlog.Errorc(ctx, "workspace name must be provided", nil)
 			c.JSON(http.StatusBadRequest, "workspace name must be provided")
@@ -257,7 +268,7 @@ func GetKubeconfig() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&credentialPayload); err != nil {
-			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Missing parameter", err)
+			rerr := rorginerror.NewRorGinSpanError(span, http.StatusBadRequest, "Missing parameter", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -265,7 +276,7 @@ func GetKubeconfig() gin.HandlerFunc {
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&credentialPayload); validationErr != nil {
 			rlog.Errorc(ctx, "error when validating kubeconfig credentials", validationErr)
-			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, validationErr.Error())
+			rerr := rorginerror.NewRorGinSpanError(span, http.StatusBadRequest, validationErr.Error())
 			rerr.GinLogErrorAbort(c)
 			return
 		}

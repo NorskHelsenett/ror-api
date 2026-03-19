@@ -356,7 +356,7 @@ func GetKubeconfig(ctx context.Context, clusterId string, credentials apicontrac
 	}
 
 	now := time.Now()
-	kubeconfigString, err := kubeconfigservice.GetKubeconfig(cluster, credentials)
+	kubeconfigString, err := kubeconfigservice.GetKubeconfig(ctx, cluster, credentials)
 	if err != nil {
 		rlog.Errorc(ctx, "could not get kubeconfig", err, rlog.String("clusterId", clusterId))
 		return "", err
