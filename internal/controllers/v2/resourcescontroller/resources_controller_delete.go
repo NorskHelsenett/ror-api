@@ -12,7 +12,6 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 )
 
 // Delete a cluster resource of given group/version/kind by uid.
@@ -42,14 +41,14 @@ func DeleteResource() gin.HandlerFunc {
 		resources := resourcesv2service.GetResourceByUID(ctx, c.Param("uid"))
 
 		if resources == nil {
-			span.SetStatus(codes.Error, "resource not found")
+			rortracer.SpanErrorf(span, "resource not found")
 			c.JSON(http.StatusNotFound, "404: Resource not found")
 			return
 		}
 
 		// Validate that the correct uid is provided
 		if len(resources.Resources) != 1 {
-			span.SetStatus(codes.Error, "unexpected number of resources")
+			rortracer.SpanErrorf(span, "unexpected number of resources")
 			c.JSON(http.StatusNotImplemented, "501: Wrong number of resources found")
 			return
 		}
@@ -57,7 +56,7 @@ func DeleteResource() gin.HandlerFunc {
 		resource := resources.Resources[0]
 
 		if c.Param("uid") != resource.GetUID() {
-			span.SetStatus(codes.Error, "uid mismatch")
+			rortracer.SpanErrorf(span, "uid mismatch")
 			c.JSON(http.StatusBadRequest, "400: Wrong resource found")
 			return
 		}
@@ -68,15 +67,14 @@ func DeleteResource() gin.HandlerFunc {
 		// Access: update
 		accessModel := aclservice.CheckAccessByRorOwnerref(ctx, resource.GetRorMeta().Ownerref)
 		if !accessModel.Update {
-			span.SetStatus(codes.Error, "access denied")
+			rortracer.SpanErrorf(span, "access denied")
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
 
 		err := resourcesv2service.DeleteResource(ctx, resource)
 		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, "delete failed")
+			rortracer.SpanError(span, err, "delete failed")
 			c.JSON(
 				http.StatusInternalServerError,
 				responses.Cluster{
@@ -96,7 +94,7 @@ func DeleteResource() gin.HandlerFunc {
 			},
 		}
 
-		span.SetStatus(codes.Ok, "")
+		rortracer.SpanOk(span)
 		c.JSON(http.StatusOK, res)
 	}
 }

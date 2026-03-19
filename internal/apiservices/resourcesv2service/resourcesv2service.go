@@ -21,7 +21,6 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 )
 
 var (
@@ -47,8 +46,8 @@ func HandleResourceUpdate(ctx context.Context, resource *rorresources.Resource) 
 		err := DeleteResource(ctx, resource)
 		if err != nil {
 			rlog.Error("Could not delete resource", err)
-			span.RecordError(err)
-			span.SetStatus(codes.Error, "could not delete resource")
+			rortracer.SpanError(span, err, "could not delete resource")
+
 			return rorresources.ResourceUpdateResults{
 				Results: map[string]rorresources.ResourceUpdateResult{
 					resource.GetUID(): {
@@ -67,7 +66,7 @@ func HandleResourceUpdate(ctx context.Context, resource *rorresources.Resource) 
 			},
 		}
 	default:
-		span.SetStatus(codes.Error, "unknown action")
+		rortracer.SpanErrorf(span, "unknown action")
 		return rorresources.ResourceUpdateResults{
 			Results: map[string]rorresources.ResourceUpdateResult{
 				resource.GetUID(): {
@@ -96,7 +95,7 @@ func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) r
 	// Access: create
 	accessObject := aclservice.CheckAccessByRorOwnerref(ctx, ownerref)
 	if !accessObject.Create {
-		span.SetStatus(codes.Error, "access denied")
+		rortracer.SpanErrorf(span, "access denied")
 		return rorresources.ResourceUpdateResults{
 			Results: map[string]rorresources.ResourceUpdateResult{
 				resource.GetUID(): {
@@ -109,8 +108,7 @@ func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) r
 
 	err := resource.ApplyInputFilter()
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "could not apply input filter")
+		rortracer.SpanError(span, err, "could not apply input filter")
 		return rorresources.ResourceUpdateResults{
 			Results: map[string]rorresources.ResourceUpdateResult{
 				resource.GetUID(): {
@@ -130,8 +128,7 @@ func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) r
 	err = databaseHelpers.Set(mongoCtx, resource)
 	if err != nil {
 		rlog.Errorc(ctx, "Failed to set resource", err)
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "failed to set resource")
+		rortracer.SpanError(span, err, "failed to set resource")
 		return rorresources.ResourceUpdateResults{
 			Results: map[string]rorresources.ResourceUpdateResult{
 				resource.GetUID(): {
@@ -144,11 +141,11 @@ func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) r
 
 	if err := sendToMessageBus(ctx, resource, resource.RorMeta.Action); err != nil {
 		rlog.Errorc(ctx, "Failed to send message to bus", err)
-		span.RecordError(err)
+		rortracer.SpanError(span, err)
 	}
 
 	//rlog.Debug("Resource created", rlog.Any("resource", resource.GetAPIVersion()), rlog.Any("kind", resource.GetKind()), rlog.Any("name", resource.GetName()))
-	span.SetStatus(codes.Ok, "")
+	rortracer.SpanOk(span)
 	return rorresources.ResourceUpdateResults{
 		Results: map[string]rorresources.ResourceUpdateResult{
 			resource.GetUID(): {
@@ -180,8 +177,7 @@ func GetResourceByUID(ctx context.Context, uid string) *rorresources.ResourceSet
 	queryStart := time.Now()
 	returnrs, err = databaseHelpers.Get(mongoCtx, query)
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "could not get resource by uid")
+		rortracer.SpanError(span, err, "could not get resource by uid")
 		rlog.Error("Could not get resource by uid", err, rlog.String("uid", uid), rlog.Any("error", err))
 		return nil
 	}
@@ -203,12 +199,12 @@ func GetResourceByUID(ctx context.Context, uid string) *rorresources.ResourceSet
 	for _, resource := range returnrs.Resources {
 		accessModel := aclservice.CheckAccessByRorOwnerref(ctx, resource.GetRorMeta().Ownerref)
 		if !accessModel.Read {
-			span.SetStatus(codes.Error, "access denied")
+			rortracer.SpanErrorf(span, "access denied")
 			return nil
 		}
 	}
 
-	span.SetStatus(codes.Ok, "")
+	rortracer.SpanOk(span)
 	span.SetAttributes(attribute.Int("resources.count", len(returnrs.Resources)))
 	return returnrs
 }
@@ -226,8 +222,7 @@ func DeleteResource(ctx context.Context, resource *rorresources.Resource) error 
 	accessModel := aclservice.CheckAccessByRorOwnerref(ctx, resource.GetRorMeta().Ownerref)
 	if !accessModel.Update {
 		err := fmt.Errorf("403: No access to uid %s", resource.GetUID())
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "access denied")
+		rortracer.SpanError(span, err, "access denied")
 		return err
 	}
 
@@ -236,16 +231,15 @@ func DeleteResource(ctx context.Context, resource *rorresources.Resource) error 
 	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
 	err := sendToMessageBus(ctx, resource, rortypes.K8sActionDelete)
 	if err != nil {
-		span.RecordError(err)
+		rortracer.SpanError(span, err)
 		rlog.Errorc(ctx, "unable to send delete action on rabbit queue", err)
 	}
 	delErr := databaseHelpers.Del(ctx, resource)
 	if delErr != nil {
-		span.RecordError(delErr)
-		span.SetStatus(codes.Error, "failed to delete resource")
+		rortracer.SpanError(span, delErr, "failed to delete resource")
 		return delErr
 	}
-	span.SetStatus(codes.Ok, "")
+	rortracer.SpanOk(span)
 	return nil
 }
 
@@ -259,8 +253,7 @@ func GetResourceByQuery(ctx context.Context, query *rorresources.ResourceQuery) 
 	queryStart := time.Now()
 	rs, err := databaseHelpers.Get(mongoCtx, query)
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "could not get resource by query")
+		rortracer.SpanError(span, err, "could not get resource by query")
 		rlog.Error("Could not get resource by query", err, rlog.Any("error", err))
 		return nil, fmt.Errorf("could not get resource by query: %w", err)
 	}
@@ -294,7 +287,7 @@ func GetResourceByQuery(ctx context.Context, query *rorresources.ResourceQuery) 
 			checkedOwnerRef[resource.GetRorMeta().Ownerref.String()] = -1
 		}
 	}
-	span.SetStatus(codes.Ok, "")
+	rortracer.SpanOk(span)
 	span.SetAttributes(attribute.Int("resources.count", len(returnrs.Resources)))
 	return returnrs, nil
 }
@@ -353,10 +346,9 @@ func ResourceGetHashlist(ctx context.Context, owner rorresourceowner.RorResource
 	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
 	result, err := databaseHelpers.GetHashlistByQuery(mongoCtx, &query)
 	if err != nil {
-		span.RecordError(err)
-		span.SetStatus(codes.Error, "failed to get hashlist")
+		rortracer.SpanError(span, err, "failed to get hashlist")
 		return result, err
 	}
-	span.SetStatus(codes.Ok, "")
+	rortracer.SpanOk(span)
 	return result, nil
 }

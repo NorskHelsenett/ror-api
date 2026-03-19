@@ -5,7 +5,6 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/apikeysservice"
-	"go.opentelemetry.io/otel/codes"
 
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
@@ -31,15 +30,13 @@ func (a *ApiKeyAuthProvider) Authenticate(c *gin.Context, ctx context.Context) {
 	defer span.End()
 	apikey := c.Request.Header.Get("X-API-KEY")
 	if len(apikey) == 0 {
-		rerr := rorginerror.NewRorGinError(401, "api key not provided")
-		span.SetStatus(codes.Error, "Api key not provided")
+		rerr := rorginerror.NewRorGinSpanError(span, 401, "api key not provided")
 		rerr.GinLogErrorAbort(c)
 		return
 	}
 
 	apikeyResult, err := apikeysservice.VerifyApiKey(ctx, apikey)
-	if rorginerror.GinHandleErrorAndAbort(c, 401, err) {
-		span.SetStatus(codes.Error, "failed to verify api key")
+	if rorginerror.GinHandleSpanErrorAndAbort(c, span, 401, err) {
 		return
 	}
 
@@ -51,11 +48,10 @@ func (a *ApiKeyAuthProvider) Authenticate(c *gin.Context, ctx context.Context) {
 	case apicontracts.ApiKeyTypeService:
 		serviceAuth(c, ctx, apikeyResult)
 	default:
-		rerr := rorginerror.NewRorGinError(401, "error wrong api key type")
-		span.SetStatus(codes.Error, "Error wrong api key type")
+		rerr := rorginerror.NewRorGinSpanError(span, 401, "error wrong api key type")
 		rerr.GinLogErrorAbort(c)
 	}
-	span.SetStatus(codes.Ok, "API key authentication successful")
+	rortracer.SpanOk(span)
 }
 
 func NewApiKeyAuthProvider() *ApiKeyAuthProvider {

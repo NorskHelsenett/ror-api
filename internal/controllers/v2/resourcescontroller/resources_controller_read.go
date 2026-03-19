@@ -18,7 +18,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 )
 
 // Get a list of cluster resources og given group/version/kind.
@@ -62,8 +61,7 @@ func GetResources() gin.HandlerFunc {
 			var err error
 			rsQuery, err = ginresourcequeryhandler.ParseGinResourceQuery(c)
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, "invalid query")
+				rortracer.SpanError(span, err, "invalid query")
 				c.JSON(http.StatusBadRequest, "400: Invalid query")
 				return
 			}
@@ -73,8 +71,7 @@ func GetResources() gin.HandlerFunc {
 			// Decode the base64 query
 			base64Query, err := base64.StdEncoding.DecodeString(c.Query("query"))
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, "invalid base64 query")
+				rortracer.SpanError(span, err, "invalid base64 query")
 				c.JSON(http.StatusBadRequest, "400: Invalid base64 query")
 				return
 			}
@@ -82,21 +79,19 @@ func GetResources() gin.HandlerFunc {
 			rsQuery = rorresources.NewResourceQuery()
 			err = json.Unmarshal(base64Query, rsQuery)
 			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, "invalid query")
+				rortracer.SpanError(span, err, "invalid query")
 				c.JSON(http.StatusBadRequest, "400: Invalid query")
 				return
 			}
 		}
 		if rsQuery == nil {
-			span.SetStatus(codes.Error, "nil query")
+			rortracer.SpanErrorf(span, "nil query")
 			c.JSON(http.StatusBadRequest, "400: Invalid query")
 			return
 		}
 
 		if validationErr := validate.Struct(rsQuery); validationErr != nil {
-			span.RecordError(validationErr)
-			span.SetStatus(codes.Error, "query validation failed")
+			rortracer.SpanError(span, validationErr, "query validation failed")
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, validationErr.Error())
 			rerr.GinLogErrorAbort(c)
 			return
@@ -104,8 +99,7 @@ func GetResources() gin.HandlerFunc {
 
 		rsSet, err := resourcesv2service.GetResourceByQuery(ctx, rsQuery)
 		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, "failed to get resources")
+			rortracer.SpanError(span, err, "failed to get resources")
 			if rorErr, ok := errors.AsType[rorerror.RorError](err); ok {
 				rorginerror.GinHandleErrorAndAbort(c, rorErr.GetStatusCode(), rorErr, rlog.String("error:", rorErr.Error()))
 				return
@@ -120,7 +114,7 @@ func GetResources() gin.HandlerFunc {
 			return
 		}
 
-		span.SetStatus(codes.Ok, "")
+		rortracer.SpanOk(span)
 		c.JSON(http.StatusOK, rsSet)
 	}
 }
@@ -150,18 +144,18 @@ func GetResource() gin.HandlerFunc {
 		span.SetAttributes(attribute.String("resource.uid", c.Param("uid")))
 
 		if c.Param("uid") == "" {
-			span.SetStatus(codes.Error, "missing uid")
+			rortracer.SpanErrorf(span, "missing uid")
 			c.JSON(http.StatusBadRequest, "400: Missing uid")
 			return
 		}
 
 		resources := resourcesv2service.GetResourceByUID(ctx, c.Param("uid"))
 		if resources == nil {
-			span.SetStatus(codes.Error, "resource not found")
+			rortracer.SpanErrorf(span, "resource not found")
 			c.JSON(http.StatusNotFound, "404: Resource not found")
 			return
 		}
-		span.SetStatus(codes.Ok, "")
+		rortracer.SpanOk(span)
 		c.JSON(http.StatusOK, resources.GetAll())
 	}
 }

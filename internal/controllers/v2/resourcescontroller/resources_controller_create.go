@@ -8,7 +8,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
@@ -56,16 +55,14 @@ func NewResource() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&input); err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, "failed to bind JSON")
+			rortracer.SpanError(span, err, "failed to bind JSON")
 			rlog.Error("error binding json", err)
 			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
 			return
 		}
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&input); validationErr != nil {
-			span.RecordError(validationErr)
-			span.SetStatus(codes.Error, "validation failed")
+			rortracer.SpanError(span, validationErr, "validation failed")
 			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": validationErr.Error()}})
 			return
 		}
@@ -97,7 +94,7 @@ func NewResource() gin.HandlerFunc {
 		resourcesProcessed.Add(float64(len(rs.Resources)))
 		resourcesRequests.Inc()
 
-		span.SetStatus(codes.Ok, "")
+		rortracer.SpanOk(span)
 		c.JSON(http.StatusCreated, returnArray)
 	}
 }

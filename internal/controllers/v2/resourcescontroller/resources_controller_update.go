@@ -15,7 +15,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 )
 
 // Update a cluster resource of given group/version/kind/uid.
@@ -47,22 +46,20 @@ func UpdateResource() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&input); err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, "failed to bind JSON")
+			rortracer.SpanError(span, err, "failed to bind JSON")
 			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
 			return
 		}
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&input); validationErr != nil {
-			span.RecordError(validationErr)
-			span.SetStatus(codes.Error, "validation failed")
+			rortracer.SpanError(span, validationErr, "validation failed")
 			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": validationErr.Error()}})
 			return
 		}
 
 		// Validate that the correct uid is provided
 		if input.Uid != c.Param("uid") {
-			span.SetStatus(codes.Error, "uid mismatch")
+			rortracer.SpanErrorf(span, "uid mismatch")
 			c.JSON(http.StatusNotImplemented, "501: Wrong uid")
 			return
 		}
@@ -72,7 +69,7 @@ func UpdateResource() gin.HandlerFunc {
 		subject := input.Owner.Subject
 
 		if subject == "" || scope == "" {
-			span.SetStatus(codes.Error, "missing owner scope or subject")
+			rortracer.SpanErrorf(span, "missing owner scope or subject")
 			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": "owner scope and subject must be set"}})
 			return
 		}
@@ -83,7 +80,7 @@ func UpdateResource() gin.HandlerFunc {
 		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(scope, subject)
 		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
 		if !accessObject.Update {
-			span.SetStatus(codes.Error, "access denied")
+			rortracer.SpanErrorf(span, "access denied")
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -91,14 +88,14 @@ func UpdateResource() gin.HandlerFunc {
 
 		err := resourcesservice.ResourceNewCreateService(ctx, input)
 		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, "service failed")
+
+			rortracer.SpanError(span, err, "service failed")
 			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
 			return
 		}
 
 		span.AddEvent("resource updated")
-		span.SetStatus(codes.Ok, "")
+		rortracer.SpanOk(span)
 		c.JSON(http.StatusCreated, nil)
 	}
 }

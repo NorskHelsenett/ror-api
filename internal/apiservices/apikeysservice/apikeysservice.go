@@ -9,7 +9,6 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
 	apikeyrepo "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/apikeys"
 	datacenterRepo "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/datacenters"
-	"go.opentelemetry.io/otel/codes"
 
 	"github.com/NorskHelsenett/ror-api/internal/auditlog"
 	"github.com/NorskHelsenett/ror-api/internal/models"
@@ -49,25 +48,25 @@ func VerifyApiKey(ctx context.Context, apikey string) (apicontracts.ApiKey, erro
 
 	apikeys, err := apikeyrepo.GetByHash(ctx, apikeyhashed)
 	if err != nil {
-		span.SetStatus(codes.Error, "error when getting apikeys by hash from repo")
+		rortracer.SpanErrorf(span, "error when getting apikeys by hash from repo")
 		return apicontracts.ApiKey{}, fmt.Errorf("error when getting apikeys by hash from repo")
 	}
 
 	if len(apikeys) == 0 {
-		span.SetStatus(codes.Error, "no api key matched key")
+		rortracer.SpanErrorf(span, "no api key matched key")
 		return apicontracts.ApiKey{}, fmt.Errorf("error no api key matched provided key")
 	}
 
 	if len(apikeys) > 1 {
-		span.SetStatus(codes.Error, "duplicate hashes matching the provided hash")
+		rortracer.SpanErrorf(span, "duplicate hashes matching the provided hash")
 		return apicontracts.ApiKey{}, fmt.Errorf("error duplicate hashes matching the provided hash")
 	}
 
 	if apikeys[0].IsExpired() {
-		span.SetStatus(codes.Error, "API key is expired")
+		rortracer.SpanErrorf(span, "API key is expired")
 		return apicontracts.ApiKey{}, fmt.Errorf("error apikey expired")
 	}
-	span.SetStatus(codes.Ok, "API key verified successfully")
+	rortracer.SpanOk(span)
 	return apikeys[0], nil
 }
 
