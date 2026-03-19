@@ -542,7 +542,11 @@ func GetKubeconfig() gin.HandlerFunc {
 		}
 
 		//aclModel := aclmodels.NewAclV2QueryAccessScopeSubject(scope, clusterId)
-		access := aclrepository.CheckAcl2ByCluster(ctx, accessQuery)
+		//add a span for the access check
+		accessctx, accessspan := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "aclrepository.CheckAcl2ByCluster")
+		defer accessspan.End()
+		access := aclrepository.CheckAcl2ByCluster(accessctx, accessQuery)
+		accessspan.End()
 		var hasAccess = false
 		for _, acl := range access {
 			if acl.Kubernetes.Logon {

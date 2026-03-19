@@ -330,6 +330,9 @@ func GetControlPlanesMetadata(ctx context.Context) ([]apicontracts.ClusterContro
 }
 
 func GetKubeconfig(ctx context.Context, clusterId string, credentials apicontracts.KubeconfigCredentials) (string, error) {
+	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "clustersservice.GetKubeconfig")
+	defer span.End()
+
 	if credentials.Username == "" || credentials.Password == "" {
 		err := errors.New("username and password must be provided")
 		rlog.Errorc(ctx, "could not get kubeconfig", err, rlog.String("clusterId", clusterId))
