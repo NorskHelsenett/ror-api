@@ -2,6 +2,7 @@ package kubeconfigservice
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -18,25 +20,25 @@ import (
 
 var httpClient = http.Client{Timeout: 55 * time.Second}
 
-func GetKubeconfig(cluster *apicontracts.Cluster, credentials apicontracts.KubeconfigCredentials) (string, error) {
+func GetKubeconfig(ctx context.Context, cluster *apicontracts.Cluster, credentials apicontracts.KubeconfigCredentials) (string, error) {
 	switch cluster.Workspace.Datacenter.Provider {
 	case providermodels.ProviderTypeTanzu:
-		return getKubeconfigForTanzuCluster(cluster, credentials)
+		return getKubeconfigForTanzuCluster(ctx, cluster, credentials)
 	default:
 		return "", fmt.Errorf("provider %s is not supported", cluster.Workspace.Datacenter.Provider)
 	}
 }
 
-func GetKubeconfigForWorkspace(workspace *apicontracts.Workspace, credentials apicontracts.KubeconfigCredentials) (string, error) {
+func GetKubeconfigForWorkspace(ctx context.Context, workspace *apicontracts.Workspace, credentials apicontracts.KubeconfigCredentials) (string, error) {
 	switch workspace.Datacenter.Provider {
 	case providermodels.ProviderTypeTanzu:
-		return getKubeconfigForTanzuWorkspace(workspace, credentials)
+		return getKubeconfigForTanzuWorkspace(ctx, workspace, credentials)
 	default:
 		return "", fmt.Errorf("provider %s is not supported", workspace.Datacenter.Provider)
 	}
 }
 
-func getKubeconfigForTanzuCluster(cluster *apicontracts.Cluster, credentials apicontracts.KubeconfigCredentials) (string, error) {
+func getKubeconfigForTanzuCluster(ctx context.Context, cluster *apicontracts.Cluster, credentials apicontracts.KubeconfigCredentials) (string, error) {
 	creds := apicontracts.TanzuKubeConfigPayload{
 		User:          credentials.Username,
 		Password:      credentials.Password,
@@ -47,10 +49,10 @@ func getKubeconfigForTanzuCluster(cluster *apicontracts.Cluster, credentials api
 		WorkspaceOnly: false,
 	}
 
-	return getKubeconfig(creds)
+	return getKubeconfig(ctx, creds)
 }
 
-func getKubeconfigForTanzuWorkspace(workspace *apicontracts.Workspace, credentials apicontracts.KubeconfigCredentials) (string, error) {
+func getKubeconfigForTanzuWorkspace(ctx context.Context, workspace *apicontracts.Workspace, credentials apicontracts.KubeconfigCredentials) (string, error) {
 	creds := apicontracts.TanzuKubeConfigPayload{
 		User:          credentials.Username,
 		Password:      credentials.Password,
@@ -61,10 +63,10 @@ func getKubeconfigForTanzuWorkspace(workspace *apicontracts.Workspace, credentia
 		WorkspaceOnly: true,
 	}
 
-	return getKubeconfig(creds)
+	return getKubeconfig(ctx, creds)
 }
 
-func getKubeconfig(configPayload apicontracts.TanzuKubeConfigPayload) (string, error) {
+func getKubeconfig(ctx context.Context, configPayload apicontracts.TanzuKubeConfigPayload) (string, error) {
 	var payload bytes.Buffer
 	err := json.NewEncoder(&payload).Encode(configPayload)
 	if err != nil {
@@ -74,13 +76,17 @@ func getKubeconfig(configPayload apicontracts.TanzuKubeConfigPayload) (string, e
 
 	serviceUrl := rorconfig.GetString("TANZU_AUTH_BASE_URL")
 	httpposturl := fmt.Sprintf("%s/v1/kubeconfig", serviceUrl)
-	request, err := http.NewRequest("POST", httpposturl, &payload)
+	request, err := http.NewRequestWithContext(ctx, "POST", httpposturl, &payload)
 	if err != nil {
 		rlog.Error("failed to create request", err)
 		return "", err
 	}
 
 	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+
+	if rorconfig.GetBool(rorconfig.ENABLE_TRACING) {
+		httpClient.Transport = otelhttp.NewTransport(httpClient.Transport)
+	}
 
 	response, err := httpClient.Do(request)
 	if err != nil {

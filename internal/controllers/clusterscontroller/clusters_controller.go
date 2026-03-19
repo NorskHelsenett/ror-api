@@ -27,6 +27,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var (
@@ -513,8 +516,15 @@ func GetKubeconfig() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 		clusterid := c.Param("clusterid")
+
+		ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "clustercontroller.GetKubeconfig",
+			trace.WithAttributes(
+				attribute.String("clusterId", clusterid),
+			))
+		defer span.End()
+
 		if clusterid == "" {
-			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "clusterid must be provided")
+			rerr := rorginerror.NewRorGinSpanError(span, http.StatusBadRequest, "clusterid must be provided")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -526,8 +536,8 @@ func GetKubeconfig() gin.HandlerFunc {
 		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeCluster, clusterid)
 		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
 		if !accessObject.Read {
-			rlog.Errorc(ctx, "403: No access", nil)
-			c.JSON(http.StatusForbidden, "403: No access")
+			rerr := rorginerror.NewRorGinSpanError(span, http.StatusForbidden, "No access")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -541,8 +551,8 @@ func GetKubeconfig() gin.HandlerFunc {
 		}
 
 		if !hasAccess {
-			rlog.Errorc(ctx, "403: No access to login to cluster", nil)
-			c.JSON(http.StatusForbidden, "403: No access to login to cluster")
+			rerr := rorginerror.NewRorGinSpanError(span, http.StatusForbidden, "no access to login to cluster")
+			rerr.GinLogErrorAbort(c)
 			return
 		}
 
@@ -550,14 +560,14 @@ func GetKubeconfig() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&clusterKubeConfigPayload); err != nil {
-			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Missing parameter", err)
+			rerr := rorginerror.NewRorGinSpanError(span, http.StatusBadRequest, "Missing parameter", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		//use the validator library to validate required fields
 		if err := validate.Struct(&clusterKubeConfigPayload); err != nil {
-			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "could not validate required fields", err)
+			rerr := rorginerror.NewRorGinSpanError(span, http.StatusBadRequest, "could not validate required fields", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -570,16 +580,22 @@ func GetKubeconfig() gin.HandlerFunc {
 				rlog.Debugc(ctx, "provider not supported")
 				result.Status = "error"
 				result.Message = "provider not supported"
+				span.RecordError(err)
+				span.SetStatus(codes.Error, "provider not supported")
 				c.JSON(http.StatusBadRequest, result)
 			} else if strings.Contains(err.Error(), "could not find cluster") {
 				rlog.Debugc(ctx, "cluster not found")
 				result.Status = "error"
 				result.Message = "cluster not found"
+				span.RecordError(err)
+				span.SetStatus(codes.Error, "could not find cluster")
 				c.JSON(http.StatusNotFound, result)
 			} else {
 				rlog.Errorc(ctx, "error when fetching kubeconfig", err)
 				result.Status = "error"
 				result.Message = "error when fetching kubeconfig"
+				span.RecordError(err)
+				span.SetStatus(codes.Error, "error when fetching kubeconfig")
 				c.JSON(http.StatusInternalServerError, result)
 			}
 			return
@@ -589,6 +605,7 @@ func GetKubeconfig() gin.HandlerFunc {
 			rlog.Errorc(ctx, "error, since kubeconfig is empty", nil)
 			result.Status = "error"
 			result.Message = "error, since kubeconfig is empty"
+			span.SetStatus(codes.Error, "error, since kubeconfig is empty")
 			c.JSON(http.StatusNotFound, result)
 			return
 		}
@@ -598,7 +615,7 @@ func GetKubeconfig() gin.HandlerFunc {
 		result.Message = ""
 		result.Data = kubeConfigEncoded
 		result.DataType = "base64"
-
+		span.SetStatus(codes.Ok, "")
 		c.JSON(http.StatusOK, result)
 	}
 }

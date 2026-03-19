@@ -138,7 +138,7 @@ func GetKubeconfig(ctx context.Context, workspaceName string, credentials apicon
 		return "", err
 	}
 
-	kubeconfigstring, err := kubeconfigservice.GetKubeconfigForWorkspace(workspace, credentials)
+	kubeconfigstring, err := kubeconfigservice.GetKubeconfigForWorkspace(ctx, workspace, credentials)
 	if err != nil {
 		rlog.Errorc(ctx, "could not get kubeconfig", err, rlog.String("workspaceName", workspaceName))
 		return "", err
