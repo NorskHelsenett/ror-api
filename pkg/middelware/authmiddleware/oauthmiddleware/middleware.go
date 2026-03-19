@@ -8,11 +8,10 @@ import (
 	"time"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
-	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
+	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
 )
 
@@ -46,7 +45,7 @@ func (d *OauthMiddleware) IsOfType(c *gin.Context) bool {
 }
 
 func (d *OauthMiddleware) Authenticate(c *gin.Context, ctx context.Context) {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "OauthMiddleware.Authenticate")
+	ctx, span := rortracer.StartSpan(ctx, "OauthMiddleware.Authenticate")
 	defer span.End()
 
 	auth := c.Request.Header.Get("Authorization")

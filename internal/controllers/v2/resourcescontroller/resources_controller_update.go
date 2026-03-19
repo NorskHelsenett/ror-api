@@ -8,14 +8,12 @@ import (
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 
-	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
-
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 
 	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 )
@@ -41,7 +39,7 @@ func UpdateResource() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "v2.resourcescontroller.UpdateResource")
+		ctx, span := rortracer.StartSpan(ctx, "v2.resourcescontroller.UpdateResource")
 		defer span.End()
 		span.SetAttributes(attribute.String("resource.uid", c.Param("uid")))
 

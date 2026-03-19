@@ -11,14 +11,13 @@ import (
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
-	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/rorresourceowner"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
+	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 )
@@ -56,7 +55,7 @@ func ExistsResources() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "v2.resourcescontroller.ExistsResources")
+		ctx, span := rortracer.StartSpan(ctx, "v2.resourcescontroller.ExistsResources")
 		defer span.End()
 		span.SetAttributes(attribute.String("resource.uid", c.Param("uid")))
 
@@ -133,7 +132,7 @@ func GetResourceHashList() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "v2.resourcescontroller.GetResourceHashList")
+		ctx, span := rortracer.StartSpan(ctx, "v2.resourcescontroller.GetResourceHashList")
 		defer span.End()
 		span.SetAttributes(
 			attribute.String("owner.scope", c.Query("ownerScope")),

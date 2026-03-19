@@ -14,11 +14,11 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/models/responses"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
-	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -26,7 +26,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
@@ -403,11 +402,11 @@ func RegisterHeartbeat() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
-		ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Heartbeat controller")
+		ctx, span := rortracer.StartSpan(ctx, "Heartbeat controller")
 		defer span.End()
 		var input apicontracts.Cluster
 
-		_, span1 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Validate request")
+		_, span1 := rortracer.StartSpan(ctx, "Validate request")
 		defer span1.End()
 
 		//TODO: return rorerror.RorError
@@ -435,7 +434,7 @@ func RegisterHeartbeat() gin.HandlerFunc {
 		}
 		span1.End()
 
-		_, span1 = otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "clustersservice.CreateOrUpdate")
+		_, span1 = rortracer.StartSpan(ctx, "clustersservice.CreateOrUpdate")
 		defer span1.End()
 		err := clustersservice.CreateOrUpdate(ctx, &input, input.ClusterId)
 		if err != nil {
@@ -443,7 +442,7 @@ func RegisterHeartbeat() gin.HandlerFunc {
 			return
 		}
 		span1.End()
-		_, span1 = otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Sending reply")
+		_, span1 = rortracer.StartSpan(ctx, "Sending reply")
 		defer span1.End()
 
 		c.JSON(http.StatusCreated, responses.Cluster{Status: http.StatusCreated, Message: "success", Data: nil})
@@ -517,7 +516,7 @@ func GetKubeconfig() gin.HandlerFunc {
 		defer cancel()
 		clusterid := c.Param("clusterid")
 
-		ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "clustercontroller.GetKubeconfig",
+		ctx, span := rortracer.StartSpan(ctx, "clustercontroller.GetKubeconfig",
 			trace.WithAttributes(
 				attribute.String("clusterId", clusterid),
 			))
@@ -543,7 +542,7 @@ func GetKubeconfig() gin.HandlerFunc {
 
 		//aclModel := aclmodels.NewAclV2QueryAccessScopeSubject(scope, clusterId)
 		//add a span for the access check
-		accessctx, accessspan := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "aclrepository.CheckAcl2ByCluster")
+		accessctx, accessspan := rortracer.StartSpan(ctx, "aclrepository.CheckAcl2ByCluster")
 		defer accessspan.End()
 		access := aclrepository.CheckAcl2ByCluster(accessctx, accessQuery)
 		accessspan.End()

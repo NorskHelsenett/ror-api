@@ -5,9 +5,8 @@ import (
 	"net/http"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
-	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
+	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
 )
 
@@ -20,7 +19,7 @@ type GinAuthProvider interface {
 
 func AuthenticationMiddleware(c *gin.Context) {
 	ctx := c.Request.Context()
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "AuthenticationMiddleware")
+	ctx, span := rortracer.StartSpan(ctx, "AuthenticationMiddleware")
 	defer span.End()
 
 	for _, provider := range AuthProviders {

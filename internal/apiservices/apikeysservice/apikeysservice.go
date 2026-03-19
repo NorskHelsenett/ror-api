@@ -9,7 +9,6 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
 	apikeyrepo "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/apikeys"
 	datacenterRepo "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/datacenters"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
 
 	"github.com/NorskHelsenett/ror-api/internal/auditlog"
@@ -17,6 +16,7 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
+	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
@@ -43,7 +43,7 @@ func mustGetApikeySalt() string {
 }
 
 func VerifyApiKey(ctx context.Context, apikey string) (apicontracts.ApiKey, error) {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "apikeyservice.VerifyApiKey")
+	ctx, span := rortracer.StartSpan(ctx, "apikeyservice.VerifyApiKey")
 	defer span.End()
 	apikeyhashed := stringhelper.HashSHA512(apikey, []byte(mustGetApikeySalt()))
 

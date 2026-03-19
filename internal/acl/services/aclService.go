@@ -10,9 +10,8 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/models"
 	"go.mongodb.org/mongo-driver/v2/bson"
 
-	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
-
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
+	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -20,8 +19,6 @@ import (
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/rorresourceowner"
-
-	"go.opentelemetry.io/otel"
 )
 
 func GetById(ctx context.Context, id string) (*aclmodels.AclV2ListItem, error) {
@@ -98,7 +95,7 @@ func Delete(ctx context.Context, aclId string, identity *identitymodels.Identity
 
 // Gets ACL2 Access model for user/scope/subject returns aclmodels.AclV2ListItemAccess
 func CheckAccessByContextScopeSubject(ctx context.Context, scope any, subject any) aclmodels.AclV2ListItemAccess {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "aclService.CheckAccessByContextScopeSubject")
+	ctx, span := rortracer.StartSpan(ctx, "aclService.CheckAccessByContextScopeSubject")
 	defer span.End()
 
 	aclModel := aclmodels.NewAclV2QueryAccessScopeSubject(scope, subject)
@@ -106,7 +103,7 @@ func CheckAccessByContextScopeSubject(ctx context.Context, scope any, subject an
 	return aclrepository.CheckAcl2ByIdentityQuery(ctx, aclModel)
 }
 func CheckAccessByContextAclQuery(ctx context.Context, query aclmodels.AclV2QueryAccessScopeSubject) aclmodels.AclV2ListItemAccess {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "aclService.CheckAccessByContextScopeSubject")
+	ctx, span := rortracer.StartSpan(ctx, "aclService.CheckAccessByContextScopeSubject")
 	defer span.End()
 
 	if !query.IsValid() {
@@ -119,7 +116,7 @@ func CheckAccessByContextAclQuery(ctx context.Context, query aclmodels.AclV2Quer
 // Deprecated: use CheckAccessByRorOwnerref
 // Gets ACL2 Access model for user/scope/subject returns aclmodels.AclV2ListItemAccess
 func CheckAccessByOwnerref(ctx context.Context, ownerref apiresourcecontracts.ResourceOwnerReference) aclmodels.AclV2ListItemAccess {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "aclService.CheckAccessByContextScopeSubject")
+	ctx, span := rortracer.StartSpan(ctx, "aclService.CheckAccessByContextScopeSubject")
 	defer span.End()
 
 	aclModel := aclmodels.NewAclV2QueryAccessScopeSubject(ownerref.Scope, ownerref.Subject)
@@ -128,7 +125,7 @@ func CheckAccessByOwnerref(ctx context.Context, ownerref apiresourcecontracts.Re
 }
 
 func CheckAccessByRorOwnerref(ctx context.Context, ownerref rorresourceowner.RorResourceOwnerReference) aclmodels.AclV2ListItemAccess {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "aclService.CheckAccessByContextScopeSubject")
+	ctx, span := rortracer.StartSpan(ctx, "aclService.CheckAccessByContextScopeSubject")
 	defer span.End()
 
 	aclModel := aclmodels.NewAclV2QueryAccessScopeSubject(ownerref.Scope, ownerref.Subject)
@@ -137,14 +134,14 @@ func CheckAccessByRorOwnerref(ctx context.Context, ownerref rorresourceowner.Ror
 }
 
 func GetOwnerrefByContextAccess(ctx context.Context, access aclmodels.AccessType) bson.M {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "aclService.GetOwnerrefByContextAccess")
+	ctx, span := rortracer.StartSpan(ctx, "aclService.GetOwnerrefByContextAccess")
 	defer span.End()
 
 	return aclrepository.GetOwnerrefsQueryAcl2ByIdentityAccess(ctx, access)
 
 }
 func CheckAcl2AccessByIdentityQueryAccess(ctx context.Context, aclQuery aclmodels.AclV2QueryAccessScopeSubject, access aclmodels.AccessType) bool {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "aclService.CheckAcl2AccessByIdentityQueryAccess")
+	ctx, span := rortracer.StartSpan(ctx, "aclService.CheckAcl2AccessByIdentityQueryAccess")
 	defer span.End()
 
 	if !aclQuery.IsValid() {

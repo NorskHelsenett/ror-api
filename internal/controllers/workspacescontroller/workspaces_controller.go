@@ -8,15 +8,14 @@ import (
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/workspacesservice"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 
-	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -239,7 +238,7 @@ func GetKubeconfig() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		workspaceName := c.Param("workspaceName")
 
-		ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "workspacecontroller.GetKubeconfig",
+		ctx, span := rortracer.StartSpan(ctx, "workspacecontroller.GetKubeconfig",
 			trace.WithAttributes(
 				attribute.String("workspace", workspaceName),
 			))

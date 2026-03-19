@@ -15,8 +15,8 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/services/kubeconfigservice"
 	"github.com/NorskHelsenett/ror-api/internal/webserver/sse"
 
-	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/helpers/idhelper"
+	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
@@ -34,8 +34,6 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 	"github.com/NorskHelsenett/ror/pkg/messagebuscontracts"
 
-	"go.opentelemetry.io/otel"
-
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
@@ -50,15 +48,15 @@ func GetByClusterId(ctx context.Context, clusterId string) (*apicontracts.Cluste
 }
 
 func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontracts.PaginatedResult[*apicontracts.Cluster], error) {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "clustersservice.GetByFilter")
+	ctx, span := rortracer.StartSpan(ctx, "clustersservice.GetByFilter")
 	defer span.End()
 
-	_, span1 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "getMongodb")
+	_, span1 := rortracer.StartSpan(ctx, "getMongodb")
 	defer span1.End()
 
 	span1.End()
 
-	_, span2 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "mongoclusters.GetByFilter")
+	_, span2 := rortracer.StartSpan(ctx, "mongoclusters.GetByFilter")
 	defer span2.End()
 
 	result, err := mongoclusters.GetByFilter(ctx, filter)
@@ -68,7 +66,7 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 
 	span2.End()
 
-	_, span4 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "fillClusterObject")
+	_, span4 := rortracer.StartSpan(ctx, "fillClusterObject")
 	defer span4.End()
 
 	var data []*apicontracts.Cluster
@@ -99,9 +97,9 @@ func GetByWorkspaceId(ctx context.Context, filter *apicontracts.Filter, workspac
 }
 
 func CreateOrUpdate(ctx context.Context, input *apicontracts.Cluster, clusterId string) error {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Service: clustersservice.CreateOrUpdate")
+	ctx, span := rortracer.StartSpan(ctx, "Service: clustersservice.CreateOrUpdate")
 	defer span.End()
-	_, span1 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Check if cluster exists")
+	_, span1 := rortracer.StartSpan(ctx, "Check if cluster exists")
 	defer span1.End()
 	existing, err := mongoclusters.GetByClusterId(ctx, clusterId)
 	if err != nil {
@@ -114,7 +112,7 @@ func CreateOrUpdate(ctx context.Context, input *apicontracts.Cluster, clusterId 
 	PopulateDatacenter(ctx, input)
 
 	if existing != nil {
-		_, span1 = otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Run service update")
+		_, span1 = rortracer.StartSpan(ctx, "Run service update")
 		defer span1.End()
 
 		err := Update(ctx, input, existing)
@@ -122,7 +120,7 @@ func CreateOrUpdate(ctx context.Context, input *apicontracts.Cluster, clusterId 
 		span1.End()
 		return err
 	} else {
-		_, span1 = otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Run service create")
+		_, span1 = rortracer.StartSpan(ctx, "Run service create")
 		defer span1.End()
 
 		_, err := Create(ctx, input)
@@ -152,7 +150,7 @@ func Create(ctx context.Context, input *apicontracts.Cluster) (string, error) {
 }
 
 func Update(ctx context.Context, input *apicontracts.Cluster, existing *apicontracts.Cluster) error {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Service: clustersservice.Update")
+	ctx, span := rortracer.StartSpan(ctx, "Service: clustersservice.Update")
 	defer span.End()
 	if existing == nil {
 		return fmt.Errorf("could not find existing update cluster with id: %s", input.ClusterId)
@@ -169,7 +167,7 @@ func Update(ctx context.Context, input *apicontracts.Cluster, existing *apicontr
 		input.Identifier = idhelper.GetIdentifier(input.ClusterName)
 	}
 
-	_, span1 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Run repository update")
+	_, span1 := rortracer.StartSpan(ctx, "Run repository update")
 	defer span1.End()
 	err := mongoclusters.Update(ctx, input)
 	if err != nil {
@@ -330,7 +328,7 @@ func GetControlPlanesMetadata(ctx context.Context) ([]apicontracts.ClusterContro
 }
 
 func GetKubeconfig(ctx context.Context, clusterId string, credentials apicontracts.KubeconfigCredentials) (string, error) {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "clustersservice.GetKubeconfig")
+	ctx, span := rortracer.StartSpan(ctx, "clustersservice.GetKubeconfig")
 	defer span.End()
 
 	if credentials.Username == "" || credentials.Password == "" {

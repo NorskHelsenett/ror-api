@@ -13,14 +13,13 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
-	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/messagebuscontracts"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/rorresourceowner"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
+	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 )
@@ -32,7 +31,7 @@ var (
 )
 
 func HandleResourceUpdate(ctx context.Context, resource *rorresources.Resource) rorresources.ResourceUpdateResults {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "v2.resourcesv2service.HandleResourceUpdate")
+	ctx, span := rortracer.StartSpan(ctx, "v2.resourcesv2service.HandleResourceUpdate")
 	defer span.End()
 	span.SetAttributes(
 		attribute.String("resource.uid", resource.GetUID()),
@@ -81,7 +80,7 @@ func HandleResourceUpdate(ctx context.Context, resource *rorresources.Resource) 
 }
 
 func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) rorresources.ResourceUpdateResults {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "v2.resourcesv2service.NewOrUpdateResource")
+	ctx, span := rortracer.StartSpan(ctx, "v2.resourcesv2service.NewOrUpdateResource")
 	defer span.End()
 	span.SetAttributes(
 		attribute.String("resource.uid", resource.GetUID()),
@@ -161,7 +160,7 @@ func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) r
 }
 
 func GetResourceByUID(ctx context.Context, uid string) *rorresources.ResourceSet {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "v2.resourcesv2service.GetResourceByUID")
+	ctx, span := rortracer.StartSpan(ctx, "v2.resourcesv2service.GetResourceByUID")
 	defer span.End()
 	span.SetAttributes(attribute.String("resource.uid", uid))
 
@@ -215,7 +214,7 @@ func GetResourceByUID(ctx context.Context, uid string) *rorresources.ResourceSet
 }
 
 func DeleteResource(ctx context.Context, resource *rorresources.Resource) error {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "v2.resourcesv2service.DeleteResource")
+	ctx, span := rortracer.StartSpan(ctx, "v2.resourcesv2service.DeleteResource")
 	defer span.End()
 	span.SetAttributes(attribute.String("resource.uid", resource.GetUID()))
 
@@ -251,7 +250,7 @@ func DeleteResource(ctx context.Context, resource *rorresources.Resource) error 
 }
 
 func GetResourceByQuery(ctx context.Context, query *rorresources.ResourceQuery) (*rorresources.ResourceSet, error) {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "v2.resourcesv2service.GetResourceByQuery")
+	ctx, span := rortracer.StartSpan(ctx, "v2.resourcesv2service.GetResourceByQuery")
 	defer span.End()
 
 	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
@@ -342,7 +341,7 @@ func sendToMessageBus(ctx context.Context, resource *rorresources.Resource, acti
 }
 
 func ResourceGetHashlist(ctx context.Context, owner rorresourceowner.RorResourceOwnerReference) (apiresourcecontracts.HashList, error) {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "v2.resourcesv2service.ResourceGetHashlist")
+	ctx, span := rortracer.StartSpan(ctx, "v2.resourcesv2service.ResourceGetHashlist")
 	defer span.End()
 
 	query := rorresources.ResourceQuery{

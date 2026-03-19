@@ -5,11 +5,10 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/apikeysservice"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
 
-	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
+	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
@@ -28,7 +27,7 @@ func (a *ApiKeyAuthProvider) IsOfType(c *gin.Context) bool {
 }
 
 func (a *ApiKeyAuthProvider) Authenticate(c *gin.Context, ctx context.Context) {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "apikeyauth.ApiKeyAuthProvider.Authenticate")
+	ctx, span := rortracer.StartSpan(ctx, "apikeyauth.ApiKeyAuthProvider.Authenticate")
 	defer span.End()
 	apikey := c.Request.Header.Get("X-API-KEY")
 	if len(apikey) == 0 {
@@ -64,7 +63,7 @@ func NewApiKeyAuthProvider() *ApiKeyAuthProvider {
 }
 
 func clusterAuth(c *gin.Context, ctx context.Context, apikey apicontracts.ApiKey) {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "apikeyauth.clusterauth")
+	ctx, span := rortracer.StartSpan(ctx, "apikeyauth.clusterauth")
 	defer span.End()
 	identifier := apikey.Identifier
 	c.Set("clusterId", identifier)
@@ -88,7 +87,7 @@ func clusterAuth(c *gin.Context, ctx context.Context, apikey apicontracts.ApiKey
 }
 
 func serviceAuth(c *gin.Context, ctx context.Context, apikey apicontracts.ApiKey) {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "apikeyauth.serviceauth")
+	ctx, span := rortracer.StartSpan(ctx, "apikeyauth.serviceauth")
 	defer span.End()
 	identifier := apikey.Identifier
 	c.Set("clusterId", identifier)
@@ -111,7 +110,7 @@ func serviceAuth(c *gin.Context, ctx context.Context, apikey apicontracts.ApiKey
 }
 
 func userAuth(c *gin.Context, ctx context.Context, apikey apicontracts.ApiKey) {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "apikeyauth.userAuth")
+	ctx, span := rortracer.StartSpan(ctx, "apikeyauth.userAuth")
 	defer span.End()
 
 	user, err := apiconnections.DomainResolvers.GetUser(ctx, apikey.Identifier)

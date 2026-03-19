@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	"github.com/NorskHelsenett/ror-api/internal/utils/switchboard"
@@ -15,7 +16,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/helpers/tokenstoragehelper"
 	"github.com/NorskHelsenett/ror/pkg/helpers/tokenstoragehelper/vaulttokenadapter"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
-	"github.com/NorskHelsenett/ror/pkg/telemetry/trace"
+	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
@@ -41,15 +42,12 @@ func Run() {
 	//TODO: Refactor the init functions called to respect context cancelations
 	apiconnections.InitConnections(ctx)
 
-	//TODO: refactor the trace package to respect context cancelations
-	if rorconfig.GetBool(rorconfig.ENABLE_TRACING) {
-		go func() {
-			trace.ConnectTracer(done, rorconfig.GetString(rorconfig.TRACER_ID), rorconfig.GetString(rorconfig.OPENTELEMETRY_COLLECTOR_ENDPOINT))
-			<-sigs
-			done <- struct{}{}
-		}()
-	}
-
+	rortracer.InitWithDefault(ctx)
+	defer func() {
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		rortracer.Shutdown(shutdownCtx)
+	}()
 	webserver.StartListening(ctx, &wg)
 
 	//TODO: refactor health server to respect context cancelations

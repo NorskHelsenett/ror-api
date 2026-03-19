@@ -8,11 +8,8 @@ import (
 	mongometrics "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/metrics"
 	mongoworkspaces "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/workspaces"
 
-	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
-
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-
-	"go.opentelemetry.io/otel"
+	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 )
 
 func GetTotal(ctx context.Context) (*apicontracts.MetricsTotal, error) {
@@ -35,10 +32,10 @@ func GetTotal(ctx context.Context) (*apicontracts.MetricsTotal, error) {
 }
 
 func GetTotalByUser(ctx context.Context) (*apicontracts.MetricsTotal, error) {
-	ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "metricsservice.GetTotalByUser")
+	ctx, span := rortracer.StartSpan(ctx, "metricsservice.GetTotalByUser")
 	defer span.End()
 
-	ctx, span1 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "mongometrics.GetTotalByUser")
+	ctx, span1 := rortracer.StartSpan(ctx, "mongometrics.GetTotalByUser")
 	defer span1.End()
 
 	metrics, err := mongometrics.GetTotalByUser(ctx)
@@ -48,17 +45,17 @@ func GetTotalByUser(ctx context.Context) (*apicontracts.MetricsTotal, error) {
 
 	span1.End()
 
-	ctx, span2 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "mongodatacenters.GetAllByUser")
+	ctx, span2 := rortracer.StartSpan(ctx, "mongodatacenters.GetAllByUser")
 	defer span2.End()
 	datacenters, _ := mongodatacenters.GetAllByUser(ctx)
 	span2.End()
 
-	ctx, span3 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "mongoworkspaces.GetAllByUser")
+	ctx, span3 := rortracer.StartSpan(ctx, "mongoworkspaces.GetAllByUser")
 	defer span3.End()
 	workspaces, _ := mongoworkspaces.GetAllByIdentity(ctx)
 	span3.End()
 
-	_, span4 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Return data")
+	_, span4 := rortracer.StartSpan(ctx, "Return data")
 	defer span4.End()
 	metrics.DatacenterCount = int64(len(*datacenters))
 	metrics.WorkspaceCount = int64(len(*workspaces))

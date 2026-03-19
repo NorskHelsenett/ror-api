@@ -7,16 +7,14 @@ import (
 	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
 	"github.com/NorskHelsenett/ror-api/internal/models/responses"
 
-	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
-
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 
 	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/otel"
 )
 
 // Update a cluster resource of given group/version/kind/uid.
@@ -40,11 +38,11 @@ func UpdateResource() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		ctx, span := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Resource update controller")
+		ctx, span := rortracer.StartSpan(ctx, "Resource update controller")
 		defer span.End()
 		var input apiresourcecontracts.ResourceUpdateModel
 
-		_, span1 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Validate request")
+		_, span1 := rortracer.StartSpan(ctx, "Validate request")
 		defer span1.End()
 
 		//validate the request body
@@ -66,7 +64,7 @@ func UpdateResource() gin.HandlerFunc {
 
 		span1.AddEvent("Request validated")
 		span1.End()
-		_, span2 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Check access")
+		_, span2 := rortracer.StartSpan(ctx, "Check access")
 		defer span2.End()
 
 		scope := aclmodels.Acl2Scope(input.Owner.Scope)
@@ -89,7 +87,7 @@ func UpdateResource() gin.HandlerFunc {
 
 		span2.AddEvent("Access checked")
 		span2.End()
-		_, span3 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Run service: resourceservice.ResourceNewCreateService")
+		_, span3 := rortracer.StartSpan(ctx, "Run service: resourceservice.ResourceNewCreateService")
 		defer span3.End()
 
 		err := resourcesservice.ResourceNewCreateService(ctx, input)
@@ -100,7 +98,7 @@ func UpdateResource() gin.HandlerFunc {
 
 		span3.AddEvent("Resource updated")
 		span3.End()
-		_, span4 := otel.GetTracerProvider().Tracer(rorconfig.GetString(rorconfig.TRACER_ID)).Start(ctx, "Return response")
+		_, span4 := rortracer.StartSpan(ctx, "Return response")
 		defer span4.End()
 
 		c.JSON(http.StatusCreated, nil)

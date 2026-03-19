@@ -2,16 +2,10 @@ package apiserver
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
-)
-
-var (
-	sigs chan os.Signal
-	done chan struct{}
 )
 
 func InitConfig() {
