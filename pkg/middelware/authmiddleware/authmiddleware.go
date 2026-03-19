@@ -27,6 +27,7 @@ func AuthenticationMiddleware(c *gin.Context) {
 		if provider.IsOfType(c) {
 			provider.Authenticate(c, ctx)
 			span.SetStatus(codes.Ok, "Authentication successful")
+			span.End()
 			c.Next()
 			return
 		}
