@@ -47,7 +47,6 @@ func HandleResourceUpdate(ctx context.Context, resource *rorresources.Resource) 
 		if err != nil {
 			rlog.Error("Could not delete resource", err)
 			rortracer.SpanError(span, err, "could not delete resource")
-
 			return rorresources.ResourceUpdateResults{
 				Results: map[string]rorresources.ResourceUpdateResult{
 					resource.GetUID(): {
@@ -141,7 +140,7 @@ func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) r
 
 	if err := sendToMessageBus(ctx, resource, resource.RorMeta.Action); err != nil {
 		rlog.Errorc(ctx, "Failed to send message to bus", err)
-		rortracer.SpanError(span, err)
+		rortracer.SpanError(span, err, "failed to send message to bus")
 	}
 
 	//rlog.Debug("Resource created", rlog.Any("resource", resource.GetAPIVersion()), rlog.Any("kind", resource.GetKind()), rlog.Any("name", resource.GetName()))
@@ -231,7 +230,7 @@ func DeleteResource(ctx context.Context, resource *rorresources.Resource) error 
 	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
 	err := sendToMessageBus(ctx, resource, rortypes.K8sActionDelete)
 	if err != nil {
-		rortracer.SpanError(span, err)
+		rortracer.SpanError(span, err, "unable to send delete action on rabbit queue")
 		rlog.Errorc(ctx, "unable to send delete action on rabbit queue", err)
 	}
 	delErr := databaseHelpers.Del(ctx, resource)

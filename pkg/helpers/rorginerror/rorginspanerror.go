@@ -3,7 +3,6 @@ package rorginerror
 import (
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
-	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
@@ -52,7 +51,7 @@ func (e RorGinSpanError) recordSpanError() {
 		return
 	}
 	for _, err := range e.GetErrors() {
-		rortracer.SpanError(span, err)
+		e.span.RecordError(err)
 	}
 	e.span.SetStatus(codes.Error, e.GetMessage())
 }

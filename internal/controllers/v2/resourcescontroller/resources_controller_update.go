@@ -88,7 +88,6 @@ func UpdateResource() gin.HandlerFunc {
 
 		err := resourcesservice.ResourceNewCreateService(ctx, input)
 		if err != nil {
-
 			rortracer.SpanError(span, err, "service failed")
 			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
 			return
