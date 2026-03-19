@@ -80,16 +80,11 @@ services:
     image: ${DOCKER_MIRROR}busybox
     volumes:
       - ${DOCKER_VOLUME_PATH:-../ror/hacks/data}/dex/dbs:/dbs
-    entrypoint:
-      [
-        'sh',
-        '-c',
-        "touch /dbs/dex.db && chmod 766 /dbs/dex.db && chmod 777 /dbs && echo 'dex.db file created.'",
-      ]
+    entrypoint: ['sh', '-c', "touch /dbs/dex.db && chmod 766 /dbs/dex.db && chmod 777 /dbs && echo 'dex.db file created.'"]
     restart: 'no'
 
   vault:
-    image: hashicorp/vault:1.18.3
+    image: ${DOCKER_MIRROR}hashicorp/vault:1.18.3
     cap_add:
       - IPC_LOCK
     environment:
@@ -168,7 +163,7 @@ services:
       test: ['CMD', 'valkey-cli', 'ping']
 
   valkey-commander:
-    image: rediscommander/redis-commander:latest
+    image: ${DOCKER_MIRROR}rediscommander/redis-commander:latest
     container_name: ${COMPOSE_PROJECT_NAME}-valkey-ui
     restart: unless-stopped
     platform: linux/amd64
@@ -194,4 +189,3 @@ services:
       - mocc
 volumes:
   data: {}
-
