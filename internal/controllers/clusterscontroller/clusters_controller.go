@@ -27,7 +27,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -583,22 +582,19 @@ func GetKubeconfig() gin.HandlerFunc {
 				rlog.Debugc(ctx, "provider not supported")
 				result.Status = "error"
 				result.Message = "provider not supported"
-				span.RecordError(err)
-				span.SetStatus(codes.Error, "provider not supported")
+				rortracer.SpanError(span, err, "provider not supported")
 				c.JSON(http.StatusBadRequest, result)
 			} else if strings.Contains(err.Error(), "could not find cluster") {
 				rlog.Debugc(ctx, "cluster not found")
 				result.Status = "error"
 				result.Message = "cluster not found"
-				span.RecordError(err)
-				span.SetStatus(codes.Error, "could not find cluster")
+				rortracer.SpanError(span, err, "could not find cluster")
 				c.JSON(http.StatusNotFound, result)
 			} else {
 				rlog.Errorc(ctx, "error when fetching kubeconfig", err)
 				result.Status = "error"
 				result.Message = "error when fetching kubeconfig"
-				span.RecordError(err)
-				span.SetStatus(codes.Error, "error when fetching kubeconfig")
+				rortracer.SpanError(span, err, "error when fetching kubeconfig")
 				c.JSON(http.StatusInternalServerError, result)
 			}
 			return
@@ -608,7 +604,7 @@ func GetKubeconfig() gin.HandlerFunc {
 			rlog.Errorc(ctx, "error, since kubeconfig is empty", nil)
 			result.Status = "error"
 			result.Message = "error, since kubeconfig is empty"
-			span.SetStatus(codes.Error, "error, since kubeconfig is empty")
+			rortracer.SpanErrorf(span, "error, since kubeconfig is empty")
 			c.JSON(http.StatusNotFound, result)
 			return
 		}
@@ -618,7 +614,7 @@ func GetKubeconfig() gin.HandlerFunc {
 		result.Message = ""
 		result.Data = kubeConfigEncoded
 		result.DataType = "base64"
-		span.SetStatus(codes.Ok, "")
+		rortracer.SpanOk(span)
 		c.JSON(http.StatusOK, result)
 	}
 }
