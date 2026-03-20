@@ -18,7 +18,15 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 )
 
-var httpClient = http.Client{Timeout: 55 * time.Second}
+var httpClient = newHTTPClient()
+
+func newHTTPClient() http.Client {
+	var transport http.RoundTripper
+	if rorconfig.GetBool(rorconfig.ENABLE_TRACING) {
+		transport = otelhttp.NewTransport(http.DefaultTransport)
+	}
+	return http.Client{Timeout: 55 * time.Second, Transport: transport}
+}
 
 func GetKubeconfig(ctx context.Context, cluster *apicontracts.Cluster, credentials apicontracts.KubeconfigCredentials) (string, error) {
 	switch cluster.Workspace.Datacenter.Provider {
@@ -83,10 +91,6 @@ func getKubeconfig(ctx context.Context, configPayload apicontracts.TanzuKubeConf
 	}
 
 	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
-
-	if rorconfig.GetBool(rorconfig.ENABLE_TRACING) {
-		httpClient.Transport = otelhttp.NewTransport(httpClient.Transport)
-	}
 
 	response, err := httpClient.Do(request)
 	if err != nil {

@@ -18,17 +18,27 @@ import (
 
 // GetRorContextFromGinContext Function creates ror context from gin context, identity is added to the context
 func GetRorContextFromGinContext(c *gin.Context) (context.Context, context.CancelFunc) {
-	var timeout time.Duration
-	timeoutstring, exists := c.Get("timeout")
-	if !exists {
-		rlog.Debug("timeout not set in gin context", rlog.String("uri", c.Request.RequestURI))
-		timeout = 10 * time.Second
-	} else {
-		rlog.Debug("timeout set in gin context", rlog.String("timeout", timeoutstring.(time.Duration).String()))
-		timeout = timeoutstring.(time.Duration)
-	}
+	reqCtx := c.Request.Context()
 
-	ctx, cancel := context.WithTimeout(c.Request.Context(), timeout)
+	var ctx context.Context
+	var cancel context.CancelFunc
+
+	// If the request context already has a deadline (e.g. from timeout middleware), use it directly.
+	// Otherwise fall back to an explicit timeout from the gin context or the default of 10s.
+	if _, hasDeadline := reqCtx.Deadline(); hasDeadline {
+		ctx, cancel = context.WithCancel(reqCtx)
+	} else {
+		var timeout time.Duration
+		timeoutstring, exists := c.Get("timeout")
+		if !exists {
+			rlog.Debug("timeout not set in gin context", rlog.String("uri", c.Request.RequestURI))
+			timeout = 10 * time.Second
+		} else {
+			rlog.Debug("timeout set in gin context", rlog.String("timeout", timeoutstring.(time.Duration).String()))
+			timeout = timeoutstring.(time.Duration)
+		}
+		ctx, cancel = context.WithTimeout(reqCtx, timeout)
+	}
 	identity, err := getIdentityFromGinContext(c)
 	if err != nil {
 		rlog.Error("could not get user from gin context: %v", err)
