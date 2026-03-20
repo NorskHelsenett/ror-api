@@ -15,6 +15,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 	"github.com/NorskHelsenett/ror/pkg/rorresources/rordefs"
+	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
 	"go.mongodb.org/mongo-driver/v2/bson"
 
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
@@ -114,30 +115,72 @@ func (r *ResourceMongoDB) Get(ctx context.Context, rorResourceQuery *rorresource
 		err := fmt.Errorf("could not generate aggregate query: %w", err)
 		return nil, err
 	}
-	var resources = make([]rorresources.Resource, 0)
 	queryStart := time.Now()
-	err = r.db.Aggregate(ctx, RESOURCECOLLECTION, query, &resources)
+
+	// Read as raw BSON first to ensure we always get UIDs even if resource definitions changed.
+	var rawDocs []bson.M
+	err = r.db.Aggregate(ctx, RESOURCECOLLECTION, query, &rawDocs)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			rlog.Errorc(ctx, "Query timed out in ResourceMongoDB.Get", err, rlog.Any("query", query))
 			return nil, fmt.Errorf("query timed out: %w", err)
 		}
-		err := fmt.Errorf("could not execute aggregate query: %w", err)
-		return nil, rorerror.NewRorErrorFromError(500, err)
+		return nil, rorerror.NewRorErrorFromError(500, fmt.Errorf("could not execute aggregate query: %w", err))
 	}
 	if time.Since(queryStart) > slowQueryDuration*2 {
 		rlog.Warn("Slow query detected in ResourceMongoDB.Get", rlog.Any("query", query), rlog.Any("duration", time.Since(queryStart)))
 	}
 	resourceSet := rorresources.NewResourceSet()
-	if len(resources) > 0 {
-		for _, resource := range resources {
-			resourceSet.Add(rorresources.NewResourceFromStruct(resource))
+	for _, doc := range rawDocs {
+		resource := resourceFromRawDoc(doc)
+		if resource != nil {
+			resourceSet.Add(resource)
 		}
+	}
+	if len(resourceSet.Resources) > 0 {
 		return resourceSet, nil
 	}
 
-	err = fmt.Errorf("resource not found for versionKind: %s", rorResourceQuery.VersionKind)
 	return nil, nil
+}
+
+// resourceFromRawDoc constructs a Resource from a raw BSON document.
+// It first attempts full typed deserialization. If that fails or produces a nil resource,
+// it falls back to extracting only CommonResource (which contains the UID) and sets
+// the hash to "invalid" to trigger an update from the agent.
+func resourceFromRawDoc(doc bson.M) *rorresources.Resource {
+	raw, err := bson.Marshal(doc)
+	if err != nil {
+		return nil
+	}
+
+	// Try full typed deserialization first
+	var typedRes rorresources.Resource
+	if err := bson.Unmarshal(raw, &typedRes); err == nil {
+		if r := rorresources.NewResourceFromStruct(typedRes); r != nil {
+			return r
+		}
+	}
+
+	// Fallback: extract only CommonResource to preserve UID
+	var common rortypes.CommonResource
+	if err := bson.Unmarshal(raw, &common); err != nil {
+		return nil
+	}
+
+	if common.Kind == "" || common.APIVersion == "" {
+		return nil
+	}
+
+	emptyRes := rorresources.Resource{}
+	emptyRes.CommonResource = common
+	r := rorresources.NewResourceFromStruct(emptyRes)
+	if r == nil {
+		return nil
+	}
+
+	r.RorMeta.Hash = "invalid"
+	return r
 }
 
 func (r *ResourceMongoDB) Del(ctx context.Context, resource *rorresources.Resource) error {
