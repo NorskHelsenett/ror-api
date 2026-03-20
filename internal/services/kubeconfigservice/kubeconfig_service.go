@@ -18,14 +18,9 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 )
 
-var httpClient = newHTTPClient()
-
-func newHTTPClient() http.Client {
-	var transport http.RoundTripper
-	if rorconfig.GetBool(rorconfig.ENABLE_TRACING) {
-		transport = otelhttp.NewTransport(http.DefaultTransport)
-	}
-	return http.Client{Timeout: 55 * time.Second, Transport: transport}
+var httpClient = http.Client{
+	Timeout:   55 * time.Second,
+	Transport: otelhttp.NewTransport(http.DefaultTransport),
 }
 
 func GetKubeconfig(ctx context.Context, cluster *apicontracts.Cluster, credentials apicontracts.KubeconfigCredentials) (string, error) {
