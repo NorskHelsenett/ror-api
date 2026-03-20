@@ -2,7 +2,6 @@ package viewservice
 
 import (
 	"context"
-	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/v2/apiview"
@@ -72,6 +71,13 @@ func createClusterListHeaders(_ context.Context, _ ...ViewGeneratorsOption) []ap
 			Type:        apiview.ViewFieldTypeString,
 		},
 		{
+			Name:        "datacenter",
+			Description: "The datacenter of the cluster",
+			Default:     true,
+			Order:       4,
+			Type:        apiview.ViewFieldTypeString,
+		},
+		{
 			Name:        "availabilityZone",
 			Description: "The az of the cluster",
 			Default:     true,
@@ -107,11 +113,18 @@ func createClusterListHeaders(_ context.Context, _ ...ViewGeneratorsOption) []ap
 			Type:        apiview.ViewFieldTypeString,
 		},
 		{
-			Name:        "resoures",
-			Description: "The resources of the cluster",
+			Name:        "resouresCpu",
+			Description: "The number of CPU cores in the cluster",
 			Default:     true,
 			Order:       9,
-			Type:        apiview.ViewFieldTypeObject,
+			Type:        apiview.ViewFieldTypeNumber,
+		},
+		{
+			Name:        "resouresMemory",
+			Description: "The amount of memory in the cluster, human readable eg. 7Gi",
+			Default:     true,
+			Order:       9,
+			Type:        apiview.ViewFieldTypeString,
 		},
 		{
 			Name:        "nodes",
@@ -149,7 +162,7 @@ func createClusterListHeaders(_ context.Context, _ ...ViewGeneratorsOption) []ap
 			Type:        apiview.ViewFieldTypeString,
 		},
 		{
-			Name:        "grafanaURL",
+			Name:        "GrafanaURL",
 			Description: "The URL to the Grafana instance for the cluster",
 			Default:     true,
 			Order:       15,
@@ -218,6 +231,7 @@ func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []api
 
 	resourcesService, _ := resourcesv2service.GetResourceByQuery(ctx, &rorresources.ResourceQuery{
 		VersionKind: rortypes.ResourceKubernetesClusterGVK,
+		Limit:       1000,
 	},
 	)
 	if resourcesService == nil {
@@ -240,6 +254,9 @@ func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []api
 			"provider": {
 				FieldValue: cluster.Status.AgentStatus.KubernetesProvider.String(),
 			},
+			"datacenter": {
+				FieldValue: cluster.Status.AgentStatus.Datacenter,
+			},
 			"availabilityZone": {
 				FieldValue: cluster.Status.AgentStatus.Az,
 			},
@@ -256,10 +273,25 @@ func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []api
 				FieldValue: cluster.Status.AgentStatus.Environment,
 			},
 			"nodes": {
-				FieldValue: 799,
+				FieldValue: cluster.Status.AgentStatus.GetNodeCount(),
+			},
+			"nodePools": {
+				FieldValue: cluster.Status.AgentStatus.GetNodepoolCount(),
+			},
+			"resouresCpu": {
+				FieldValue: cluster.Status.AgentStatus.GetCpu(),
+			},
+			"resouresMemory": {
+				FieldValue: cluster.Status.AgentStatus.GetMemory(),
+			},
+			"kubernetesVersion": {
+				FieldValue: cluster.Status.AgentStatus.GetKubernetesVersion(),
 			},
 			"rorAgentVersion": {
-				FieldValue: cluster.Status.AgentStatus.Versions["RorAgent"],
+				FieldValue: cluster.Status.AgentStatus.GetVersionByKey("RorAgent"),
+			},
+			"nhnToolVersion": {
+				FieldValue: cluster.Status.AgentStatus.GetVersionByKey("NhnTooling"),
 			},
 			"lastSeen": {
 				FieldValue: cluster.Status.AgentStatus.LastSeen,
@@ -268,22 +300,18 @@ func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []api
 				FieldValue: cluster.Status.AgentStatus.CreatedAt,
 			},
 			"status": {
-				FieldValue: calculateStatus(cluster.Status.AgentStatus.LastSeen),
+				FieldValue: cluster.Status.AgentStatus.GetStatus(),
 			},
+			"ArgocdURL": {
+				FieldValue: cluster.Status.AgentStatus.GetUrlByKey("Argocd"),
+			},
+			"GrafanaURL": {
+				FieldValue: cluster.Status.AgentStatus.GetUrlByKey("Grafana"),
+			},
+
 			// Add more fields as needed
 		}
 		ret = append(ret, row)
 	}
 	return ret
-}
-
-func calculateStatus(last time.Time) string {
-	diff := time.Since(last)
-	if diff < 5*time.Minute {
-		return "ok"
-	} else if diff < 15*time.Minute {
-		return "warning"
-	} else {
-		return "error"
-	}
 }
