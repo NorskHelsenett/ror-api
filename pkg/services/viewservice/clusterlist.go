@@ -162,7 +162,7 @@ func createClusterListHeaders(_ context.Context, _ ...ViewGeneratorsOption) []ap
 			Type:        apiview.ViewFieldTypeString,
 		},
 		{
-			Name:        "grafanaURL",
+			Name:        "GrafanaURL",
 			Description: "The URL to the Grafana instance for the cluster",
 			Default:     true,
 			Order:       15,
@@ -302,6 +302,13 @@ func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []api
 			"status": {
 				FieldValue: cluster.Status.AgentStatus.GetStatus(),
 			},
+			"ArgocdURL": {
+				FieldValue: cluster.Status.AgentStatus.GetUrlByKey("Argocd"),
+			},
+			"GrafanaURL": {
+				FieldValue: cluster.Status.AgentStatus.GetUrlByKey("Grafana"),
+			},
+
 			// Add more fields as needed
 		}
 		ret = append(ret, row)
