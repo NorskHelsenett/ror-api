@@ -291,7 +291,7 @@ func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []api
 				FieldValue: cluster.Status.AgentStatus.GetVersionByKey("RorAgent"),
 			},
 			"nhnToolVersion": {
-				FieldValue: cluster.Status.AgentStatus.GetVersionByKey("NHNTooling"),
+				FieldValue: cluster.Status.AgentStatus.GetVersionByKey("NhnTooling"),
 			},
 			"lastSeen": {
 				FieldValue: cluster.Status.AgentStatus.LastSeen,
