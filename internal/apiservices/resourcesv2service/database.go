@@ -41,10 +41,66 @@ func NewResourceMongoDB(db *mongodb.MongodbCon) ResourceDBProvider {
 	return &ResourceMongoDB{db: db}
 }
 
+// flattenForUpdate converts a struct to a flat bson.M with dot-notation keys.
+// This enables partial updates via $set without overwriting existing fields
+// that are omitted due to omitempty tags.
+func flattenForUpdate(input any) (bson.M, error) {
+	data, err := bson.Marshal(input)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal input for flatten: %w", err)
+	}
+	var doc bson.M
+	if err := bson.Unmarshal(data, &doc); err != nil {
+		return nil, fmt.Errorf("could not unmarshal input for flatten: %w", err)
+	}
+	result := bson.M{}
+	flattenBsonDoc("", doc, result)
+	return result, nil
+}
+
+func flattenBsonDoc(prefix string, doc bson.M, result bson.M) {
+	for key, value := range doc {
+		fullKey := key
+		if prefix != "" {
+			fullKey = prefix + "." + key
+		}
+		switch v := value.(type) {
+		case bson.M:
+			flattenBsonDoc(fullKey, v, result)
+		case bson.D:
+			flattenBsonD(fullKey, v, result)
+		default:
+			result[fullKey] = value
+		}
+	}
+}
+
+func flattenBsonD(prefix string, doc bson.D, result bson.M) {
+	for _, elem := range doc {
+		fullKey := elem.Key
+		if prefix != "" {
+			fullKey = prefix + "." + elem.Key
+		}
+		switch v := elem.Value.(type) {
+		case bson.M:
+			flattenBsonDoc(fullKey, v, result)
+		case bson.D:
+			flattenBsonD(fullKey, v, result)
+		default:
+			result[fullKey] = elem.Value
+		}
+	}
+}
+
 func (r *ResourceMongoDB) Set(ctx context.Context, resource *rorresources.Resource) error {
 	filter := bson.M{"uid": resource.GetUID()}
-	update := bson.M{"$set": resource}
-	_, err := r.db.UpsertOne(ctx, RESOURCECOLLECTION, filter, update)
+	flatDoc, err := flattenForUpdate(resource)
+	if err != nil {
+		rlog.Errorc(ctx, "Failed to flatten resource for update", err)
+		return err
+	}
+	update := bson.M{"$set": flatDoc}
+	_, err = r.db.UpsertOne(ctx, RESOURCECOLLECTION, filter, update)
 	if err != nil {
 		rlog.Errorc(ctx, "Failed to upsert resource", err)
 		return err
