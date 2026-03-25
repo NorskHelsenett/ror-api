@@ -113,14 +113,14 @@ func createClusterListHeaders(_ context.Context, _ ...ViewGeneratorsOption) []ap
 			Type:        apiview.ViewFieldTypeString,
 		},
 		{
-			Name:        "resouresCpu",
+			Name:        "resourcesCpu",
 			Description: "The number of CPU cores in the cluster",
 			Default:     true,
 			Order:       9,
 			Type:        apiview.ViewFieldTypeNumber,
 		},
 		{
-			Name:        "resouresMemory",
+			Name:        "resourcesMemory",
 			Description: "The amount of memory in the cluster, human readable eg. 7Gi",
 			Default:     true,
 			Order:       9,
@@ -155,14 +155,14 @@ func createClusterListHeaders(_ context.Context, _ ...ViewGeneratorsOption) []ap
 			Type:        apiview.ViewFieldTypeNumber,
 		},
 		{
-			Name:        "ArgocdURL",
+			Name:        "argocdURL",
 			Description: "The URL to the ArgoCD instance for the cluster",
 			Default:     true,
 			Order:       14,
 			Type:        apiview.ViewFieldTypeString,
 		},
 		{
-			Name:        "GrafanaURL",
+			Name:        "grafanaURL",
 			Description: "The URL to the Grafana instance for the cluster",
 			Default:     true,
 			Order:       15,
@@ -278,10 +278,10 @@ func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []api
 			"nodePools": {
 				FieldValue: cluster.Status.AgentStatus.GetNodepoolCount(),
 			},
-			"resouresCpu": {
+			"resourcesCpu": {
 				FieldValue: cluster.Status.AgentStatus.GetCpu(),
 			},
-			"resouresMemory": {
+			"resourcesMemory": {
 				FieldValue: cluster.Status.AgentStatus.GetMemory(),
 			},
 			"kubernetesVersion": {
@@ -302,10 +302,10 @@ func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []api
 			"status": {
 				FieldValue: cluster.Status.AgentStatus.GetStatus(),
 			},
-			"ArgocdURL": {
+			"argocdURL": {
 				FieldValue: cluster.Status.AgentStatus.GetUrlByKey("Argocd"),
 			},
-			"GrafanaURL": {
+			"grafanaURL": {
 				FieldValue: cluster.Status.AgentStatus.GetUrlByKey("Grafana"),
 			},
 
