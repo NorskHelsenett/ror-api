@@ -71,9 +71,17 @@ func flattenBsonDoc(prefix string, doc bson.M, result bson.M) {
 		}
 		switch v := value.(type) {
 		case bson.M:
-			flattenBsonDoc(fullKey, v, result)
+			if bsonMHasDotKeys(v) {
+				result[fullKey] = value
+			} else {
+				flattenBsonDoc(fullKey, v, result)
+			}
 		case bson.D:
-			flattenBsonD(fullKey, v, result)
+			if bsonDHasDotKeys(v) {
+				result[fullKey] = value
+			} else {
+				flattenBsonD(fullKey, v, result)
+			}
 		default:
 			result[fullKey] = value
 		}
@@ -91,13 +99,43 @@ func flattenBsonD(prefix string, doc bson.D, result bson.M) {
 		}
 		switch v := elem.Value.(type) {
 		case bson.M:
-			flattenBsonDoc(fullKey, v, result)
+			if bsonMHasDotKeys(v) {
+				result[fullKey] = elem.Value
+			} else {
+				flattenBsonDoc(fullKey, v, result)
+			}
 		case bson.D:
-			flattenBsonD(fullKey, v, result)
+			if bsonDHasDotKeys(v) {
+				result[fullKey] = elem.Value
+			} else {
+				flattenBsonD(fullKey, v, result)
+			}
 		default:
 			result[fullKey] = elem.Value
 		}
 	}
+}
+
+// bsonMHasDotKeys returns true if any key in the document contains a dot,
+// indicating it's a map with dotted keys (e.g. Kubernetes labels) rather than
+// nested struct fields.
+func bsonMHasDotKeys(doc bson.M) bool {
+	for key := range doc {
+		if strings.Contains(key, ".") {
+			return true
+		}
+	}
+	return false
+}
+
+// bsonDHasDotKeys returns true if any key in the document contains a dot.
+func bsonDHasDotKeys(doc bson.D) bool {
+	for _, elem := range doc {
+		if strings.Contains(elem.Key, ".") {
+			return true
+		}
+	}
+	return false
 }
 
 // buildUpdatePipeline creates a MongoDB aggregation pipeline update that first
