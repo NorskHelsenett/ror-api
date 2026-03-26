@@ -61,6 +61,9 @@ func flattenForUpdate(input any) (bson.M, error) {
 
 func flattenBsonDoc(prefix string, doc bson.M, result bson.M) {
 	for key, value := range doc {
+		if value == nil {
+			continue
+		}
 		fullKey := key
 		if prefix != "" {
 			fullKey = prefix + "." + key
@@ -78,6 +81,9 @@ func flattenBsonDoc(prefix string, doc bson.M, result bson.M) {
 
 func flattenBsonD(prefix string, doc bson.D, result bson.M) {
 	for _, elem := range doc {
+		if elem.Value == nil {
+			continue
+		}
 		fullKey := elem.Key
 		if prefix != "" {
 			fullKey = prefix + "." + elem.Key
