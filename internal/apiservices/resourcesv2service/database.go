@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
@@ -18,6 +17,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/rorresources/rordefs"
 	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
 )
@@ -43,164 +43,24 @@ func NewResourceMongoDB(db *mongodb.MongodbCon) ResourceDBProvider {
 	return &ResourceMongoDB{db: db}
 }
 
-// flattenForUpdate converts a struct to a flat bson.M with dot-notation keys.
-// This enables partial updates via $set without overwriting existing fields
-// that are omitted due to omitempty tags.
-func flattenForUpdate(input any) (bson.M, error) {
-	data, err := bson.Marshal(input)
+func (r *ResourceMongoDB) Set(ctx context.Context, resource *rorresources.Resource) error {
+	uid := resource.GetUID()
+	filter := bson.M{"uid": uid}
+
+	data, err := bson.Marshal(resource)
 	if err != nil {
-		return nil, fmt.Errorf("could not marshal input for flatten: %w", err)
+		rlog.Errorc(ctx, "Failed to marshal resource", err)
+		return err
 	}
 	var doc bson.M
 	if err := bson.Unmarshal(data, &doc); err != nil {
-		return nil, fmt.Errorf("could not unmarshal input for flatten: %w", err)
-	}
-	result := bson.M{}
-	flattenBsonDoc("", doc, result)
-	return result, nil
-}
-
-func flattenBsonDoc(prefix string, doc bson.M, result bson.M) {
-	for key, value := range doc {
-		if value == nil {
-			continue
-		}
-		fullKey := key
-		if prefix != "" {
-			fullKey = prefix + "." + key
-		}
-		switch v := value.(type) {
-		case bson.M:
-			if bsonMHasDotKeys(v) {
-				result[fullKey] = value
-			} else {
-				flattenBsonDoc(fullKey, v, result)
-			}
-		case bson.D:
-			if bsonDHasDotKeys(v) {
-				result[fullKey] = value
-			} else {
-				flattenBsonD(fullKey, v, result)
-			}
-		default:
-			result[fullKey] = value
-		}
-	}
-}
-
-func flattenBsonD(prefix string, doc bson.D, result bson.M) {
-	for _, elem := range doc {
-		if elem.Value == nil {
-			continue
-		}
-		fullKey := elem.Key
-		if prefix != "" {
-			fullKey = prefix + "." + elem.Key
-		}
-		switch v := elem.Value.(type) {
-		case bson.M:
-			if bsonMHasDotKeys(v) {
-				result[fullKey] = elem.Value
-			} else {
-				flattenBsonDoc(fullKey, v, result)
-			}
-		case bson.D:
-			if bsonDHasDotKeys(v) {
-				result[fullKey] = elem.Value
-			} else {
-				flattenBsonD(fullKey, v, result)
-			}
-		default:
-			result[fullKey] = elem.Value
-		}
-	}
-}
-
-// bsonMHasDotKeys returns true if any key in the document contains a dot,
-// indicating it's a map with dotted keys (e.g. Kubernetes labels) rather than
-// nested struct fields.
-func bsonMHasDotKeys(doc bson.M) bool {
-	for key := range doc {
-		if strings.Contains(key, ".") {
-			return true
-		}
-	}
-	return false
-}
-
-// bsonDHasDotKeys returns true if any key in the document contains a dot.
-func bsonDHasDotKeys(doc bson.D) bool {
-	for _, elem := range doc {
-		if strings.Contains(elem.Key, ".") {
-			return true
-		}
-	}
-	return false
-}
-
-// buildUpdatePipeline creates a MongoDB aggregation pipeline update that first
-// ensures intermediate dot-notation paths are not null (converting null to empty
-// objects via $ifNull), then applies the flattened $set. This prevents
-// "Cannot create field in element {field: null}" errors when existing documents
-// have null values at paths that need to be traversed.
-func buildUpdatePipeline(flatDoc bson.M) interface{} {
-	parentsByDepth := extractParentPaths(flatDoc)
-	if len(parentsByDepth) == 0 {
-		return bson.M{"$set": flatDoc}
-	}
-
-	pipeline := bson.A{}
-
-	maxDepth := 0
-	for d := range parentsByDepth {
-		if d > maxDepth {
-			maxDepth = d
-		}
-	}
-
-	for d := 1; d <= maxDepth; d++ {
-		paths, ok := parentsByDepth[d]
-		if !ok {
-			continue
-		}
-		stage := bson.M{}
-		for _, path := range paths {
-			stage[path] = bson.M{"$ifNull": bson.A{"$" + path, bson.M{}}}
-		}
-		pipeline = append(pipeline, bson.M{"$set": stage})
-	}
-
-	pipeline = append(pipeline, bson.M{"$set": flatDoc})
-	return pipeline
-}
-
-// extractParentPaths returns all intermediate path segments from dot-notation
-// keys in the flattened document, grouped by depth level.
-func extractParentPaths(flatDoc bson.M) map[int][]string {
-	seen := make(map[string]bool)
-	grouped := make(map[int][]string)
-	for key := range flatDoc {
-		parts := strings.Split(key, ".")
-		for i := 1; i < len(parts); i++ {
-			parent := strings.Join(parts[:i], ".")
-			if !seen[parent] {
-				seen[parent] = true
-				grouped[i] = append(grouped[i], parent)
-			}
-		}
-	}
-	return grouped
-}
-
-func (r *ResourceMongoDB) Set(ctx context.Context, resource *rorresources.Resource) error {
-	filter := bson.M{"uid": resource.GetUID()}
-	flatDoc, err := flattenForUpdate(resource)
-	if err != nil {
-		rlog.Errorc(ctx, "Failed to flatten resource for update", err)
+		rlog.Errorc(ctx, "Failed to unmarshal resource", err)
 		return err
 	}
-	update := buildUpdatePipeline(flatDoc)
-	_, err = r.db.UpsertOne(ctx, RESOURCECOLLECTION, filter, update)
+	doc["uid"] = uid
+
+	opts := options.Replace().SetUpsert(true)
+	_, err = r.db.GetMongoDb().Collection(RESOURCECOLLECTION).ReplaceOne(ctx, filter, doc, opts)
 	if err != nil {
 		rlog.Errorc(ctx, "Failed to upsert resource", err)
 		return err
