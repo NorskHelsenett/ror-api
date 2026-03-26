@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
@@ -99,6 +100,60 @@ func flattenBsonD(prefix string, doc bson.D, result bson.M) {
 	}
 }
 
+// buildUpdatePipeline creates a MongoDB aggregation pipeline update that first
+// ensures intermediate dot-notation paths are not null (converting null to empty
+// objects via $ifNull), then applies the flattened $set. This prevents
+// "Cannot create field in element {field: null}" errors when existing documents
+// have null values at paths that need to be traversed.
+func buildUpdatePipeline(flatDoc bson.M) interface{} {
+	parentsByDepth := extractParentPaths(flatDoc)
+	if len(parentsByDepth) == 0 {
+		return bson.M{"$set": flatDoc}
+	}
+
+	pipeline := bson.A{}
+
+	maxDepth := 0
+	for d := range parentsByDepth {
+		if d > maxDepth {
+			maxDepth = d
+		}
+	}
+
+	for d := 1; d <= maxDepth; d++ {
+		paths, ok := parentsByDepth[d]
+		if !ok {
+			continue
+		}
+		stage := bson.M{}
+		for _, path := range paths {
+			stage[path] = bson.M{"$ifNull": bson.A{"$" + path, bson.M{}}}
+		}
+		pipeline = append(pipeline, bson.M{"$set": stage})
+	}
+
+	pipeline = append(pipeline, bson.M{"$set": flatDoc})
+	return pipeline
+}
+
+// extractParentPaths returns all intermediate path segments from dot-notation
+// keys in the flattened document, grouped by depth level.
+func extractParentPaths(flatDoc bson.M) map[int][]string {
+	seen := make(map[string]bool)
+	grouped := make(map[int][]string)
+	for key := range flatDoc {
+		parts := strings.Split(key, ".")
+		for i := 1; i < len(parts); i++ {
+			parent := strings.Join(parts[:i], ".")
+			if !seen[parent] {
+				seen[parent] = true
+				grouped[i] = append(grouped[i], parent)
+			}
+		}
+	}
+	return grouped
+}
+
 func (r *ResourceMongoDB) Set(ctx context.Context, resource *rorresources.Resource) error {
 	filter := bson.M{"uid": resource.GetUID()}
 	flatDoc, err := flattenForUpdate(resource)
@@ -106,7 +161,7 @@ func (r *ResourceMongoDB) Set(ctx context.Context, resource *rorresources.Resour
 		rlog.Errorc(ctx, "Failed to flatten resource for update", err)
 		return err
 	}
-	update := bson.M{"$set": flatDoc}
+	update := buildUpdatePipeline(flatDoc)
 	_, err = r.db.UpsertOne(ctx, RESOURCECOLLECTION, filter, update)
 	if err != nil {
 		rlog.Errorc(ctx, "Failed to upsert resource", err)
