@@ -79,6 +79,7 @@ func setupV2ResourcesRoute(v2 *gin.RouterGroup) {
 	resourceRoute.GET("/hashes", resourcescontroller.GetResourceHashList())
 	resourceRoute.GET("/uid/:uid", resourcescontroller.GetResource())
 	resourceRoute.PUT("/uid/:uid", resourcescontroller.UpdateResource())
+	resourceRoute.PATCH("/uid/:uid", resourcescontroller.PatchResource())
 	resourceRoute.DELETE("/uid/:uid", resourcescontroller.DeleteResource())
 	resourceRoute.HEAD("/uid/:uid", resourcescontroller.ExistsResources())
 }

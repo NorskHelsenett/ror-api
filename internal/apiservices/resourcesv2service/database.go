@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
@@ -28,6 +29,7 @@ const (
 
 type ResourceDBProvider interface {
 	Set(ctx context.Context, resource *rorresources.Resource) error
+	Patch(ctx context.Context, uid string, partial *rorresources.Resource) error
 	Get(ctx context.Context, rorResourceQuery *rorresources.ResourceQuery) (*rorresources.ResourceSet, error)
 	Del(ctx context.Context, resource *rorresources.Resource) error
 	GetHashlistByQuery(ctx context.Context, rorResourceQuery *rorresources.ResourceQuery) (apiresourcecontracts.HashList, error)
@@ -66,6 +68,76 @@ func (r *ResourceMongoDB) Set(ctx context.Context, resource *rorresources.Resour
 		return err
 	}
 	return nil
+}
+
+// Patch applies a partial update to an existing resource using MongoDB $set
+// with flattened dot-notation keys. Only non-nil fields present in the partial
+// resource are updated; all other fields in the stored document are preserved.
+func (r *ResourceMongoDB) Patch(ctx context.Context, uid string, partial *rorresources.Resource) error {
+	data, err := bson.Marshal(partial)
+	if err != nil {
+		rlog.Errorc(ctx, "Failed to marshal partial resource", err)
+		return err
+	}
+	var doc bson.M
+	if err := bson.Unmarshal(data, &doc); err != nil {
+		rlog.Errorc(ctx, "Failed to unmarshal partial resource", err)
+		return err
+	}
+
+	filter := bson.M{"uid": uid}
+	flatDoc := bson.M{}
+	flattenBsonM("", doc, flatDoc)
+	if len(flatDoc) == 0 {
+		return nil
+	}
+	update := bson.M{"$set": flatDoc}
+	result, err := r.db.GetMongoDb().Collection(RESOURCECOLLECTION).UpdateOne(ctx, filter, update)
+	if err != nil {
+		rlog.Errorc(ctx, "Failed to patch resource", err)
+		return err
+	}
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("resource with uid %s not found", uid)
+	}
+	return nil
+}
+
+// flattenBsonM recursively flattens a bson.M into dot-notation keys for use
+// with MongoDB $set. It skips nil values and stops recursing into maps whose
+// keys contain dots (e.g. Kubernetes labels/annotations).
+func flattenBsonM(prefix string, doc bson.M, result bson.M) {
+	for key, value := range doc {
+		if value == nil {
+			continue
+		}
+		fullKey := key
+		if prefix != "" {
+			fullKey = prefix + "." + key
+		}
+		switch v := value.(type) {
+		case bson.M:
+			if hasDotKeys(v) {
+				result[fullKey] = value
+			} else {
+				flattenBsonM(fullKey, v, result)
+			}
+		default:
+			result[fullKey] = value
+		}
+	}
+}
+
+// hasDotKeys returns true if any key in the map contains a dot, indicating
+// it holds map data with dotted keys (e.g. Kubernetes labels) rather than
+// nested struct fields.
+func hasDotKeys(doc bson.M) bool {
+	for key := range doc {
+		if strings.Contains(key, ".") {
+			return true
+		}
+	}
+	return false
 }
 
 func (r *ResourceMongoDB) Get(ctx context.Context, rorResourceQuery *rorresources.ResourceQuery) (*rorresources.ResourceSet, error) {

@@ -242,6 +242,76 @@ func DeleteResource(ctx context.Context, resource *rorresources.Resource) error 
 	return nil
 }
 
+// PatchResource applies a partial update to an existing resource. Only the
+// fields present in the partial document are modified; all other fields are
+// preserved. The resource must already exist.
+func PatchResource(ctx context.Context, uid string, partial *rorresources.Resource) rorresources.ResourceUpdateResults {
+	ctx, span := rortracer.StartSpan(ctx, "v2.resourcesv2service.PatchResource")
+	defer span.End()
+	span.SetAttributes(attribute.String("resource.uid", uid))
+
+	// Fetch existing resource to verify existence and perform access check
+	existing := GetResourceByUID(ctx, uid)
+	if existing == nil || len(existing.Resources) == 0 {
+		rortracer.SpanErrorf(span, "resource not found")
+		return rorresources.ResourceUpdateResults{
+			Results: map[string]rorresources.ResourceUpdateResult{
+				uid: {
+					Status:  http.StatusNotFound,
+					Message: "404: Resource not found",
+				},
+			},
+		}
+	}
+	resource := existing.Resources[0]
+
+	accessModel := aclservice.CheckAccessByRorOwnerref(ctx, resource.GetRorMeta().Ownerref)
+	if !accessModel.Update {
+		rortracer.SpanErrorf(span, "access denied")
+		return rorresources.ResourceUpdateResults{
+			Results: map[string]rorresources.ResourceUpdateResult{
+				uid: {
+					Status:  http.StatusForbidden,
+					Message: "403: No access",
+				},
+			},
+		}
+	}
+
+	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
+	mongoCtx, cancel := context.WithTimeout(ctx, setTimeout)
+	defer cancel()
+
+	err := databaseHelpers.Patch(mongoCtx, uid, partial)
+	if err != nil {
+		rlog.Errorc(ctx, "Failed to patch resource", err)
+		rortracer.SpanError(span, err, "failed to patch resource")
+		return rorresources.ResourceUpdateResults{
+			Results: map[string]rorresources.ResourceUpdateResult{
+				uid: {
+					Status:  http.StatusInternalServerError,
+					Message: "500: Could not patch resource",
+				},
+			},
+		}
+	}
+
+	if err := sendToMessageBus(ctx, resource, rortypes.K8sActionUpdate); err != nil {
+		rlog.Errorc(ctx, "Failed to send message to bus", err)
+		rortracer.SpanError(span, err, "failed to send message to bus")
+	}
+
+	rortracer.SpanOk(span)
+	return rorresources.ResourceUpdateResults{
+		Results: map[string]rorresources.ResourceUpdateResult{
+			uid: {
+				Status:  http.StatusOK,
+				Message: "200: Resource patched",
+			},
+		},
+	}
+}
+
 func GetResourceByQuery(ctx context.Context, query *rorresources.ResourceQuery) (*rorresources.ResourceSet, error) {
 	ctx, span := rortracer.StartSpan(ctx, "v2.resourcesv2service.GetResourceByQuery")
 	defer span.End()
