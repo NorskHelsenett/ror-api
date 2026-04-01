@@ -69,8 +69,8 @@ github.com/gin-contrib/pprof v1.5.4 h1:daxf2UNZw5IEx6WBdcpnEzgeDfkp083KdjUAFuMEk
 github.com/gin-contrib/pprof v1.5.4/go.mod h1:AUxwt9kgpJGWiytj6RorBqRMyFuOQk7dPNfM9nHEY9I=
 github.com/gin-contrib/sse v1.1.0 h1:n0w2GMuUpWDVp7qSpvze6fAu9iRxJY4Hmj6AmBOU05w=
 github.com/gin-contrib/sse v1.1.0/go.mod h1:hxRZ5gVpWMT7Z0B0gSNYqqsSCNIJMjzvm6fqCz9vjwM=
-github.com/gin-contrib/timeout v1.2.1 h1:vw+1K+rDo1M86G00A1RdQZDP9JJDcJjYj6+9ZVowjlk=
-github.com/gin-contrib/timeout v1.2.1/go.mod h1:sUImmGGy/39JoCfTRnouXWJRVuUvR0DGcdRorXn7VdE=
+github.com/gin-contrib/timeout v1.1.0 h1:WAmWseo5gfBUbMrMJu5hJxDclehfSJUmK2wGwCC/EFw=
+github.com/gin-contrib/timeout v1.1.0/go.mod h1:NpRo4gd1Ad8ZQ4T6bQLVFDqiplCmPRs2nvfckxS2Fw4=
 github.com/gin-gonic/gin v1.12.0 h1:b3YAbrZtnf8N//yjKeU2+MQsh2mY5htkZidOM7O0wG8=
 github.com/gin-gonic/gin v1.12.0/go.mod h1:VxccKfsSllpKshkBWgVgRniFFAzFb9csfngsqANjnLc=
 github.com/go-asn1-ber/asn1-ber v1.5.8-0.20250403174932-29230038a667 h1:BP4M0CvQ4S3TGls2FvczZtj5Re/2ZzkV9VwqPHH/3Bo=
@@ -496,6 +496,7 @@ gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 k8s.io/api v0.35.3 h1:pA2fiBc6+N9PDf7SAiluKGEBuScsTzd2uYBkA5RzNWQ=
+k8s.io/api v0.35.3/go.mod h1:9Y9tkBcFwKNq2sxwZTQh1Njh9qHl81D0As56tu42GA4=
 k8s.io/apimachinery v0.35.3 h1:MeaUwQCV3tjKP4bcwWGgZ/cp/vpsRnQzqO6J6tJyoF8=
 k8s.io/apimachinery v0.35.3/go.mod h1:jQCgFZFR1F4Ik7hvr2g84RTJSZegBc8yHgFWKn//hns=
 k8s.io/klog/v2 v2.140.0 h1:Tf+J3AH7xnUzZyVVXhTgGhEKnFqye14aadWv7bzXdzc=
