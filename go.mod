@@ -10,7 +10,7 @@ require (
 	github.com/evanphx/json-patch/v5 v5.9.11
 	github.com/gin-contrib/cors v1.7.7
 	github.com/gin-contrib/gzip v1.2.6
-	github.com/gin-contrib/pprof v1.5.3
+	github.com/gin-contrib/pprof v1.5.4
 	github.com/gin-contrib/timeout v1.1.0
 	github.com/gin-gonic/gin v1.12.0
 	github.com/go-playground/validator/v10 v10.30.1
