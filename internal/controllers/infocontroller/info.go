@@ -1,7 +1,6 @@
 package infocontroller
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/NorskHelsenett/ror/pkg/config/rorversion"
@@ -22,12 +21,6 @@ import (
 func GetVersion() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var _ rorversion.RorVersion
-		res := rorversion.GetRorVersion()
-		output, err := json.Marshal(res)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, "500: Could not marshal json")
-			return
-		}
-		c.Data(http.StatusOK, "application/json", output)
+		c.JSON(http.StatusOK, rorversion.GetRorVersion())
 	}
 }

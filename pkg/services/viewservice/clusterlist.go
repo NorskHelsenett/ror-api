@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
+	"github.com/NorskHelsenett/ror-api/pkg/services/priceservice"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/v2/apiview"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
@@ -279,10 +280,10 @@ func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []api
 				FieldValue: cluster.Status.AgentStatus.GetNodepoolCount(),
 			},
 			"resourcesCpu": {
-				FieldValue: cluster.Status.AgentStatus.GetCpu(),
+				FieldValue: cluster.Status.AgentStatus.GetCpu().String(),
 			},
 			"resourcesMemory": {
-				FieldValue: cluster.Status.AgentStatus.GetMemory(),
+				FieldValue: cluster.Status.AgentStatus.GetMemoryString(),
 			},
 			"kubernetesVersion": {
 				FieldValue: cluster.Status.AgentStatus.GetKubernetesVersion(),
@@ -307,6 +308,12 @@ func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []api
 			},
 			"grafanaURL": {
 				FieldValue: cluster.Status.AgentStatus.GetUrlByKey("Grafana"),
+			},
+			"priceMonth": {
+				FieldValue: priceservice.CalculatePrice(cluster.Status.AgentStatus),
+			},
+			"priceYear": {
+				FieldValue: priceservice.CalculatePrice(cluster.Status.AgentStatus) * 12,
 			},
 
 			// Add more fields as needed
