@@ -32,6 +32,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
@@ -443,4 +444,616 @@ func TestRoundTrip_SetGetPatchGetDel(t *testing.T) {
 	result, err = repo.Get(ctx, query)
 	require.NoError(t, err)
 	assert.Nil(t, result, "resource should be deleted")
+}
+
+// --- Set edge cases ---
+
+func TestSet_Idempotent(t *testing.T) {
+	repo := newTestRepo(t)
+	ctx := testCtx()
+
+	resource := makePodResource("uid-idem", map[string]string{"app": "test"}, nil, "Running")
+
+	// Set the same resource 3 times — should always succeed with the same data
+	for i := 0; i < 3; i++ {
+		err := repo.Set(ctx, resource)
+		require.NoError(t, err, "Set should be idempotent (attempt %d)", i+1)
+	}
+
+	query := rorresources.NewResourceQuery().WithUID("uid-idem")
+	result, err := repo.Get(ctx, query)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	assert.Len(t, result.Resources, 1)
+}
+
+func TestSet_RemovesLabelsOnReplace(t *testing.T) {
+	repo := newTestRepo(t)
+	ctx := testCtx()
+
+	// First Set with labels
+	resource := makePodResource("uid-strip-labels", map[string]string{"app": "v1", "env": "prod"}, nil, "Running")
+	err := repo.Set(ctx, resource)
+	require.NoError(t, err)
+
+	// Second Set without labels — ReplaceOne should remove them
+	resource.Metadata.Labels = nil
+	err = repo.Set(ctx, resource)
+	require.NoError(t, err)
+
+	query := rorresources.NewResourceQuery().WithUID("uid-strip-labels")
+	result, err := repo.Get(ctx, query)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	assert.Empty(t, result.Resources[0].Metadata.Labels, "labels should be nil after replace with no labels")
+}
+
+func TestSet_DeploymentResource(t *testing.T) {
+	repo := newTestRepo(t)
+	ctx := testCtx()
+
+	resource := makeResource("uid-deploy", "Deployment", map[string]string{"app": "nginx"}, nil)
+	resource.TypeMeta.APIVersion = "apps/v1"
+	resource.DeploymentResource = &rortypes.ResourceDeployment{
+		Status: rortypes.ResourceDeploymentStatus{
+			Replicas:          3,
+			AvailableReplicas: 3,
+			ReadyReplicas:     3,
+			UpdatedReplicas:   3,
+		},
+	}
+
+	err := repo.Set(ctx, resource)
+	require.NoError(t, err)
+
+	query := rorresources.NewResourceQuery().WithUID("uid-deploy")
+	result, err := repo.Get(ctx, query)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	assert.Equal(t, "Deployment", result.Resources[0].Kind)
+	assert.Equal(t, 3, result.Resources[0].DeploymentResource.Status.Replicas)
+}
+
+func TestSet_WithEmptyLabelsMap(t *testing.T) {
+	repo := newTestRepo(t)
+	ctx := testCtx()
+
+	// Empty map (not nil) — should behave differently from nil
+	resource := makePodResource("uid-empty-labels", map[string]string{}, nil, "Running")
+	err := repo.Set(ctx, resource)
+	require.NoError(t, err)
+
+	// Set again — should not fail
+	resource.PodResource.Status.Phase = "Succeeded"
+	err = repo.Set(ctx, resource)
+	require.NoError(t, err, "Set should handle empty (non-nil) labels map")
+}
+
+func TestSet_WithBothDottedLabelsAndAnnotations(t *testing.T) {
+	repo := newTestRepo(t)
+	ctx := testCtx()
+
+	labels := map[string]string{
+		"app":                         "myapp",
+		"app.kubernetes.io/name":      "myapp",
+		"app.kubernetes.io/component": "backend",
+	}
+	annotations := map[string]string{
+		"argocd.argoproj.io/tracking-id":                   "tracking-id",
+		"kubectl.kubernetes.io/last-applied-configuration": `{"spec":{}}`,
+		"cert-manager.io/cluster-issuer":                   "letsencrypt",
+	}
+
+	resource := makePodResource("uid-both-dotted", labels, annotations, "Running")
+	err := repo.Set(ctx, resource)
+	require.NoError(t, err)
+
+	query := rorresources.NewResourceQuery().WithUID("uid-both-dotted")
+	result, err := repo.Get(ctx, query)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	got := result.Resources[0]
+	assert.Equal(t, "backend", got.Metadata.Labels["app.kubernetes.io/component"])
+	assert.Equal(t, "tracking-id", got.Metadata.Annotations["argocd.argoproj.io/tracking-id"])
+	assert.Equal(t, "letsencrypt", got.Metadata.Annotations["cert-manager.io/cluster-issuer"])
+}
+
+func TestSet_LargeLabelsCount(t *testing.T) {
+	repo := newTestRepo(t)
+	ctx := testCtx()
+
+	labels := make(map[string]string, 50)
+	for i := 0; i < 50; i++ {
+		labels[fmt.Sprintf("label-%d", i)] = fmt.Sprintf("value-%d", i)
+	}
+
+	resource := makePodResource("uid-many-labels", labels, nil, "Running")
+	err := repo.Set(ctx, resource)
+	require.NoError(t, err)
+
+	query := rorresources.NewResourceQuery().WithUID("uid-many-labels")
+	result, err := repo.Get(ctx, query)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	assert.Len(t, result.Resources[0].Metadata.Labels, 50)
+	assert.Equal(t, "value-0", result.Resources[0].Metadata.Labels["label-0"])
+	assert.Equal(t, "value-49", result.Resources[0].Metadata.Labels["label-49"])
+}
+
+func TestSet_SpecialCharactersInAnnotationValues(t *testing.T) {
+	repo := newTestRepo(t)
+	ctx := testCtx()
+
+	annotations := map[string]string{
+		"config":  `{"key": "value with \"quotes\"", "nested": {"a": 1}}`,
+		"unicode": "日本語テスト",
+		"empty":   "",
+		"newline": "line1\nline2\nline3",
+	}
+
+	resource := makePodResource("uid-special-chars", nil, annotations, "Running")
+	err := repo.Set(ctx, resource)
+	require.NoError(t, err)
+
+	query := rorresources.NewResourceQuery().WithUID("uid-special-chars")
+	result, err := repo.Get(ctx, query)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	assert.Equal(t, "日本語テスト", result.Resources[0].Metadata.Annotations["unicode"])
+	assert.Equal(t, "line1\nline2\nline3", result.Resources[0].Metadata.Annotations["newline"])
+}
+
+// --- Patch edge cases ---
+
+func TestPatch_PreservesOwnerRef(t *testing.T) {
+	repo := newTestRepo(t)
+	ctx := testCtx()
+
+	resource := makePodResource("uid-patch-owner", map[string]string{"app": "test"}, nil, "Running")
+	err := repo.Set(ctx, resource)
+	require.NoError(t, err)
+
+	// Patch with only a status change
+	partial := &rorresources.Resource{}
+	partial.PodResource = &rortypes.ResourcePod{
+		Status: rortypes.ResourcePodStatus{Phase: "Succeeded"},
+	}
+	err = repo.Patch(ctx, "uid-patch-owner", partial)
+	require.NoError(t, err)
+
+	query := rorresources.NewResourceQuery().WithUID("uid-patch-owner")
+	result, err := repo.Get(ctx, query)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	got := result.Resources[0]
+	assert.Equal(t, aclmodels.Acl2ScopeCluster, got.RorMeta.Ownerref.Scope,
+		"ownerref scope should be preserved after patch")
+	assert.Equal(t, aclmodels.Acl2Subject(testClusterID), got.RorMeta.Ownerref.Subject,
+		"ownerref subject should be preserved after patch")
+}
+
+func TestPatch_PreservesTypeMeta(t *testing.T) {
+	repo := newTestRepo(t)
+	ctx := testCtx()
+
+	resource := makePodResource("uid-patch-type", nil, nil, "Running")
+	err := repo.Set(ctx, resource)
+	require.NoError(t, err)
+
+	partial := &rorresources.Resource{}
+	partial.PodResource = &rortypes.ResourcePod{
+		Status: rortypes.ResourcePodStatus{Phase: "Failed"},
+	}
+	err = repo.Patch(ctx, "uid-patch-type", partial)
+	require.NoError(t, err)
+
+	query := rorresources.NewResourceQuery().WithUID("uid-patch-type")
+	result, err := repo.Get(ctx, query)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	assert.Equal(t, "Pod", result.Resources[0].Kind, "Kind should be preserved")
+	assert.Equal(t, "v1", result.Resources[0].APIVersion, "APIVersion should be preserved")
+}
+
+func TestPatch_MultipleSequentialPatches(t *testing.T) {
+	repo := newTestRepo(t)
+	ctx := testCtx()
+
+	resource := makePodResource("uid-multi-patch", map[string]string{"app": "test"}, nil, "Pending")
+	err := repo.Set(ctx, resource)
+	require.NoError(t, err)
+
+	// Patch 1: change phase
+	partial1 := &rorresources.Resource{}
+	partial1.PodResource = &rortypes.ResourcePod{
+		Status: rortypes.ResourcePodStatus{Phase: "Running"},
+	}
+	err = repo.Patch(ctx, "uid-multi-patch", partial1)
+	require.NoError(t, err)
+
+	// Patch 2: change phase again with a message
+	partial2 := &rorresources.Resource{}
+	partial2.PodResource = &rortypes.ResourcePod{
+		Status: rortypes.ResourcePodStatus{Phase: "Succeeded", Message: "completed"},
+	}
+	err = repo.Patch(ctx, "uid-multi-patch", partial2)
+	require.NoError(t, err)
+
+	query := rorresources.NewResourceQuery().WithUID("uid-multi-patch")
+	result, err := repo.Get(ctx, query)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	got := result.Resources[0]
+	assert.Equal(t, "Succeeded", got.PodResource.Status.Phase, "phase from second patch")
+	assert.Equal(t, "completed", got.PodResource.Status.Message, "message from second patch")
+	assert.Equal(t, "test", got.Metadata.Labels["app"], "labels should survive both patches")
+}
+
+func TestPatch_DoesNotAffectOtherResources(t *testing.T) {
+	repo := newTestRepo(t)
+	ctx := testCtx()
+
+	r1 := makePodResource("uid-iso-1", map[string]string{"app": "one"}, nil, "Running")
+	r2 := makePodResource("uid-iso-2", map[string]string{"app": "two"}, nil, "Pending")
+	require.NoError(t, repo.Set(ctx, r1))
+	require.NoError(t, repo.Set(ctx, r2))
+
+	// Patch only r1
+	partial := &rorresources.Resource{}
+	partial.PodResource = &rortypes.ResourcePod{
+		Status: rortypes.ResourcePodStatus{Phase: "Succeeded"},
+	}
+	err := repo.Patch(ctx, "uid-iso-1", partial)
+	require.NoError(t, err)
+
+	// r2 should be unchanged
+	query := rorresources.NewResourceQuery().WithUID("uid-iso-2")
+	result, err := repo.Get(ctx, query)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	assert.Equal(t, "Pending", result.Resources[0].PodResource.Status.Phase,
+		"patching r1 should not affect r2")
+}
+
+// --- Get / query edge cases ---
+
+func TestGet_MultipleUIDs(t *testing.T) {
+	repo := newTestRepo(t)
+	ctx := testCtx()
+
+	for i := 0; i < 5; i++ {
+		r := makePodResource(fmt.Sprintf("uid-multi-%d", i), nil, nil, "Running")
+		r.Metadata.Name = fmt.Sprintf("pod-%d", i)
+		require.NoError(t, repo.Set(ctx, r))
+	}
+
+	query := rorresources.NewResourceQuery().
+		WithUID("uid-multi-0").
+		WithUID("uid-multi-2").
+		WithUID("uid-multi-4")
+	result, err := repo.Get(ctx, query)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	assert.Len(t, result.Resources, 3, "should return exactly the 3 requested UIDs")
+}
+
+func TestGet_NonExistentUID(t *testing.T) {
+	repo := newTestRepo(t)
+	ctx := testCtx()
+
+	query := rorresources.NewResourceQuery().WithUID("uid-does-not-exist")
+	result, err := repo.Get(ctx, query)
+	require.NoError(t, err)
+	assert.Nil(t, result, "non-existent UID should return nil")
+}
+
+func TestGet_WithFilter(t *testing.T) {
+	repo := newTestRepo(t)
+	ctx := testCtx()
+
+	r1 := makePodResource("uid-filt-1", nil, nil, "Running")
+	r1.Metadata.Name = "web-server"
+	r2 := makePodResource("uid-filt-2", nil, nil, "Running")
+	r2.Metadata.Name = "db-server"
+	r3 := makePodResource("uid-filt-3", nil, nil, "Running")
+	r3.Metadata.Name = "web-worker"
+	require.NoError(t, repo.Set(ctx, r1))
+	require.NoError(t, repo.Set(ctx, r2))
+	require.NoError(t, repo.Set(ctx, r3))
+
+	// Get all with regex filter on name
+	query := rorresources.NewResourceQuery()
+	query.SetLimit(-1)
+	query.Filters = []rorresources.ResourceQueryFilter{
+		{
+			Field:    "metadata.name",
+			Value:    "web",
+			Type:     rorresources.FilterTypeString,
+			Operator: rorresources.FilterOperatorRegexp,
+		},
+	}
+	result, err := repo.Get(ctx, query)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	assert.Len(t, result.Resources, 2, "regex filter should match 2 web-* pods")
+}
+
+func TestGet_WithSorting(t *testing.T) {
+	repo := newTestRepo(t)
+	ctx := testCtx()
+
+	names := []string{"charlie", "alpha", "bravo"}
+	for i, name := range names {
+		r := makePodResource(fmt.Sprintf("uid-sort-%d", i), nil, nil, "Running")
+		r.Metadata.Name = name
+		require.NoError(t, repo.Set(ctx, r))
+	}
+
+	query := rorresources.NewResourceQuery()
+	query.SetLimit(-1)
+	query.Order = []rorresources.ResourceQueryOrder{
+		{Field: "metadata.name", Descending: false, Index: 0},
+	}
+	result, err := repo.Get(ctx, query)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.Len(t, result.Resources, 3)
+	assert.Equal(t, "alpha", result.Resources[0].GetName())
+	assert.Equal(t, "bravo", result.Resources[1].GetName())
+	assert.Equal(t, "charlie", result.Resources[2].GetName())
+}
+
+func TestGet_WithPagination(t *testing.T) {
+	repo := newTestRepo(t)
+	ctx := testCtx()
+
+	for i := 0; i < 10; i++ {
+		r := makePodResource(fmt.Sprintf("uid-page-%02d", i), nil, nil, "Running")
+		r.Metadata.Name = fmt.Sprintf("pod-%02d", i)
+		require.NoError(t, repo.Set(ctx, r))
+	}
+
+	// Page 1: first 3
+	query := rorresources.NewResourceQuery()
+	query.SetLimit(3)
+	result, err := repo.Get(ctx, query)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	assert.Len(t, result.Resources, 3)
+
+	// Page 2: skip 3, take 3
+	query2 := rorresources.NewResourceQuery()
+	query2.SetLimit(3)
+	query2.Offset = 3
+	result2, err := repo.Get(ctx, query2)
+	require.NoError(t, err)
+	require.NotNil(t, result2)
+	assert.Len(t, result2.Resources, 3)
+
+	// Pages should not overlap
+	page1UIDs := make(map[string]bool)
+	for _, r := range result.Resources {
+		page1UIDs[r.GetUID()] = true
+	}
+	for _, r := range result2.Resources {
+		assert.False(t, page1UIDs[r.GetUID()], "page 2 should not contain UIDs from page 1")
+	}
+}
+
+// --- Del edge cases ---
+
+func TestDel_ThenSetSameUID(t *testing.T) {
+	repo := newTestRepo(t)
+	ctx := testCtx()
+
+	resource := makePodResource("uid-del-reset", nil, nil, "Running")
+	require.NoError(t, repo.Set(ctx, resource))
+	require.NoError(t, repo.Del(ctx, resource))
+
+	// Re-create with same UID but different data
+	resource2 := makePodResource("uid-del-reset", map[string]string{"app": "v2"}, nil, "Pending")
+	err := repo.Set(ctx, resource2)
+	require.NoError(t, err, "Set after Del with same UID should succeed")
+
+	query := rorresources.NewResourceQuery().WithUID("uid-del-reset")
+	result, err := repo.Get(ctx, query)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	assert.Equal(t, "Pending", result.Resources[0].PodResource.Status.Phase)
+	assert.Equal(t, "v2", result.Resources[0].Metadata.Labels["app"])
+}
+
+func TestDel_DoesNotAffectOtherResources(t *testing.T) {
+	repo := newTestRepo(t)
+	ctx := testCtx()
+
+	r1 := makePodResource("uid-del-iso-1", nil, nil, "Running")
+	r2 := makePodResource("uid-del-iso-2", nil, nil, "Pending")
+	require.NoError(t, repo.Set(ctx, r1))
+	require.NoError(t, repo.Set(ctx, r2))
+
+	require.NoError(t, repo.Del(ctx, r1))
+
+	query := rorresources.NewResourceQuery().WithUID("uid-del-iso-2")
+	result, err := repo.Get(ctx, query)
+	require.NoError(t, err)
+	require.NotNil(t, result, "r2 should still exist after deleting r1")
+	assert.Equal(t, "Pending", result.Resources[0].PodResource.Status.Phase)
+}
+
+func TestDel_DoubleDelete(t *testing.T) {
+	repo := newTestRepo(t)
+	ctx := testCtx()
+
+	resource := makePodResource("uid-double-del", nil, nil, "Running")
+	require.NoError(t, repo.Set(ctx, resource))
+	require.NoError(t, repo.Del(ctx, resource))
+
+	// Second delete should also succeed (idempotent)
+	err := repo.Del(ctx, resource)
+	require.NoError(t, err, "deleting an already-deleted resource should not error")
+}
+
+// --- flattenBsonM unit tests ---
+
+func TestFlattenBsonM_SkipsNilValues(t *testing.T) {
+	doc := bson.M{
+		"a": "hello",
+		"b": nil,
+		"c": "world",
+	}
+	result := bson.M{}
+	flattenBsonM("", doc, result)
+
+	assert.Equal(t, "hello", result["a"])
+	assert.Equal(t, "world", result["c"])
+	_, hasB := result["b"]
+	assert.False(t, hasB, "nil values should be skipped")
+}
+
+func TestFlattenBsonM_SkipsZeroValues(t *testing.T) {
+	doc := bson.M{
+		"str":    "",
+		"num":    int32(0),
+		"num64":  int64(0),
+		"flag":   false,
+		"filled": "present",
+	}
+	result := bson.M{}
+	flattenBsonM("", doc, result)
+
+	assert.Equal(t, "present", result["filled"])
+	assert.Len(t, result, 1, "only non-zero values should be included")
+}
+
+func TestFlattenBsonM_StopsAtDottedKeys(t *testing.T) {
+	doc := bson.M{
+		"labels": bson.M{
+			"app":                         "test",
+			"app.kubernetes.io/component": "api",
+		},
+	}
+	result := bson.M{}
+	flattenBsonM("", doc, result)
+
+	// Should store as a single key, not flatten further
+	_, hasLabels := result["labels"]
+	assert.True(t, hasLabels, "dotted-key map should be stored as leaf value")
+	_, hasFlatLabel := result["labels.app"]
+	assert.False(t, hasFlatLabel, "should NOT flatten into dotted-key maps")
+}
+
+func TestFlattenBsonM_NestedRecursion(t *testing.T) {
+	doc := bson.M{
+		"level1": bson.M{
+			"level2": bson.M{
+				"value": "deep",
+			},
+		},
+	}
+	result := bson.M{}
+	flattenBsonM("", doc, result)
+
+	assert.Equal(t, "deep", result["level1.level2.value"])
+}
+
+func TestFlattenBsonM_WithPrefix(t *testing.T) {
+	doc := bson.M{
+		"name": "test",
+	}
+	result := bson.M{}
+	flattenBsonM("metadata", doc, result)
+
+	assert.Equal(t, "test", result["metadata.name"])
+}
+
+func TestFlattenBsonM_EmptyDoc(t *testing.T) {
+	result := bson.M{}
+	flattenBsonM("", bson.M{}, result)
+	assert.Empty(t, result)
+}
+
+func TestFlattenBsonM_HandlesBsonD(t *testing.T) {
+	doc := bson.M{
+		"status": bson.D{
+			{Key: "phase", Value: "Running"},
+			{Key: "message", Value: "ok"},
+		},
+	}
+	result := bson.M{}
+	flattenBsonM("", doc, result)
+
+	assert.Equal(t, "Running", result["status.phase"])
+	assert.Equal(t, "ok", result["status.message"])
+}
+
+func TestFlattenBsonM_BsonDWithDottedKeys(t *testing.T) {
+	doc := bson.M{
+		"annotations": bson.D{
+			{Key: "argocd.argoproj.io/tracking-id", Value: "test"},
+			{Key: "simple", Value: "value"},
+		},
+	}
+	result := bson.M{}
+	flattenBsonM("", doc, result)
+
+	// Should store as leaf since the bson.D has a dotted key
+	_, hasAnnotations := result["annotations"]
+	assert.True(t, hasAnnotations, "bson.D with dotted keys should be stored as leaf")
+}
+
+// --- isZeroValue unit tests ---
+
+func TestIsZeroValue(t *testing.T) {
+	tests := []struct {
+		name   string
+		value  interface{}
+		isZero bool
+	}{
+		{"empty string", "", true},
+		{"non-empty string", "hello", false},
+		{"zero int32", int32(0), true},
+		{"non-zero int32", int32(42), false},
+		{"zero int64", int64(0), true},
+		{"non-zero int64", int64(100), false},
+		{"zero float64", float64(0), true},
+		{"non-zero float64", float64(3.14), false},
+		{"false bool", false, true},
+		{"true bool", true, false},
+		{"zero DateTime", bson.DateTime(0), true},
+		{"Go zero time DateTime", bson.DateTime(-62135596800000), true},
+		{"non-zero DateTime", bson.DateTime(1000000), false},
+		{"nil", nil, false}, // nil handled separately in flattenBsonM
+		{"bson.M", bson.M{}, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.isZero, isZeroValue(tt.value), "isZeroValue(%v)", tt.value)
+		})
+	}
+}
+
+// --- hasDotKeys unit tests ---
+
+func TestHasDotKeys(t *testing.T) {
+	assert.True(t, hasDotKeys(bson.M{"a.b": "v"}))
+	assert.True(t, hasDotKeys(bson.M{"simple": "v", "dotted.key": "v2"}))
+	assert.False(t, hasDotKeys(bson.M{"simple": "v"}))
+	assert.False(t, hasDotKeys(bson.M{}))
+}
+
+// --- dToM unit tests ---
+
+func TestDToM(t *testing.T) {
+	d := bson.D{
+		{Key: "a", Value: 1},
+		{Key: "b", Value: "two"},
+		{Key: "c", Value: true},
+	}
+	m := dToM(d)
+	assert.Equal(t, 1, m["a"])
+	assert.Equal(t, "two", m["b"])
+	assert.Equal(t, true, m["c"])
+	assert.Len(t, m, 3)
 }
