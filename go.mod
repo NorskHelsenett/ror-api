@@ -9,7 +9,7 @@ require (
 	github.com/dotse/go-health v1.0.2
 	github.com/evanphx/json-patch/v5 v5.9.11
 	github.com/gin-contrib/cors v1.7.7
-	github.com/gin-contrib/gzip v1.2.5
+	github.com/gin-contrib/gzip v1.2.6
 	github.com/gin-contrib/pprof v1.5.4
 	github.com/gin-contrib/timeout v1.1.0
 	github.com/gin-gonic/gin v1.12.0
