@@ -7,9 +7,10 @@ const (
 	PriceCpuPrCore   = 223
 )
 
-func CalculatePrice(clusterStatus rortypes.KubernetesClusterAgentStatus) int64 {
+func CalculatePrice(cluster *rortypes.ResourceKubernetesCluster) float64 {
+	clusterStatus := cluster.Status.AgentStatus
 	cpuPrice := clusterStatus.GetTotalCpu().Value() * PriceCpuPrCore
 	memoryPrice := clusterStatus.GetTotalMemory().Value() / (1024 * 1024 * 1024) * PriceMemoryPrGiB
 
-	return cpuPrice + memoryPrice
+	return float64(cpuPrice) + float64(memoryPrice)
 }

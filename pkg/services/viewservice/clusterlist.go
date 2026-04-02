@@ -2,6 +2,7 @@ package viewservice
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
 	"github.com/NorskHelsenett/ror-api/pkg/services/priceservice"
@@ -128,6 +129,34 @@ func createClusterListHeaders(_ context.Context, _ ...ViewGeneratorsOption) []ap
 			Type:        apiview.ViewFieldTypeString,
 		},
 		{
+			Name:        "resourcesCpuUsedMilli",
+			Description: "The number of CPU cores in the cluster used in milli cores",
+			Default:     true,
+			Order:       9,
+			Type:        apiview.ViewFieldTypeNumber,
+		},
+		{
+			Name:        "resourcesMemoryUsed",
+			Description: "The amount of memory in the cluster that is used, human readable eg. 7Gi",
+			Default:     true,
+			Order:       9,
+			Type:        apiview.ViewFieldTypeString,
+		},
+		{
+			Name:        "resourcesCpuUsedPercent",
+			Description: "The percentage of CPU in the cluster that is used",
+			Default:     true,
+			Order:       9,
+			Type:        apiview.ViewFieldTypeNumber,
+		},
+		{
+			Name:        "resourcesMemoryUsedPercent",
+			Description: "The percetage of memory in the cluster that are used",
+			Default:     true,
+			Order:       9,
+			Type:        apiview.ViewFieldTypeString,
+		},
+		{
 			Name:        "nodes",
 			Description: "The number of nodes in the cluster",
 			Default:     true,
@@ -241,6 +270,7 @@ func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []api
 	ret := make([]apiview.ViewRow, 0, len(resourcesService.Resources))
 	for _, resource := range resourcesService.Resources {
 		cluster := resource.KubernetesClusterResource
+		priceMonth := priceservice.CalculatePrice(cluster)
 
 		row := apiview.ViewRow{
 			"clusterUid": {
@@ -280,10 +310,27 @@ func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []api
 				FieldValue: cluster.Status.AgentStatus.GetNodepoolCount(),
 			},
 			"resourcesCpu": {
-				FieldValue: cluster.Status.AgentStatus.GetNodePoolCpu().String(),
+				FieldValue: cluster.Status.AgentStatus.GetTotalCpu().String(),
 			},
 			"resourcesMemory": {
-				FieldValue: cluster.Status.AgentStatus.GetMemoryString(),
+				FieldValue: fmt.Sprint(cluster.Status.AgentStatus.GetTotalMemory().GetMemoryAs(rortypes.BinarySIUnitGi, 0)),
+				FieldUnit:  " Gi",
+			},
+			"resourcesCpuUsedMilli": {
+				FieldValue: cluster.Status.AgentStatus.GetTotalUsedCpu().MilliValue(),
+				FieldUnit:  "m",
+			},
+			"resourcesMemoryUsed": {
+				FieldValue: fmt.Sprint(cluster.Status.AgentStatus.GetTotalUsedMemory().GetMemoryAs(rortypes.BinarySIUnitGi, 0)),
+				FieldUnit:  " Gi",
+			},
+			"resourcesCpuUsedPercent": {
+				FieldValue: cluster.Status.AgentStatus.GetCpuResource().UsedPercent(),
+				FieldUnit:  "%",
+			},
+			"resourcesMemoryUsedPercent": {
+				FieldValue: cluster.Status.AgentStatus.GetMemoryResource().UsedPercent(),
+				FieldUnit:  "%",
 			},
 			"kubernetesVersion": {
 				FieldValue: cluster.Status.AgentStatus.GetKubernetesVersion(),
@@ -310,10 +357,10 @@ func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []api
 				FieldValue: cluster.Status.AgentStatus.GetUrlByKey("Grafana"),
 			},
 			"priceMonth": {
-				FieldValue: priceservice.CalculatePrice(cluster.Status.AgentStatus),
+				FieldValue: priceMonth,
 			},
 			"priceYear": {
-				FieldValue: priceservice.CalculatePrice(cluster.Status.AgentStatus) * 12,
+				FieldValue: priceMonth * 12,
 			},
 
 			// Add more fields as needed
