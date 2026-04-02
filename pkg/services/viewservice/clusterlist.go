@@ -280,7 +280,7 @@ func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []api
 				FieldValue: cluster.Status.AgentStatus.GetNodepoolCount(),
 			},
 			"resourcesCpu": {
-				FieldValue: cluster.Status.AgentStatus.GetCpu().String(),
+				FieldValue: cluster.Status.AgentStatus.GetNodePoolCpu().String(),
 			},
 			"resourcesMemory": {
 				FieldValue: cluster.Status.AgentStatus.GetMemoryString(),
