@@ -33,6 +33,15 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: darwin
+            goarch: arm64
     steps:
       - uses: actions/checkout@v4
       - name: Set up Go
@@ -41,8 +50,8 @@ jobs:
           go-version: "1.26"
       - name: Start build
         run: |
-          echo "Building ${{ env.APP }} ${{ needs.setenv.outputs.rorversion}} (${{ needs.setenv.outputs.shortsha}})"
-      - name: run generator 
+          echo "Building ${{ env.APP }} ${{ needs.setenv.outputs.rorversion}} (${{ needs.setenv.outputs.shortsha}}) for ${{ matrix.goos }}/${{ matrix.goarch }}"
+      - name: Run generator
         run: |
           go run cmd/generator/main.go
       - name: Build Swagger
@@ -53,15 +62,15 @@ jobs:
       - name: Build
         run: |
           mkdir -p dist/isbuilt
-          CGO_ENABLED=0 go build -o dist/${{ env.APP }} -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/ror/pkg/config/rorversion.Version=${{ needs.setenv.outputs.rorversion}} -X github.com/NorskHelsenett/ror/pkg/config/rorversion.Commit=${{ needs.setenv.outputs.shortsha}} -X github.com/NorskHelsenett/ror/pkg/config/rorversion.LibVer=${{ needs.setenv.outputs.libver}}" ${{ env.APP_PATH }}/main.go
-          touch dist/isbuilt/${{ env.APP }}
+          CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o dist/${{ env.APP }}-${{ matrix.goos }}-${{ matrix.goarch }} -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/ror/pkg/config/rorversion.Version=${{ needs.setenv.outputs.rorversion}} -X github.com/NorskHelsenett/ror/pkg/config/rorversion.Commit=${{ needs.setenv.outputs.shortsha}} -X github.com/NorskHelsenett/ror/pkg/config/rorversion.LibVer=${{ needs.setenv.outputs.libver}}" ${{ env.APP_PATH }}/main.go
+          touch dist/isbuilt/${{ env.APP }}-${{ matrix.goos }}-${{ matrix.goarch }}
       - name: Archive binary
         uses: actions/upload-artifact@v4
         with:
-          name: binary-build
+          name: binary-build-${{ matrix.goos }}-${{ matrix.goarch }}
           path: |
-            dist/${{ env.APP }}
-            dist/isbuilt/${{ env.APP }}
+            dist/${{ env.APP }}-${{ matrix.goos }}-${{ matrix.goarch }}
+            dist/isbuilt/${{ env.APP }}-${{ matrix.goos }}-${{ matrix.goarch }}
           retention-days: 1
 
   build-container-image:
@@ -79,21 +88,35 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download binary build artifacts
+      - name: Download binary build artifacts (linux/amd64)
         uses: actions/download-artifact@v4
+        with:
+          name: binary-build-linux-amd64
+          path: binary-build-linux-amd64
+      - name: Download binary build artifacts (linux/arm64)
+        uses: actions/download-artifact@v4
+        with:
+          name: binary-build-linux-arm64
+          path: binary-build-linux-arm64
       - name: Check env
         run: |
           echo "Building container ${{ env.APP }} ${{ needs.setenv.outputs.rorversion}} (${{ needs.setenv.outputs.shortsha}})"
       - name: Move artifacts
         run: |
-          mv binary-build dist
-          chmod +x dist/${{ env.APP }}
+          mkdir -p dist
+          mv binary-build-linux-amd64/${{ env.APP }}-linux-amd64 dist/${{ env.APP }}-linux-amd64
+          mv binary-build-linux-arm64/${{ env.APP }}-linux-arm64 dist/${{ env.APP }}-linux-arm64
+          chmod +x dist/${{ env.APP }}-linux-amd64
+          chmod +x dist/${{ env.APP }}-linux-arm64
 
       - name: Install cosign
         if: github.event_name != 'pull_request'
         uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 #v3.5.0
         with:
           cosign-release: "v2.2.4"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       # Set up BuildKit Docker container builder to be able to build
       # multi-platform images and export cache
@@ -129,6 +152,7 @@ jobs:
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
           context: .
+          platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
