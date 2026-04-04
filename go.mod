@@ -3,9 +3,8 @@ module github.com/NorskHelsenett/ror-api
 go 1.26.1
 
 require (
-	github.com/NorskHelsenett/ror v1.17.11
+	github.com/NorskHelsenett/ror v1.18.1
 	github.com/blang/semver/v4 v4.0.0
-	github.com/coreos/go-oidc/v3 v3.17.0
 	github.com/dotse/go-health v1.0.2
 	github.com/evanphx/json-patch/v5 v5.9.11
 	github.com/gin-contrib/cors v1.7.7
@@ -52,6 +51,7 @@ require (
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
+	github.com/coreos/go-oidc/v3 v3.17.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
 	github.com/ebitengine/purego v0.10.0 // indirect
@@ -195,5 +195,3 @@ require (
 	sigs.k8s.io/randfill v1.0.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v6 v6.3.2 // indirect
 )
-
-replace github.com/NorskHelsenett/ror => ../ror
