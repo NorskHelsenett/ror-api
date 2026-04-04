@@ -47,7 +47,11 @@ func startHttpServer(ctx context.Context) error {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	authmiddleware.RegisterAuthProvider(oauthmiddleware.NewDefaultOauthMiddleware())
+	oauthMw, err := oauthmiddleware.NewDefaultOauthMiddleware()
+	if err != nil {
+		return fmt.Errorf("could not initialize OIDC middleware: %w", err)
+	}
+	authmiddleware.RegisterAuthProvider(oauthMw)
 	authmiddleware.RegisterAuthProvider(apikeyauth.NewApiKeyAuthProvider())
 
 	useCors := rorconfig.GetBool(rorconfig.HTTP_USE_CORS)
@@ -73,7 +77,7 @@ func startHttpServer(ctx context.Context) error {
 	router.Use(headersmiddleware.HeadersMiddleware())
 	router.Use(corsmiddleware.CORS())
 
-	err := router.SetTrustedProxies([]string{"127.0.0.1"})
+	err = router.SetTrustedProxies([]string{"127.0.0.1"})
 	if err != nil {
 		rlog.Error("could not set trusted proxies", err)
 		return err

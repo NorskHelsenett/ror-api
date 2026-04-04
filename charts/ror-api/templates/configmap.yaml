@@ -16,8 +16,8 @@ data:
   KV_PORT: {{.Values.api.config.redis.port | quote}}
   VAULT_URL: {{.Values.api.config.vault.url | quote}}
   LOG_LEVEL: {{.Values.api.config.logLevel | quote}}
-  OIDC_PROVIDER: {{.Values.api.config.oidc.provider | quote}}
-  OIDC_CLIENT_ID: {{.Values.api.config.oidc.clientId | quote}}
+  OIDC_ISSUERS: {{ .Values.api.config.oidc.issuers | toJson | quote }}
+  OIDC_SIGNER_ISSUER: {{ .Values.api.config.oidc.signerIssuer | quote }}
   OPENTELEMETRY_COLLECTOR_ENDPOINT: {{.Values.api.config.tracing.endpoint | quote}}
   ENABLE_TRACING: {{.Values.api.config.tracing.enabled | quote}}
   TANZU_AUTH_BASE_URL: {{ default "http://ror-ms-tanzu-auth.nhn-ror.svc:8080" .Values.api.config.tanzu.tanzuAuthBaseUrl | quote }}

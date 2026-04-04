@@ -2,63 +2,44 @@ package tokenservice
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"strings"
 	"time"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 	"github.com/NorskHelsenett/ror/pkg/helpers/fouramhelper"
-	"github.com/NorskHelsenett/ror/pkg/helpers/tokenstoragehelper"
-	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
-	"github.com/NorskHelsenett/ror/pkg/rlog"
-	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/NorskHelsenett/ror/pkg/helpers/oidchelper"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 )
 
-// TODO:
-// 1. Move private key to secure storage OK
-// 2. Implement key rotation OK
-// 3. Implement support for multiple oidc providers and client ids with check on domain name
-// 4. Strip groupnames from internal domain from user
-
 const INTERNAL_DOMAIN = "ror.io"
 
 var (
-	oidcProviderURL    string = "https://auth.sky.nhn.no/dex"
-	oidcClientId       string = "clusterauth"
-	adminTokenDuration        = 1 * time.Hour
+	adminTokenDuration = 1 * time.Hour
+
+	// Validator and Signer are set during initialization via SetManager.
+	validator oidchelper.TokenValidator
+	signer    oidchelper.TokenSigner
 )
 
-// ExchangeToken exchanges a token for a new resigned token
-// 1 . Verifies the provided token
+// SetManager configures the token service with an oidchelper.Manager.
+func SetManager(m *oidchelper.Manager) {
+	validator = m
+	signer = m
+}
+
+// ExchangeToken exchanges a token for a new resigned token.
+// 1. Verifies the provided token via the multi-issuer validator
 // 2. Extracts user information from the token
 // 3. (Optional) Checks if the user has admin privileges if admin is true
 // 4. Generates and returns a new token for the specified clusterID
 func ExchangeToken(ctx context.Context, clusterID string, token string, admin bool) (string, error) {
-
-	provider, err := oidc.NewProvider(ctx, oidcProviderURL)
-	if err != nil {
-		return "", err
-	}
-	idTokenVerifier := provider.Verifier(&oidc.Config{
-		ClientID: oidcClientId,
-	})
-
-	// Parse and verify ID Token payload.
-	idToken, err := idTokenVerifier.Verify(ctx, token)
+	claims, err := validator.ValidateToken(ctx, token)
 	if err != nil {
 		return "", err
 	}
 
-	// Extract custom user.
-	user := identitymodels.User{Groups: []string{"NotAuthorized"}}
-	if err := idToken.Claims(&user); err != nil {
-		return "", err
-	}
-
-	groupsWithDomain, err := ExtractGroups(&user)
+	groupsWithDomain, err := oidchelper.ExtractGroups(claims.Email, claims.Groups)
 	if err != nil {
 		return "", err
 	}
@@ -74,64 +55,30 @@ func ExchangeToken(ctx context.Context, clusterID string, token string, admin bo
 	}
 	groupsWithDomain = filtered
 
-	user.Groups = groupsWithDomain
 	exp := fouramhelper.FourAm()
 
 	if admin {
 		exp = time.Now().Add(adminTokenDuration)
-		user.Groups = append(user.Groups, "cluster-admin@"+INTERNAL_DOMAIN)
+		groupsWithDomain = append(groupsWithDomain, "cluster-admin@"+INTERNAL_DOMAIN)
 	}
 
-	claims := jwt.MapClaims{
-		"sub":              user.Email,
-		"iss":              "https://auth.ror.nhn.no",
-		"email":            user.Email,
-		"groups":           user.Groups,
+	mapClaims := jwt.MapClaims{
+		"sub":              claims.Email,
+		"email":            claims.Email,
+		"groups":           groupsWithDomain,
 		"nbf":              time.Now().Add(-1 * time.Minute).Unix(),
 		"iat":              time.Now().Unix(),
 		"exp":              exp.Unix(),
-		"aud":              oidcClientId,
+		"aud":              claims.Audience,
 		"clusterID":        clusterID,
-		"providerISS":      user.Issuer,
-		"providerAudience": user.Audience,
+		"providerISS":      claims.Issuer,
+		"providerAudience": claims.Audience,
 	}
 
-	tokenstorage := tokenstoragehelper.GetSigningTokenKeyStorage()
-
-	signed, err := tokenstorage.Sign(claims)
-	if err != nil {
-		return "", err
-	}
-
-	return signed, nil
+	return signer.SignMapClaims(mapClaims)
 }
 
-// Function extracts groups from user object
-func ExtractGroups(user *identitymodels.User) ([]string, error) {
-	if user == nil {
-		msg := "user is nil"
-		rlog.Debug(msg)
-		return make([]string, 0), errors.New(msg)
-	}
-
-	emailArray := strings.Split(user.Email, "@")
-	if len(emailArray) > 2 {
-		msg := "could not extract domain from email"
-		rlog.Debug(msg)
-		return make([]string, 0), errors.New(msg)
-	}
-
-	domain := emailArray[1]
-	groups := make([]string, 0)
-	for i := 0; i < len(user.Groups); i++ {
-		g := fmt.Sprintf("%s@%s", user.Groups[i], domain)
-		groups = append(groups, g)
-	}
-
-	return groups, nil
-}
-
-// GetJwks returns the JSON Web Key Set (JWKS) containing the public keys
+// GetJwks returns the JSON Web Key Set (JWKS) containing the public keys.
 func GetJwks() (jwk.Set, error) {
-	return tokenstoragehelper.GetTokenKeyStorage().GetJwks()
+	return signer.GetJWKS()
 }
