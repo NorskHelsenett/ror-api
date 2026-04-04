@@ -2,40 +2,48 @@ package oauthmiddleware
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
+	"github.com/NorskHelsenett/ror/pkg/helpers/oidchelper"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
-	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gin-gonic/gin"
 )
 
+// OauthMiddlewareInterface is implemented by OauthMiddleware.
 type OauthMiddlewareInterface interface {
 	Authenticate(c *gin.Context, ctx context.Context)
 	IsOfType(c *gin.Context) bool
 }
 
+// OauthMiddleware delegates token validation to oidchelper.MultiIssuerValidator.
 type OauthMiddleware struct {
-	providers map[string]OauthProviderInterface
+	validator *oidchelper.MultiIssuerValidator
 }
 
-func (d *OauthMiddleware) GetProviderByURL(url string) (OauthProviderInterface, bool) {
-	provider, exists := d.providers[url]
-	if !exists {
-		return nil, false
-	}
-	return provider, true
+// NewOauthMiddleware creates an OauthMiddleware backed by an existing MultiIssuerValidator.
+func NewOauthMiddleware(validator *oidchelper.MultiIssuerValidator) OauthMiddlewareInterface {
+	return &OauthMiddleware{validator: validator}
 }
 
-func (d *OauthMiddleware) AddProvider(name string, provider OauthProviderInterface) {
-	if d.providers == nil {
-		d.providers = make(map[string]OauthProviderInterface)
+// NewOauthMiddlewareFromConfig creates an OauthMiddleware from issuer configs.
+func NewOauthMiddlewareFromConfig(configs ...oidchelper.IssuerConfig) (OauthMiddlewareInterface, error) {
+	v, err := oidchelper.NewMultiIssuerValidator(configs...)
+	if err != nil {
+		return nil, err
 	}
-	d.providers[name] = provider
+	return &OauthMiddleware{validator: v}, nil
+}
+
+// NewDefaultOauthMiddleware creates an OauthMiddleware using environment configuration.
+func NewDefaultOauthMiddleware() (OauthMiddlewareInterface, error) {
+	configs, err := oidchelper.LoadFromEnv()
+	if err != nil {
+		return nil, err
+	}
+	return NewOauthMiddlewareFromConfig(configs...)
 }
 
 func (d *OauthMiddleware) IsOfType(c *gin.Context) bool {
@@ -49,109 +57,61 @@ func (d *OauthMiddleware) Authenticate(c *gin.Context, ctx context.Context) {
 
 	auth := c.Request.Header.Get("Authorization")
 	if auth == "" {
-		rerr := rorginerror.NewRorGinError(http.StatusUnauthorized, "No Authorization header provided ")
+		rerr := rorginerror.NewRorGinError(http.StatusUnauthorized, "No Authorization header provided")
 		rortracer.SpanError(span, rerr, "No Authorization header provided")
 		rerr.GinLogErrorAbort(c)
 		return
 	}
 
-	identity, rerr := d.getIdentityFromToken(c.Request.Context(), auth)
+	token := strings.TrimPrefix(auth, "Bearer ")
+	if token == auth {
+		rerr := rorginerror.NewRorGinError(http.StatusUnauthorized, "Could not find bearer token in Authorization header")
+		rortracer.SpanError(span, rerr, "Missing bearer token")
+		rerr.GinLogErrorAbort(c)
+		return
+	}
 
+	identity, rerr := d.getIdentityFromToken(c.Request.Context(), token)
 	if rerr != nil {
 		rortracer.SpanError(span, rerr, "Could not get identity from token")
 		rerr.GinLogErrorAbort(c)
 		return
 	}
 
-	token, _ := extractTokenFromAuthorizationHeader(auth)
 	identity.SetToken(token)
 	c.Set("identity", *identity)
 	rortracer.SpanOk(span)
 }
 
-func NewOauthMiddleware(opts ...OauthProvidersOption) OauthMiddlewareInterface {
-	providers := &OauthMiddleware{}
-
-	for _, opt := range opts {
-		opt.apply(providers)
+func (d *OauthMiddleware) getIdentityFromToken(ctx context.Context, token string) (*identitymodels.Identity, rorginerror.RorGinError) {
+	claims, err := d.validator.ValidateToken(ctx, token)
+	if err != nil {
+		return nil, rorginerror.NewRorGinError(http.StatusUnauthorized, err.Error())
 	}
 
-	return providers
-}
-
-func NewDefaultOauthMiddleware(opts ...OauthProvidersOption) OauthMiddlewareInterface {
-	opts = append(opts, OptionDefaultProvider())
-	return NewOauthMiddleware(opts...)
-}
-
-func (d *OauthMiddleware) getIdentityFromToken(c context.Context, auth string) (*identitymodels.Identity, rorginerror.RorGinError) {
-	var err error
-
-	// Extract token from Authorization header
-	token, rerr := extractTokenFromAuthorizationHeader(auth)
-	if rerr != nil {
-		return nil, rerr
-	}
-
-	// Extract unverified claims to determine issuer and client ID
-	unverifiedClaims, rerr := extractUnverifiedClaims(token)
-	if rerr != nil {
-		return nil, rerr
-	}
-
-	// Get the appropriate OIDC provider based on the issuer
-	oauthProvider, exists := d.GetProviderByURL(unverifiedClaims.Issuer)
-
-	if !exists {
-		return nil, rorginerror.NewRorGinError(http.StatusUnauthorized, fmt.Sprintf("No OIDC provider found for issuer: %s", unverifiedClaims.Issuer))
-	}
-
-	provider := oauthProvider.GetProvider()
-	clientIDs := oauthProvider.GetIssuers()
-
-	// Match audiences against configured client IDs
-	clientID, matched := unverifiedClaims.MatchAudience(clientIDs...)
-	if !matched {
-		return nil, rorginerror.NewRorGinError(http.StatusUnauthorized, "Token audience does not match any configured client IDs.")
-	}
-
-	// Create ID token verifier
-	idTokenVerifier := provider.Verifier(&oidc.Config{
-		ClientID:                   clientID,
-		SkipIssuerCheck:            oauthProvider.IsSkipverify(),
-		InsecureSkipSignatureCheck: oauthProvider.IsSkipverify(),
-	})
-
-	// Verify token
-	idToken, verifyErr := idTokenVerifier.Verify(c, token)
-	if verifyErr != nil {
-		return nil, rorginerror.NewRorGinError(http.StatusUnauthorized, "Could not verify token", verifyErr)
-	}
-
-	// Extract user from claims.
-	user := identitymodels.User{Groups: []string{"NotAuthorized"}}
-	if err := idToken.Claims(&user); err != nil {
-		return nil, rorginerror.NewRorGinError(http.StatusUnauthorized, "Not authorized")
-	}
-
-	// Extract groups and append domain
-	user.Groups, err = ExtractGroups(&user)
-	if err != nil || len(user.Groups) == 0 {
+	// Append email domain to groups
+	groups, err := oidchelper.ExtractGroups(claims.Email, claims.Groups)
+	if err != nil || len(groups) == 0 {
 		return nil, rorginerror.NewRorGinError(http.StatusUnauthorized, "Not authorized, missing groups")
 	}
 
-	// extract expiration time from token
-	exptime := time.Unix(int64(user.ExpirationTime), 0)
+	user := &identitymodels.User{
+		Email:           claims.Email,
+		IsEmailVerified: claims.EmailVerified,
+		Name:            claims.Name,
+		Groups:          groups,
+		Audience:        claims.Audience,
+		Issuer:          claims.Issuer,
+		ExpirationTime:  int(claims.ExpirationTime.Unix()),
+	}
 
-	// return identity
 	return &identitymodels.Identity{
 		Auth: identitymodels.AuthInfo{
 			AuthProvider:   identitymodels.IdentityProviderOidc,
-			AuthProviderID: user.Email,
-			ExpirationTime: exptime,
+			AuthProviderID: claims.Email,
+			ExpirationTime: claims.ExpirationTime,
 		},
 		Type: identitymodels.IdentityTypeUser,
-		User: &user,
+		User: user,
 	}, nil
-
 }

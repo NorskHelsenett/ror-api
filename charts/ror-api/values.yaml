@@ -16,8 +16,12 @@ api:
     rorUrl: "https://api.ror.nhn.no"
     logLevel: "info"
     oidc:
-      provider: "https://auth.sky.nhn.no/dex"
-      clientId: "ror.sky.test.nhn.no"
+      signerIssuer: "https://auth.ror.nhn.no"
+      issuers:
+        - issuerUrl: "https://auth.sky.nhn.no/dex"
+          clientIds:
+            - "ror.sky.test.nhn.no"
+          skipVerify: false
     tracing:
       enabled: true
       endpoint: "ror-opentelemetry-collector.nhn-ror.svc:4317"

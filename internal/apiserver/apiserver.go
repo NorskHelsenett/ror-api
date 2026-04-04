@@ -10,11 +10,13 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	"github.com/NorskHelsenett/ror-api/internal/utils/switchboard"
 	"github.com/NorskHelsenett/ror-api/internal/webserver"
+	"github.com/NorskHelsenett/ror-api/pkg/services/tokenservice"
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/config/rorversion"
 	healthserver "github.com/NorskHelsenett/ror/pkg/helpers/rorhealth/server"
 	"github.com/NorskHelsenett/ror/pkg/helpers/tokenstoragehelper"
 	"github.com/NorskHelsenett/ror/pkg/helpers/tokenstoragehelper/vaulttokenadapter"
+	"github.com/NorskHelsenett/ror/pkg/helpers/oidchelper"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 	"github.com/prometheus/client_golang/prometheus"
@@ -60,6 +62,18 @@ func Run() {
 
 	// Initialize token storage for ror-auth
 	tokenstoragehelper.Init(vaulttokenadapter.NewVaultStorageAdapter(apiconnections.VaultClient, rorconfig.GetString("TOKEN_STORE_VAULT_PATH")))
+
+	// Initialize token service with OIDC manager (validator + signer)
+	oidcConfigs, err := oidchelper.LoadFromEnv()
+	if err != nil {
+		rlog.Fatal("could not load OIDC configuration", err)
+	}
+	signerIssuer := rorconfig.GetString(rorconfig.OIDC_SIGNER_ISSUER)
+	manager, err := oidchelper.NewManagerWithStorage(signerIssuer, tokenstoragehelper.GetSigningTokenKeyStorage(), oidcConfigs...)
+	if err != nil {
+		rlog.Fatal("could not initialize OIDC manager", err)
+	}
+	tokenservice.SetManager(manager)
 
 	// if in development mode, print warning and development api keys
 	if rorconfig.GetBool(rorconfig.DEVELOPMENT) {
