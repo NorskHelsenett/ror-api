@@ -60,9 +60,9 @@ spec:
 
         - alert: RabbitMQNoConsumers
           expr: |
-            rabbitmq_detailed_queue_consumers{namespace="{{ .Release.Namespace }}"} == 0
+            rabbitmq_detailed_queue_consumers{namespace="{{ .Release.Namespace }}", queue!~"sse-events.*"} == 0
             and
-            rabbitmq_detailed_queue_messages{namespace="{{ .Release.Namespace }}"} > 0
+            rabbitmq_detailed_queue_messages{namespace="{{ .Release.Namespace }}", queue!~"sse-events.*"} > 0
           for: 2m
           labels:
             severity: critical
