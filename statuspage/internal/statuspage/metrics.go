@@ -15,12 +15,12 @@ import (
 
 // APIStats holds metrics fetched from Prometheus about the ror-api.
 type APIStats struct {
-	RequestRate   float64 `json:"requestRate"`   // requests per second (5m avg)
-	ErrorRate     float64 `json:"errorRate"`     // 4xx+5xx per second (5m avg)
-	AvgLatencyMs  float64 `json:"avgLatencyMs"`  // average request latency in ms (5m)
-	P99LatencyMs  float64 `json:"p99LatencyMs"`  // p99 request latency in ms (5m)
-	ActiveConns   float64 `json:"activeConns"`   // current active connections
-	Available     bool    `json:"available"`     // whether Prometheus was reachable
+	RequestRate  float64 `json:"requestRate"`  // requests per second (5m avg)
+	ErrorRate    float64 `json:"errorRate"`    // 4xx+5xx per second (5m avg)
+	AvgLatencyMs float64 `json:"avgLatencyMs"` // average request latency in ms (5m)
+	P99LatencyMs float64 `json:"p99LatencyMs"` // p99 request latency in ms (5m)
+	ActiveConns  float64 `json:"activeConns"`  // current active connections
+	Available    bool    `json:"available"`    // whether Prometheus was reachable
 }
 
 // PrometheusClient queries a Prometheus server for ror-api metrics.
