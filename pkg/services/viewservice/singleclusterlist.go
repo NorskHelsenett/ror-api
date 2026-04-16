@@ -3,6 +3,7 @@ package viewservice
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
 	"github.com/NorskHelsenett/ror-api/pkg/services/priceservice"
@@ -271,13 +272,36 @@ func createSingleClusterListHeaders(_ context.Context, _ ...ViewGeneratorsOption
 	}
 }
 
-func createSingleClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []apiview.ViewRow {
+func createSingleClusterListData(ctx context.Context, options ...ViewGeneratorsOption) []apiview.ViewRow {
+	var resourcesService *rorresources.ResourceSet
+	cfg := &viewGeneratorOptions{}
+	for _, opt := range options {
+		opt.apply(cfg)
+	}
 
-	resourcesService, _ := resourcesv2service.GetResourceByQuery(ctx, &rorresources.ResourceQuery{
-		VersionKind: rortypes.ResourceKubernetesClusterGVK,
-		Limit:       1000,
-	},
-	)
+	if cfg.filter != nil {
+		for _, f := range cfg.filter {
+			parts := strings.Split(f, "=")
+			if parts[0] == "clusterUid" {
+				resourcesService, _ = resourcesv2service.GetResourceByQuery(ctx, &rorresources.ResourceQuery{
+					VersionKind: rortypes.ResourceKubernetesClusterGVK,
+					Uids:        []string{parts[1]},
+					Limit:       1,
+					// Add more filters as needed
+					// e.g. Provider: parts[1] if parts[0] == "provider"
+					// e.g. Region: parts[1] if parts[0] == "region"
+				},
+				)
+			}
+			// Add more filters as needed
+			// e.g. if parts[0] == "provider" { ... }
+			// e.g. if parts[0] == "region" { ... }
+			// etc.
+			// For now, only clusterUid filter is implemented for simplicity
+			break // Assuming only one filter is applied for simplicity
+		}
+	}
+
 	if resourcesService == nil {
 		return []apiview.ViewRow{}
 	}
