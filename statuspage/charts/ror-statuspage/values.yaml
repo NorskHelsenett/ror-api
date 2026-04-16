@@ -4,6 +4,7 @@ status:
   namespace: nhn-ror
   port: "8080"
   logLevel: "info"
+  prometheusUrl: "http://prometheus-kube-prometheus-prometheus.prometheus-operator.svc:9090"
 
 replicaCount: 1
 

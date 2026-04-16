@@ -47,7 +47,7 @@ func Run() {
 	// Prometheus client for ror-api stats
 	prometheusURL := os.Getenv("PROMETHEUS_URL")
 	if prometheusURL == "" {
-		prometheusURL = "http://prometheus-server.monitoring.svc:9090"
+		prometheusURL = "http://prometheus-kube-prometheus-prometheus.prometheus-operator.svc:9090"
 	}
 	if !strings.HasPrefix(prometheusURL, "http://") && !strings.HasPrefix(prometheusURL, "https://") {
 		prometheusURL = "http://" + prometheusURL
