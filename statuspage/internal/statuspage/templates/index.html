@@ -430,36 +430,129 @@
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 1rem 1.5rem;
     margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+  .metrics-bar {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    padding: 0.75rem 1.25rem;
+    gap: 0.25rem;
+    cursor: pointer;
+    user-select: none;
     flex-wrap: wrap;
   }
-  .api-stats-title {
-    font-weight: 700;
-    font-size: 0.9rem;
+  .metrics-bar:hover { background: rgba(255,255,255,0.02); }
+  .metrics-bar .expand-arrow {
+    font-size: 0.65rem;
+    color: var(--muted);
+    transition: transform 0.2s;
+    margin-right: 0.5rem;
+  }
+  .metrics-bar .expand-arrow.open { transform: rotate(90deg); }
+
+  .mb-section {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: var(--blue);
+    padding: 0 0.75rem;
+    border-left: 1px solid var(--border);
+  }
+  .mb-section:first-of-type { border-left: none; padding-left: 0; }
+  .mb-label {
+    font-weight: 700;
+    font-size: 0.75rem;
     white-space: nowrap;
   }
-  .api-stats-title svg { width: 20px; height: 20px; }
+  .mb-label.api { color: var(--blue); }
+  .mb-label.mongo { color: var(--green); }
+  .mb-label.rabbit { color: #06b6d4; }
+  .mb-kv {
+    display: flex;
+    align-items: baseline;
+    gap: 0.2rem;
+    white-space: nowrap;
+  }
+  .mb-val {
+    font-size: 0.9rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .mb-unit {
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .mb-sep {
+    color: var(--border);
+    font-size: 0.7rem;
+    margin: 0 0.15rem;
+  }
+
+  /* Expanded detail panels */
+  .metrics-detail {
+    border-top: 1px solid var(--border);
+    padding: 1rem 1.25rem;
+    display: none;
+  }
+  .metrics-detail.open { display: block; }
+  .md-row {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  .md-row:last-child { margin-bottom: 0; }
+  .md-panel {
+    flex: 1;
+    min-width: 280px;
+  }
+  .md-panel-title {
+    font-weight: 700;
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .md-panel-title.api { color: var(--blue); }
+  .md-panel-title.mongo { color: var(--green); }
+  .md-panel-title.rabbit { color: #06b6d4; }
+  .md-panel-title svg { width: 16px; height: 16px; }
+  .md-grid {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .md-stat-group {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0 0.5rem;
+    border-left: 1px solid var(--border);
+  }
+  .md-stat-group:first-child { border-left: none; padding-left: 0; }
+  .md-stat-group-label {
+    font-size: 0.6rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+  }
   .api-stat-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 80px;
+    min-width: 55px;
   }
   .api-stat-value {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--text);
   }
   .api-stat-label {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -469,103 +562,7 @@
     color: var(--muted);
     font-style: italic;
   }
-  .mongo-stats-panel {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1rem 1.5rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    flex-wrap: wrap;
-  }
-  .mongo-stats-title {
-    font-weight: 700;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--green);
-    white-space: nowrap;
-  }
-  .mongo-stats-title svg { width: 20px; height: 20px; }
-  .mongo-stat-group {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    padding: 0 0.5rem;
-    border-left: 1px solid var(--border);
-  }
-  .mongo-stat-group-label {
-    font-size: 0.65rem;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    writing-mode: vertical-lr;
-    transform: rotate(180deg);
-  }
-  .rabbit-stats-panel {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1rem 1.5rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    flex-wrap: wrap;
-  }
-  .rabbit-stats-title {
-    font-weight: 700;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #06b6d4;
-    white-space: nowrap;
-  }
-  .rabbit-stats-title svg { width: 20px; height: 20px; }
-  .rabbit-stat-group {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    padding: 0 0.5rem;
-    border-left: 1px solid var(--border);
-  }
-  .rabbit-stat-group-label {
-    font-size: 0.65rem;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    writing-mode: vertical-lr;
-    transform: rotate(180deg);
-  }
-  .coll-stats-panel {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    margin-bottom: 1.5rem;
-    overflow: hidden;
-  }
-  .coll-stats-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    cursor: pointer;
-    user-select: none;
-    font-weight: 700;
-    font-size: 0.85rem;
-    color: var(--green);
-  }
-  .coll-stats-header:hover { background: rgba(255,255,255,0.03); }
-  .coll-stats-header .arrow {
-    font-size: 0.7rem;
-    transition: transform 0.2s;
-    color: var(--muted);
-  }
-  .coll-stats-header .arrow.open { transform: rotate(90deg); }
+
   .coll-stats-table {
     width: 100%;
     border-collapse: collapse;
@@ -617,10 +614,12 @@
   </div>
 </header>
 
-<div id="apiStatsPanel" class="api-stats-panel" style="display:none"></div>
-<div id="mongoStatsPanel" class="mongo-stats-panel" style="display:none"></div>
-<div id="collStatsPanel" style="display:none"></div>
-<div id="rabbitStatsPanel" class="rabbit-stats-panel" style="display:none"></div>
+<div id="metricsPanel" class="api-stats-panel" style="display:none">
+  <div class="metrics-bar" id="metricsBar">
+    <span class="expand-arrow" id="metricsArrow">▶</span>
+  </div>
+  <div class="metrics-detail" id="metricsDetail"></div>
+</div>
 
 <div id="content"><p class="empty">Connecting to status stream...</p></div>
 
@@ -632,163 +631,194 @@
   const connText = document.getElementById('connText');
   const lastUpdate = document.getElementById('lastUpdate');
   const headerStats = document.getElementById('headerStats');
-  const apiStatsPanel = document.getElementById('apiStatsPanel');
-  const mongoStatsPanel = document.getElementById('mongoStatsPanel');
-  const rabbitStatsPanel = document.getElementById('rabbitStatsPanel');
+  const metricsPanel = document.getElementById('metricsPanel');
+  const metricsBar = document.getElementById('metricsBar');
+  const metricsArrow = document.getElementById('metricsArrow');
+  const metricsDetail = document.getElementById('metricsDetail');
 
-  // Poll /api/stats for Prometheus-sourced ror-api metrics
-  function fetchAPIStats() {
-    fetch('/api/stats')
-      .then(r => r.json())
-      .then(stats => renderAPIStats(stats))
-      .catch(() => renderAPIStats(null));
-  }
+  let metricsExpanded = false;
+  let latestApi = null, latestMongo = null, latestRabbit = null, latestColls = null;
+  let collStatsOpen = false;
 
-  function renderAPIStats(stats) {
-    if (!stats || !stats.available) {
-      apiStatsPanel.style.display = 'flex';
-      apiStatsPanel.innerHTML = `
-        <span class="api-stats-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-          API Metrics
-        </span>
-        <span class="api-stats-unavailable">Prometheus unavailable</span>
-      `;
-      return;
-    }
-    apiStatsPanel.style.display = 'flex';
-    apiStatsPanel.innerHTML = `
-      <span class="api-stats-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-        API Metrics
-      </span>
-      <div class="api-stat-item">
-        <span class="api-stat-value">${stats.requestRate.toFixed(1)}</span>
-        <span class="api-stat-label">req/s</span>
-      </div>
-      <div class="api-stat-item">
-        <span class="api-stat-value" style="color:${stats.errorRate > 1 ? 'var(--red)' : stats.errorRate > 0 ? 'var(--yellow)' : 'var(--green)'}">${stats.errorRate.toFixed(2)}</span>
-        <span class="api-stat-label">errors/s</span>
-      </div>
-      <div class="api-stat-item">
-        <span class="api-stat-value">${stats.avgLatencyMs.toFixed(0)}</span>
-        <span class="api-stat-label">avg ms</span>
-      </div>
-      <div class="api-stat-item">
-        <span class="api-stat-value">${stats.p99LatencyMs.toFixed(0)}</span>
-        <span class="api-stat-label">p99 ms</span>
-      </div>
-      <div class="api-stat-item">
-        <span class="api-stat-value">${stats.activeConns.toFixed(0)}</span>
-        <span class="api-stat-label">goroutines</span>
-      </div>
-    `;
-  }
-
-  fetchAPIStats();
-  setInterval(fetchAPIStats, 15000);
-
-  // Poll /api/mongo for MongoDB metrics
-  function fetchMongoStats() {
-    fetch('/api/mongo')
-      .then(r => r.json())
-      .then(ms => renderMongoStats(ms))
-      .catch(() => renderMongoStats(null));
-  }
+  metricsBar.addEventListener('click', function() {
+    metricsExpanded = !metricsExpanded;
+    metricsArrow.classList.toggle('open', metricsExpanded);
+    metricsDetail.classList.toggle('open', metricsExpanded);
+  });
 
   function fmt(v, d) { return v != null && isFinite(v) ? v.toFixed(d) : '—'; }
   function fmtSize(mb) { return mb > 1024 ? (mb/1024).toFixed(1) + ' GB' : mb.toFixed(0) + ' MB'; }
-
-  function renderMongoStats(ms) {
-    if (!ms || !ms.available) {
-      mongoStatsPanel.style.display = 'flex';
-      mongoStatsPanel.innerHTML = `
-        <span class="mongo-stats-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-          MongoDB
-        </span>
-        <span class="api-stats-unavailable">Unavailable</span>
-      `;
-      return;
-    }
-    mongoStatsPanel.style.display = 'flex';
-    mongoStatsPanel.innerHTML = `
-      <span class="mongo-stats-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-        MongoDB
-      </span>
-      <div class="mongo-stat-group">
-        <span class="mongo-stat-group-label">DB</span>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.objects/1e6,1)}M</span><span class="api-stat-label">documents</span></div>
-        <div class="api-stat-item"><span class="api-stat-value">${fmtSize(ms.dataSizeMB)}</span><span class="api-stat-label">data</span></div>
-        <div class="api-stat-item"><span class="api-stat-value">${fmtSize(ms.indexSizeMB)}</span><span class="api-stat-label">indexes</span></div>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.collections,0)}</span><span class="api-stat-label">collections</span></div>
-      </div>
-      <div class="mongo-stat-group">
-        <span class="mongo-stat-group-label">CONN</span>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.currentConns,0)}</span><span class="api-stat-label">active</span></div>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.availableConns,0)}</span><span class="api-stat-label">available</span></div>
-      </div>
-      <div class="mongo-stat-group">
-        <span class="mongo-stat-group-label">OPS/s</span>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.findRate,1)}</span><span class="api-stat-label">find</span></div>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.insertRate,1)}</span><span class="api-stat-label">insert</span></div>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.updateRate,1)}</span><span class="api-stat-label">update</span></div>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.deleteRate,1)}</span><span class="api-stat-label">delete</span></div>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.aggregateRate,1)}</span><span class="api-stat-label">aggregate</span></div>
-      </div>
-      <div class="mongo-stat-group">
-        <span class="mongo-stat-group-label">LATENCY</span>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.readLatencyUs,0)}</span><span class="api-stat-label">read µs</span></div>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.writeLatencyUs,0)}</span><span class="api-stat-label">write µs</span></div>
-      </div>
-      <div class="mongo-stat-group">
-        <span class="mongo-stat-group-label">SCAN</span>
-        <div class="api-stat-item"><span class="api-stat-value" style="color:${ms.collScanRate > 1 ? 'var(--red)' : ms.collScanRate > 0.1 ? 'var(--yellow)' : 'var(--green)'}">${fmt(ms.collScanRate,2)}</span><span class="api-stat-label">coll scans/s</span></div>
-      </div>
-      <div class="mongo-stat-group">
-        <span class="mongo-stat-group-label">DOCS/s</span>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.docsReturnedRate,1)}</span><span class="api-stat-label">returned</span></div>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.docsInsertedRate,1)}</span><span class="api-stat-label">inserted</span></div>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.docsUpdatedRate,1)}</span><span class="api-stat-label">updated</span></div>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.docsDeletedRate,1)}</span><span class="api-stat-label">deleted</span></div>
-      </div>
-    `;
-  }
-
-  fetchMongoStats();
-  setInterval(fetchMongoStats, 15000);
-
-  // Poll /api/mongo/collections for per-collection stats
-  const collStatsPanel = document.getElementById('collStatsPanel');
-  let collStatsOpen = false;
-
-  function fetchCollStats() {
-    fetch('/api/mongo/collections')
-      .then(r => r.json())
-      .then(cs => renderCollStats(cs))
-      .catch(() => renderCollStats(null));
-  }
-
   function fmtColl(v, d) { return v != null && isFinite(v) ? v.toFixed(d) : '—'; }
 
-  function renderCollStats(cs) {
-    if (!cs || cs.length === 0) {
-      collStatsPanel.style.display = 'none';
+  function renderMetrics() {
+    const api = latestApi;
+    const ms = latestMongo;
+    const rs = latestRabbit;
+    const anyAvailable = (api && api.available) || (ms && ms.available) || (rs && rs.available);
+
+    if (!anyAvailable) {
+      metricsPanel.style.display = 'none';
       return;
     }
-    // Sort by data size descending
-    cs.sort((a, b) => (b.dataSizeMB || 0) - (a.dataSizeMB || 0));
+    metricsPanel.style.display = 'block';
 
-    collStatsPanel.style.display = 'block';
-    collStatsPanel.innerHTML = `
-      <div class="coll-stats-panel">
-        <div class="coll-stats-header" onclick="document.getElementById('collTable').style.display = document.getElementById('collTable').style.display === 'none' ? '' : 'none'; this.querySelector('.arrow').classList.toggle('open')">
-          <span class="arrow${collStatsOpen ? ' open' : ''}">▶</span>
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-          Collection Stats (${cs.length})
+    // --- Condensed bar ---
+    let bar = `<span class="expand-arrow${metricsExpanded ? ' open' : ''}" id="metricsArrow">▶</span>`;
+
+    if (api && api.available) {
+      const errColor = api.errorRate > 1 ? 'var(--red)' : api.errorRate > 0 ? 'var(--yellow)' : 'var(--green)';
+      bar += `<div class="mb-section">
+        <span class="mb-label api">API</span>
+        <span class="mb-kv"><span class="mb-val">${api.requestRate.toFixed(1)}</span><span class="mb-unit">req/s</span></span>
+        <span class="mb-kv"><span class="mb-val" style="color:${errColor}">${api.errorRate.toFixed(2)}</span><span class="mb-unit">err/s</span></span>
+        <span class="mb-kv"><span class="mb-val">${api.avgLatencyMs.toFixed(0)}</span><span class="mb-unit">ms</span></span>
+        <span class="mb-kv"><span class="mb-val">${api.p99LatencyMs.toFixed(0)}</span><span class="mb-unit">p99</span></span>
+      </div>`;
+    }
+
+    if (ms && ms.available) {
+      const totalOps = (ms.findRate + ms.insertRate + ms.updateRate + ms.deleteRate + ms.aggregateRate);
+      bar += `<div class="mb-section">
+        <span class="mb-label mongo">MongoDB</span>
+        <span class="mb-kv"><span class="mb-val">${fmt(totalOps,1)}</span><span class="mb-unit">ops/s</span></span>
+        <span class="mb-kv"><span class="mb-val">${fmt(ms.readLatencyUs,0)}</span><span class="mb-unit">r µs</span></span>
+        <span class="mb-kv"><span class="mb-val">${fmt(ms.writeLatencyUs,0)}</span><span class="mb-unit">w µs</span></span>
+        <span class="mb-kv"><span class="mb-val">${fmt(ms.currentConns,0)}</span><span class="mb-unit">conn</span></span>
+      </div>`;
+    }
+
+    if (rs && rs.available) {
+      const readyColor = rs.messagesReady > 100 ? 'var(--red)' : rs.messagesReady > 10 ? 'var(--yellow)' : 'var(--green)';
+      bar += `<div class="mb-section">
+        <span class="mb-label rabbit">RabbitMQ</span>
+        <span class="mb-kv"><span class="mb-val">${fmt(rs.publishRate,1)}</span><span class="mb-unit">pub/s</span></span>
+        <span class="mb-kv"><span class="mb-val">${fmt(rs.deliverRate,1)}</span><span class="mb-unit">del/s</span></span>
+        <span class="mb-kv"><span class="mb-val" style="color:${readyColor}">${fmt(rs.messagesReady,0)}</span><span class="mb-unit">ready</span></span>
+        <span class="mb-kv"><span class="mb-val">${fmt(rs.queues,0)}</span><span class="mb-unit">queues</span></span>
+      </div>`;
+    }
+
+    metricsBar.innerHTML = bar;
+
+    // Re-bind arrow reference after innerHTML replace
+    const newArrow = metricsBar.querySelector('.expand-arrow');
+    if (newArrow) newArrow.classList.toggle('open', metricsExpanded);
+
+    // --- Expanded detail ---
+    let detail = '<div class="md-row">';
+
+    if (api && api.available) {
+      detail += `<div class="md-panel">
+        <div class="md-panel-title api">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          API Metrics
         </div>
-        <table class="coll-stats-table" id="collTable" style="${collStatsOpen ? '' : 'display:none'}">
+        <div class="md-grid">
+          <div class="api-stat-item"><span class="api-stat-value">${api.requestRate.toFixed(1)}</span><span class="api-stat-label">req/s</span></div>
+          <div class="api-stat-item"><span class="api-stat-value" style="color:${api.errorRate > 1 ? 'var(--red)' : api.errorRate > 0 ? 'var(--yellow)' : 'var(--green)'}">${api.errorRate.toFixed(2)}</span><span class="api-stat-label">errors/s</span></div>
+          <div class="api-stat-item"><span class="api-stat-value">${api.avgLatencyMs.toFixed(0)}</span><span class="api-stat-label">avg ms</span></div>
+          <div class="api-stat-item"><span class="api-stat-value">${api.p99LatencyMs.toFixed(0)}</span><span class="api-stat-label">p99 ms</span></div>
+          <div class="api-stat-item"><span class="api-stat-value">${api.activeConns.toFixed(0)}</span><span class="api-stat-label">goroutines</span></div>
+        </div>
+      </div>`;
+    }
+
+    if (ms && ms.available) {
+      detail += `<div class="md-panel">
+        <div class="md-panel-title mongo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          MongoDB
+        </div>
+        <div class="md-grid">
+          <div class="md-stat-group">
+            <span class="md-stat-group-label">DB</span>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.objects/1e6,1)}M</span><span class="api-stat-label">docs</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmtSize(ms.dataSizeMB)}</span><span class="api-stat-label">data</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmtSize(ms.indexSizeMB)}</span><span class="api-stat-label">indexes</span></div>
+          </div>
+          <div class="md-stat-group">
+            <span class="md-stat-group-label">CONN</span>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.currentConns,0)}</span><span class="api-stat-label">active</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.availableConns,0)}</span><span class="api-stat-label">available</span></div>
+          </div>
+          <div class="md-stat-group">
+            <span class="md-stat-group-label">OPS/s</span>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.findRate,1)}</span><span class="api-stat-label">find</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.insertRate,1)}</span><span class="api-stat-label">insert</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.updateRate,1)}</span><span class="api-stat-label">update</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.deleteRate,1)}</span><span class="api-stat-label">delete</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.aggregateRate,1)}</span><span class="api-stat-label">aggr</span></div>
+          </div>
+          <div class="md-stat-group">
+            <span class="md-stat-group-label">LATENCY</span>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.readLatencyUs,0)}</span><span class="api-stat-label">read µs</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.writeLatencyUs,0)}</span><span class="api-stat-label">write µs</span></div>
+          </div>
+          <div class="md-stat-group">
+            <span class="md-stat-group-label">SCAN</span>
+            <div class="api-stat-item"><span class="api-stat-value" style="color:${ms.collScanRate > 1 ? 'var(--red)' : ms.collScanRate > 0.1 ? 'var(--yellow)' : 'var(--green)'}">${fmt(ms.collScanRate,2)}</span><span class="api-stat-label">scans/s</span></div>
+          </div>
+          <div class="md-stat-group">
+            <span class="md-stat-group-label">DOCS/s</span>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.docsReturnedRate,1)}</span><span class="api-stat-label">returned</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.docsInsertedRate,1)}</span><span class="api-stat-label">inserted</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.docsUpdatedRate,1)}</span><span class="api-stat-label">updated</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.docsDeletedRate,1)}</span><span class="api-stat-label">deleted</span></div>
+          </div>
+        </div>
+        ${renderCollTable()}
+      </div>`;
+    }
+
+    detail += '</div>';
+
+    if (rs && rs.available) {
+      detail += `<div class="md-row"><div class="md-panel">
+        <div class="md-panel-title rabbit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M9 4v16"/><path d="M4 9h16"/></svg>
+          RabbitMQ
+        </div>
+        <div class="md-grid">
+          <div class="md-stat-group">
+            <span class="md-stat-group-label">TOPO</span>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.connections,0)}</span><span class="api-stat-label">conn</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.channels,0)}</span><span class="api-stat-label">chan</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.queues,0)}</span><span class="api-stat-label">queues</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.consumers,0)}</span><span class="api-stat-label">consumers</span></div>
+          </div>
+          <div class="md-stat-group">
+            <span class="md-stat-group-label">BACKLOG</span>
+            <div class="api-stat-item"><span class="api-stat-value" style="color:${rs.messagesReady > 100 ? 'var(--red)' : rs.messagesReady > 10 ? 'var(--yellow)' : 'var(--green)'}">${fmt(rs.messagesReady,0)}</span><span class="api-stat-label">ready</span></div>
+            <div class="api-stat-item"><span class="api-stat-value" style="color:${rs.messagesUnacked > 100 ? 'var(--red)' : rs.messagesUnacked > 10 ? 'var(--yellow)' : 'var(--text)'}">${fmt(rs.messagesUnacked,0)}</span><span class="api-stat-label">unacked</span></div>
+          </div>
+          <div class="md-stat-group">
+            <span class="md-stat-group-label">MSG/s</span>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.publishRate,1)}</span><span class="api-stat-label">publish</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.deliverRate,1)}</span><span class="api-stat-label">deliver</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.ackRate,1)}</span><span class="api-stat-label">ack</span></div>
+          </div>
+          <div class="md-stat-group">
+            <span class="md-stat-group-label">RESOURCES</span>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.diskAvailableGB,1)}</span><span class="api-stat-label">disk GB</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.memoryUsedMB,0)}</span><span class="api-stat-label">mem MB</span></div>
+          </div>
+        </div>
+      </div></div>`;
+    }
+
+    metricsDetail.innerHTML = detail;
+    metricsDetail.classList.toggle('open', metricsExpanded);
+  }
+
+  // Fetch all three in parallel
+  function renderCollTable() {
+    const cs = latestColls;
+    if (!cs || cs.length === 0) return '';
+    cs.sort((a, b) => (b.dataSizeMB || 0) - (a.dataSizeMB || 0));
+    return `
+      <div style="margin-top:0.75rem;border-top:1px solid var(--border);padding-top:0.5rem">
+        <div style="font-size:0.75rem;color:var(--muted);font-weight:600;margin-bottom:0.4rem;text-transform:uppercase;letter-spacing:0.04em">Collections (${cs.length})</div>
+        <table class="coll-stats-table">
           <thead><tr>
             <th>Collection</th>
             <th>Docs</th>
@@ -818,63 +848,25 @@
     `;
   }
 
-  fetchCollStats();
-  setInterval(fetchCollStats, 15000);
-
-  // Poll /api/rabbitmq for RabbitMQ metrics
-  function fetchRabbitStats() {
-    fetch('/api/rabbitmq')
-      .then(r => r.json())
-      .then(rs => renderRabbitStats(rs))
-      .catch(() => renderRabbitStats(null));
+  function fetchAllMetrics() {
+    Promise.all([
+      fetch('/api/stats').then(r => r.json()).catch(() => null),
+      fetch('/api/mongo').then(r => r.json()).catch(() => null),
+      fetch('/api/rabbitmq').then(r => r.json()).catch(() => null),
+      fetch('/api/mongo/collections').then(r => r.json()).catch(() => null),
+    ]).then(([api, mongo, rabbit, colls]) => {
+      latestApi = api;
+      latestMongo = mongo;
+      latestRabbit = rabbit;
+      latestColls = colls;
+      renderMetrics();
+    });
   }
 
-  function renderRabbitStats(rs) {
-    if (!rs || !rs.available) {
-      rabbitStatsPanel.style.display = 'flex';
-      rabbitStatsPanel.innerHTML = `
-        <span class="rabbit-stats-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M9 4v16"/><path d="M4 9h16"/></svg>
-          RabbitMQ
-        </span>
-        <span class="api-stats-unavailable">Unavailable</span>
-      `;
-      return;
-    }
-    rabbitStatsPanel.style.display = 'flex';
-    rabbitStatsPanel.innerHTML = `
-      <span class="rabbit-stats-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M9 4v16"/><path d="M4 9h16"/></svg>
-        RabbitMQ
-      </span>
-      <div class="rabbit-stat-group">
-        <span class="rabbit-stat-group-label">TOPO</span>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.connections,0)}</span><span class="api-stat-label">connections</span></div>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.channels,0)}</span><span class="api-stat-label">channels</span></div>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.queues,0)}</span><span class="api-stat-label">queues</span></div>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.consumers,0)}</span><span class="api-stat-label">consumers</span></div>
-      </div>
-      <div class="rabbit-stat-group">
-        <span class="rabbit-stat-group-label">BACKLOG</span>
-        <div class="api-stat-item"><span class="api-stat-value" style="color:${rs.messagesReady > 100 ? 'var(--red)' : rs.messagesReady > 10 ? 'var(--yellow)' : 'var(--green)'}">${fmt(rs.messagesReady,0)}</span><span class="api-stat-label">ready</span></div>
-        <div class="api-stat-item"><span class="api-stat-value" style="color:${rs.messagesUnacked > 100 ? 'var(--red)' : rs.messagesUnacked > 10 ? 'var(--yellow)' : 'var(--text)'}">${fmt(rs.messagesUnacked,0)}</span><span class="api-stat-label">unacked</span></div>
-      </div>
-      <div class="rabbit-stat-group">
-        <span class="rabbit-stat-group-label">MSG/s</span>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.publishRate,1)}</span><span class="api-stat-label">publish</span></div>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.deliverRate,1)}</span><span class="api-stat-label">deliver</span></div>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.ackRate,1)}</span><span class="api-stat-label">ack</span></div>
-      </div>
-      <div class="rabbit-stat-group">
-        <span class="rabbit-stat-group-label">RESOURCES</span>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.diskAvailableGB,1)}</span><span class="api-stat-label">disk GB</span></div>
-        <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.memoryUsedMB,0)}</span><span class="api-stat-label">mem MB</span></div>
-      </div>
-    `;
-  }
+  fetchAllMetrics();
+  setInterval(fetchAllMetrics, 15000);
 
-  fetchRabbitStats();
-  setInterval(fetchRabbitStats, 15000);
+
 
   function connect() {
     const es = new EventSource('/events');
