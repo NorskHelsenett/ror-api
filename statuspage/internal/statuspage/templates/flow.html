@@ -70,6 +70,11 @@
   .node-box.browser { stroke: var(--blue); }
   .node-box.other { stroke: var(--yellow); }
   .node-box.pod { stroke: var(--purple); }
+  .node-box.mongo { stroke: var(--orange); }
+
+  .flow-line.mongo { stroke: var(--orange); }
+  .rate-label.mongo { fill: var(--orange); }
+  .flow-dot.mongo { fill: var(--orange); }
 
   .node-label {
     fill: var(--text);
@@ -196,12 +201,15 @@
   <div class="legend-item"><div class="legend-dot agent-v2"></div> Agents v2</div>
   <div class="legend-item"><div class="legend-dot browser"></div> Browsers</div>
   <div class="legend-item"><div class="legend-dot other"></div> Other</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div> API Pods</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> MongoDB</div>
 </div>
 
 <script>
-const NODE_W = 160, NODE_H = 60, POD_W = 280;
+const NODE_W = 160, NODE_H = 60, POD_W = 280, MONGO_W = 160;
 const SVG_PAD = 40;
-const COL_GAP = 260;
+const COL_GAP = 220;
+const COL_GAP2 = 180;
 
 // Classify raw user-agent into a group for the diagram.
 function classifyUA(ua) {
@@ -218,7 +226,7 @@ function classifyUA(ua) {
   return 'other';
 }
 
-function buildSVG(rawFlows) {
+function buildSVG(rawFlows, mongoFlows) {
   // Aggregate raw per-user_agent flows into classified groups
   const groups = {};  // { group: { total, perPod: { pod: rate } } }
   const pods = {};    // { pod: { group: rate } }
@@ -241,9 +249,11 @@ function buildSVG(rawFlows) {
 
   const leftCount = clientOrder.length;
   const rightCount = podNames.length;
-  const maxCount = Math.max(leftCount, rightCount);
+  const mongoOps = (mongoFlows || []).filter(m => m.rate > 0);
+  const hasMongoCol = mongoOps.length > 0;
+  const maxCount = Math.max(leftCount, rightCount, hasMongoCol ? 1 : 0);
 
-  const svgW = SVG_PAD * 2 + NODE_W + POD_W + COL_GAP;
+  const svgW = SVG_PAD * 2 + NODE_W + POD_W + COL_GAP + (hasMongoCol ? COL_GAP2 + MONGO_W : 0);
   const rowH = NODE_H + 24;
   const svgH = SVG_PAD * 2 + maxCount * rowH;
 
@@ -332,6 +342,58 @@ function buildSVG(rawFlows) {
     svg += `<text class="node-sublabel" x="${x + POD_W / 2}" y="${y + NODE_H / 2 + 10}">${podTotal.toFixed(1)} req/s</text>`;
   }
 
+  // --- MongoDB column (3rd) ---
+  if (hasMongoCol) {
+    const mongoX = rightX + POD_W + COL_GAP2;
+    const mongoTotalRate = mongoOps.reduce((s, m) => s + m.rate, 0);
+    const mongoY = SVG_PAD + (svgH - SVG_PAD * 2 - NODE_H * 2.5) / 2;
+
+    // MongoDB node
+    svg += `<rect class="node-box mongo" x="${mongoX}" y="${mongoY}" width="${MONGO_W}" height="${NODE_H * 2.5}" rx="8" />`;
+    svg += `<text class="node-label" x="${mongoX + MONGO_W / 2}" y="${mongoY + 20}" style="font-size:13px">MongoDB</text>`;
+    svg += `<text class="node-sublabel" x="${mongoX + MONGO_W / 2}" y="${mongoY + 38}">${mongoTotalRate.toFixed(1)} ops/s</text>`;
+
+    // Show individual ops inside the MongoDB box
+    const opColors = { find: '#58a6ff', insert: '#3fb950', update: '#d29922', delete: '#f85149', aggregate: '#bc8cff' };
+    for (let oi = 0; oi < mongoOps.length; oi++) {
+      const op = mongoOps[oi];
+      const oy = mongoY + 55 + oi * 18;
+      svg += `<text x="${mongoX + 12}" y="${oy}" fill="${opColors[op.op] || '#8b949e'}" font-size="11" font-family="inherit" dominant-baseline="central">${op.op}</text>`;
+      svg += `<text x="${mongoX + MONGO_W - 12}" y="${oy}" fill="${opColors[op.op] || '#8b949e'}" font-size="11" font-family="inherit" dominant-baseline="central" text-anchor="end">${op.rate.toFixed(1)}/s</text>`;
+    }
+
+    // Flow lines from each pod to MongoDB
+    const mongoMidY = mongoY + NODE_H * 1.25;
+    let mongoMaxRate = Math.max(...podNames.map(p => {
+      let t = 0; for (const c of clientOrder) t += (pods[p][c] || 0); return t;
+    }), 1);
+
+    for (let pi = 0; pi < podNames.length; pi++) {
+      const py = rightStartY + pi * rowH + NODE_H / 2;
+      const x1 = rightX + POD_W;
+      const x2 = mongoX;
+      let podRate = 0;
+      for (const c of clientOrder) podRate += (pods[podNames[pi]][c] || 0);
+      if (podRate === 0) continue;
+
+      const sw = Math.max(1, Math.min(6, (podRate / mongoMaxRate) * 6));
+      const opacity = Math.max(0.3, Math.min(0.8, podRate / mongoMaxRate));
+
+      const pid = `mpath${pi}`;
+      const cpx1 = x1 + (x2 - x1) * 0.4;
+      const cpx2 = x1 + (x2 - x1) * 0.6;
+
+      svg += `<path id="${pid}" d="M${x1},${py} C${cpx1},${py} ${cpx2},${mongoMidY} ${x2},${mongoMidY}" fill="none" />`;
+      svg += `<use href="#${pid}" class="flow-line mongo" stroke-width="${sw}" opacity="${opacity}" />`;
+
+      // Animated dot
+      const dur = Math.max(1.5, Math.min(5, 8 / (podRate + 1)));
+      svg += `<circle class="flow-dot mongo" opacity="${opacity}">`;
+      svg += `<animateMotion dur="${dur}s" repeatCount="indefinite"><mpath href="#${pid}"/></animateMotion>`;
+      svg += `</circle>`;
+    }
+  }
+
   svg += `</svg>`;
   return svg;
 }
@@ -346,7 +408,7 @@ async function fetchFlows() {
       container.innerHTML = '<div class="no-data">No flow data available yet.<br>The <code>user_agent</code> label will appear after ror-api is redeployed with the updated metrics middleware.</div>';
       return;
     }
-    container.innerHTML = buildSVG(data.flows);
+    container.innerHTML = buildSVG(data.flows, data.mongoFlows);
   } catch (e) {
     console.error('fetch flows error:', e);
   }

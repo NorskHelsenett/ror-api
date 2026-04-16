@@ -269,13 +269,21 @@ type FlowEntry struct {
 	Rate      float64 `json:"rate"` // req/s
 }
 
-// FlowData is the full network flow snapshot.
-type FlowData struct {
-	Flows     []FlowEntry `json:"flows"`
-	Available bool        `json:"available"`
+// MongoFlowEntry represents an aggregate op rate from ror-api to MongoDB.
+type MongoFlowEntry struct {
+	Op   string  `json:"op"`   // find, insert, update, delete, aggregate
+	Rate float64 `json:"rate"` // ops/s
 }
 
-// CurrentFlows queries Prometheus for per-user_agent, per-pod request rates.
+// FlowData is the full network flow snapshot.
+type FlowData struct {
+	Flows      []FlowEntry      `json:"flows"`
+	MongoFlows []MongoFlowEntry `json:"mongoFlows"`
+	Available  bool             `json:"available"`
+}
+
+// CurrentFlows queries Prometheus for per-user_agent, per-pod request rates
+// and MongoDB aggregate op rates.
 func (p *PrometheusClient) CurrentFlows() *FlowData {
 	query := `sum(rate(http_requests_total{job="ror-api"}[5m])) by (pod, user_agent)`
 	results, err := p.queryVector(query)
@@ -292,7 +300,20 @@ func (p *PrometheusClient) CurrentFlows() *FlowData {
 			Rate:      r.Value,
 		})
 	}
-	return &FlowData{Flows: flows, Available: true}
+
+	// MongoDB op rates
+	mongoOps := []string{"find", "insert", "update", "delete", "aggregate"}
+	mongoFlows := make([]MongoFlowEntry, 0, len(mongoOps))
+	for _, op := range mongoOps {
+		q := `rate(mongodb_ss_metrics_commands_` + op + `_total{` + mongoJob + `}[5m])`
+		val, err := p.queryScalar(q)
+		if err != nil {
+			continue
+		}
+		mongoFlows = append(mongoFlows, MongoFlowEntry{Op: op, Rate: val})
+	}
+
+	return &FlowData{Flows: flows, MongoFlows: mongoFlows, Available: true}
 }
 
 type vectorResult struct {
