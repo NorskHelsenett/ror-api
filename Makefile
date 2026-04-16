@@ -7,6 +7,7 @@ PROJECT_NAME := ror-api
 BINARY_NAME := ror-api
 MAIN_PATH := ./cmd/api
 GENERATOR_PATH := ./cmd/generator
+STATUSPAGE_PATH := ./cmd/statuspage
 GO_VERSION := $(shell go version | cut -d' ' -f3)
 HELM := helm
 KUBECTL := kubectl
@@ -131,6 +132,20 @@ build-static: check-go ## Build with static linking for container deployment
 	@mkdir -p dist
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 ${GO} build -ldflags "$(LDFLAGS) -extldflags '-static'" -o dist/${BINARY_NAME} ${MAIN_PATH}
 	@echo "${GREEN}Static build complete: dist/${BINARY_NAME}${RESET}"
+
+# Build the statuspage
+build-statuspage: check-go ## Build the statuspage application
+	@echo "${GREEN}Building ror-statuspage...${RESET}"
+	@mkdir -p dist
+	${GO} build -ldflags "$(LDFLAGS)" -o dist/ror-statuspage ${STATUSPAGE_PATH}
+	@echo "${GREEN}Build complete: dist/ror-statuspage${RESET}"
+
+# Build the statuspage with static linking
+build-statuspage-static: check-go ## Build statuspage with static linking for container deployment
+	@echo "${GREEN}Building ror-statuspage with static linking...${RESET}"
+	@mkdir -p dist
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 ${GO} build -ldflags "$(LDFLAGS) -extldflags '-static'" -o dist/ror-statuspage ${STATUSPAGE_PATH}
+	@echo "${GREEN}Static build complete: dist/ror-statuspage${RESET}"
 
 # Clean build files
 clean: ## Remove build artifacts
