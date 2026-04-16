@@ -173,4 +173,113 @@ spec:
             description: >-
               Average request duration for resource endpoints is
               {{ "{{" }} $value | humanizeDuration {{ "}}" }}.
+
+    # ---------------------------------------------------------------
+    # Rate limiter alerts
+    # ---------------------------------------------------------------
+    - name: ror-api-rate-limiter-alerts
+      rules:
+        - alert: RorApiRateLimiterBlocking
+          expr: |
+            sum by (limiter_name) (rate(rate_limiter_blocked_total{job="ror-api"}[5m])) > {{ .Values.alerting.rateLimiter.blockedPerSecondWarning }}
+          for: 3m
+          labels:
+            severity: warning
+            team: ror
+          annotations:
+            summary: "ror-api rate limiter {{ "{{" }} $labels.limiter_name {{ "}}" }} is blocking requests"
+            description: >-
+              Rate limiter {{ "{{" }} $labels.limiter_name {{ "}}" }} is blocking
+              {{ "{{" }} $value | humanize {{ "}}" }} req/s.
+              Clients may be exceeding allowed throughput.
+
+        - alert: RorApiRateLimiterBlockRateHigh
+          expr: |
+            (
+              sum by (limiter_name) (rate(rate_limiter_requests_total{job="ror-api", status="blocked"}[5m]))
+              /
+              sum by (limiter_name) (rate(rate_limiter_requests_total{job="ror-api"}[5m]))
+            ) > {{ .Values.alerting.rateLimiter.blockedRatioCritical }}
+          for: 2m
+          labels:
+            severity: critical
+            team: ror
+          annotations:
+            summary: "ror-api rate limiter {{ "{{" }} $labels.limiter_name {{ "}}" }} blocking ratio critical"
+            description: >-
+              {{ "{{" }} $value | humanizePercentage {{ "}}" }} of requests to
+              {{ "{{" }} $labels.limiter_name {{ "}}" }} are being blocked by the
+              rate limiter. This indicates sustained overload.
+
+        - alert: RorApiRateLimiterTokensDepleted
+          expr: |
+            rate_limiter_tokens_available{job="ror-api"} == 0
+          for: 1m
+          labels:
+            severity: warning
+            team: ror
+          annotations:
+            summary: "ror-api rate limiter {{ "{{" }} $labels.limiter_name {{ "}}" }} has zero tokens"
+            description: >-
+              Rate limiter {{ "{{" }} $labels.limiter_name {{ "}}" }} bucket is
+              empty. All incoming requests will be rejected until tokens refill.
+
+    # ---------------------------------------------------------------
+    # Resource processing alerts
+    # ---------------------------------------------------------------
+    - name: ror-api-resource-processing-alerts
+      rules:
+        - alert: RorApiResourceProcessingStopped
+          expr: |
+            rate(resources_processed_total{job="ror-api"}[10m]) == 0
+            and
+            rate(resources_requests_total{job="ror-api"}[10m]) > 0
+          for: 5m
+          labels:
+            severity: critical
+            team: ror
+          annotations:
+            summary: "ror-api pod {{ "{{" }} $labels.pod {{ "}}" }} receiving requests but not processing resources"
+            description: >-
+              Pod {{ "{{" }} $labels.pod {{ "}}" }} has incoming resource requests
+              but the processed counter is not increasing. Resources are likely
+              failing silently.
+
+        - alert: RorApiResourceProcessingDrop
+          expr: |
+            (
+              rate(resources_processed_total{job="ror-api"}[5m])
+              /
+              rate(resources_requests_total{job="ror-api"}[5m])
+            ) < {{ .Values.alerting.resources.processedPerRequestMin }}
+            and
+            rate(resources_requests_total{job="ror-api"}[5m]) > 0
+          for: 5m
+          labels:
+            severity: warning
+            team: ror
+          annotations:
+            summary: "ror-api pod {{ "{{" }} $labels.pod {{ "}}" }} low resource processing ratio"
+            description: >-
+              Pod {{ "{{" }} $labels.pod {{ "}}" }} is processing only
+              {{ "{{" }} $value | humanize {{ "}}" }} resources per request.
+              This may indicate batch processing failures.
+
+    # ---------------------------------------------------------------
+    # Development mode alert
+    # ---------------------------------------------------------------
+    - name: ror-api-safety-alerts
+      rules:
+        - alert: RorApiDevelopmentMode
+          expr: |
+            ror_api_not_safe_for_production{job="ror-api"} == 1
+          for: 0m
+          labels:
+            severity: critical
+            team: ror
+          annotations:
+            summary: "ror-api pod {{ "{{" }} $labels.pod {{ "}}" }} is running in development mode"
+            description: >-
+              Pod {{ "{{" }} $labels.pod {{ "}}" }} has development mode enabled.
+              This is NOT safe for production and exposes development API keys.
 {{- end }}

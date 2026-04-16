@@ -114,4 +114,9 @@ alerting:
     errorRateWarning: 0.02
     resourceTimeoutsPerSecond: 5
     avgLatencySecondsWarning: 5
+  rateLimiter:
+    blockedPerSecondWarning: 1
+    blockedRatioCritical: 0.25
+  resources:
+    processedPerRequestMin: 1
   namespace: prometheus-operator
