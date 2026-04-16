@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -43,12 +44,28 @@ func Run() {
 
 	go watcher.Start(ctx)
 
+	// Prometheus client for ror-api stats
+	prometheusURL := os.Getenv("PROMETHEUS_URL")
+	if prometheusURL == "" {
+		prometheusURL = "http://prometheus-server.monitoring.svc:9090"
+	}
+	if !strings.HasPrefix(prometheusURL, "http://") && !strings.HasPrefix(prometheusURL, "https://") {
+		prometheusURL = "http://" + prometheusURL
+	}
+	promClient := NewPrometheusClient(prometheusURL)
+	go promClient.Start(ctx)
+
 	// Routes
 	router.GET("/health", func(c *gin.Context) {
 		c.String(http.StatusOK, "ok")
 	})
 
 	router.GET("/events", hub.HandleSSE(watcher.CurrentSnapshot))
+
+	router.GET("/api/stats", func(c *gin.Context) {
+		stats := promClient.CurrentStats()
+		c.JSON(http.StatusOK, stats)
+	})
 
 	router.GET("/", func(c *gin.Context) {
 		data, err := templateFS.ReadFile("templates/index.html")
