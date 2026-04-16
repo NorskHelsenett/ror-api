@@ -11,38 +11,38 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
 )
 
-type clusterlistgenerator struct{}
+type singleclusterlistgenerator struct{}
 
 const (
-	ClusterListView = "clusterlist"
+	SingleClusterListView = "singleclusterlist"
 )
 
 func init() {
-	Generators.RegisterViewGenerator(ClusterListView, &clusterlistgenerator{})
+	Generators.RegisterViewGenerator(SingleClusterListView, &singleclusterlistgenerator{})
 }
 
-// Implement the ListViewGenerator interface for clusterlistgenerator
-func (g *clusterlistgenerator) GenerateView(ctx context.Context, opts ...ViewGeneratorsOption) (apiview.View, error) {
+// Implement the ListViewGenerator interface for singleclusterlistgenerator
+func (g *singleclusterlistgenerator) GenerateView(ctx context.Context, opts ...ViewGeneratorsOption) (apiview.View, error) {
 	// Placeholder implementation
 	return apiview.View{
 		Type:    ClusterListView,
-		Columns: createClusterListHeaders(ctx, opts...),
-		Rows:    createClusterListData(ctx, opts...),
+		Columns: createSingleClusterListHeaders(ctx, opts...),
+		Rows:    createSingleClusterListData(ctx, opts...),
 	}, nil
 }
 
-func (g *clusterlistgenerator) GetMetadata() apiview.ViewMetadata {
+func (g *singleclusterlistgenerator) GetMetadata() apiview.ViewMetadata {
 	return apiview.ViewMetadata{
-		Id:          ClusterListView,
+		Id:          SingleClusterListView,
 		Type:        apiview.ViewTypeList,
-		Description: "A list view of clusters",
-		Name:        "Cluster List View",
+		Description: "A list view of single cluster",
+		Name:        "Single Cluster List View",
 		Version:     1,
 	}
 }
 
 // BFF4EVAH
-func createClusterListHeaders(_ context.Context, _ ...ViewGeneratorsOption) []apiview.ViewColumn {
+func createSingleClusterListHeaders(_ context.Context, _ ...ViewGeneratorsOption) []apiview.ViewColumn {
 	return []apiview.ViewColumn{
 		{
 			Name:        "clusterUid",
@@ -254,10 +254,24 @@ func createClusterListHeaders(_ context.Context, _ ...ViewGeneratorsOption) []ap
 			Order:       23,
 			Type:        apiview.ViewFieldTypeDateTime,
 		},
+		{
+			Name:        "project",
+			Description: "The project the cluster belongs to",
+			Default:     true,
+			Order:       24,
+			Type:        apiview.ViewFieldTypeString,
+		},
+		{
+			Name:        "slackChannels",
+			Description: "The slack channel to go to for support about cluster",
+			Default:     true,
+			Order:       25,
+			Type:        apiview.ViewFieldTypeArray,
+		},
 	}
 }
 
-func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []apiview.ViewRow {
+func createSingleClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []apiview.ViewRow {
 
 	resourcesService, _ := resourcesv2service.GetResourceByQuery(ctx, &rorresources.ResourceQuery{
 		VersionKind: rortypes.ResourceKubernetesClusterGVK,
@@ -362,6 +376,13 @@ func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []api
 			"priceYear": {
 				FieldValue: priceMonth * 12,
 			},
+			"project": {
+				FieldValue: cluster.Spec.VitiSpec.Cluster.Project,
+			},
+			"slackChannel": {
+				FieldValue: cluster.Spec.SlackChannels,
+			},
+
 			// Add more fields as needed
 		}
 		ret = append(ret, row)

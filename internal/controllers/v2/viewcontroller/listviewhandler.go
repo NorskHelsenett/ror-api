@@ -25,7 +25,6 @@ import (
 // @Failure		500	{object}	rorerror.ErrorData
 // @Router			/v2/views/{viewid} [get]
 // @Param			viewid		path	string							true	"The ID of the view to retrieve"
-// @Param			limit	query	int							false	"Number of items to return, if set to -1, only metadata is returned"
 // @Param			offset		query	int							false	"Number of items to skip before starting to collect the result set"
 // @Param			sort		query	string							false	"Comma separated list of fields to sort by (e.g. name,-date)"
 // @Param			filter		query	string							false	"Filter expression (e.g. name==example*,date>2020-01-01)"
@@ -46,6 +45,58 @@ func GetView() gin.HandlerFunc {
 		if err != nil {
 			rerr := rorginerror.NewRorGinErrorFromError(http.StatusInternalServerError, err)
 			rerr.GinLogErrorAbort(c)
+		}
+
+		c.JSON(http.StatusOK, apiview)
+	}
+}
+
+// @Summary	Get view item
+// @Schemes
+// @Description	Get view item
+// @Tags			views
+// @Accept			application/json
+// @Produce		application/json
+// @Success		200	{object}	apiview.View
+// @Failure		403	{object}	rorerror.ErrorData
+// @Failure		401	{object}	rorerror.ErrorData
+// @Failure		500	{object}	rorerror.ErrorData
+// @Router			/v2/views/{viewid}/{itemid} [get]
+// @Param			viewid		path	string							true	"The ID of the view to retrieve"
+// @Param			itemid		path	string							true	"The ID of the spesific item to retrieve"
+// @Param			fields		query	string							false	"Comma separated list of extra fields to include in the response (e.g. workorder,branch,testfield1)"
+// @Security		ApiKey || AccessToken
+func GetViewItem() gin.HandlerFunc {
+	viewsUids := []string{"clusterUid", "datacenterUid"}
+	return func(c *gin.Context) {
+		ctx, _ := gincontext.GetRorContextFromGinContext(c)
+		_ = apiview.View{} // Ensure apiview is imported
+		generator, err := viewservice.Generators.GetGenerator(c.Param("viewid"))
+		if err == viewservice.ErrViewNotRegistered {
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid or unsupported view", err)
+			rerr.GinLogErrorAbort(c)
+		}
+		options := viewservice.ParseOptionsFromGinContext(c)
+
+		apiview, err := generator.GenerateView(ctx, options...)
+		if err != nil {
+			rerr := rorginerror.NewRorGinErrorFromError(http.StatusInternalServerError, err)
+			rerr.GinLogErrorAbort(c)
+		}
+
+		columnNames := []string{}
+
+		for _, c := range apiview.Columns {
+			columnNames = append(columnNames, c.Name)
+		}
+
+		for _, v := range viewsUids {
+			if slices.contains(columnNames, v) {
+				if v == c.Param("itemid") {
+					c.JSON(http.StatusOK, apiview)
+					return
+				}
+			}
 		}
 
 		c.JSON(http.StatusOK, apiview)
