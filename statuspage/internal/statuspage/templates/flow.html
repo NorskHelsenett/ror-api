@@ -199,7 +199,7 @@
 </div>
 
 <script>
-const NODE_W = 160, NODE_H = 60;
+const NODE_W = 160, NODE_H = 60, POD_W = 280;
 const SVG_PAD = 40;
 const COL_GAP = 260;
 
@@ -243,12 +243,13 @@ function buildSVG(rawFlows) {
   const rightCount = podNames.length;
   const maxCount = Math.max(leftCount, rightCount);
 
-  const svgW = SVG_PAD * 2 + NODE_W * 2 + COL_GAP;
+  const svgW = SVG_PAD * 2 + NODE_W + POD_W + COL_GAP;
   const rowH = NODE_H + 24;
   const svgH = SVG_PAD * 2 + maxCount * rowH;
 
   const leftX = SVG_PAD;
   const rightX = SVG_PAD + NODE_W + COL_GAP;
+  const rightMidX = rightX + POD_W / 2;
   const leftStartY = SVG_PAD + (svgH - SVG_PAD * 2 - leftCount * rowH) / 2;
   const rightStartY = SVG_PAD + (svgH - SVG_PAD * 2 - rightCount * rowH) / 2;
 
@@ -323,14 +324,12 @@ function buildSVG(rawFlows) {
     const pod = podNames[pi];
     const x = rightX;
     const y = rightStartY + pi * rowH;
-    const shortName = pod.replace(/^ror-api-[a-z0-9]+-/, '');
-
     let podTotal = 0;
     for (const c of clientOrder) podTotal += (pods[pod][c] || 0);
 
-    svg += `<rect class="node-box pod" x="${x}" y="${y}" width="${NODE_W}" height="${NODE_H}" />`;
-    svg += `<text class="node-label" x="${x + NODE_W / 2}" y="${y + NODE_H / 2 - 8}">${shortName}</text>`;
-    svg += `<text class="node-sublabel" x="${x + NODE_W / 2}" y="${y + NODE_H / 2 + 10}">${podTotal.toFixed(1)} req/s</text>`;
+    svg += `<rect class="node-box pod" x="${x}" y="${y}" width="${POD_W}" height="${NODE_H}" />`;
+    svg += `<text class="node-label" x="${x + POD_W / 2}" y="${y + NODE_H / 2 - 8}" style="font-size:11px">${pod}</text>`;
+    svg += `<text class="node-sublabel" x="${x + POD_W / 2}" y="${y + NODE_H / 2 + 10}">${podTotal.toFixed(1)} req/s</text>`;
   }
 
   svg += `</svg>`;
