@@ -98,4 +98,20 @@ serviceMonitor:
   enabled: true
 grafanaDashboard:
   enabled: true
+
+rabbitmqMonitoring:
+  enabled: true
+
+alerting:
+  enabled: true
+  rabbitmq:
+    queueMessagesWarning: 1000
+    queueMessagesCritical: 10000
+    queueGrowthRate: 500
+  api:
+    timeoutRateWarning: 0.05
+    timeoutRateCritical: 0.15
+    errorRateWarning: 0.02
+    resourceTimeoutsPerSecond: 5
+    avgLatencySecondsWarning: 5
   namespace: prometheus-operator

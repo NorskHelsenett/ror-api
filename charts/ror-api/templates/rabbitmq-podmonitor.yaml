@@ -1,0 +1,28 @@
+{{- if and (eq .Values.rabbitmqMonitoring.enabled true) (.Capabilities.APIVersions.Has "monitoring.coreos.com/v1") }}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: rabbitmq-ror
+  labels:
+    app: rabbitmq-ror
+    release: prometheus
+spec:
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: rabbitmq
+      app.kubernetes.io/name: rabbitmq-ror
+  podMetricsEndpoints:
+    - port: prometheus
+      interval: 15s
+      path: /metrics
+    - port: prometheus-detailed
+      interval: 15s
+      path: /metrics/detailed
+      params:
+        family:
+          - queue_coarse_metrics
+          - queue_metrics
+{{- end }}
