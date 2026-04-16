@@ -28,8 +28,44 @@ type PrometheusClient struct {
 	baseURL    string
 	httpClient *http.Client
 
-	mu    sync.RWMutex
-	stats *APIStats
+	mu         sync.RWMutex
+	stats      *APIStats
+	mongoStats *MongoStats
+}
+
+// MongoStats holds metrics fetched from Prometheus about MongoDB.
+type MongoStats struct {
+	// Database-level
+	Objects     float64 `json:"objects"`     // total documents in nhn-ror db
+	DataSizeMB  float64 `json:"dataSizeMB"`  // data size in MB
+	IndexSizeMB float64 `json:"indexSizeMB"` // index size in MB
+	Collections float64 `json:"collections"` // number of collections
+
+	// Connections
+	CurrentConns   float64 `json:"currentConns"`
+	AvailableConns float64 `json:"availableConns"`
+
+	// Operation rates (per second, 5m avg)
+	FindRate      float64 `json:"findRate"`
+	InsertRate    float64 `json:"insertRate"`
+	UpdateRate    float64 `json:"updateRate"`
+	DeleteRate    float64 `json:"deleteRate"`
+	AggregateRate float64 `json:"aggregateRate"`
+
+	// Latency (microseconds avg over all ops)
+	ReadLatencyUs  float64 `json:"readLatencyUs"`
+	WriteLatencyUs float64 `json:"writeLatencyUs"`
+
+	// Slow query indicator
+	CollScanRate float64 `json:"collScanRate"` // collection scans per second (5m avg)
+
+	// Document throughput (per second, 5m avg)
+	DocsReturnedRate float64 `json:"docsReturnedRate"`
+	DocsInsertedRate float64 `json:"docsInsertedRate"`
+	DocsUpdatedRate  float64 `json:"docsUpdatedRate"`
+	DocsDeletedRate  float64 `json:"docsDeletedRate"`
+
+	Available bool `json:"available"`
 }
 
 // NewPrometheusClient creates a new Prometheus query client.
@@ -39,7 +75,8 @@ func NewPrometheusClient(prometheusURL string) *PrometheusClient {
 		httpClient: &http.Client{
 			Timeout: 5 * time.Second,
 		},
-		stats: &APIStats{},
+		stats:      &APIStats{},
+		mongoStats: &MongoStats{},
 	}
 }
 
@@ -51,10 +88,19 @@ func (p *PrometheusClient) CurrentStats() *APIStats {
 	return &s
 }
 
+// CurrentMongoStats returns the latest MongoDB stats (thread-safe).
+func (p *PrometheusClient) CurrentMongoStats() *MongoStats {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	s := *p.mongoStats
+	return &s
+}
+
 // Start periodically fetches metrics from Prometheus.
 func (p *PrometheusClient) Start(ctx context.Context) {
 	// Initial fetch
 	p.fetchStats()
+	p.fetchMongoStats()
 
 	ticker := time.NewTicker(15 * time.Second)
 	defer ticker.Stop()
@@ -65,6 +111,7 @@ func (p *PrometheusClient) Start(ctx context.Context) {
 			return
 		case <-ticker.C:
 			p.fetchStats()
+			p.fetchMongoStats()
 		}
 	}
 }
@@ -105,6 +152,97 @@ func (p *PrometheusClient) fetchStats() {
 
 	p.mu.Lock()
 	p.stats = stats
+	p.mu.Unlock()
+}
+
+const mongoJob = `job="ror-mongodb-metrics"`
+
+func (p *PrometheusClient) fetchMongoStats() {
+	ms := &MongoStats{}
+
+	queries := map[string]string{
+		// Database-level gauges
+		"objects":     `mongodb_dbstats_objects{database="nhn-ror",` + mongoJob + `}`,
+		"dataSize":    `mongodb_dbstats_dataSize{database="nhn-ror",` + mongoJob + `}`,
+		"indexSize":   `mongodb_dbstats_indexSize{database="nhn-ror",` + mongoJob + `}`,
+		"collections": `mongodb_dbstats_collections{database="nhn-ror",` + mongoJob + `}`,
+
+		// Connections
+		"currentConns":   `mongodb_connections{state="current",` + mongoJob + `}`,
+		"availableConns": `mongodb_connections{state="available",` + mongoJob + `}`,
+
+		// Command rates (per second)
+		"findRate":      `rate(mongodb_ss_metrics_commands_find_total{` + mongoJob + `}[5m])`,
+		"insertRate":    `rate(mongodb_ss_metrics_commands_insert_total{` + mongoJob + `}[5m])`,
+		"updateRate":    `rate(mongodb_ss_metrics_commands_update_total{` + mongoJob + `}[5m])`,
+		"deleteRate":    `rate(mongodb_ss_metrics_commands_delete_total{` + mongoJob + `}[5m])`,
+		"aggregateRate": `rate(mongodb_ss_metrics_commands_aggregate_total{` + mongoJob + `}[5m])`,
+
+		// Op latency (microseconds per op, averaged)
+		"readLatencyUs":  `rate(mongodb_ss_opLatencies_latency{op_type="reads",` + mongoJob + `}[5m]) / rate(mongodb_ss_opLatencies_ops{op_type="reads",` + mongoJob + `}[5m])`,
+		"writeLatencyUs": `rate(mongodb_ss_opLatencies_latency{op_type="writes",` + mongoJob + `}[5m]) / rate(mongodb_ss_opLatencies_ops{op_type="writes",` + mongoJob + `}[5m])`,
+
+		// Collection scans rate (slow query indicator)
+		"collScanRate": `rate(mongodb_ss_metrics_queryExecutor_collectionScans_total{` + mongoJob + `}[5m])`,
+
+		// Document throughput
+		"docsReturnedRate": `rate(mongodb_mongod_metrics_document_total{state="returned",` + mongoJob + `}[5m])`,
+		"docsInsertedRate": `rate(mongodb_mongod_metrics_document_total{state="inserted",` + mongoJob + `}[5m])`,
+		"docsUpdatedRate":  `rate(mongodb_mongod_metrics_document_total{state="updated",` + mongoJob + `}[5m])`,
+		"docsDeletedRate":  `rate(mongodb_mongod_metrics_document_total{state="deleted",` + mongoJob + `}[5m])`,
+	}
+
+	allOk := true
+	for key, query := range queries {
+		val, err := p.queryScalar(query)
+		if err != nil {
+			log.Printf("prometheus: failed to query mongo %s: %v", key, err)
+			allOk = false
+			continue
+		}
+		switch key {
+		case "objects":
+			ms.Objects = val
+		case "dataSize":
+			ms.DataSizeMB = val / (1024 * 1024)
+		case "indexSize":
+			ms.IndexSizeMB = val / (1024 * 1024)
+		case "collections":
+			ms.Collections = val
+		case "currentConns":
+			ms.CurrentConns = val
+		case "availableConns":
+			ms.AvailableConns = val
+		case "findRate":
+			ms.FindRate = val
+		case "insertRate":
+			ms.InsertRate = val
+		case "updateRate":
+			ms.UpdateRate = val
+		case "deleteRate":
+			ms.DeleteRate = val
+		case "aggregateRate":
+			ms.AggregateRate = val
+		case "readLatencyUs":
+			ms.ReadLatencyUs = val
+		case "writeLatencyUs":
+			ms.WriteLatencyUs = val
+		case "collScanRate":
+			ms.CollScanRate = val
+		case "docsReturnedRate":
+			ms.DocsReturnedRate = val
+		case "docsInsertedRate":
+			ms.DocsInsertedRate = val
+		case "docsUpdatedRate":
+			ms.DocsUpdatedRate = val
+		case "docsDeletedRate":
+			ms.DocsDeletedRate = val
+		}
+	}
+	ms.Available = allOk
+
+	p.mu.Lock()
+	p.mongoStats = ms
 	p.mu.Unlock()
 }
 

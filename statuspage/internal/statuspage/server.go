@@ -72,6 +72,11 @@ func Run() {
 		c.JSON(http.StatusOK, flows)
 	})
 
+	router.GET("/api/mongo", func(c *gin.Context) {
+		ms := promClient.CurrentMongoStats()
+		c.JSON(http.StatusOK, ms)
+	})
+
 	router.GET("/flow", func(c *gin.Context) {
 		data, err := templateFS.ReadFile("templates/flow.html")
 		if err != nil {

@@ -469,6 +469,42 @@
     color: var(--muted);
     font-style: italic;
   }
+  .mongo-stats-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .mongo-stats-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--green);
+    white-space: nowrap;
+  }
+  .mongo-stats-title svg { width: 20px; height: 20px; }
+  .mongo-stat-group {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 0 0.5rem;
+    border-left: 1px solid var(--border);
+  }
+  .mongo-stat-group-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+  }
 </style>
 </head>
 <body>
@@ -492,6 +528,7 @@
 </header>
 
 <div id="apiStatsPanel" class="api-stats-panel" style="display:none"></div>
+<div id="mongoStatsPanel" class="mongo-stats-panel" style="display:none"></div>
 
 <div id="content"><p class="empty">Connecting to status stream...</p></div>
 
@@ -504,6 +541,7 @@
   const lastUpdate = document.getElementById('lastUpdate');
   const headerStats = document.getElementById('headerStats');
   const apiStatsPanel = document.getElementById('apiStatsPanel');
+  const mongoStatsPanel = document.getElementById('mongoStatsPanel');
 
   // Poll /api/stats for Prometheus-sourced ror-api metrics
   function fetchAPIStats() {
@@ -556,6 +594,77 @@
 
   fetchAPIStats();
   setInterval(fetchAPIStats, 15000);
+
+  // Poll /api/mongo for MongoDB metrics
+  function fetchMongoStats() {
+    fetch('/api/mongo')
+      .then(r => r.json())
+      .then(ms => renderMongoStats(ms))
+      .catch(() => renderMongoStats(null));
+  }
+
+  function fmt(v, d) { return v != null && isFinite(v) ? v.toFixed(d) : '—'; }
+  function fmtSize(mb) { return mb > 1024 ? (mb/1024).toFixed(1) + ' GB' : mb.toFixed(0) + ' MB'; }
+
+  function renderMongoStats(ms) {
+    if (!ms || !ms.available) {
+      mongoStatsPanel.style.display = 'flex';
+      mongoStatsPanel.innerHTML = `
+        <span class="mongo-stats-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          MongoDB
+        </span>
+        <span class="api-stats-unavailable">Unavailable</span>
+      `;
+      return;
+    }
+    mongoStatsPanel.style.display = 'flex';
+    mongoStatsPanel.innerHTML = `
+      <span class="mongo-stats-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        MongoDB
+      </span>
+      <div class="mongo-stat-group">
+        <span class="mongo-stat-group-label">DB</span>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.objects/1e6,1)}M</span><span class="api-stat-label">documents</span></div>
+        <div class="api-stat-item"><span class="api-stat-value">${fmtSize(ms.dataSizeMB)}</span><span class="api-stat-label">data</span></div>
+        <div class="api-stat-item"><span class="api-stat-value">${fmtSize(ms.indexSizeMB)}</span><span class="api-stat-label">indexes</span></div>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.collections,0)}</span><span class="api-stat-label">collections</span></div>
+      </div>
+      <div class="mongo-stat-group">
+        <span class="mongo-stat-group-label">CONN</span>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.currentConns,0)}</span><span class="api-stat-label">active</span></div>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.availableConns,0)}</span><span class="api-stat-label">available</span></div>
+      </div>
+      <div class="mongo-stat-group">
+        <span class="mongo-stat-group-label">OPS/s</span>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.findRate,1)}</span><span class="api-stat-label">find</span></div>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.insertRate,1)}</span><span class="api-stat-label">insert</span></div>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.updateRate,1)}</span><span class="api-stat-label">update</span></div>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.deleteRate,1)}</span><span class="api-stat-label">delete</span></div>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.aggregateRate,1)}</span><span class="api-stat-label">aggregate</span></div>
+      </div>
+      <div class="mongo-stat-group">
+        <span class="mongo-stat-group-label">LATENCY</span>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.readLatencyUs,0)}</span><span class="api-stat-label">read µs</span></div>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.writeLatencyUs,0)}</span><span class="api-stat-label">write µs</span></div>
+      </div>
+      <div class="mongo-stat-group">
+        <span class="mongo-stat-group-label">SCAN</span>
+        <div class="api-stat-item"><span class="api-stat-value" style="color:${ms.collScanRate > 1 ? 'var(--red)' : ms.collScanRate > 0.1 ? 'var(--yellow)' : 'var(--green)'}">${fmt(ms.collScanRate,2)}</span><span class="api-stat-label">coll scans/s</span></div>
+      </div>
+      <div class="mongo-stat-group">
+        <span class="mongo-stat-group-label">DOCS/s</span>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.docsReturnedRate,1)}</span><span class="api-stat-label">returned</span></div>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.docsInsertedRate,1)}</span><span class="api-stat-label">inserted</span></div>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.docsUpdatedRate,1)}</span><span class="api-stat-label">updated</span></div>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(ms.docsDeletedRate,1)}</span><span class="api-stat-label">deleted</span></div>
+      </div>
+    `;
+  }
+
+  fetchMongoStats();
+  setInterval(fetchMongoStats, 15000);
 
   function connect() {
     const es = new EventSource('/events');
