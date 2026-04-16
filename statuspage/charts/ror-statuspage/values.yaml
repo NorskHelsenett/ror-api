@@ -42,6 +42,13 @@ service:
   type: ClusterIP
   port: 8080
 
+ingress:
+  enabled: true
+  className: avi-ingress-class-helsenett
+  host: status.ror.nhn.no
+  path: /
+  pathType: Prefix
+
 resources:
   limits:
     cpu: 200m
