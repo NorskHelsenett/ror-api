@@ -120,7 +120,99 @@ type promData struct {
 }
 
 type promResult struct {
-	Value []interface{} `json:"value"` // [timestamp, "value"]
+	Metric map[string]string `json:"metric"`
+	Value  []interface{}     `json:"value"` // [timestamp, "value"]
+}
+
+// FlowEntry represents a single traffic flow for the network diagram.
+type FlowEntry struct {
+	UserAgent string  `json:"userAgent"`
+	Pod       string  `json:"pod"`
+	Rate      float64 `json:"rate"` // req/s
+}
+
+// FlowData is the full network flow snapshot.
+type FlowData struct {
+	Flows     []FlowEntry `json:"flows"`
+	Available bool        `json:"available"`
+}
+
+// CurrentFlows queries Prometheus for per-user_agent, per-pod request rates.
+func (p *PrometheusClient) CurrentFlows() *FlowData {
+	query := `sum(rate(http_requests_total{job="ror-api"}[5m])) by (pod, user_agent)`
+	results, err := p.queryVector(query)
+	if err != nil {
+		log.Printf("prometheus: failed to query flows: %v", err)
+		return &FlowData{Available: false}
+	}
+
+	flows := make([]FlowEntry, 0, len(results))
+	for _, r := range results {
+		flows = append(flows, FlowEntry{
+			UserAgent: r.Metric["user_agent"],
+			Pod:       r.Metric["pod"],
+			Rate:      r.Value,
+		})
+	}
+	return &FlowData{Flows: flows, Available: true}
+}
+
+type vectorResult struct {
+	Metric map[string]string
+	Value  float64
+}
+
+func (p *PrometheusClient) queryVector(query string) ([]vectorResult, error) {
+	u := fmt.Sprintf("%s/api/v1/query?query=%s", p.baseURL, url.QueryEscape(query))
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, u, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := p.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("prometheus returned %d: %s", resp.StatusCode, string(body))
+	}
+
+	var pr promResponse
+	if err := json.Unmarshal(body, &pr); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	if pr.Status != "success" {
+		return nil, fmt.Errorf("prometheus query failed: %s", pr.Status)
+	}
+
+	var results []vectorResult
+	for _, r := range pr.Data.Result {
+		if len(r.Value) < 2 {
+			continue
+		}
+		valStr, ok := r.Value[1].(string)
+		if !ok {
+			continue
+		}
+		val, err := strconv.ParseFloat(valStr, 64)
+		if err != nil {
+			continue
+		}
+		results = append(results, vectorResult{
+			Metric: r.Metric,
+			Value:  val,
+		})
+	}
+	return results, nil
 }
 
 func (p *PrometheusClient) queryScalar(query string) (float64, error) {

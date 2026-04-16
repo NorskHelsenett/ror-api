@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROR Network Flow</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --text-dim: #8b949e;
+    --green: #3fb950;
+    --blue: #58a6ff;
+    --purple: #bc8cff;
+    --yellow: #d29922;
+    --orange: #f0883e;
+    --red: #f85149;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .header a {
+    color: var(--blue);
+    text-decoration: none;
+    font-size: 14px;
+  }
+  .header a:hover { text-decoration: underline; }
+  .flow-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+  }
+  svg { max-width: 100%; height: auto; }
+
+  /* Node styles */
+  .node-box {
+    fill: var(--surface);
+    stroke: var(--border);
+    stroke-width: 1.5;
+    rx: 8;
+  }
+  .node-box.agent-v1 { stroke: var(--green); }
+  .node-box.agent-v2 { stroke: #2ea043; }
+  .node-box.agent { stroke: var(--green); }
+  .node-box.browser { stroke: var(--blue); }
+  .node-box.other { stroke: var(--yellow); }
+  .node-box.pod { stroke: var(--purple); }
+
+  .node-label {
+    fill: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+  .node-sublabel {
+    fill: var(--text-dim);
+    font-size: 11px;
+    font-family: inherit;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+  .node-icon {
+    fill: var(--text-dim);
+    font-size: 20px;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+
+  /* Flow lines */
+  .flow-line {
+    fill: none;
+    stroke-linecap: round;
+  }
+  .flow-line.agent-v1 { stroke: var(--green); }
+  .flow-line.agent-v2 { stroke: #2ea043; }
+  .flow-line.agent { stroke: var(--green); }
+  .flow-line.browser { stroke: var(--blue); }
+  .flow-line.other { stroke: var(--yellow); }
+
+  /* Rate labels on lines */
+  .rate-label {
+    font-size: 11px;
+    font-family: inherit;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+  .rate-label.agent-v1 { fill: var(--green); }
+  .rate-label.agent-v2 { fill: #2ea043; }
+  .rate-label.agent { fill: var(--green); }
+  .rate-label.browser { fill: var(--blue); }
+  .rate-label.other { fill: var(--yellow); }
+
+  /* Animated dots */
+  .flow-dot {
+    r: 3;
+  }
+  .flow-dot.agent-v1 { fill: var(--green); }
+  .flow-dot.agent-v2 { fill: #2ea043; }
+  .flow-dot.agent { fill: var(--green); }
+  .flow-dot.browser { fill: var(--blue); }
+  .flow-dot.other { fill: var(--yellow); }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 24px;
+    padding: 12px 24px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    justify-content: center;
+    font-size: 13px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  .legend-dot.agent-v1 { background: var(--green); }
+  .legend-dot.agent-v2 { background: #2ea043; }
+  .legend-dot.agent { background: var(--green); }
+  .legend-dot.browser { background: var(--blue); }
+  .legend-dot.other { background: var(--yellow); }
+
+  .no-data {
+    color: var(--text-dim);
+    font-size: 16px;
+    text-align: center;
+  }
+  .total-badge {
+    fill: var(--bg);
+    stroke: var(--border);
+    stroke-width: 1;
+    rx: 4;
+  }
+  .total-text {
+    fill: var(--text);
+    font-size: 11px;
+    font-family: inherit;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/>
+      <line x1="12" y1="8" x2="5" y2="16"/><line x1="12" y1="8" x2="19" y2="16"/>
+    </svg>
+    Network Flow
+  </h1>
+  <a href="/">&larr; Status Page</a>
+</div>
+
+<div class="flow-container" id="flowContainer">
+  <div class="no-data">Loading flow data...</div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot agent-v1"></div> Agents v1</div>
+  <div class="legend-item"><div class="legend-dot agent-v2"></div> Agents v2</div>
+  <div class="legend-item"><div class="legend-dot browser"></div> Browsers</div>
+  <div class="legend-item"><div class="legend-dot other"></div> Other</div>
+</div>
+
+<script>
+const NODE_W = 160, NODE_H = 60;
+const SVG_PAD = 40;
+const COL_GAP = 260;
+
+// Classify raw user-agent into a group for the diagram.
+function classifyUA(ua) {
+  if (!ua) return 'other';
+  const lower = ua.toLowerCase();
+  // "ClusterAgent - v2.1.12 (abc123)" → check version prefix
+  if (lower.includes('clusteragent') || lower.includes('ror-agent') || lower.startsWith('go-http-client')) {
+    const m = ua.match(/v(\d+)\./i);
+    if (m && m[1] === '1') return 'agent-v1';
+    if (m && m[1] === '2') return 'agent-v2';
+    return 'agent-v1'; // default for go-http-client (v1 agents without custom UA)
+  }
+  if (lower.includes('mozilla') || lower.includes('chrome') || lower.includes('safari') || lower.includes('firefox')) return 'browser';
+  return 'other';
+}
+
+function buildSVG(rawFlows) {
+  // Aggregate raw per-user_agent flows into classified groups
+  const groups = {};  // { group: { total, perPod: { pod: rate } } }
+  const pods = {};    // { pod: { group: rate } }
+
+  for (const f of rawFlows) {
+    const g = classifyUA(f.userAgent);
+    if (!groups[g]) groups[g] = { total: 0, perPod: {} };
+    groups[g].total += f.rate;
+    groups[g].perPod[f.pod] = (groups[g].perPod[f.pod] || 0) + f.rate;
+    if (!pods[f.pod]) pods[f.pod] = {};
+    pods[f.pod][g] = (pods[f.pod][g] || 0) + f.rate;
+  }
+
+  const clientOrder = ['agent-v1', 'agent-v2', 'browser', 'other'].filter(c => groups[c]);
+  const podNames = Object.keys(pods).sort();
+
+  if (podNames.length === 0) {
+    return '<div class="no-data">No flow data available yet.<br>The <code>user_agent</code> label will appear after ror-api is redeployed with the updated metrics middleware.</div>';
+  }
+
+  const leftCount = clientOrder.length;
+  const rightCount = podNames.length;
+  const maxCount = Math.max(leftCount, rightCount);
+
+  const svgW = SVG_PAD * 2 + NODE_W * 2 + COL_GAP;
+  const rowH = NODE_H + 24;
+  const svgH = SVG_PAD * 2 + maxCount * rowH;
+
+  const leftX = SVG_PAD;
+  const rightX = SVG_PAD + NODE_W + COL_GAP;
+  const leftStartY = SVG_PAD + (svgH - SVG_PAD * 2 - leftCount * rowH) / 2;
+  const rightStartY = SVG_PAD + (svgH - SVG_PAD * 2 - rightCount * rowH) / 2;
+
+  // Find max rate for scaling
+  let maxRate = 1;
+  for (const f of rawFlows) maxRate = Math.max(maxRate, f.rate);
+
+  let svg = `<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg">`;
+  svg += `<defs>`;
+
+  let pathId = 0;
+  const lines = [];
+  for (let ci = 0; ci < clientOrder.length; ci++) {
+    const c = clientOrder[ci];
+    const cy = leftStartY + ci * rowH + NODE_H / 2;
+    const x1 = leftX + NODE_W;
+
+    for (let pi = 0; pi < podNames.length; pi++) {
+      const pod = podNames[pi];
+      const rate = pods[pod][c] || 0;
+      if (rate === 0) continue;
+
+      const py = rightStartY + pi * rowH + NODE_H / 2;
+      const x2 = rightX;
+
+      const sw = Math.max(1, Math.min(8, (rate / maxRate) * 8));
+      const opacity = Math.max(0.3, Math.min(0.9, rate / maxRate));
+
+      const pid = `path${pathId++}`;
+      const cpx1 = x1 + (x2 - x1) * 0.4;
+      const cpx2 = x1 + (x2 - x1) * 0.6;
+
+      svg += `<path id="${pid}" d="M${x1},${cy} C${cpx1},${cy} ${cpx2},${py} ${x2},${py}" />`;
+      lines.push({ pid, c, sw, opacity, rate, midX: (x1 + x2) / 2, midY: (cy + py) / 2 });
+    }
+  }
+  svg += `</defs>`;
+
+  for (const l of lines) {
+    svg += `<use href="#${l.pid}" class="flow-line ${l.c}" stroke-width="${l.sw}" opacity="${l.opacity}" />`;
+  }
+
+  for (const l of lines) {
+    if (l.rate < 0.01) continue;
+    const dur = Math.max(1, Math.min(6, 10 / (l.rate + 1)));
+    const count = Math.min(3, Math.max(1, Math.round(l.rate / 20)));
+    for (let i = 0; i < count; i++) {
+      const delay = (dur / count) * i;
+      svg += `<circle class="flow-dot ${l.c}" opacity="${l.opacity}">`;
+      svg += `<animateMotion dur="${dur}s" begin="${delay}s" repeatCount="indefinite"><mpath href="#${l.pid}"/></animateMotion>`;
+      svg += `</circle>`;
+    }
+  }
+
+  for (const l of lines) {
+    svg += `<text class="rate-label ${l.c}" x="${l.midX}" y="${l.midY - 8}">${l.rate.toFixed(1)} r/s</text>`;
+  }
+
+  const clientIcons = { 'agent-v1': '⚙', 'agent-v2': '⚙', browser: '🌐', other: '?' };
+  const clientLabels = { 'agent-v1': 'Agents v1', 'agent-v2': 'Agents v2', browser: 'Browsers', other: 'Other' };
+  for (let ci = 0; ci < clientOrder.length; ci++) {
+    const c = clientOrder[ci];
+    const x = leftX;
+    const y = leftStartY + ci * rowH;
+    svg += `<rect class="node-box ${c}" x="${x}" y="${y}" width="${NODE_W}" height="${NODE_H}" />`;
+    svg += `<text class="node-icon" x="${x + 24}" y="${y + NODE_H / 2}">${clientIcons[c]}</text>`;
+    svg += `<text class="node-label" x="${x + NODE_W / 2 + 12}" y="${y + NODE_H / 2 - 8}">${clientLabels[c]}</text>`;
+    svg += `<text class="node-sublabel" x="${x + NODE_W / 2 + 12}" y="${y + NODE_H / 2 + 10}">${groups[c].total.toFixed(1)} req/s</text>`;
+  }
+
+  for (let pi = 0; pi < podNames.length; pi++) {
+    const pod = podNames[pi];
+    const x = rightX;
+    const y = rightStartY + pi * rowH;
+    const shortName = pod.replace(/^ror-api-[a-z0-9]+-/, '');
+
+    let podTotal = 0;
+    for (const c of clientOrder) podTotal += (pods[pod][c] || 0);
+
+    svg += `<rect class="node-box pod" x="${x}" y="${y}" width="${NODE_W}" height="${NODE_H}" />`;
+    svg += `<text class="node-label" x="${x + NODE_W / 2}" y="${y + NODE_H / 2 - 8}">${shortName}</text>`;
+    svg += `<text class="node-sublabel" x="${x + NODE_W / 2}" y="${y + NODE_H / 2 + 10}">${podTotal.toFixed(1)} req/s</text>`;
+  }
+
+  svg += `</svg>`;
+  return svg;
+}
+
+async function fetchFlows() {
+  try {
+    const resp = await fetch('/api/flows');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    const container = document.getElementById('flowContainer');
+    if (!data.available || !data.flows || data.flows.length === 0) {
+      container.innerHTML = '<div class="no-data">No flow data available yet.<br>The <code>user_agent</code> label will appear after ror-api is redeployed with the updated metrics middleware.</div>';
+      return;
+    }
+    container.innerHTML = buildSVG(data.flows);
+  } catch (e) {
+    console.error('fetch flows error:', e);
+  }
+}
+
+fetchFlows();
+setInterval(fetchFlows, 15000);
+</script>
+</body>
+</html>

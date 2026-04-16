@@ -14,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//go:embed templates/index.html
+//go:embed templates/index.html templates/flow.html
 var templateFS embed.FS
 
 // Run starts the status page server.
@@ -65,6 +65,20 @@ func Run() {
 	router.GET("/api/stats", func(c *gin.Context) {
 		stats := promClient.CurrentStats()
 		c.JSON(http.StatusOK, stats)
+	})
+
+	router.GET("/api/flows", func(c *gin.Context) {
+		flows := promClient.CurrentFlows()
+		c.JSON(http.StatusOK, flows)
+	})
+
+	router.GET("/flow", func(c *gin.Context) {
+		data, err := templateFS.ReadFile("templates/flow.html")
+		if err != nil {
+			c.String(http.StatusInternalServerError, "template error")
+			return
+		}
+		c.Data(http.StatusOK, "text/html; charset=utf-8", data)
 	})
 
 	router.GET("/", func(c *gin.Context) {
