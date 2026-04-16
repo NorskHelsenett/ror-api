@@ -1,0 +1,612 @@
+{{- if (eq .Values.grafanaDashboard.enabled true) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ror-api-operations-dashboard
+  namespace: {{ .Values.grafanaDashboard.namespace }}
+  labels:
+    grafana_dashboard: "1"
+data:
+  ror-api-operations.json: |-
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 1,
+      "links": [],
+      "panels": [
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+          "id": 100,
+          "panels": [],
+          "title": "HTTP Overview",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "axisLabel": "req/s",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "fillOpacity": 30,
+                "lineWidth": 2,
+                "scaleDistribution": { "type": "linear" },
+                "showPoints": "never"
+              },
+              "unit": "reqps"
+            }
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 1 },
+          "id": 1,
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "sum(rate(http_requests_total{job=\"ror-api\"}[$__rate_interval])) by (status)",
+              "legendFormat": "HTTP {{"{{"}}status{{"}}"}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Request rate by status code",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "fillOpacity": 10,
+                "lineWidth": 2,
+                "scaleDistribution": { "type": "linear" },
+                "showPoints": "never"
+              },
+              "unit": "percentunit"
+            }
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 1 },
+          "id": 2,
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "sum(rate(http_requests_total{job=\"ror-api\", status=\"408\"}[$__rate_interval])) / sum(rate(http_requests_total{job=\"ror-api\"}[$__rate_interval]))",
+              "legendFormat": "Timeout rate (408)",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "sum(rate(http_requests_total{job=\"ror-api\", status=~\"5..\"}[$__rate_interval])) / sum(rate(http_requests_total{job=\"ror-api\"}[$__rate_interval]))",
+              "legendFormat": "Error rate (5xx)",
+              "refId": "B"
+            }
+          ],
+          "title": "Error & timeout rates",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "fillOpacity": 10,
+                "lineWidth": 2,
+                "scaleDistribution": { "type": "linear" },
+                "showPoints": "never"
+              },
+              "unit": "s"
+            }
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 9 },
+          "id": 3,
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "sum(rate(http_request_duration_sum{job=\"ror-api\", path=~\"/v./resources.*\", status=\"201\"}[$__rate_interval])) / sum(rate(http_request_duration_count{job=\"ror-api\", path=~\"/v./resources.*\", status=\"201\"}[$__rate_interval])) / 1e9",
+              "legendFormat": "Avg (success)",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "sum(rate(http_request_duration_sum{job=\"ror-api\", path=~\"/v./resources.*\", status=\"408\"}[$__rate_interval])) / sum(rate(http_request_duration_count{job=\"ror-api\", path=~\"/v./resources.*\", status=\"408\"}[$__rate_interval])) / 1e9",
+              "legendFormat": "Avg (timeout)",
+              "refId": "B"
+            }
+          ],
+          "title": "Resource endpoint avg latency",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "axisLabel": "req/s",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "fillOpacity": 30,
+                "lineWidth": 2,
+                "scaleDistribution": { "type": "linear" },
+                "showPoints": "never"
+              },
+              "unit": "reqps"
+            }
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 9 },
+          "id": 4,
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "sum(rate(http_requests_total{job=\"ror-api\", path=~\"/v./resources.*\"}[$__rate_interval])) by (method, path)",
+              "legendFormat": "{{"{{"}}method{{"}}"}} {{"{{"}}path{{"}}"}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Request rate by resource endpoint",
+          "type": "timeseries"
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 17 },
+          "id": 101,
+          "panels": [],
+          "title": "Resource Processing",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "fillOpacity": 20,
+                "lineWidth": 2,
+                "scaleDistribution": { "type": "linear" },
+                "showPoints": "never"
+              },
+              "unit": "ops"
+            }
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 18 },
+          "id": 5,
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "sum(rate(resources_processed_total{job=\"ror-api\"}[$__rate_interval]))",
+              "legendFormat": "Resources processed/s",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "sum(rate(resources_requests_total{job=\"ror-api\"}[$__rate_interval]))",
+              "legendFormat": "Resource requests/s",
+              "refId": "B"
+            }
+          ],
+          "title": "Resource processing rate",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "fillOpacity": 10,
+                "lineWidth": 2,
+                "scaleDistribution": { "type": "linear" },
+                "showPoints": "never"
+              },
+              "unit": "short"
+            }
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 18 },
+          "id": 6,
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "sum(rate(resources_processed_total{job=\"ror-api\"}[$__rate_interval])) by (pod)",
+              "legendFormat": "{{"{{"}}pod{{"}}"}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Resources processed per pod",
+          "type": "timeseries"
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 26 },
+          "id": 102,
+          "panels": [],
+          "title": "Rate Limiter",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "axisLabel": "req/s",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "fillOpacity": 20,
+                "lineWidth": 2,
+                "scaleDistribution": { "type": "linear" },
+                "showPoints": "never"
+              },
+              "unit": "reqps"
+            }
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 27 },
+          "id": 7,
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "sum(rate(rate_limiter_requests_total{job=\"ror-api\", status=\"allowed\"}[$__rate_interval])) by (limiter_name)",
+              "legendFormat": "{{"{{"}}limiter_name{{"}}"}} allowed",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "sum(rate(rate_limiter_requests_total{job=\"ror-api\", status=\"blocked\"}[$__rate_interval])) by (limiter_name)",
+              "legendFormat": "{{"{{"}}limiter_name{{"}}"}} blocked",
+              "refId": "B"
+            }
+          ],
+          "title": "Rate limiter requests",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "fillOpacity": 10,
+                "lineWidth": 2,
+                "scaleDistribution": { "type": "linear" },
+                "showPoints": "never"
+              },
+              "unit": "short"
+            }
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 27 },
+          "id": 8,
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "min"] },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "rate_limiter_tokens_available{job=\"ror-api\"}",
+              "legendFormat": "{{"{{"}}limiter_name{{"}}"}} ({{"{{"}}pod{{"}}"}})",
+              "refId": "A"
+            }
+          ],
+          "title": "Rate limiter tokens available",
+          "type": "timeseries"
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 35 },
+          "id": 103,
+          "panels": [],
+          "title": "RabbitMQ Queues",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "axisLabel": "messages",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "fillOpacity": 20,
+                "lineWidth": 2,
+                "scaleDistribution": { "type": "linear" },
+                "showPoints": "never"
+              },
+              "unit": "short"
+            }
+          },
+          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 36 },
+          "id": 9,
+          "options": {
+            "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max", "last"], "sortBy": "Last", "sortDesc": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "rabbitmq_detailed_queue_messages{namespace=\"{{ .Release.Namespace }}\", queue!~\"sse-events.*\"}",
+              "legendFormat": "{{"{{"}}queue{{"}}"}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Queue depth (excl. SSE)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "axisLabel": "messages",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "fillOpacity": 20,
+                "lineWidth": 2,
+                "scaleDistribution": { "type": "linear" },
+                "showPoints": "never"
+              },
+              "unit": "short"
+            }
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 44 },
+          "id": 10,
+          "options": {
+            "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "last"] },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "count(rabbitmq_detailed_queue_messages{namespace=\"{{ .Release.Namespace }}\", queue=~\"sse-events.*\"})",
+              "legendFormat": "Total SSE queues",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "count(rabbitmq_detailed_queue_consumers{namespace=\"{{ .Release.Namespace }}\", queue=~\"sse-events.*\"} == 0)",
+              "legendFormat": "Orphaned SSE queues (0 consumers)",
+              "refId": "B"
+            }
+          ],
+          "title": "SSE queue count",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "axisLabel": "consumers",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "fillOpacity": 20,
+                "lineWidth": 2,
+                "scaleDistribution": { "type": "linear" },
+                "showPoints": "never"
+              },
+              "unit": "short"
+            }
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 44 },
+          "id": 11,
+          "options": {
+            "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "last"], "sortBy": "Last", "sortDesc": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "rabbitmq_detailed_queue_consumers{namespace=\"{{ .Release.Namespace }}\", queue!~\"sse-events.*\"}",
+              "legendFormat": "{{"{{"}}queue{{"}}"}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Consumers per queue (excl. SSE)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "axisBorderShow": false,
+                "axisLabel": "msg/s",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "fillOpacity": 20,
+                "lineWidth": 2,
+                "scaleDistribution": { "type": "linear" },
+                "showPoints": "never"
+              },
+              "unit": "ops"
+            }
+          },
+          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 52 },
+          "id": 12,
+          "options": {
+            "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max"], "sortBy": "Mean", "sortDesc": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "sum(rate(rabbitmq_detailed_queue_messages_published_total{namespace=\"{{ .Release.Namespace }}\", queue!~\"sse-events.*\"}[$__rate_interval])) by (queue)",
+              "legendFormat": "{{"{{"}}queue{{"}}"}} published",
+              "refId": "A"
+            },
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "sum(rate(rabbitmq_detailed_queue_messages_delivered_total{namespace=\"{{ .Release.Namespace }}\", queue!~\"sse-events.*\"}[$__rate_interval])) by (queue)",
+              "legendFormat": "{{"{{"}}queue{{"}}"}} delivered",
+              "refId": "B"
+            }
+          ],
+          "title": "Queue message rates",
+          "type": "timeseries"
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 60 },
+          "id": 104,
+          "panels": [],
+          "title": "Pod Health",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "mappings": [
+                { "options": { "0": { "color": "red", "text": "DOWN" }, "1": { "color": "green", "text": "UP" } }, "type": "value" }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "green", "value": 1 }
+                ]
+              }
+            }
+          },
+          "gridPos": { "h": 4, "w": 24, "x": 0, "y": 61 },
+          "id": 13,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "horizontal",
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "up{job=\"ror-api\"}",
+              "legendFormat": "{{"{{"}}pod{{"}}"}}",
+              "refId": "A"
+            }
+          ],
+          "title": "ror-api pod status",
+          "type": "stat"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "red", "value": 1 }
+                ]
+              }
+            }
+          },
+          "gridPos": { "h": 4, "w": 24, "x": 0, "y": 65 },
+          "id": 14,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "horizontal",
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "datasource": { "type": "prometheus", "uid": "prometheus" },
+              "expr": "ror_api_not_safe_for_production{job=\"ror-api\"}",
+              "legendFormat": "{{"{{"}}pod{{"}}"}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Development mode (UNSAFE)",
+          "type": "stat"
+        }
+      ],
+      "refresh": "30s",
+      "schemaVersion": 38,
+      "tags": ["ror", "rabbitmq"],
+      "templating": { "list": [] },
+      "time": { "from": "now-1h", "to": "now" },
+      "timepicker": {},
+      "timezone": "",
+      "title": "ROR-api Operations",
+      "uid": "ror-api-ops-v1",
+      "version": 1,
+      "weekStart": ""
+    }
+{{- end }}
