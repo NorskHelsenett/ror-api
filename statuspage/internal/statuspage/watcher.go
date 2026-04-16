@@ -196,10 +196,39 @@ func (w *Watcher) buildSnapshot() {
 	}
 	sort.Slice(snap.Ingresses, func(i, j int) bool { return snap.Ingresses[i].Name < snap.Ingresses[j].Name })
 
+	// Build PVC-to-owner map by checking which pods mount each PVC
+	pvcOwners := make(map[string]string)
+	for _, p := range pods {
+		owner := ""
+		for _, ref := range p.OwnerReferences {
+			switch ref.Kind {
+			case "ReplicaSet":
+				parts := strings.Split(ref.Name, "-")
+				if len(parts) > 1 {
+					owner = strings.Join(parts[:len(parts)-1], "-")
+				}
+			case "StatefulSet", "DaemonSet":
+				owner = ref.Name
+			}
+		}
+		if owner == "" {
+			owner = p.Name
+		}
+		for _, vol := range p.Spec.Volumes {
+			if vol.PersistentVolumeClaim != nil {
+				pvcOwners[vol.PersistentVolumeClaim.ClaimName] = owner
+			}
+		}
+	}
+
 	// PVCs
 	pvcs, _ := w.factory.Core().V1().PersistentVolumeClaims().Lister().PersistentVolumeClaims(w.namespace).List(labelEverything())
 	for _, pvc := range pvcs {
-		snap.PVCs = append(snap.PVCs, pvcStatus(pvc))
+		ps := pvcStatus(pvc)
+		if owner, ok := pvcOwners[pvc.Name]; ok {
+			ps.Owner = owner
+		}
+		snap.PVCs = append(snap.PVCs, ps)
 	}
 	sort.Slice(snap.PVCs, func(i, j int) bool { return snap.PVCs[i].Name < snap.PVCs[j].Name })
 

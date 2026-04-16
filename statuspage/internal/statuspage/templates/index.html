@@ -30,8 +30,39 @@
     margin-bottom: 2rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 0.75rem;
   }
   header h1 { font-size: 1.5rem; font-weight: 600; }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .header-stats {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .header-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+  }
+  .header-stat .stat-count { font-weight: 700; }
+  .header-stat.healthy  { background: rgba(34,197,94,0.12); color: var(--green); }
+  .header-stat.degraded { background: rgba(234,179,8,0.12); color: var(--yellow); }
+  .header-stat.unhealthy { background: rgba(239,68,68,0.12); color: var(--red); }
+  .header-stat.total { background: var(--card); border: 1px solid var(--border); color: var(--muted); }
   .conn-status {
     display: flex;
     align-items: center;
@@ -53,25 +84,8 @@
     font-size: 0.85rem;
     color: var(--blue);
   }
-  .summary {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
-  }
-  .summary-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 1rem 1.5rem;
-    min-width: 140px;
-    text-align: center;
-  }
-  .summary-card .count { font-size: 2rem; font-weight: 700; }
-  .summary-card .label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
-  .summary-card.healthy .count { color: var(--green); }
-  .summary-card.degraded .count { color: var(--yellow); }
-  .summary-card.unhealthy .count { color: var(--red); }
+  .summary { display: none; }
+  .summary-card { display: none; }
   section { margin-bottom: 2rem; }
   section h2 {
     font-size: 1.1rem;
@@ -311,32 +325,133 @@
   }
   .section-body.open { display: block; }
   .section-body table { border: none; border-radius: 0; }
+
+  /* Layer grouping */
+  .layer-group {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+  .layer-group.layer-Healthy  { border-left-color: var(--green); }
+  .layer-group.layer-Degraded { border-left-color: var(--yellow); }
+  .layer-group.layer-Unhealthy { border-left-color: var(--red); }
+  .layer-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .layer-icon {
+    flex-shrink: 0;
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .layer-icon svg { width: 22px; height: 22px; }
+  .layer-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    flex: 1;
+    margin: 0;
+  }
+  .layer-status-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.65rem;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+  .layer-status-badge.Healthy  { background: rgba(34,197,94,0.15); color: var(--green); }
+  .layer-status-badge.Degraded { background: rgba(234,179,8,0.15); color: var(--yellow); }
+  .layer-status-badge.Unhealthy { background: rgba(239,68,68,0.15); color: var(--red); }
+  .layer-group .deploy-grid { margin-bottom: 0; }
+  .layer-section { margin-bottom: 0.75rem; }
+  .layer-section:last-child { margin-bottom: 0; }
+  .layer-group .deploy-card { background: var(--bg); }
+  .layer-row {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .layer-row > .layer-group {
+    flex: 1;
+    min-width: 0;
+    margin-bottom: 0;
+  }
+  @media (max-width: 768px) {
+    .layer-row { flex-direction: column; gap: 0; }
+    .layer-row > .layer-group { margin-bottom: 1.5rem; }
+  }
+  .layer-resources-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 1rem;
+    padding: 0.4rem 0;
+    font-size: 0.85rem;
+    color: var(--blue);
+    cursor: pointer;
+    user-select: none;
+    border: none;
+    background: none;
+    font-family: inherit;
+  }
+  .layer-resources-toggle:hover { text-decoration: underline; }
+  .layer-resources-toggle svg { width: 16px; height: 16px; transition: transform 0.2s; }
+  .layer-resources-toggle.open svg { transform: rotate(180deg); }
+  .layer-resources-body {
+    display: none;
+    margin-top: 0.75rem;
+  }
+  .layer-resources-body.open { display: block; }
+  .deploy-kind-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    background: var(--border);
+    color: var(--muted);
+    font-weight: 600;
+  }
 </style>
 </head>
 <body>
 <header>
-  <div style="display:flex;align-items:center;gap:1rem;">
+  <div class="header-left">
     <h1>ROR Status</h1>
     <span class="namespace-badge" id="ns">—</span>
   </div>
-  <div class="conn-status">
-    <span class="conn-dot" id="connDot"></span>
-    <span id="connText">Connecting...</span>
-    <span class="timestamp" id="lastUpdate"></span>
+  <div class="header-right">
+    <div class="header-stats" id="headerStats"></div>
+    <div class="conn-status">
+      <span class="conn-dot" id="connDot"></span>
+      <span id="connText">Connecting...</span>
+      <span class="timestamp" id="lastUpdate"></span>
+    </div>
   </div>
 </header>
 
-<div class="summary" id="summary"></div>
 <div id="content"><p class="empty">Connecting to status stream...</p></div>
 
 <script>
 (function() {
   const content = document.getElementById('content');
-  const summary = document.getElementById('summary');
   const ns = document.getElementById('ns');
   const connDot = document.getElementById('connDot');
   const connText = document.getElementById('connText');
   const lastUpdate = document.getElementById('lastUpdate');
+  const headerStats = document.getElementById('headerStats');
 
   function connect() {
     const es = new EventSource('/events');
@@ -359,11 +474,33 @@
     };
   }
 
+  // Classify a resource name into an architectural layer
+  function classifyLayer(name) {
+    const n = name.toLowerCase();
+    if (n.startsWith('ror-cluster-agent') || n.startsWith('ror-statuspage')) return 'agents';
+    if (n.startsWith('ror-web') || n.startsWith('ror-webapp')) return 'frontend';
+    if (n.startsWith('ror-agent')) return 'clients';
+    if (n.startsWith('ror-api')) return 'api';
+    if (n.startsWith('nhn-ror-ms-') || n.startsWith('ror-ms-')) return 'microservices';
+    if (n.startsWith('mongo') || n.startsWith('ror-mongo') || n.startsWith('rabbitmq') || n.startsWith('ror-vault') || n.startsWith('vault')) return 'backend';
+    return 'other';
+  }
+
+  const layers = [
+    {key: 'frontend', title: 'Frontend', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', color: '#8b5cf6'},
+    {key: 'api', title: 'API', row: 'api-row', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><circle cx="6" cy="6" r="1" fill="currentColor"/><circle cx="6" cy="18" r="1" fill="currentColor"/></svg>', color: '#3b82f6'},
+    {key: 'microservices', title: 'Microservices', row: 'api-row', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="5" r="2"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><line x1="9.5" y1="9.5" x2="6.5" y2="6.5"/><line x1="14.5" y1="9.5" x2="17.5" y2="6.5"/><line x1="9.5" y1="14.5" x2="6.5" y2="17.5"/><line x1="14.5" y1="14.5" x2="17.5" y2="17.5"/></svg>', color: '#6366f1'},
+    {key: 'backend', title: 'Backend Services', row: 'infra-row', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>', color: '#f97316'},
+    {key: 'agents', title: 'Agents & Monitoring', row: 'infra-row', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>', color: '#10b981'},
+    {key: 'clients', title: 'Clients', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/></svg>', color: '#06b6d4'},
+    {key: 'other', title: 'Other', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>', color: '#8b8fa3'}
+  ];
+
   function render(snap) {
     ns.textContent = snap.namespace;
     lastUpdate.textContent = 'Updated: ' + new Date(snap.timestamp).toLocaleTimeString();
 
-    // Counts
+    // Counts across all resources
     const all = [
       ...(snap.deployments||[]),
       ...(snap.statefulSets||[]),
@@ -377,16 +514,14 @@
     const degraded = all.filter(r => r.status === 'Degraded').length;
     const unhealthy = all.filter(r => r.status === 'Unhealthy' || r.status === 'Unknown').length;
 
-    summary.innerHTML = `
-      <div class="summary-card healthy"><div class="count">${healthy}</div><div class="label">Healthy</div></div>
-      <div class="summary-card degraded"><div class="count">${degraded}</div><div class="label">Degraded</div></div>
-      <div class="summary-card unhealthy"><div class="count">${unhealthy}</div><div class="label">Unhealthy</div></div>
-      <div class="summary-card"><div class="count">${all.length}</div><div class="label">Total</div></div>
+    headerStats.innerHTML = `
+      <span class="header-stat healthy"><span class="stat-count">${healthy}</span> Healthy</span>
+      <span class="header-stat degraded"><span class="stat-count">${degraded}</span> Degraded</span>
+      <span class="header-stat unhealthy"><span class="stat-count">${unhealthy}</span> Unhealthy</span>
+      <span class="header-stat total"><span class="stat-count">${all.length}</span> Total</span>
     `;
 
-    let html = '';
-
-    // SVG icons
+    // SVG icons for cards
     const icons = {
       deploy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><circle cx="6" cy="6" r="1" fill="currentColor"/><circle cx="6" cy="18" r="1" fill="currentColor"/></svg>',
       stateful: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
@@ -395,124 +530,219 @@
       box: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/></svg>',
       tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>'
     };
-
-    // Render workloads (Deployments, StatefulSets, DaemonSets) as visual cards
-    const workloads = [
-      {title: 'Deployments', data: snap.deployments, icon: icons.deploy},
-      {title: 'StatefulSets', data: snap.statefulSets, icon: icons.stateful},
-      {title: 'DaemonSets', data: snap.daemonSets, icon: icons.daemon}
-    ];
-
-    for (const wl of workloads) {
-      const items = wl.data || [];
-      if (items.length === 0) continue;
-      html += `<section><h2>${wl.title} <span class="badge">${items.length}</span></h2>`;
-      html += '<div class="deploy-grid">';
-      for (const r of items) {
-        const parts = r.ready.split('/');
-        const readyN = parseInt(parts[0]) || 0;
-        const totalN = parseInt(parts[1]) || 0;
-        let pips = '';
-        for (let i = 0; i < totalN; i++) {
-          pips += `<div class="replica-pip${i < readyN ? ' ready' : ''}${i < readyN && r.status !== 'Healthy' ? ' ' + r.status : ''}"></div>`;
-        }
-        html += `<div class="deploy-card ${r.status}">`;
-        html += `<div class="deploy-icon ${r.status}">${wl.icon}</div>`;
-        html += `<div class="deploy-info">`;
-        html += `<div class="deploy-name" title="${esc(r.name)}">${esc(r.name)}</div>`;
-        html += `<div class="deploy-meta">`;
-        html += `<span>${icons.box} ${esc(r.ready)}</span>`;
-        html += `<span>${icons.clock} ${esc(r.age)}</span>`;
-        html += `</div>`;
-        if (totalN > 0) html += `<div class="replica-bar">${pips}</div>`;
-        if (r.version) html += `<div class="deploy-version">${icons.tag} ${esc(r.version)}</div>`;
-        html += `<span class="deploy-status-label ${r.status}">${r.status}</span>`;
-        if (r.message) html += `<div class="deploy-msg">${esc(r.message)}</div>`;
-        html += `</div></div>`;
-      }
-      html += '</div></section>';
-    }
-
-    // SVG icons for table sections
-    const secIcons = {
-      Pods: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="9" cy="9" r="1" fill="currentColor"/><circle cx="15" cy="9" r="1" fill="currentColor"/><path d="M9 15h6"/></svg>',
-      Services: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
-      Ingresses: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>',
-      PVCs: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>'
-    };
+    const kindIcons = { Deployment: icons.deploy, StatefulSet: icons.stateful, DaemonSet: icons.daemon };
     const chevron = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
 
-    // Render remaining sections as collapsible tables
-    const sections = [
-      {title: 'Pods', data: snap.pods, cols: ['Name','Status','Ready','Version','Age','Message']},
-      {title: 'Services', data: snap.services, cols: ['Name','Status','Type','Age']},
-      {title: 'Ingresses', data: snap.ingresses, cols: ['Name','Status','Hosts','Age']},
-      {title: 'PVCs', data: snap.pvcs, cols: ['Name','Status','Phase','Capacity','Age']}
+    // Merge all workloads and all detail resources
+    const allWorkloads = [
+      ...(snap.deployments||[]),
+      ...(snap.statefulSets||[]),
+      ...(snap.daemonSets||[])
     ];
+    const allPods = snap.pods || [];
+    const allServices = snap.services || [];
+    const allIngresses = snap.ingresses || [];
+    const allPVCs = snap.pvcs || [];
 
-    for (const sec of sections) {
-      const items = sec.data || [];
-      if (items.length === 0) continue;
-
-      const hCount = items.filter(r => r.status === 'Healthy').length;
-      const dCount = items.filter(r => r.status === 'Degraded').length;
-      const uCount = items.filter(r => r.status === 'Unhealthy' || r.status === 'Unknown').length;
-      const oCount = items.filter(r => r.outdated).length;
-      const secId = sec.title.toLowerCase().replace(/\s/g,'');
-
-      html += `<section>`;
-      html += `<div class="section-header" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')" id="hdr-${secId}">`;
-      html += `<div class="sec-icon">${secIcons[sec.title]||''}</div>`;
-      html += `<span class="sec-title">${sec.title}</span>`;
-      html += `<div class="sec-summary">`;
-      if (hCount) html += `<span class="sec-pill healthy">${hCount}</span>`;
-      if (dCount) html += `<span class="sec-pill degraded">${dCount}</span>`;
-      if (uCount) html += `<span class="sec-pill unhealthy">${uCount}</span>`;
-      if (oCount) html += `<span class="sec-pill degraded" title="Outdated version">${oCount} old</span>`;
-      html += `<span class="badge">${items.length}</span>`;
-      html += `</div>`;
-      html += `<span class="sec-chevron">${chevron}</span>`;
-      html += `</div>`;
-
-      html += `<div class="section-body" id="body-${secId}">`;
-      html += '<table><thead><tr>';
-      for (const c of sec.cols) html += `<th>${c}</th>`;
-      html += '</tr></thead><tbody>';
-
-      for (const r of items) {
-        const rowClass = (sec.title === 'Pods' && r.outdated) ? ' class="outdated"' : '';
-        html += `<tr${rowClass}>`;
-        if (sec.title === 'PVCs') {
-          html += `<td>${esc(r.name)}</td>`;
-          html += `<td><span class="status-dot ${r.status}"></span>${r.status}</td>`;
-          html += `<td>${esc(r.ready)}</td>`;
-          html += `<td>${esc(r.message)}</td>`;
-          html += `<td>${esc(r.age)}</td>`;
-        } else if (sec.title === 'Services') {
-          html += `<td>${esc(r.name)}</td>`;
-          html += `<td><span class="status-dot ${r.status}"></span>${r.status}</td>`;
-          html += `<td>${esc(r.ready)}</td>`;
-          html += `<td>${esc(r.age)}</td>`;
-        } else if (sec.title === 'Ingresses') {
-          html += `<td>${esc(r.name)}</td>`;
-          html += `<td><span class="status-dot ${r.status}"></span>${r.status}</td>`;
-          html += `<td>${esc(r.ready)}</td>`;
-          html += `<td>${esc(r.age)}</td>`;
-        } else {
-          html += `<td>${esc(r.name)}</td>`;
-          html += `<td><span class="status-dot ${r.status}"></span>${r.status}</td>`;
-          html += `<td>${esc(r.ready)}</td>`;
-          const vClass = r.outdated ? ' outdated' : '';
-          html += `<td>${r.version ? '<span class="version-tag'+vClass+'">'+ esc(r.version) +'</span>' : ''}</td>`;
-          html += `<td>${esc(r.age)}</td>`;
-          let podMsg = r.message || '';
-          if (r.outdated) podMsg = (podMsg ? podMsg + ' — ' : '') + 'Outdated version';
-          html += `<td class="msg">${esc(podMsg)}</td>`;
-        }
-        html += '</tr>';
+    // Group by layer
+    function groupByLayer(items, useOwner) {
+      const groups = {};
+      for (const layer of layers) groups[layer.key] = [];
+      for (const item of items) {
+        const key = classifyLayer(useOwner && item.owner ? item.owner : item.name);
+        groups[key].push(item);
       }
-      html += '</tbody></table></div></section>';
+      return groups;
     }
+
+    const wlByLayer = groupByLayer(allWorkloads);
+    const podsByLayer = groupByLayer(allPods);
+    const svcByLayer = groupByLayer(allServices);
+    const ingByLayer = groupByLayer(allIngresses);
+    const pvcByLayer = groupByLayer(allPVCs, true);
+
+    let html = '';
+    let currentRow = null;
+
+    for (const layer of layers) {
+      const wls = wlByLayer[layer.key];
+      const pods = podsByLayer[layer.key];
+      const svcs = svcByLayer[layer.key];
+      const ings = ingByLayer[layer.key];
+      const pvcs = pvcByLayer[layer.key];
+      const totalInLayer = wls.length + pods.length + svcs.length + ings.length + pvcs.length;
+      if (totalInLayer === 0) {
+        // Close row if this was part of one and next isn't
+        if (currentRow && layer.row === currentRow) {
+          // skip empty, stay in row
+        } else if (currentRow) {
+          html += '</div>';
+          currentRow = null;
+        }
+        continue;
+      }
+
+      // Handle row grouping
+      if (layer.row) {
+        if (currentRow !== layer.row) {
+          if (currentRow) html += '</div>';
+          html += '<div class="layer-row">';
+          currentRow = layer.row;
+        }
+      } else {
+        if (currentRow) {
+          html += '</div>';
+          currentRow = null;
+        }
+      }
+
+      // Layer health summary
+      const layerAll = [...wls, ...pods, ...svcs, ...ings, ...pvcs];
+      const lh = layerAll.filter(r => r.status === 'Healthy').length;
+      const ld = layerAll.filter(r => r.status === 'Degraded').length;
+      const lu = layerAll.filter(r => r.status === 'Unhealthy' || r.status === 'Unknown').length;
+      const layerStatus = lu > 0 ? 'Unhealthy' : ld > 0 ? 'Degraded' : 'Healthy';
+      const layerColor = layer.color;
+
+      html += `<div class="layer-group layer-${layerStatus}">`;
+      html += `<div class="layer-header">`;
+      html += `<div class="layer-icon" style="background:${layerColor}15;color:${layerColor}">${layer.icon}</div>`;
+      html += `<h2 class="layer-title">${layer.title}</h2>`;
+      html += `<div class="sec-summary">`;
+      if (lh) html += `<span class="sec-pill healthy">${lh}</span>`;
+      if (ld) html += `<span class="sec-pill degraded">${ld}</span>`;
+      if (lu) html += `<span class="sec-pill unhealthy">${lu}</span>`;
+      html += `</div>`;
+      html += `<span class="layer-status-badge ${layerStatus}">${layerStatus}</span>`;
+      html += `</div>`;
+
+      // Workload cards within this layer
+      if (wls.length > 0) {
+        html += '<div class="deploy-grid">';
+        for (const r of wls) {
+          const parts = r.ready.split('/');
+          const readyN = parseInt(parts[0]) || 0;
+          const totalN = parseInt(parts[1]) || 0;
+          let pips = '';
+          for (let i = 0; i < totalN; i++) {
+            pips += `<div class="replica-pip${i < readyN ? ' ready' : ''}${i < readyN && r.status !== 'Healthy' ? ' ' + r.status : ''}"></div>`;
+          }
+          const wlIcon = kindIcons[r.kind] || icons.deploy;
+          html += `<div class="deploy-card ${r.status}">`;
+          html += `<div class="deploy-icon ${r.status}">${wlIcon}</div>`;
+          html += `<div class="deploy-info">`;
+          html += `<div class="deploy-name" title="${esc(r.name)}">${esc(r.name)}</div>`;
+          html += `<div class="deploy-meta">`;
+          html += `<span class="deploy-kind-label">${esc(r.kind)}</span>`;
+          html += `<span>${icons.box} ${esc(r.ready)}</span>`;
+          html += `<span>${icons.clock} ${esc(r.age)}</span>`;
+          html += `</div>`;
+          if (totalN > 0) html += `<div class="replica-bar">${pips}</div>`;
+          if (r.version) html += `<div class="deploy-version">${icons.tag} ${esc(r.version)}</div>`;
+          html += `<span class="deploy-status-label ${r.status}">${r.status}</span>`;
+          if (r.message) html += `<div class="deploy-msg">${esc(r.message)}</div>`;
+          html += `</div></div>`;
+        }
+        html += '</div>';
+      }
+
+      // Collapsible detail sections within this layer
+      const detailSections = [
+        {title: 'Pods', data: pods, cols: ['Name','Status','Ready','Version','Age','Message']},
+        {title: 'Services', data: svcs, cols: ['Name','Status','Type','Age']},
+        {title: 'Ingresses', data: ings, cols: ['Name','Status','Hosts','Age']},
+        {title: 'PVCs', data: pvcs, cols: ['Name','Status','Phase','Capacity','Age']}
+      ];
+
+      const hasDetails = detailSections.some(s => (s.data||[]).length > 0);
+      const resId = layer.key + '-resources';
+
+      if (hasDetails) {
+        html += `<button class="layer-resources-toggle" onclick="this.classList.toggle('open');document.getElementById('${resId}').classList.toggle('open')">`;
+        html += `${chevron} Show resources`;
+        html += `</button>`;
+        html += `<div class="layer-resources-body" id="${resId}">`;
+      }
+
+      const secIcons = {
+        Pods: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="9" cy="9" r="1" fill="currentColor"/><circle cx="15" cy="9" r="1" fill="currentColor"/><path d="M9 15h6"/></svg>',
+        Services: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
+        Ingresses: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>',
+        PVCs: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>'
+      };
+
+      for (const sec of detailSections) {
+        const items = sec.data || [];
+        if (items.length === 0) continue;
+
+        const hCount = items.filter(r => r.status === 'Healthy').length;
+        const dCount = items.filter(r => r.status === 'Degraded').length;
+        const uCount = items.filter(r => r.status === 'Unhealthy' || r.status === 'Unknown').length;
+        const oCount = items.filter(r => r.outdated).length;
+        const secId = layer.key + '-' + sec.title.toLowerCase().replace(/\s/g,'');
+
+        html += `<section class="layer-section">`;
+        html += `<div class="section-header" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')" id="hdr-${secId}">`;
+        html += `<div class="sec-icon">${secIcons[sec.title]||''}</div>`;
+        html += `<span class="sec-title">${sec.title}</span>`;
+        html += `<div class="sec-summary">`;
+        if (hCount) html += `<span class="sec-pill healthy">${hCount}</span>`;
+        if (dCount) html += `<span class="sec-pill degraded">${dCount}</span>`;
+        if (uCount) html += `<span class="sec-pill unhealthy">${uCount}</span>`;
+        if (oCount) html += `<span class="sec-pill degraded" title="Outdated version">${oCount} old</span>`;
+        html += `<span class="badge">${items.length}</span>`;
+        html += `</div>`;
+        html += `<span class="sec-chevron">${chevron}</span>`;
+        html += `</div>`;
+
+        html += `<div class="section-body" id="body-${secId}">`;
+        html += '<table><thead><tr>';
+        for (const c of sec.cols) html += `<th>${c}</th>`;
+        html += '</tr></thead><tbody>';
+
+        for (const r of items) {
+          const rowClass = (sec.title === 'Pods' && r.outdated) ? ' class="outdated"' : '';
+          html += `<tr${rowClass}>`;
+          if (sec.title === 'PVCs') {
+            html += `<td>${esc(r.name)}</td>`;
+            html += `<td><span class="status-dot ${r.status}"></span>${r.status}</td>`;
+            html += `<td>${esc(r.ready)}</td>`;
+            html += `<td>${esc(r.message)}</td>`;
+            html += `<td>${esc(r.age)}</td>`;
+          } else if (sec.title === 'Services') {
+            html += `<td>${esc(r.name)}</td>`;
+            html += `<td><span class="status-dot ${r.status}"></span>${r.status}</td>`;
+            html += `<td>${esc(r.ready)}</td>`;
+            html += `<td>${esc(r.age)}</td>`;
+          } else if (sec.title === 'Ingresses') {
+            html += `<td>${esc(r.name)}</td>`;
+            html += `<td><span class="status-dot ${r.status}"></span>${r.status}</td>`;
+            html += `<td>${esc(r.ready)}</td>`;
+            html += `<td>${esc(r.age)}</td>`;
+          } else {
+            html += `<td>${esc(r.name)}</td>`;
+            html += `<td><span class="status-dot ${r.status}"></span>${r.status}</td>`;
+            html += `<td>${esc(r.ready)}</td>`;
+            const vClass = r.outdated ? ' outdated' : '';
+            html += `<td>${r.version ? '<span class="version-tag'+vClass+'">'+ esc(r.version) +'</span>' : ''}</td>`;
+            html += `<td>${esc(r.age)}</td>`;
+            let podMsg = r.message || '';
+            if (r.outdated) podMsg = (podMsg ? podMsg + ' — ' : '') + 'Outdated version';
+            html += `<td class="msg">${esc(podMsg)}</td>`;
+          }
+          html += '</tr>';
+        }
+        html += '</tbody></table></div></section>';
+      }
+
+      if (hasDetails) {
+        html += '</div>'; // .layer-resources-body
+      }
+
+      html += '</div>'; // .layer-group
+    }
+
+    if (currentRow) html += '</div>'; // close last row
 
     content.innerHTML = html || '<p class="empty">No resources found in namespace.</p>';
   }
