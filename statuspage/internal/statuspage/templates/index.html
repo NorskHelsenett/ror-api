@@ -424,6 +424,51 @@
     color: var(--muted);
     font-weight: 600;
   }
+
+  /* API Stats panel */
+  .api-stats-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .api-stats-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--blue);
+    white-space: nowrap;
+  }
+  .api-stats-title svg { width: 20px; height: 20px; }
+  .api-stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 80px;
+  }
+  .api-stat-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .api-stat-label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .api-stats-unavailable {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-style: italic;
+  }
 </style>
 </head>
 <body>
@@ -433,6 +478,10 @@
     <span class="namespace-badge" id="ns">—</span>
   </div>
   <div class="header-right">
+    <a href="/flow" style="color:#58a6ff;text-decoration:none;font-size:14px;margin-right:16px;display:flex;align-items:center;gap:4px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/><line x1="12" y1="8" x2="5" y2="16"/><line x1="12" y1="8" x2="19" y2="16"/></svg>
+      Network Flow
+    </a>
     <div class="header-stats" id="headerStats"></div>
     <div class="conn-status">
       <span class="conn-dot" id="connDot"></span>
@@ -441,6 +490,8 @@
     </div>
   </div>
 </header>
+
+<div id="apiStatsPanel" class="api-stats-panel" style="display:none"></div>
 
 <div id="content"><p class="empty">Connecting to status stream...</p></div>
 
@@ -452,6 +503,59 @@
   const connText = document.getElementById('connText');
   const lastUpdate = document.getElementById('lastUpdate');
   const headerStats = document.getElementById('headerStats');
+  const apiStatsPanel = document.getElementById('apiStatsPanel');
+
+  // Poll /api/stats for Prometheus-sourced ror-api metrics
+  function fetchAPIStats() {
+    fetch('/api/stats')
+      .then(r => r.json())
+      .then(stats => renderAPIStats(stats))
+      .catch(() => renderAPIStats(null));
+  }
+
+  function renderAPIStats(stats) {
+    if (!stats || !stats.available) {
+      apiStatsPanel.style.display = 'flex';
+      apiStatsPanel.innerHTML = `
+        <span class="api-stats-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          API Metrics
+        </span>
+        <span class="api-stats-unavailable">Prometheus unavailable</span>
+      `;
+      return;
+    }
+    apiStatsPanel.style.display = 'flex';
+    apiStatsPanel.innerHTML = `
+      <span class="api-stats-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        API Metrics
+      </span>
+      <div class="api-stat-item">
+        <span class="api-stat-value">${stats.requestRate.toFixed(1)}</span>
+        <span class="api-stat-label">req/s</span>
+      </div>
+      <div class="api-stat-item">
+        <span class="api-stat-value" style="color:${stats.errorRate > 1 ? 'var(--red)' : stats.errorRate > 0 ? 'var(--yellow)' : 'var(--green)'}">${stats.errorRate.toFixed(2)}</span>
+        <span class="api-stat-label">errors/s</span>
+      </div>
+      <div class="api-stat-item">
+        <span class="api-stat-value">${stats.avgLatencyMs.toFixed(0)}</span>
+        <span class="api-stat-label">avg ms</span>
+      </div>
+      <div class="api-stat-item">
+        <span class="api-stat-value">${stats.p99LatencyMs.toFixed(0)}</span>
+        <span class="api-stat-label">p99 ms</span>
+      </div>
+      <div class="api-stat-item">
+        <span class="api-stat-value">${stats.activeConns.toFixed(0)}</span>
+        <span class="api-stat-label">goroutines</span>
+      </div>
+    `;
+  }
+
+  fetchAPIStats();
+  setInterval(fetchAPIStats, 15000);
 
   function connect() {
     const es = new EventSource('/events');

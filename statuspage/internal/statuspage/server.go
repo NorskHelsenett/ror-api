@@ -7,13 +7,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-//go:embed templates/index.html
+//go:embed templates/index.html templates/flow.html
 var templateFS embed.FS
 
 // Run starts the status page server.
@@ -43,12 +44,42 @@ func Run() {
 
 	go watcher.Start(ctx)
 
+	// Prometheus client for ror-api stats
+	prometheusURL := os.Getenv("PROMETHEUS_URL")
+	if prometheusURL == "" {
+		prometheusURL = "http://prometheus-server.monitoring.svc:9090"
+	}
+	if !strings.HasPrefix(prometheusURL, "http://") && !strings.HasPrefix(prometheusURL, "https://") {
+		prometheusURL = "http://" + prometheusURL
+	}
+	promClient := NewPrometheusClient(prometheusURL)
+	go promClient.Start(ctx)
+
 	// Routes
 	router.GET("/health", func(c *gin.Context) {
 		c.String(http.StatusOK, "ok")
 	})
 
 	router.GET("/events", hub.HandleSSE(watcher.CurrentSnapshot))
+
+	router.GET("/api/stats", func(c *gin.Context) {
+		stats := promClient.CurrentStats()
+		c.JSON(http.StatusOK, stats)
+	})
+
+	router.GET("/api/flows", func(c *gin.Context) {
+		flows := promClient.CurrentFlows()
+		c.JSON(http.StatusOK, flows)
+	})
+
+	router.GET("/flow", func(c *gin.Context) {
+		data, err := templateFS.ReadFile("templates/flow.html")
+		if err != nil {
+			c.String(http.StatusInternalServerError, "template error")
+			return
+		}
+		c.Data(http.StatusOK, "text/html; charset=utf-8", data)
+	})
 
 	router.GET("/", func(c *gin.Context) {
 		data, err := templateFS.ReadFile("templates/index.html")
