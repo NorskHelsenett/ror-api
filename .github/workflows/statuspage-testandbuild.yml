@@ -1,15 +1,16 @@
-name: Test and build API
+name: Test and build Statuspage
 
 on:
   pull_request:
     branches:
       - main
-    paths-ignore:
+    paths:
       - "statuspage/**"
-      - ".github/workflows/statuspage-*"
+
 env:
-  APP: ror-api
-  APP_PATH: cmd/api
+  APP: ror-statuspage
+  MODULE_PATH: statuspage
+
 jobs:
   helm-test:
     runs-on: ubuntu-latest
@@ -24,20 +25,16 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Set up Helm
         uses: azure/setup-helm@v4
         with:
           version: v3.17.0
-
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: "3.x"
           check-latest: true
-
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2.7.0
-
       - name: Run chart-testing (list-changed)
         id: list-changed
         run: |
@@ -45,52 +42,27 @@ jobs:
           if [[ -n "$changed" ]]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
-
       - name: Run chart-testing (lint)
         if: steps.list-changed.outputs.changed == 'true'
         run: ct lint --config hacks/lint/yt.yaml --target-branch ${{ github.event.repository.default_branch }}
 
   build-app:
     runs-on: ubuntu-latest
-    services:
-      mongodb:
-        image: mongo:8
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd "mongosh --eval 'db.adminCommand({ping:1})'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: "1.26"
-      - name: run generator 
-        run: |
-          go run cmd/generator/main.go
       - name: Test
+        working-directory: ${{ env.MODULE_PATH }}
         run: |
           echo testing...
-          export sha_short=$(git rev-parse --short HEAD)
-          go get -t ./...
           go vet ./...
           go test -v ./...
-        env:
-          MONGODB_TEST_URI: mongodb://localhost:27017
-      - name: Build Swagger
-        run: |
-          go install github.com/swaggo/swag/cmd/swag@latest
-          swag init -g cmd/api/main.go --parseDependency --output internal/docs --parseInternal
       - name: Build
+        working-directory: ${{ env.MODULE_PATH }}
         run: |
           echo building...
-          export sha_short=$(git rev-parse --short HEAD)
-          export LIB_VER=$(cat go.mod | grep "github.com/NorskHelsenett/ror " | cut -d' ' -f2)
-          go get ./...
-          mkdir -p dist/isbuilt
-          CGO_ENABLED=0 go build -o dist/${{ env.APP }} -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/ror/pkg/config/rorversion.Version=$ROR_VERSION -X github.com/NorskHelsenett/ror/pkg/config/rorversion.Commit=$sha_short -X github.com/NorskHelsenett/ror/pkg/config/rorversion.LibVer=$LIB_VER" ${{ env.APP_PATH }}/main.go
-        env:
-          ROR_VERSION: v0.0.1-build
+          mkdir -p dist
+          CGO_ENABLED=0 go build -o dist/${{ env.APP }} -ldflags "-w -extldflags '-static'" ./cmd/statuspage/

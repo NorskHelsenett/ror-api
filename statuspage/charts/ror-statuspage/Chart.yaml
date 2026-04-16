@@ -1,0 +1,10 @@
+apiVersion: v2
+name: ror-statuspage
+description: ROR Status Page - unauthenticated dashboard showing component health
+
+type: application
+
+version: 0.1.0
+
+appVersion: "0.1.0"
+icon: https://raw.githubusercontent.com/NorskHelsenett/ror/main/media/ror.svg
