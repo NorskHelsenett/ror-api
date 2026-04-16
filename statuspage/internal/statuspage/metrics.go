@@ -23,14 +23,54 @@ type APIStats struct {
 	Available    bool    `json:"available"`    // whether Prometheus was reachable
 }
 
+// RabbitMQStats holds metrics fetched from Prometheus about RabbitMQ.
+type RabbitMQStats struct {
+	// Topology
+	Connections float64 `json:"connections"`
+	Channels    float64 `json:"channels"`
+	Queues      float64 `json:"queues"`
+	Consumers   float64 `json:"consumers"`
+
+	// Message backlog
+	MessagesReady   float64 `json:"messagesReady"`
+	MessagesUnacked float64 `json:"messagesUnacked"`
+
+	// Throughput (per second, 5m avg)
+	PublishRate float64 `json:"publishRate"`
+	DeliverRate float64 `json:"deliverRate"`
+	AckRate     float64 `json:"ackRate"`
+
+	// Resources
+	DiskAvailableGB float64 `json:"diskAvailableGB"` // min across nodes
+	MemoryUsedMB    float64 `json:"memoryUsedMB"`    // sum across nodes
+
+	Available bool `json:"available"`
+}
+
 // PrometheusClient queries a Prometheus server for ror-api metrics.
 type PrometheusClient struct {
 	baseURL    string
 	httpClient *http.Client
 
-	mu         sync.RWMutex
-	stats      *APIStats
-	mongoStats *MongoStats
+	mu              sync.RWMutex
+	stats           *APIStats
+	mongoStats      *MongoStats
+	collectionStats []CollectionStat
+	rabbitStats     *RabbitMQStats
+}
+
+// CollectionStat holds per-collection metrics from mongodb collstats.
+type CollectionStat struct {
+	Collection   string  `json:"collection"`
+	Documents    float64 `json:"documents"`
+	DataSizeMB   float64 `json:"dataSizeMB"`
+	AvgObjSizeKB float64 `json:"avgObjSizeKB"`
+	IndexCount   float64 `json:"indexCount"`
+	IndexSizeMB  float64 `json:"indexSizeMB"`
+	ReadOpsRate  float64 `json:"readOpsRate"`  // reads/s (5m)
+	WriteOpsRate float64 `json:"writeOpsRate"` // writes/s (5m)
+	ReadLatUs    float64 `json:"readLatUs"`    // avg read latency µs
+	WriteLatUs   float64 `json:"writeLatUs"`   // avg write latency µs
 }
 
 // MongoStats holds metrics fetched from Prometheus about MongoDB.
@@ -75,8 +115,10 @@ func NewPrometheusClient(prometheusURL string) *PrometheusClient {
 		httpClient: &http.Client{
 			Timeout: 5 * time.Second,
 		},
-		stats:      &APIStats{},
-		mongoStats: &MongoStats{},
+		stats:           &APIStats{},
+		mongoStats:      &MongoStats{},
+		collectionStats: nil,
+		rabbitStats:     &RabbitMQStats{},
 	}
 }
 
@@ -96,11 +138,30 @@ func (p *PrometheusClient) CurrentMongoStats() *MongoStats {
 	return &s
 }
 
+// CurrentRabbitMQStats returns the latest RabbitMQ stats (thread-safe).
+func (p *PrometheusClient) CurrentRabbitMQStats() *RabbitMQStats {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	s := *p.rabbitStats
+	return &s
+}
+
+// CurrentCollectionStats returns the latest per-collection MongoDB stats (thread-safe).
+func (p *PrometheusClient) CurrentCollectionStats() []CollectionStat {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	out := make([]CollectionStat, len(p.collectionStats))
+	copy(out, p.collectionStats)
+	return out
+}
+
 // Start periodically fetches metrics from Prometheus.
 func (p *PrometheusClient) Start(ctx context.Context) {
 	// Initial fetch
 	p.fetchStats()
 	p.fetchMongoStats()
+	p.fetchCollectionStats()
+	p.fetchRabbitMQStats()
 
 	ticker := time.NewTicker(15 * time.Second)
 	defer ticker.Stop()
@@ -112,6 +173,8 @@ func (p *PrometheusClient) Start(ctx context.Context) {
 		case <-ticker.C:
 			p.fetchStats()
 			p.fetchMongoStats()
+			p.fetchCollectionStats()
+			p.fetchRabbitMQStats()
 		}
 	}
 }
@@ -246,6 +309,126 @@ func (p *PrometheusClient) fetchMongoStats() {
 	p.mu.Unlock()
 }
 
+func (p *PrometheusClient) fetchCollectionStats() {
+	// Get document counts per collection (this gives us the collection list)
+	countResults, err := p.queryVector(`mongodb_collstats_storageStats_count{` + mongoJob + `}`)
+	if err != nil {
+		log.Printf("prometheus: failed to query collstats count: %v", err)
+		return
+	}
+
+	stats := make([]CollectionStat, 0, len(countResults))
+	for _, cr := range countResults {
+		coll := cr.Metric["collection"]
+		if coll == "" {
+			continue
+		}
+
+		cs := CollectionStat{
+			Collection: coll,
+			Documents:  cr.Value,
+		}
+
+		// Data size
+		if v, err := p.queryScalar(`mongodb_collstats_storageStats_size{collection="` + coll + `",` + mongoJob + `}`); err == nil {
+			cs.DataSizeMB = v / (1024 * 1024)
+		}
+		// Avg object size
+		if v, err := p.queryScalar(`mongodb_collstats_storageStats_avgObjSize{collection="` + coll + `",` + mongoJob + `}`); err == nil {
+			cs.AvgObjSizeKB = v / 1024
+		}
+		// Index count
+		if v, err := p.queryScalar(`mongodb_collstats_storageStats_nindexes{collection="` + coll + `",` + mongoJob + `}`); err == nil {
+			cs.IndexCount = v
+		}
+		// Total index size
+		if v, err := p.queryScalar(`mongodb_collstats_storageStats_totalIndexSize{collection="` + coll + `",` + mongoJob + `}`); err == nil {
+			cs.IndexSizeMB = v / (1024 * 1024)
+		}
+		// Read ops rate
+		if v, err := p.queryScalar(`rate(mongodb_collstats_latencyStats_reads_ops{collection="` + coll + `",` + mongoJob + `}[5m])`); err == nil {
+			cs.ReadOpsRate = v
+		}
+		// Write ops rate
+		if v, err := p.queryScalar(`rate(mongodb_collstats_latencyStats_writes_ops{collection="` + coll + `",` + mongoJob + `}[5m])`); err == nil {
+			cs.WriteOpsRate = v
+		}
+		// Avg read latency
+		if v, err := p.queryScalar(`rate(mongodb_collstats_latencyStats_reads_latency{collection="` + coll + `",` + mongoJob + `}[5m]) / rate(mongodb_collstats_latencyStats_reads_ops{collection="` + coll + `",` + mongoJob + `}[5m])`); err == nil {
+			cs.ReadLatUs = v
+		}
+		// Avg write latency
+		if v, err := p.queryScalar(`rate(mongodb_collstats_latencyStats_writes_latency{collection="` + coll + `",` + mongoJob + `}[5m]) / rate(mongodb_collstats_latencyStats_writes_ops{collection="` + coll + `",` + mongoJob + `}[5m])`); err == nil {
+			cs.WriteLatUs = v
+		}
+
+		stats = append(stats, cs)
+	}
+
+	p.mu.Lock()
+	p.collectionStats = stats
+	p.mu.Unlock()
+}
+
+const rabbitJob = `job="rabbitmq-ror"`
+
+func (p *PrometheusClient) fetchRabbitMQStats() {
+	rs := &RabbitMQStats{}
+
+	queries := map[string]string{
+		"connections":     `rabbitmq_connections{` + rabbitJob + `}`,
+		"channels":        `rabbitmq_channels{` + rabbitJob + `}`,
+		"queues":          `rabbitmq_queues{` + rabbitJob + `}`,
+		"consumers":       `rabbitmq_consumers{` + rabbitJob + `}`,
+		"messagesReady":   `sum(rabbitmq_queue_messages_ready{` + rabbitJob + `})`,
+		"messagesUnacked": `sum(rabbitmq_queue_messages_unacked{` + rabbitJob + `})`,
+		"publishRate":     `sum(rate(rabbitmq_global_messages_received_total{` + rabbitJob + `}[5m]))`,
+		"deliverRate":     `sum(rate(rabbitmq_global_messages_delivered_total{` + rabbitJob + `}[5m]))`,
+		"ackRate":         `sum(rate(rabbitmq_global_messages_acknowledged_total{` + rabbitJob + `}[5m]))`,
+		"diskAvailable":   `min(rabbitmq_disk_space_available_bytes{` + rabbitJob + `})`,
+		"memoryUsed":      `sum(rabbitmq_process_resident_memory_bytes{` + rabbitJob + `})`,
+	}
+
+	allOk := true
+	for key, query := range queries {
+		val, err := p.queryScalar(query)
+		if err != nil {
+			log.Printf("prometheus: failed to query rabbitmq %s: %v", key, err)
+			allOk = false
+			continue
+		}
+		switch key {
+		case "connections":
+			rs.Connections = val
+		case "channels":
+			rs.Channels = val
+		case "queues":
+			rs.Queues = val
+		case "consumers":
+			rs.Consumers = val
+		case "messagesReady":
+			rs.MessagesReady = val
+		case "messagesUnacked":
+			rs.MessagesUnacked = val
+		case "publishRate":
+			rs.PublishRate = val
+		case "deliverRate":
+			rs.DeliverRate = val
+		case "ackRate":
+			rs.AckRate = val
+		case "diskAvailable":
+			rs.DiskAvailableGB = val / (1024 * 1024 * 1024)
+		case "memoryUsed":
+			rs.MemoryUsedMB = val / (1024 * 1024)
+		}
+	}
+	rs.Available = allOk
+
+	p.mu.Lock()
+	p.rabbitStats = rs
+	p.mu.Unlock()
+}
+
 // promResponse represents the Prometheus API response structure.
 type promResponse struct {
 	Status string   `json:"status"`
@@ -275,11 +458,27 @@ type MongoFlowEntry struct {
 	Rate float64 `json:"rate"` // ops/s
 }
 
+// RabbitMQFlowEntry represents a message throughput metric for the flow diagram.
+type RabbitMQFlowEntry struct {
+	Direction string  `json:"direction"` // publish, deliver, ack
+	Rate      float64 `json:"rate"`      // messages/s
+}
+
+// CollectionFlowEntry represents per-collection read/write rates for the flow diagram.
+type CollectionFlowEntry struct {
+	Collection string  `json:"collection"`
+	ReadRate   float64 `json:"readRate"`  // reads/s
+	WriteRate  float64 `json:"writeRate"` // writes/s
+	Documents  float64 `json:"documents"` // doc count
+}
+
 // FlowData is the full network flow snapshot.
 type FlowData struct {
-	Flows      []FlowEntry      `json:"flows"`
-	MongoFlows []MongoFlowEntry `json:"mongoFlows"`
-	Available  bool             `json:"available"`
+	Flows           []FlowEntry           `json:"flows"`
+	MongoFlows      []MongoFlowEntry      `json:"mongoFlows"`
+	RabbitMQFlows   []RabbitMQFlowEntry   `json:"rabbitmqFlows"`
+	CollectionFlows []CollectionFlowEntry `json:"collectionFlows"`
+	Available       bool                  `json:"available"`
 }
 
 // CurrentFlows queries Prometheus for per-user_agent, per-pod request rates
@@ -313,7 +512,51 @@ func (p *PrometheusClient) CurrentFlows() *FlowData {
 		mongoFlows = append(mongoFlows, MongoFlowEntry{Op: op, Rate: val})
 	}
 
-	return &FlowData{Flows: flows, MongoFlows: mongoFlows, Available: true}
+	return &FlowData{
+		Flows:           flows,
+		MongoFlows:      mongoFlows,
+		RabbitMQFlows:   p.currentRabbitMQFlows(),
+		CollectionFlows: p.currentCollectionFlows(),
+		Available:       true,
+	}
+}
+
+func (p *PrometheusClient) currentCollectionFlows() []CollectionFlowEntry {
+	p.mu.RLock()
+	cs := p.collectionStats
+	p.mu.RUnlock()
+
+	entries := make([]CollectionFlowEntry, 0, len(cs))
+	for _, c := range cs {
+		entries = append(entries, CollectionFlowEntry{
+			Collection: c.Collection,
+			ReadRate:   c.ReadOpsRate,
+			WriteRate:  c.WriteOpsRate,
+			Documents:  c.Documents,
+		})
+	}
+	return entries
+}
+
+func (p *PrometheusClient) currentRabbitMQFlows() []RabbitMQFlowEntry {
+	type dirQuery struct {
+		direction string
+		query     string
+	}
+	dqs := []dirQuery{
+		{"publish", `sum(rate(rabbitmq_global_messages_received_total{` + rabbitJob + `}[5m]))`},
+		{"deliver", `sum(rate(rabbitmq_global_messages_delivered_total{` + rabbitJob + `}[5m]))`},
+		{"ack", `sum(rate(rabbitmq_global_messages_acknowledged_total{` + rabbitJob + `}[5m]))`},
+	}
+	var entries []RabbitMQFlowEntry
+	for _, dq := range dqs {
+		val, err := p.queryScalar(dq.query)
+		if err != nil {
+			continue
+		}
+		entries = append(entries, RabbitMQFlowEntry{Direction: dq.direction, Rate: val})
+	}
+	return entries
 }
 
 type vectorResult struct {

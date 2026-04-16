@@ -505,6 +505,96 @@
     writing-mode: vertical-lr;
     transform: rotate(180deg);
   }
+  .rabbit-stats-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .rabbit-stats-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #06b6d4;
+    white-space: nowrap;
+  }
+  .rabbit-stats-title svg { width: 20px; height: 20px; }
+  .rabbit-stat-group {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 0 0.5rem;
+    border-left: 1px solid var(--border);
+  }
+  .rabbit-stat-group-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+  }
+  .coll-stats-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+  .coll-stats-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    user-select: none;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--green);
+  }
+  .coll-stats-header:hover { background: rgba(255,255,255,0.03); }
+  .coll-stats-header .arrow {
+    font-size: 0.7rem;
+    transition: transform 0.2s;
+    color: var(--muted);
+  }
+  .coll-stats-header .arrow.open { transform: rotate(90deg); }
+  .coll-stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+  .coll-stats-table th {
+    text-align: right;
+    padding: 0.4rem 0.75rem;
+    color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .coll-stats-table th:first-child { text-align: left; }
+  .coll-stats-table td {
+    padding: 0.5rem 0.75rem;
+    text-align: right;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-variant-numeric: tabular-nums;
+  }
+  .coll-stats-table td:first-child {
+    text-align: left;
+    font-weight: 600;
+    color: var(--blue);
+  }
+  .coll-stats-table tr:last-child td { border-bottom: none; }
 </style>
 </head>
 <body>
@@ -529,6 +619,8 @@
 
 <div id="apiStatsPanel" class="api-stats-panel" style="display:none"></div>
 <div id="mongoStatsPanel" class="mongo-stats-panel" style="display:none"></div>
+<div id="collStatsPanel" style="display:none"></div>
+<div id="rabbitStatsPanel" class="rabbit-stats-panel" style="display:none"></div>
 
 <div id="content"><p class="empty">Connecting to status stream...</p></div>
 
@@ -542,6 +634,7 @@
   const headerStats = document.getElementById('headerStats');
   const apiStatsPanel = document.getElementById('apiStatsPanel');
   const mongoStatsPanel = document.getElementById('mongoStatsPanel');
+  const rabbitStatsPanel = document.getElementById('rabbitStatsPanel');
 
   // Poll /api/stats for Prometheus-sourced ror-api metrics
   function fetchAPIStats() {
@@ -665,6 +758,123 @@
 
   fetchMongoStats();
   setInterval(fetchMongoStats, 15000);
+
+  // Poll /api/mongo/collections for per-collection stats
+  const collStatsPanel = document.getElementById('collStatsPanel');
+  let collStatsOpen = false;
+
+  function fetchCollStats() {
+    fetch('/api/mongo/collections')
+      .then(r => r.json())
+      .then(cs => renderCollStats(cs))
+      .catch(() => renderCollStats(null));
+  }
+
+  function fmtColl(v, d) { return v != null && isFinite(v) ? v.toFixed(d) : '—'; }
+
+  function renderCollStats(cs) {
+    if (!cs || cs.length === 0) {
+      collStatsPanel.style.display = 'none';
+      return;
+    }
+    // Sort by data size descending
+    cs.sort((a, b) => (b.dataSizeMB || 0) - (a.dataSizeMB || 0));
+
+    collStatsPanel.style.display = 'block';
+    collStatsPanel.innerHTML = `
+      <div class="coll-stats-panel">
+        <div class="coll-stats-header" onclick="document.getElementById('collTable').style.display = document.getElementById('collTable').style.display === 'none' ? '' : 'none'; this.querySelector('.arrow').classList.toggle('open')">
+          <span class="arrow${collStatsOpen ? ' open' : ''}">▶</span>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          Collection Stats (${cs.length})
+        </div>
+        <table class="coll-stats-table" id="collTable" style="${collStatsOpen ? '' : 'display:none'}">
+          <thead><tr>
+            <th>Collection</th>
+            <th>Docs</th>
+            <th>Data</th>
+            <th>Avg Size</th>
+            <th>Indexes</th>
+            <th>Idx Size</th>
+            <th>Reads/s</th>
+            <th>Writes/s</th>
+            <th>Read µs</th>
+            <th>Write µs</th>
+          </tr></thead>
+          <tbody>${cs.map(c => `<tr>
+            <td>${c.collection}</td>
+            <td>${c.documents >= 1e6 ? fmtColl(c.documents/1e6,1)+'M' : c.documents >= 1e3 ? fmtColl(c.documents/1e3,1)+'K' : fmtColl(c.documents,0)}</td>
+            <td>${c.dataSizeMB > 1024 ? fmtColl(c.dataSizeMB/1024,1)+' GB' : fmtColl(c.dataSizeMB,1)+' MB'}</td>
+            <td>${fmtColl(c.avgObjSizeKB,1)} KB</td>
+            <td>${fmtColl(c.indexCount,0)}</td>
+            <td>${fmtColl(c.indexSizeMB,1)} MB</td>
+            <td>${fmtColl(c.readOpsRate,1)}</td>
+            <td>${fmtColl(c.writeOpsRate,1)}</td>
+            <td style="color:${c.readLatUs > 1000 ? 'var(--yellow)' : 'var(--text)'}">${fmtColl(c.readLatUs,0)}</td>
+            <td style="color:${c.writeLatUs > 1000 ? 'var(--yellow)' : 'var(--text)'}">${fmtColl(c.writeLatUs,0)}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  fetchCollStats();
+  setInterval(fetchCollStats, 15000);
+
+  // Poll /api/rabbitmq for RabbitMQ metrics
+  function fetchRabbitStats() {
+    fetch('/api/rabbitmq')
+      .then(r => r.json())
+      .then(rs => renderRabbitStats(rs))
+      .catch(() => renderRabbitStats(null));
+  }
+
+  function renderRabbitStats(rs) {
+    if (!rs || !rs.available) {
+      rabbitStatsPanel.style.display = 'flex';
+      rabbitStatsPanel.innerHTML = `
+        <span class="rabbit-stats-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M9 4v16"/><path d="M4 9h16"/></svg>
+          RabbitMQ
+        </span>
+        <span class="api-stats-unavailable">Unavailable</span>
+      `;
+      return;
+    }
+    rabbitStatsPanel.style.display = 'flex';
+    rabbitStatsPanel.innerHTML = `
+      <span class="rabbit-stats-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M9 4v16"/><path d="M4 9h16"/></svg>
+        RabbitMQ
+      </span>
+      <div class="rabbit-stat-group">
+        <span class="rabbit-stat-group-label">TOPO</span>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.connections,0)}</span><span class="api-stat-label">connections</span></div>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.channels,0)}</span><span class="api-stat-label">channels</span></div>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.queues,0)}</span><span class="api-stat-label">queues</span></div>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.consumers,0)}</span><span class="api-stat-label">consumers</span></div>
+      </div>
+      <div class="rabbit-stat-group">
+        <span class="rabbit-stat-group-label">BACKLOG</span>
+        <div class="api-stat-item"><span class="api-stat-value" style="color:${rs.messagesReady > 100 ? 'var(--red)' : rs.messagesReady > 10 ? 'var(--yellow)' : 'var(--green)'}">${fmt(rs.messagesReady,0)}</span><span class="api-stat-label">ready</span></div>
+        <div class="api-stat-item"><span class="api-stat-value" style="color:${rs.messagesUnacked > 100 ? 'var(--red)' : rs.messagesUnacked > 10 ? 'var(--yellow)' : 'var(--text)'}">${fmt(rs.messagesUnacked,0)}</span><span class="api-stat-label">unacked</span></div>
+      </div>
+      <div class="rabbit-stat-group">
+        <span class="rabbit-stat-group-label">MSG/s</span>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.publishRate,1)}</span><span class="api-stat-label">publish</span></div>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.deliverRate,1)}</span><span class="api-stat-label">deliver</span></div>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.ackRate,1)}</span><span class="api-stat-label">ack</span></div>
+      </div>
+      <div class="rabbit-stat-group">
+        <span class="rabbit-stat-group-label">RESOURCES</span>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.diskAvailableGB,1)}</span><span class="api-stat-label">disk GB</span></div>
+        <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.memoryUsedMB,0)}</span><span class="api-stat-label">mem MB</span></div>
+      </div>
+    `;
+  }
+
+  fetchRabbitStats();
+  setInterval(fetchRabbitStats, 15000);
 
   function connect() {
     const es = new EventSource('/events');
