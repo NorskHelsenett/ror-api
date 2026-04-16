@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -105,6 +106,8 @@ type MongoStats struct {
 	DocsUpdatedRate  float64 `json:"docsUpdatedRate"`
 	DocsDeletedRate  float64 `json:"docsDeletedRate"`
 
+	CollectionStats []CollectionStat `json:"collectionStats,omitempty"`
+
 	Available bool `json:"available"`
 }
 
@@ -135,6 +138,10 @@ func (p *PrometheusClient) CurrentMongoStats() *MongoStats {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	s := *p.mongoStats
+	if len(p.collectionStats) > 0 {
+		s.CollectionStats = make([]CollectionStat, len(p.collectionStats))
+		copy(s.CollectionStats, p.collectionStats)
+	}
 	return &s
 }
 
@@ -661,6 +668,11 @@ func (p *PrometheusClient) queryScalar(query string) (float64, error) {
 	val, err := strconv.ParseFloat(valStr, 64)
 	if err != nil {
 		return 0, fmt.Errorf("failed to parse float: %w", err)
+	}
+
+	// NaN/Inf from Prometheus (e.g. division by zero) breaks json.Marshal
+	if math.IsNaN(val) || math.IsInf(val, 0) {
+		return 0, nil
 	}
 
 	return val, nil

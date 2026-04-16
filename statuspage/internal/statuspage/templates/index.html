@@ -637,7 +637,7 @@
   const metricsDetail = document.getElementById('metricsDetail');
 
   let metricsExpanded = false;
-  let latestApi = null, latestMongo = null, latestRabbit = null, latestColls = null;
+  let latestApi = null, latestMongo = null, latestRabbit = null;
   let collStatsOpen = false;
 
   metricsBar.addEventListener('click', function() {
@@ -723,8 +723,44 @@
       </div>`;
     }
 
-    if (ms && ms.available) {
+    if (rs && rs.available) {
       detail += `<div class="md-panel">
+        <div class="md-panel-title rabbit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M9 4v16"/><path d="M4 9h16"/></svg>
+          RabbitMQ
+        </div>
+        <div class="md-grid">
+          <div class="md-stat-group">
+            <span class="md-stat-group-label">TOPO</span>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.connections,0)}</span><span class="api-stat-label">conn</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.channels,0)}</span><span class="api-stat-label">chan</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.queues,0)}</span><span class="api-stat-label">queues</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.consumers,0)}</span><span class="api-stat-label">consumers</span></div>
+          </div>
+          <div class="md-stat-group">
+            <span class="md-stat-group-label">BACKLOG</span>
+            <div class="api-stat-item"><span class="api-stat-value" style="color:${rs.messagesReady > 100 ? 'var(--red)' : rs.messagesReady > 10 ? 'var(--yellow)' : 'var(--green)'}">${fmt(rs.messagesReady,0)}</span><span class="api-stat-label">ready</span></div>
+            <div class="api-stat-item"><span class="api-stat-value" style="color:${rs.messagesUnacked > 100 ? 'var(--red)' : rs.messagesUnacked > 10 ? 'var(--yellow)' : 'var(--text)'}">${fmt(rs.messagesUnacked,0)}</span><span class="api-stat-label">unacked</span></div>
+          </div>
+          <div class="md-stat-group">
+            <span class="md-stat-group-label">MSG/s</span>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.publishRate,1)}</span><span class="api-stat-label">publish</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.deliverRate,1)}</span><span class="api-stat-label">deliver</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.ackRate,1)}</span><span class="api-stat-label">ack</span></div>
+          </div>
+          <div class="md-stat-group">
+            <span class="md-stat-group-label">RESOURCES</span>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.diskAvailableGB,1)}</span><span class="api-stat-label">disk GB</span></div>
+            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.memoryUsedMB,0)}</span><span class="api-stat-label">mem MB</span></div>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    detail += '</div>';
+
+    if (ms && ms.available) {
+      detail += `<div class="md-row"><div class="md-panel">
         <div class="md-panel-title mongo">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
           MongoDB
@@ -767,42 +803,6 @@
           </div>
         </div>
         ${renderCollTable()}
-      </div>`;
-    }
-
-    detail += '</div>';
-
-    if (rs && rs.available) {
-      detail += `<div class="md-row"><div class="md-panel">
-        <div class="md-panel-title rabbit">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M9 4v16"/><path d="M4 9h16"/></svg>
-          RabbitMQ
-        </div>
-        <div class="md-grid">
-          <div class="md-stat-group">
-            <span class="md-stat-group-label">TOPO</span>
-            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.connections,0)}</span><span class="api-stat-label">conn</span></div>
-            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.channels,0)}</span><span class="api-stat-label">chan</span></div>
-            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.queues,0)}</span><span class="api-stat-label">queues</span></div>
-            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.consumers,0)}</span><span class="api-stat-label">consumers</span></div>
-          </div>
-          <div class="md-stat-group">
-            <span class="md-stat-group-label">BACKLOG</span>
-            <div class="api-stat-item"><span class="api-stat-value" style="color:${rs.messagesReady > 100 ? 'var(--red)' : rs.messagesReady > 10 ? 'var(--yellow)' : 'var(--green)'}">${fmt(rs.messagesReady,0)}</span><span class="api-stat-label">ready</span></div>
-            <div class="api-stat-item"><span class="api-stat-value" style="color:${rs.messagesUnacked > 100 ? 'var(--red)' : rs.messagesUnacked > 10 ? 'var(--yellow)' : 'var(--text)'}">${fmt(rs.messagesUnacked,0)}</span><span class="api-stat-label">unacked</span></div>
-          </div>
-          <div class="md-stat-group">
-            <span class="md-stat-group-label">MSG/s</span>
-            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.publishRate,1)}</span><span class="api-stat-label">publish</span></div>
-            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.deliverRate,1)}</span><span class="api-stat-label">deliver</span></div>
-            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.ackRate,1)}</span><span class="api-stat-label">ack</span></div>
-          </div>
-          <div class="md-stat-group">
-            <span class="md-stat-group-label">RESOURCES</span>
-            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.diskAvailableGB,1)}</span><span class="api-stat-label">disk GB</span></div>
-            <div class="api-stat-item"><span class="api-stat-value">${fmt(rs.memoryUsedMB,0)}</span><span class="api-stat-label">mem MB</span></div>
-          </div>
-        </div>
       </div></div>`;
     }
 
@@ -812,7 +812,7 @@
 
   // Fetch all three in parallel
   function renderCollTable() {
-    const cs = latestColls;
+    const cs = latestMongo && latestMongo.collectionStats;
     if (!cs || cs.length === 0) return '';
     cs.sort((a, b) => (b.dataSizeMB || 0) - (a.dataSizeMB || 0));
     return `
@@ -853,12 +853,10 @@
       fetch('/api/stats').then(r => r.json()).catch(() => null),
       fetch('/api/mongo').then(r => r.json()).catch(() => null),
       fetch('/api/rabbitmq').then(r => r.json()).catch(() => null),
-      fetch('/api/mongo/collections').then(r => r.json()).catch(() => null),
-    ]).then(([api, mongo, rabbit, colls]) => {
+    ]).then(([api, mongo, rabbit]) => {
       latestApi = api;
       latestMongo = mongo;
       latestRabbit = rabbit;
-      latestColls = colls;
       renderMetrics();
     });
   }
