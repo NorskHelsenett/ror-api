@@ -12,38 +12,38 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
 )
 
-type singleclusterlistgenerator struct{}
+type clusterlistitemgenerator struct{}
 
 const (
-	SingleClusterListView = "singleclusterlist"
+	ClusterListItemView = "clusterlistitem"
 )
 
 func init() {
-	Generators.RegisterViewGenerator(SingleClusterListView, &singleclusterlistgenerator{})
+	Generators.RegisterViewGenerator(ClusterListItemView, &clusterlistitemgenerator{})
 }
 
-// Implement the ListViewGenerator interface for singleclusterlistgenerator
-func (g *singleclusterlistgenerator) GenerateView(ctx context.Context, opts ...ViewGeneratorsOption) (apiview.View, error) {
+// Implement the ListViewGenerator interface for clusterlistitemgenerator
+func (g *clusterlistitemgenerator) GenerateView(ctx context.Context, opts ...ViewGeneratorsOption) (apiview.View, error) {
 	// Placeholder implementation
 	return apiview.View{
-		Type:    ClusterListView,
-		Columns: createSingleClusterListHeaders(ctx, opts...),
-		Rows:    createSingleClusterListData(ctx, opts...),
+		Type:    ClusterListItemView,
+		Columns: createClusterListItemHeaders(ctx, opts...),
+		Rows:    createClusterListItemData(ctx, opts...),
 	}, nil
 }
 
-func (g *singleclusterlistgenerator) GetMetadata() apiview.ViewMetadata {
+func (g *clusterlistitemgenerator) GetMetadata() apiview.ViewMetadata {
 	return apiview.ViewMetadata{
-		Id:          SingleClusterListView,
+		Id:          ClusterListItemView,
 		Type:        apiview.ViewTypeList,
-		Description: "A list view of single cluster",
-		Name:        "Single Cluster List View",
+		Description: "A list view of cluster item",
+		Name:        "Cluster List Item View",
 		Version:     1,
 	}
 }
 
 // BFF4EVAH
-func createSingleClusterListHeaders(_ context.Context, _ ...ViewGeneratorsOption) []apiview.ViewColumn {
+func createClusterListItemHeaders(_ context.Context, _ ...ViewGeneratorsOption) []apiview.ViewColumn {
 	return []apiview.ViewColumn{
 		{
 			Name:        "clusterUid",
@@ -272,7 +272,8 @@ func createSingleClusterListHeaders(_ context.Context, _ ...ViewGeneratorsOption
 	}
 }
 
-func createSingleClusterListData(ctx context.Context, options ...ViewGeneratorsOption) []apiview.ViewRow {
+func createClusterListItemData(ctx context.Context, options ...ViewGeneratorsOption) []apiview.ViewRow {
+
 	var resourcesService *rorresources.ResourceSet
 	cfg := &viewGeneratorOptions{}
 	for _, opt := range options {
