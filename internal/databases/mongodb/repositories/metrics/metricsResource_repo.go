@@ -37,6 +37,14 @@ func WriteMetrics(metricsreport *apicontracts.MetricsReport, clusterId string, c
 			"memoryusage":      metricUpdate.MemoryUsage,
 			"memoryallocated":  metricUpdate.MemoryAllocated,
 			"memorypercentage": metricUpdate.MemoryPercentage,
+			"diskUsageBytes":   metricUpdate.DiskUsageBytes,
+			"diskTotalBytes":   metricUpdate.DiskTotalBytes,
+			"diskPercent":      metricUpdate.DiskPercent,
+			"networkRxBytes":   metricUpdate.NetworkRxBytes,
+			"networkTxBytes":   metricUpdate.NetworkTxBytes,
+			"load1":            metricUpdate.Load1,
+			"load5":            metricUpdate.Load5,
+			"load15":           metricUpdate.Load15,
 		}
 		queries = append(queries, query)
 	}
