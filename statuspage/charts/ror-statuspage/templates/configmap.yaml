@@ -8,3 +8,4 @@ data:
   STATUS_NAMESPACE: {{ .Values.status.namespace | quote }}
   STATUS_PORT: {{ .Values.status.port | quote }}
   PROMETHEUS_URL: {{ .Values.status.prometheusUrl | quote }}
+  ALERTMANAGER_URL: {{ .Values.status.alertmanagerUrl | quote }}
