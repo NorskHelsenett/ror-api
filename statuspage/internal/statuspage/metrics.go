@@ -52,12 +52,20 @@ type RabbitMQStats struct {
 type PrometheusClient struct {
 	baseURL    string
 	httpClient *http.Client
+	hub        *SSEHub
 
 	mu              sync.RWMutex
 	stats           *APIStats
 	mongoStats      *MongoStats
 	collectionStats []CollectionStat
 	rabbitStats     *RabbitMQStats
+}
+
+// MetricsSnapshot bundles all metrics for SSE push.
+type MetricsSnapshot struct {
+	API      *APIStats      `json:"api"`
+	Mongo    *MongoStats    `json:"mongo"`
+	RabbitMQ *RabbitMQStats `json:"rabbitmq"`
 }
 
 // CollectionStat holds per-collection metrics from mongodb collstats.
@@ -112,9 +120,10 @@ type MongoStats struct {
 }
 
 // NewPrometheusClient creates a new Prometheus query client.
-func NewPrometheusClient(prometheusURL string) *PrometheusClient {
+func NewPrometheusClient(prometheusURL string, hub *SSEHub) *PrometheusClient {
 	return &PrometheusClient{
 		baseURL: prometheusURL,
+		hub:     hub,
 		httpClient: &http.Client{
 			Timeout: 5 * time.Second,
 		},
@@ -169,6 +178,7 @@ func (p *PrometheusClient) Start(ctx context.Context) {
 	p.fetchMongoStats()
 	p.fetchCollectionStats()
 	p.fetchRabbitMQStats()
+	p.broadcastMetrics()
 
 	ticker := time.NewTicker(15 * time.Second)
 	defer ticker.Stop()
@@ -182,7 +192,21 @@ func (p *PrometheusClient) Start(ctx context.Context) {
 			p.fetchMongoStats()
 			p.fetchCollectionStats()
 			p.fetchRabbitMQStats()
+			p.broadcastMetrics()
 		}
+	}
+}
+
+func (p *PrometheusClient) broadcastMetrics() {
+	p.hub.BroadcastEvent("metrics", p.CurrentMetrics())
+}
+
+// CurrentMetrics returns a combined snapshot of all metrics.
+func (p *PrometheusClient) CurrentMetrics() *MetricsSnapshot {
+	return &MetricsSnapshot{
+		API:      p.CurrentStats(),
+		Mongo:    p.CurrentMongoStats(),
+		RabbitMQ: p.CurrentRabbitMQStats(),
 	}
 }
 

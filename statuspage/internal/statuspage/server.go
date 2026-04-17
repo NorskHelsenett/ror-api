@@ -52,15 +52,26 @@ func Run() {
 	if !strings.HasPrefix(prometheusURL, "http://") && !strings.HasPrefix(prometheusURL, "https://") {
 		prometheusURL = "http://" + prometheusURL
 	}
-	promClient := NewPrometheusClient(prometheusURL)
+	promClient := NewPrometheusClient(prometheusURL, hub)
 	go promClient.Start(ctx)
+
+	// Alertmanager client for active alerts
+	alertmanagerURL := os.Getenv("ALERTMANAGER_URL")
+	if alertmanagerURL == "" {
+		alertmanagerURL = "http://prometheus-kube-prometheus-alertmanager.prometheus-operator.svc:9093"
+	}
+	if !strings.HasPrefix(alertmanagerURL, "http://") && !strings.HasPrefix(alertmanagerURL, "https://") {
+		alertmanagerURL = "http://" + alertmanagerURL
+	}
+	alertClient := NewAlertmanagerClient(alertmanagerURL, namespace, hub)
+	go alertClient.Start(ctx)
 
 	// Routes
 	router.GET("/health", func(c *gin.Context) {
 		c.String(http.StatusOK, "ok")
 	})
 
-	router.GET("/events", hub.HandleSSE(watcher.CurrentSnapshot))
+	router.GET("/events", hub.HandleSSE(watcher.CurrentSnapshot, alertClient.CurrentAlerts, promClient.CurrentMetrics))
 
 	router.GET("/api/stats", func(c *gin.Context) {
 		stats := promClient.CurrentStats()
@@ -85,6 +96,11 @@ func Run() {
 	router.GET("/api/rabbitmq", func(c *gin.Context) {
 		rs := promClient.CurrentRabbitMQStats()
 		c.JSON(http.StatusOK, rs)
+	})
+
+	router.GET("/api/alerts", func(c *gin.Context) {
+		alerts := alertClient.CurrentAlerts()
+		c.JSON(http.StatusOK, alerts)
 	})
 
 	router.GET("/flow", func(c *gin.Context) {

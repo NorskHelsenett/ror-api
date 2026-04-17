@@ -592,6 +592,60 @@
     color: var(--blue);
   }
   .coll-stats-table tr:last-child td { border-bottom: none; }
+
+  /* Alerts banner */
+  .alerts-banner {
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+  .alerts-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .alerts-header.critical { background: rgba(248,81,73,0.15); color: var(--red); border: 1px solid rgba(248,81,73,0.3); border-radius: 12px; }
+  .alerts-header.warning { background: rgba(210,153,34,0.15); color: var(--yellow); border: 1px solid rgba(210,153,34,0.3); border-radius: 12px; }
+  .alerts-header.info { background: rgba(88,166,255,0.15); color: var(--blue); border: 1px solid rgba(88,166,255,0.3); border-radius: 12px; }
+  .alerts-header svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .alerts-header .alert-count { margin-left: auto; font-size: 0.75rem; opacity: 0.8; }
+  .alerts-header .expand-arrow { font-size: 0.6rem; transition: transform 0.2s; }
+  .alerts-header .expand-arrow.open { transform: rotate(90deg); }
+  .alerts-list {
+    display: none;
+    padding: 0.25rem 1rem 0.5rem;
+  }
+  .alerts-list.open { display: block; }
+  .alert-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    font-size: 0.8rem;
+  }
+  .alert-item:last-child { border-bottom: none; }
+  .alert-sev {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .alert-sev.critical { background: rgba(248,81,73,0.2); color: var(--red); }
+  .alert-sev.warning { background: rgba(210,153,34,0.2); color: var(--yellow); }
+  .alert-sev.info { background: rgba(88,166,255,0.2); color: var(--blue); }
+  .alert-body { flex: 1; min-width: 0; }
+  .alert-name { font-weight: 600; color: var(--text); }
+  .alert-desc { color: var(--muted); font-size: 0.75rem; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; }
+  .alert-meta { color: var(--muted); font-size: 0.65rem; margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -614,6 +668,8 @@
   </div>
 </header>
 
+<div id="alertsBanner" style="display:none"></div>
+
 <div id="metricsPanel" class="api-stats-panel" style="display:none">
   <div class="metrics-bar" id="metricsBar">
     <span class="expand-arrow" id="metricsArrow">▶</span>
@@ -635,10 +691,12 @@
   const metricsBar = document.getElementById('metricsBar');
   const metricsArrow = document.getElementById('metricsArrow');
   const metricsDetail = document.getElementById('metricsDetail');
+  const alertsBanner = document.getElementById('alertsBanner');
 
   let metricsExpanded = false;
   let latestApi = null, latestMongo = null, latestRabbit = null;
   let collStatsOpen = false;
+  let alertsExpanded = false;
 
   metricsBar.addEventListener('click', function() {
     metricsExpanded = !metricsExpanded;
@@ -848,21 +906,65 @@
     `;
   }
 
-  function fetchAllMetrics() {
-    Promise.all([
-      fetch('/api/stats').then(r => r.json()).catch(() => null),
-      fetch('/api/mongo').then(r => r.json()).catch(() => null),
-      fetch('/api/rabbitmq').then(r => r.json()).catch(() => null),
-    ]).then(([api, mongo, rabbit]) => {
-      latestApi = api;
-      latestMongo = mongo;
-      latestRabbit = rabbit;
-      renderMetrics();
-    });
+  function renderAlerts(data) {
+    if (!data || !data.available || !data.alerts || data.alerts.length === 0) {
+      alertsBanner.style.display = 'none';
+      return;
+    }
+    alertsBanner.style.display = 'block';
+    const alerts = data.alerts;
+    const hasCritical = alerts.some(a => a.severity === 'critical');
+    const level = hasCritical ? 'critical' : 'warning';
+    const icon = hasCritical
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+
+    let html = `<div class="alerts-banner">
+      <div class="alerts-header ${level}" onclick="this.querySelector('.expand-arrow').classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+        ${icon}
+        <span>${alerts.length} active alert${alerts.length > 1 ? 's' : ''}</span>
+        <span class="alert-count">${alerts.filter(a=>a.severity==='critical').length} critical, ${alerts.filter(a=>a.severity==='warning').length} warning</span>
+        <span class="expand-arrow${alertsExpanded ? ' open' : ''}">▶</span>
+      </div>
+      <div class="alerts-list${alertsExpanded ? ' open' : ''}">`;
+
+    for (const a of alerts) {
+      const sev = a.severity || 'info';
+      const ago = timeAgo(a.startedAt);
+      html += `<div class="alert-item">
+        <span class="alert-sev ${sev}">${sev}</span>
+        <div class="alert-body">
+          <div class="alert-name">${escHtml(a.name)}${a.pod ? ' <span style="color:var(--muted);font-weight:400">— ' + escHtml(a.pod) + '</span>' : ''}</div>
+          ${a.summary ? '<div class="alert-desc">' + escHtml(a.summary) + '</div>' : ''}
+          <div class="alert-meta">Firing for ${ago}</div>
+        </div>
+      </div>`;
+    }
+    html += '</div></div>';
+    alertsBanner.innerHTML = html;
+
+    const hdr = alertsBanner.querySelector('.alerts-header');
+    if (hdr) hdr.addEventListener('click', () => { alertsExpanded = !alertsExpanded; });
   }
 
-  fetchAllMetrics();
-  setInterval(fetchAllMetrics, 15000);
+  function timeAgo(iso) {
+    if (!iso) return '—';
+    const ms = Date.now() - new Date(iso).getTime();
+    const s = Math.floor(ms / 1000);
+    if (s < 60) return s + 's';
+    const m = Math.floor(s / 60);
+    if (m < 60) return m + 'm';
+    const h = Math.floor(m / 60);
+    if (h < 24) return h + 'h ' + (m % 60) + 'm';
+    const d = Math.floor(h / 24);
+    return d + 'd ' + (h % 24) + 'h';
+  }
+
+  function escHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
 
 
 
@@ -872,6 +974,19 @@
     es.addEventListener('status', function(e) {
       const snap = JSON.parse(e.data);
       render(snap);
+    });
+
+    es.addEventListener('alerts', function(e) {
+      const data = JSON.parse(e.data);
+      renderAlerts(data);
+    });
+
+    es.addEventListener('metrics', function(e) {
+      const data = JSON.parse(e.data);
+      latestApi = data.api;
+      latestMongo = data.mongo;
+      latestRabbit = data.rabbitmq;
+      renderMetrics();
     });
 
     es.onopen = function() {
