@@ -362,6 +362,7 @@ func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []api
 			"priceYear": {
 				FieldValue: priceMonth * 12,
 			},
+
 			// Add more fields as needed
 		}
 		ret = append(ret, row)
