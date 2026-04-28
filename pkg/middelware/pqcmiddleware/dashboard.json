@@ -1,0 +1,234 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "title": "Post-Quantum vs Classical Connections (Rate)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "auto",
+            "stacking": { "mode": "none" }
+          },
+          "unit": "reqps"
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Post-Quantum" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Classical" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(http_connections_post_quantum_total[$__rate_interval]))",
+          "legendFormat": "Post-Quantum",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(http_connections_classical_total[$__rate_interval]))",
+          "legendFormat": "Classical",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "title": "PQC Adoption Percentage",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "green", "value": 90 }
+            ]
+          },
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(http_connections_post_quantum_total[$__rate_interval])) / (sum(rate(http_connections_post_quantum_total[$__rate_interval])) + sum(rate(http_connections_classical_total[$__rate_interval]))) * 100",
+          "legendFormat": "PQC %",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Classical Adoption Percentage",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 10 },
+              { "color": "red", "value": 50 }
+            ]
+          },
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(http_connections_classical_total[$__rate_interval])) / (sum(rate(http_connections_post_quantum_total[$__rate_interval])) + sum(rate(http_connections_classical_total[$__rate_interval]))) * 100",
+          "legendFormat": "Classical %",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Connections by Algorithm",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (algorithm) (increase(http_connections_post_quantum_total[$__rate_interval]))",
+          "legendFormat": "{{algorithm}}",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (algorithm) (increase(http_connections_classical_total[$__rate_interval]))",
+          "legendFormat": "{{algorithm}}",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "title": "Connections by Agent Version",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {}
+      },
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        }
+      ],
+      "targets": [
+        {
+          "expr": "sum by (agent_version, algorithm) (increase(http_connections_post_quantum_total[1h]))",
+          "legendFormat": "PQC - {{agent_version}}",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        },
+        {
+          "expr": "sum by (agent_version, algorithm) (increase(http_connections_classical_total[1h]))",
+          "legendFormat": "Classical - {{agent_version}}",
+          "refId": "B",
+          "format": "table",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "title": "Post-Quantum Connections Rate by Agent",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2
+          },
+          "unit": "reqps"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (agent_version) (rate(http_connections_post_quantum_total[$__rate_interval]))",
+          "legendFormat": "{{agent_version}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Classical Connections Rate by Agent",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2
+          },
+          "unit": "reqps"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (agent_version) (rate(http_connections_classical_total[$__rate_interval]))",
+          "legendFormat": "{{agent_version}}",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["ror", "security", "post-quantum", "tls"],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "name": "DS_PROMETHEUS",
+        "type": "datasource",
+        "query": "prometheus"
+      }
+    ]
+  },
+  "time": { "from": "now-6h", "to": "now" },
+  "title": "Post-Quantum Cryptography - Connection Metrics",
+  "uid": "ror-pqc-metrics"
+}
