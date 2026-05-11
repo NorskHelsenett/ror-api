@@ -20,7 +20,7 @@ jobs:
       rorversion: ${{ steps.env.outputs.ROR_VERSION }}
       shortsha: ${{ steps.env.outputs.SHA_SHORT }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - id: env
         name: Set env
         run: |
@@ -42,7 +42,7 @@ jobs:
           - goos: linux
             goarch: arm64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -77,7 +77,7 @@ jobs:
       id-token: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download binary build artifacts (linux/amd64)
         uses: actions/download-artifact@v4
@@ -158,7 +158,7 @@ jobs:
       - setenv
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Check env
         run: |
           echo "Building helm chart for ${{ env.APP }} ${{ needs.setenv.outputs.rorversion }} (${{ needs.setenv.outputs.shortsha }})"
