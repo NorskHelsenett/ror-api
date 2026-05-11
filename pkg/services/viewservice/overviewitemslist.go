@@ -261,12 +261,12 @@ func createOverviewItemsListData(ctx context.Context, _ ...ViewGeneratorsOption)
 	ret := make([]apiview.ViewRow, 0, 16) // Make sure limit is higher than amount of overview items
 
 	randomUidCluster, _ := uuid.NewRandom()
-	// randomUidVm, _ := uuid.NewRandom()
-	// randomUidVulnerabilities, _ := uuid.NewRandom()
+	randomUidVm, _ := uuid.NewRandom()
+	randomUidVulnerabilities, _ := uuid.NewRandom()
 
 	ret = aggregateClusterHealthData(ctx, ret, randomUidCluster.String())
-	// ret = aggregateVmHealthData(ctx, ret, randomUidVm.String())
-	// ret = aggregateVulnerabilitiesHealthData(ctx, ret, randomUidVulnerabilities.String())
+	ret = aggregateVmHealthData(ctx, ret, randomUidVm.String())
+	ret = aggregateVulnerabilitiesHealthData(ctx, ret, randomUidVulnerabilities.String())
 
 	return ret
 }
