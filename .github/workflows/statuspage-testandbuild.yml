@@ -1,0 +1,68 @@
+name: Test and build Statuspage
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "statuspage/**"
+
+env:
+  APP: ror-statuspage
+  MODULE_PATH: statuspage
+
+jobs:
+  helm-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: install-yq
+        run: |
+          wget https://github.com/mikefarah/yq/releases/download/${VERSION}/${BINARY}.tar.gz -O - | tar xz && mv ${BINARY} yq && chmod +x yq
+        env:
+          VERSION: v4.44.5
+          BINARY: yq_linux_amd64
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.17.0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+          check-latest: true
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.7.0
+      - name: Run chart-testing (list-changed)
+        id: list-changed
+        run: |
+          changed=$(ct list-changed --target-branch ${{ github.event.repository.default_branch }})
+          if [[ -n "$changed" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Run chart-testing (lint)
+        if: steps.list-changed.outputs.changed == 'true'
+        run: ct lint --config hacks/lint/yt.yaml --target-branch ${{ github.event.repository.default_branch }}
+
+  build-app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+      - name: Test
+        working-directory: ${{ env.MODULE_PATH }}
+        run: |
+          echo testing...
+          go vet ./...
+          go test -v ./...
+      - name: Build
+        working-directory: ${{ env.MODULE_PATH }}
+        run: |
+          echo building...
+          mkdir -p dist
+          CGO_ENABLED=0 go build -o dist/${{ env.APP }} -ldflags "-w -extldflags '-static'" ./cmd/statuspage/

@@ -1,0 +1,285 @@
+{{- if and (eq .Values.alerting.enabled true) (.Capabilities.APIVersions.Has "monitoring.coreos.com/v1") }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "ror-api.fullname" . }}
+  labels:
+    app: {{ include "ror-api.fullname" . }}
+    release: prometheus
+spec:
+  groups:
+    # ---------------------------------------------------------------
+    # RabbitMQ queue depth alerts
+    # ---------------------------------------------------------------
+    - name: rabbitmq-ror-queue-alerts
+      rules:
+        - alert: RabbitMQQueueMessagesHigh
+          expr: |
+            rabbitmq_detailed_queue_messages{namespace="{{ .Release.Namespace }}"} > {{ .Values.alerting.rabbitmq.queueMessagesWarning }}
+          for: 5m
+          labels:
+            severity: warning
+            team: ror
+          annotations:
+            summary: "RabbitMQ queue {{ "{{" }} $labels.queue {{ "}}" }} has high message count"
+            description: >-
+              Queue {{ "{{" }} $labels.queue {{ "}}" }} on
+              {{ "{{" }} $labels.pod {{ "}}" }} has
+              {{ "{{" }} $value | humanize {{ "}}" }} messages
+              (threshold: {{ .Values.alerting.rabbitmq.queueMessagesWarning }}).
+
+        - alert: RabbitMQQueueMessagesCritical
+          expr: |
+            rabbitmq_detailed_queue_messages{namespace="{{ .Release.Namespace }}"} > {{ .Values.alerting.rabbitmq.queueMessagesCritical }}
+          for: 2m
+          labels:
+            severity: critical
+            team: ror
+          annotations:
+            summary: "RabbitMQ queue {{ "{{" }} $labels.queue {{ "}}" }} message count critical"
+            description: >-
+              Queue {{ "{{" }} $labels.queue {{ "}}" }} on
+              {{ "{{" }} $labels.pod {{ "}}" }} has
+              {{ "{{" }} $value | humanize {{ "}}" }} messages
+              (threshold: {{ .Values.alerting.rabbitmq.queueMessagesCritical }}).
+              This is likely causing ror-api request timeouts.
+
+        - alert: RabbitMQQueueGrowing
+          expr: |
+            delta(rabbitmq_detailed_queue_messages{namespace="{{ .Release.Namespace }}"}[10m]) > {{ .Values.alerting.rabbitmq.queueGrowthRate }}
+          for: 5m
+          labels:
+            severity: warning
+            team: ror
+          annotations:
+            summary: "RabbitMQ queue {{ "{{" }} $labels.queue {{ "}}" }} is growing"
+            description: >-
+              Queue {{ "{{" }} $labels.queue {{ "}}" }} grew by
+              {{ "{{" }} $value | humanize {{ "}}" }} messages in 10 minutes.
+              Consumers may not be keeping up.
+
+        - alert: RabbitMQNoConsumers
+          expr: |
+            rabbitmq_detailed_queue_consumers{namespace="{{ .Release.Namespace }}", queue!~"sse-events.*"} == 0
+            and
+            rabbitmq_detailed_queue_messages{namespace="{{ .Release.Namespace }}", queue!~"sse-events.*"} > 0
+          for: 2m
+          labels:
+            severity: critical
+            team: ror
+          annotations:
+            summary: "RabbitMQ queue {{ "{{" }} $labels.queue {{ "}}" }} has no consumers"
+            description: >-
+              Queue {{ "{{" }} $labels.queue {{ "}}" }} has messages but zero
+              consumers. Messages will pile up indefinitely.
+
+    # ---------------------------------------------------------------
+    # ror-api failure rate alerts
+    # ---------------------------------------------------------------
+    - name: ror-api-alerts
+      rules:
+        - alert: RorApiHighTimeoutRate
+          expr: |
+            (
+              sum(rate(http_requests_total{job="ror-api", status="408"}[5m]))
+              /
+              sum(rate(http_requests_total{job="ror-api"}[5m]))
+            ) > {{ .Values.alerting.api.timeoutRateWarning }}
+          for: 3m
+          labels:
+            severity: warning
+            team: ror
+          annotations:
+            summary: "ror-api high timeout rate"
+            description: >-
+              {{ "{{" }} $value | humanizePercentage {{ "}}" }} of ror-api requests
+              are timing out (408). Threshold: {{ .Values.alerting.api.timeoutRateWarning | float64 | mul 100 }}%.
+
+        - alert: RorApiHighTimeoutRateCritical
+          expr: |
+            (
+              sum(rate(http_requests_total{job="ror-api", status="408"}[5m]))
+              /
+              sum(rate(http_requests_total{job="ror-api"}[5m]))
+            ) > {{ .Values.alerting.api.timeoutRateCritical }}
+          for: 2m
+          labels:
+            severity: critical
+            team: ror
+          annotations:
+            summary: "ror-api timeout rate critical"
+            description: >-
+              {{ "{{" }} $value | humanizePercentage {{ "}}" }} of ror-api requests
+              are timing out (408). This indicates a downstream dependency issue
+              (likely RabbitMQ or MongoDB).
+
+        - alert: RorApiHighErrorRate
+          expr: |
+            (
+              sum(rate(http_requests_total{job="ror-api", status=~"5.."}[5m]))
+              /
+              sum(rate(http_requests_total{job="ror-api"}[5m]))
+            ) > {{ .Values.alerting.api.errorRateWarning }}
+          for: 3m
+          labels:
+            severity: warning
+            team: ror
+          annotations:
+            summary: "ror-api high 5xx error rate"
+            description: >-
+              {{ "{{" }} $value | humanizePercentage {{ "}}" }} of ror-api requests
+              are returning 5xx errors.
+
+        - alert: RorApiResourceTimeouts
+          expr: |
+            sum(rate(http_requests_total{job="ror-api", path=~"/v./resources.*", status="408"}[5m])) > {{ .Values.alerting.api.resourceTimeoutsPerSecond }}
+          for: 3m
+          labels:
+            severity: warning
+            team: ror
+          annotations:
+            summary: "ror-api resource endpoint timeouts"
+            description: >-
+              Resource endpoints are timing out at
+              {{ "{{" }} $value | humanize {{ "}}" }} req/s.
+              Check RabbitMQ queue health and MongoDB connectivity.
+
+        - alert: RorApiPodDown
+          expr: |
+            up{job="ror-api"} == 0
+          for: 1m
+          labels:
+            severity: critical
+            team: ror
+          annotations:
+            summary: "ror-api pod {{ "{{" }} $labels.pod {{ "}}" }} is down"
+            description: >-
+              Prometheus cannot scrape ror-api pod
+              {{ "{{" }} $labels.pod {{ "}}" }}.
+
+        - alert: RorApiHighLatency
+          expr: |
+            (
+              sum(rate(http_request_duration_sum{job="ror-api", path=~"/v./resources.*"}[5m]))
+              /
+              sum(rate(http_request_duration_count{job="ror-api", path=~"/v./resources.*"}[5m]))
+            ) / 1e9 > {{ .Values.alerting.api.avgLatencySecondsWarning }}
+          for: 5m
+          labels:
+            severity: warning
+            team: ror
+          annotations:
+            summary: "ror-api resource endpoints high average latency"
+            description: >-
+              Average request duration for resource endpoints is
+              {{ "{{" }} $value | humanizeDuration {{ "}}" }}.
+
+    # ---------------------------------------------------------------
+    # Rate limiter alerts
+    # ---------------------------------------------------------------
+    - name: ror-api-rate-limiter-alerts
+      rules:
+        - alert: RorApiRateLimiterBlocking
+          expr: |
+            sum by (limiter_name) (rate(rate_limiter_blocked_total{job="ror-api"}[5m])) > {{ .Values.alerting.rateLimiter.blockedPerSecondWarning }}
+          for: 3m
+          labels:
+            severity: warning
+            team: ror
+          annotations:
+            summary: "ror-api rate limiter {{ "{{" }} $labels.limiter_name {{ "}}" }} is blocking requests"
+            description: >-
+              Rate limiter {{ "{{" }} $labels.limiter_name {{ "}}" }} is blocking
+              {{ "{{" }} $value | humanize {{ "}}" }} req/s.
+              Clients may be exceeding allowed throughput.
+
+        - alert: RorApiRateLimiterBlockRateHigh
+          expr: |
+            (
+              sum by (limiter_name) (rate(rate_limiter_requests_total{job="ror-api", status="blocked"}[5m]))
+              /
+              sum by (limiter_name) (rate(rate_limiter_requests_total{job="ror-api"}[5m]))
+            ) > {{ .Values.alerting.rateLimiter.blockedRatioCritical }}
+          for: 2m
+          labels:
+            severity: critical
+            team: ror
+          annotations:
+            summary: "ror-api rate limiter {{ "{{" }} $labels.limiter_name {{ "}}" }} blocking ratio critical"
+            description: >-
+              {{ "{{" }} $value | humanizePercentage {{ "}}" }} of requests to
+              {{ "{{" }} $labels.limiter_name {{ "}}" }} are being blocked by the
+              rate limiter. This indicates sustained overload.
+
+        - alert: RorApiRateLimiterTokensDepleted
+          expr: |
+            rate_limiter_tokens_available{job="ror-api"} == 0
+          for: 1m
+          labels:
+            severity: warning
+            team: ror
+          annotations:
+            summary: "ror-api rate limiter {{ "{{" }} $labels.limiter_name {{ "}}" }} has zero tokens"
+            description: >-
+              Rate limiter {{ "{{" }} $labels.limiter_name {{ "}}" }} bucket is
+              empty. All incoming requests will be rejected until tokens refill.
+
+    # ---------------------------------------------------------------
+    # Resource processing alerts
+    # ---------------------------------------------------------------
+    - name: ror-api-resource-processing-alerts
+      rules:
+        - alert: RorApiResourceProcessingStopped
+          expr: |
+            rate(resources_processed_total{job="ror-api"}[10m]) == 0
+            and
+            rate(resources_requests_total{job="ror-api"}[10m]) > 0
+          for: 5m
+          labels:
+            severity: critical
+            team: ror
+          annotations:
+            summary: "ror-api pod {{ "{{" }} $labels.pod {{ "}}" }} receiving requests but not processing resources"
+            description: >-
+              Pod {{ "{{" }} $labels.pod {{ "}}" }} has incoming resource requests
+              but the processed counter is not increasing. Resources are likely
+              failing silently.
+
+        - alert: RorApiResourceProcessingDrop
+          expr: |
+            (
+              rate(resources_processed_total{job="ror-api"}[5m])
+              /
+              rate(resources_requests_total{job="ror-api"}[5m])
+            ) < {{ .Values.alerting.resources.processedPerRequestMin }}
+            and
+            rate(resources_requests_total{job="ror-api"}[5m]) > 0
+          for: 5m
+          labels:
+            severity: warning
+            team: ror
+          annotations:
+            summary: "ror-api pod {{ "{{" }} $labels.pod {{ "}}" }} low resource processing ratio"
+            description: >-
+              Pod {{ "{{" }} $labels.pod {{ "}}" }} is processing only
+              {{ "{{" }} $value | humanize {{ "}}" }} resources per request.
+              This may indicate batch processing failures.
+
+    # ---------------------------------------------------------------
+    # Development mode alert
+    # ---------------------------------------------------------------
+    - name: ror-api-safety-alerts
+      rules:
+        - alert: RorApiDevelopmentMode
+          expr: |
+            ror_api_not_safe_for_production{job="ror-api"} == 1
+          for: 0m
+          labels:
+            severity: critical
+            team: ror
+          annotations:
+            summary: "ror-api pod {{ "{{" }} $labels.pod {{ "}}" }} is running in development mode"
+            description: >-
+              Pod {{ "{{" }} $labels.pod {{ "}}" }} has development mode enabled.
+              This is NOT safe for production and exposes development API keys.
+{{- end }}

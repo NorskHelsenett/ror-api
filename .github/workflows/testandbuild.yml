@@ -4,6 +4,9 @@ on:
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - "statuspage/**"
+      - ".github/workflows/statuspage-*"
 env:
   APP: ror-api
   APP_PATH: cmd/api

@@ -13,10 +13,10 @@ import (
 	"github.com/NorskHelsenett/ror-api/pkg/services/tokenservice"
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/config/rorversion"
+	"github.com/NorskHelsenett/ror/pkg/helpers/oidchelper"
 	healthserver "github.com/NorskHelsenett/ror/pkg/helpers/rorhealth/server"
 	"github.com/NorskHelsenett/ror/pkg/helpers/tokenstoragehelper"
 	"github.com/NorskHelsenett/ror/pkg/helpers/tokenstoragehelper/vaulttokenadapter"
-	"github.com/NorskHelsenett/ror/pkg/helpers/oidchelper"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 	"github.com/prometheus/client_golang/prometheus"
@@ -44,7 +44,7 @@ func Run() {
 	//TODO: Refactor the init functions called to respect context cancelations
 	apiconnections.InitConnections(ctx)
 
-	rortracer.InitWithDefault(ctx)
+	rortracer.InitWithDefault(ctx, rortracer.WithTimeout(time.Second*5))
 	defer func() {
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()

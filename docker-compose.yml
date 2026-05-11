@@ -68,6 +68,8 @@ services:
         condition: service_started
       init-dex-db:
         condition: service_completed_successfully
+      mocc:
+        condition: service_started
     links:
       - openldap
     ports:
@@ -185,7 +187,5 @@ services:
       - PORT=6006
     volumes:
       - ${ROR_ASSETS_PATH:-./hacks/assets}/mocc/users.yaml:/config/users.yaml:ro
-    profiles:
-      - mocc
 volumes:
   data: {}

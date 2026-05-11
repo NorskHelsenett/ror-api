@@ -10,7 +10,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/handlers/rabbitmqhandler"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/google/uuid"
-	"github.com/rabbitmq/amqp091-go"
+	amqp091 "github.com/rabbitmq/amqp091-go"
 )
 
 const (
@@ -34,7 +34,7 @@ func StartListeningRabbitMQ(rabbitMQConnection rabbitmqclient.RabbitMQConnection
 			Exclusive:          false,
 			NoLocal:            false,
 			NoWait:             false,
-			Args:               nil,
+			Args:               amqp091.Table{"x-expires": int32(1800000)},
 			Exchange:           SSEventsExchange,
 			ExcahngeKind:       "fanout",
 			ExchangeAutoDelete: true,

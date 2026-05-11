@@ -17,8 +17,8 @@ var (
 
 func init() {
 	MetricsPath = "/metrics"
-	requestCounter = promauto.NewCounterVec(prometheus.CounterOpts{Name: "http_requests_total"}, []string{"path", "method", "status"})
-	requestDurationHistogram = promauto.NewHistogramVec(prometheus.HistogramOpts{Name: "http_request_duration"}, []string{"path", "method", "status"})
+	requestCounter = promauto.NewCounterVec(prometheus.CounterOpts{Name: "http_requests_total"}, []string{"path", "method", "status", "user_agent"})
+	requestDurationHistogram = promauto.NewHistogramVec(prometheus.HistogramOpts{Name: "http_request_duration"}, []string{"path", "method", "status", "user_agent"})
 }
 
 func MetricMiddleware(metricsPath string) gin.HandlerFunc {
@@ -33,7 +33,8 @@ func MetricMiddleware(metricsPath string) gin.HandlerFunc {
 		start := time.Now()
 		c.Next()
 		duration := time.Since(start)
-		requestCounter.WithLabelValues(c.FullPath(), c.Request.Method, strconv.Itoa(c.Writer.Status())).Inc()
-		requestDurationHistogram.WithLabelValues(c.FullPath(), c.Request.Method, strconv.Itoa(c.Writer.Status())).Observe(float64(duration))
+		ua := c.Request.UserAgent()
+		requestCounter.WithLabelValues(c.FullPath(), c.Request.Method, strconv.Itoa(c.Writer.Status()), ua).Inc()
+		requestDurationHistogram.WithLabelValues(c.FullPath(), c.Request.Method, strconv.Itoa(c.Writer.Status()), ua).Observe(float64(duration))
 	}
 }

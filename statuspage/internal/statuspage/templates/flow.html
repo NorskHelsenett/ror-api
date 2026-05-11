@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROR Network Flow</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --text-dim: #8b949e;
+    --green: #3fb950;
+    --blue: #58a6ff;
+    --purple: #bc8cff;
+    --yellow: #d29922;
+    --orange: #f0883e;
+    --red: #f85149;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .header a {
+    color: var(--blue);
+    text-decoration: none;
+    font-size: 14px;
+  }
+  .header a:hover { text-decoration: underline; }
+  .flow-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+  }
+  svg { max-width: 100%; height: auto; }
+
+  /* Node styles */
+  .node-box {
+    fill: var(--surface);
+    stroke: var(--border);
+    stroke-width: 1.5;
+    rx: 8;
+  }
+  .node-box.agent-v1 { stroke: var(--green); }
+  .node-box.agent-v2 { stroke: #2ea043; }
+  .node-box.agent { stroke: var(--green); }
+  .node-box.browser { stroke: var(--blue); }
+  .node-box.other { stroke: var(--yellow); }
+  .node-box.pod { stroke: var(--purple); }
+  .node-box.mongo { stroke: var(--orange); }
+  .node-box.rabbit { stroke: #06b6d4; stroke-dasharray: 4 2; }
+  .node-box.collection { stroke: var(--orange); stroke-width: 1; opacity: 0.85; }
+
+  .flow-line.mongo { stroke: var(--orange); }
+  .flow-line.rabbit { stroke: #06b6d4; }
+  .flow-line.collection { stroke: var(--orange); }
+  .rate-label.mongo { fill: var(--orange); }
+  .rate-label.rabbit { fill: #06b6d4; }
+  .rate-label.collection { fill: var(--orange); }
+  .flow-dot.mongo { fill: var(--orange); }
+  .flow-dot.rabbit { fill: #06b6d4; }
+  .flow-dot.collection { fill: var(--orange); }
+
+  .node-label {
+    fill: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+  .node-sublabel {
+    fill: var(--text-dim);
+    font-size: 11px;
+    font-family: inherit;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+  .node-icon {
+    fill: var(--text-dim);
+    font-size: 20px;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+
+  /* Flow lines */
+  .flow-line {
+    fill: none;
+    stroke-linecap: round;
+  }
+  .flow-line.agent-v1 { stroke: var(--green); }
+  .flow-line.agent-v2 { stroke: #2ea043; }
+  .flow-line.agent { stroke: var(--green); }
+  .flow-line.browser { stroke: var(--blue); }
+  .flow-line.other { stroke: var(--yellow); }
+
+  /* Rate labels on lines */
+  .rate-label {
+    font-size: 11px;
+    font-family: inherit;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+  .rate-label.agent-v1 { fill: var(--green); }
+  .rate-label.agent-v2 { fill: #2ea043; }
+  .rate-label.agent { fill: var(--green); }
+  .rate-label.browser { fill: var(--blue); }
+  .rate-label.other { fill: var(--yellow); }
+
+  /* Animated dots */
+  .flow-dot {
+    r: 3;
+  }
+  .flow-dot.agent-v1 { fill: var(--green); }
+  .flow-dot.agent-v2 { fill: #2ea043; }
+  .flow-dot.agent { fill: var(--green); }
+  .flow-dot.browser { fill: var(--blue); }
+  .flow-dot.other { fill: var(--yellow); }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 24px;
+    padding: 12px 24px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    justify-content: center;
+    font-size: 13px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  .legend-dot.agent-v1 { background: var(--green); }
+  .legend-dot.agent-v2 { background: #2ea043; }
+  .legend-dot.agent { background: var(--green); }
+  .legend-dot.browser { background: var(--blue); }
+  .legend-dot.other { background: var(--yellow); }
+
+  .no-data {
+    color: var(--text-dim);
+    font-size: 16px;
+    text-align: center;
+  }
+  .total-badge {
+    fill: var(--bg);
+    stroke: var(--border);
+    stroke-width: 1;
+    rx: 4;
+  }
+  .total-text {
+    fill: var(--text);
+    font-size: 11px;
+    font-family: inherit;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/>
+      <line x1="12" y1="8" x2="5" y2="16"/><line x1="12" y1="8" x2="19" y2="16"/>
+    </svg>
+    Network Flow
+  </h1>
+  <a href="/">&larr; Status Page</a>
+</div>
+
+<div class="flow-container" id="flowContainer">
+  <div class="no-data">Loading flow data...</div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot agent-v1"></div> Agents v1</div>
+  <div class="legend-item"><div class="legend-dot agent-v2"></div> Agents v2</div>
+  <div class="legend-item"><div class="legend-dot browser"></div> Browsers</div>
+  <div class="legend-item"><div class="legend-dot other"></div> Other</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div> API Pods</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> MongoDB</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--orange);opacity:0.6;border:1px solid var(--orange)"></div> Collections</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#06b6d4"></div> RabbitMQ</div>
+</div>
+
+<script>
+const NODE_W = 160, NODE_H = 60, POD_W = 280, MONGO_W = 160, RABBIT_W = 160, COLL_W = 180;
+const SVG_PAD = 40;
+const COL_GAP = 220;
+const COL_GAP2 = 180;
+const COL_GAP3 = 120;
+
+// Classify raw user-agent into a group for the diagram.
+function classifyUA(ua) {
+  if (!ua) return 'other';
+  const lower = ua.toLowerCase();
+  // "ClusterAgent - v2.1.12 (abc123)" → check version prefix
+  if (lower.includes('clusteragent') || lower.includes('ror-agent') || lower.startsWith('go-http-client')) {
+    const m = ua.match(/v(\d+)\./i);
+    if (m && m[1] === '1') return 'agent-v1';
+    if (m && m[1] === '2') return 'agent-v2';
+    return 'agent-v1'; // default for go-http-client (v1 agents without custom UA)
+  }
+  if (lower.includes('mozilla') || lower.includes('chrome') || lower.includes('safari') || lower.includes('firefox')) return 'browser';
+  return 'other';
+}
+
+function buildSVG(rawFlows, mongoFlows, rabbitmqFlows, collectionFlows) {
+  // Aggregate raw per-user_agent flows into classified groups
+  const groups = {};  // { group: { total, perPod: { pod: rate } } }
+  const pods = {};    // { pod: { group: rate } }
+
+  for (const f of rawFlows) {
+    const g = classifyUA(f.userAgent);
+    if (!groups[g]) groups[g] = { total: 0, perPod: {} };
+    groups[g].total += f.rate;
+    groups[g].perPod[f.pod] = (groups[g].perPod[f.pod] || 0) + f.rate;
+    if (!pods[f.pod]) pods[f.pod] = {};
+    pods[f.pod][g] = (pods[f.pod][g] || 0) + f.rate;
+  }
+
+  const clientOrder = ['agent-v1', 'agent-v2', 'browser', 'other'].filter(c => groups[c]);
+  const podNames = Object.keys(pods).sort();
+
+  if (podNames.length === 0) {
+    return '<div class="no-data">No flow data available yet.<br>The <code>user_agent</code> label will appear after ror-api is redeployed with the updated metrics middleware.</div>';
+  }
+
+  const leftCount = clientOrder.length;
+  const rightCount = podNames.length;
+  const mongoOps = (mongoFlows || []).filter(m => m.rate > 0);
+  const hasMongoCol = mongoOps.length > 0;
+  const rabbitOps = (rabbitmqFlows || []).filter(r => r.rate > 0);
+  const hasRabbitCol = rabbitOps.length > 0;
+  const collEntries = (collectionFlows || []).filter(c => c.readRate > 0 || c.writeRate > 0 || c.documents > 0);
+  const hasCollCol = hasMongoCol && collEntries.length > 0;
+  // Backend column has MongoDB on top, RabbitMQ below
+  const hasBackendCol = hasMongoCol || hasRabbitCol;
+  const backendNodes = (hasMongoCol ? 1 : 0) + (hasRabbitCol ? 1 : 0);
+  const maxCount = Math.max(leftCount, rightCount, backendNodes, hasCollCol ? collEntries.length : 0);
+
+  const svgW = SVG_PAD * 2 + NODE_W + POD_W + COL_GAP + (hasBackendCol ? COL_GAP2 + Math.max(MONGO_W, RABBIT_W) : 0) + (hasCollCol ? COL_GAP3 + COLL_W : 0);
+  const rowH = NODE_H + 24;
+  const mongoBoxH = NODE_H * 2.5;
+  const rabbitBoxH = NODE_H * 1.8;
+  const backendGapSize = 20;
+  const backendTotalH = (hasMongoCol ? mongoBoxH : 0) + (hasRabbitCol ? rabbitBoxH : 0) + (hasMongoCol && hasRabbitCol ? backendGapSize : 0);
+  const collRowH = NODE_H + 12;
+  const collTotalH = hasCollCol ? collEntries.length * collRowH : 0;
+  const svgH = SVG_PAD * 2 + Math.max(maxCount * rowH, backendTotalH, collTotalH);
+
+  const leftX = SVG_PAD;
+  const rightX = SVG_PAD + NODE_W + COL_GAP;
+  const rightMidX = rightX + POD_W / 2;
+  const leftStartY = SVG_PAD + (svgH - SVG_PAD * 2 - leftCount * rowH) / 2;
+  const rightStartY = SVG_PAD + (svgH - SVG_PAD * 2 - rightCount * rowH) / 2;
+
+  // Find max rate for scaling
+  let maxRate = 1;
+  for (const f of rawFlows) maxRate = Math.max(maxRate, f.rate);
+
+  let svg = `<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg">`;
+  svg += `<defs>`;
+
+  let pathId = 0;
+  const lines = [];
+  for (let ci = 0; ci < clientOrder.length; ci++) {
+    const c = clientOrder[ci];
+    const cy = leftStartY + ci * rowH + NODE_H / 2;
+    const x1 = leftX + NODE_W;
+
+    for (let pi = 0; pi < podNames.length; pi++) {
+      const pod = podNames[pi];
+      const rate = pods[pod][c] || 0;
+      if (rate === 0) continue;
+
+      const py = rightStartY + pi * rowH + NODE_H / 2;
+      const x2 = rightX;
+
+      const sw = Math.max(1, Math.min(8, (rate / maxRate) * 8));
+      const opacity = Math.max(0.3, Math.min(0.9, rate / maxRate));
+
+      const pid = `path${pathId++}`;
+      const cpx1 = x1 + (x2 - x1) * 0.4;
+      const cpx2 = x1 + (x2 - x1) * 0.6;
+
+      svg += `<path id="${pid}" d="M${x1},${cy} C${cpx1},${cy} ${cpx2},${py} ${x2},${py}" />`;
+      lines.push({ pid, c, sw, opacity, rate, midX: (x1 + x2) / 2, midY: (cy + py) / 2 });
+    }
+  }
+  svg += `</defs>`;
+
+  for (const l of lines) {
+    svg += `<use href="#${l.pid}" class="flow-line ${l.c}" stroke-width="${l.sw}" opacity="${l.opacity}" />`;
+  }
+
+  for (const l of lines) {
+    if (l.rate < 0.01) continue;
+    const dur = Math.max(1, Math.min(6, 10 / (l.rate + 1)));
+    const count = Math.min(3, Math.max(1, Math.round(l.rate / 20)));
+    for (let i = 0; i < count; i++) {
+      const delay = (dur / count) * i;
+      svg += `<circle class="flow-dot ${l.c}" opacity="${l.opacity}">`;
+      svg += `<animateMotion dur="${dur}s" begin="${delay}s" repeatCount="indefinite"><mpath href="#${l.pid}"/></animateMotion>`;
+      svg += `</circle>`;
+    }
+  }
+
+  for (const l of lines) {
+    svg += `<text class="rate-label ${l.c}" x="${l.midX}" y="${l.midY - 8}">${l.rate.toFixed(1)} r/s</text>`;
+  }
+
+  const clientIcons = { 'agent-v1': '⚙', 'agent-v2': '⚙', browser: '🌐', other: '?' };
+  const clientLabels = { 'agent-v1': 'Agents v1', 'agent-v2': 'Agents v2', browser: 'Browsers', other: 'Other' };
+  for (let ci = 0; ci < clientOrder.length; ci++) {
+    const c = clientOrder[ci];
+    const x = leftX;
+    const y = leftStartY + ci * rowH;
+    svg += `<rect class="node-box ${c}" x="${x}" y="${y}" width="${NODE_W}" height="${NODE_H}" />`;
+    svg += `<text class="node-icon" x="${x + 24}" y="${y + NODE_H / 2}">${clientIcons[c]}</text>`;
+    svg += `<text class="node-label" x="${x + NODE_W / 2 + 12}" y="${y + NODE_H / 2 - 8}">${clientLabels[c]}</text>`;
+    svg += `<text class="node-sublabel" x="${x + NODE_W / 2 + 12}" y="${y + NODE_H / 2 + 10}">${groups[c].total.toFixed(1)} req/s</text>`;
+  }
+
+  for (let pi = 0; pi < podNames.length; pi++) {
+    const pod = podNames[pi];
+    const x = rightX;
+    const y = rightStartY + pi * rowH;
+    let podTotal = 0;
+    for (const c of clientOrder) podTotal += (pods[pod][c] || 0);
+
+    svg += `<rect class="node-box pod" x="${x}" y="${y}" width="${POD_W}" height="${NODE_H}" />`;
+    svg += `<text class="node-label" x="${x + POD_W / 2}" y="${y + NODE_H / 2 - 8}" style="font-size:11px">${pod}</text>`;
+    svg += `<text class="node-sublabel" x="${x + POD_W / 2}" y="${y + NODE_H / 2 + 10}">${podTotal.toFixed(1)} req/s</text>`;
+  }
+
+  // --- Backend column (3rd): MongoDB + RabbitMQ ---
+  if (hasBackendCol) {
+    const backendX = rightX + POD_W + COL_GAP2;
+    const backendGap = backendGapSize;
+
+    // Calculate vertical positions
+    const totalBackendH = backendTotalH;
+    const backendStartY = SVG_PAD + (svgH - SVG_PAD * 2 - totalBackendH) / 2;
+
+    let currentBackendY = backendStartY;
+
+    if (hasMongoCol) {
+      const mongoY = currentBackendY;
+      const mongoTotalRate = mongoOps.reduce((s, m) => s + m.rate, 0);
+
+      svg += `<rect class="node-box mongo" x="${backendX}" y="${mongoY}" width="${MONGO_W}" height="${mongoBoxH}" rx="8" />`;
+      svg += `<text class="node-label" x="${backendX + MONGO_W / 2}" y="${mongoY + 20}" style="font-size:13px">MongoDB</text>`;
+      svg += `<text class="node-sublabel" x="${backendX + MONGO_W / 2}" y="${mongoY + 38}">${mongoTotalRate.toFixed(1)} ops/s</text>`;
+
+      const opColors = { find: '#58a6ff', insert: '#3fb950', update: '#d29922', delete: '#f85149', aggregate: '#bc8cff' };
+      for (let oi = 0; oi < mongoOps.length; oi++) {
+        const op = mongoOps[oi];
+        const oy = mongoY + 55 + oi * 18;
+        svg += `<text x="${backendX + 12}" y="${oy}" fill="${opColors[op.op] || '#8b949e'}" font-size="11" font-family="inherit" dominant-baseline="central">${op.op}</text>`;
+        svg += `<text x="${backendX + MONGO_W - 12}" y="${oy}" fill="${opColors[op.op] || '#8b949e'}" font-size="11" font-family="inherit" dominant-baseline="central" text-anchor="end">${op.rate.toFixed(1)}/s</text>`;
+      }
+
+      // Flow lines from each pod to MongoDB
+      const mongoMidY = mongoY + mongoBoxH / 2;
+      let mongoMaxRate = Math.max(...podNames.map(p => {
+        let t = 0; for (const c of clientOrder) t += (pods[p][c] || 0); return t;
+      }), 1);
+
+      for (let pi = 0; pi < podNames.length; pi++) {
+        const py = rightStartY + pi * rowH + NODE_H / 2;
+        const x1 = rightX + POD_W;
+        const x2 = backendX;
+        let podRate = 0;
+        for (const c of clientOrder) podRate += (pods[podNames[pi]][c] || 0);
+        if (podRate === 0) continue;
+
+        const sw = Math.max(1, Math.min(6, (podRate / mongoMaxRate) * 6));
+        const opacity = Math.max(0.3, Math.min(0.8, podRate / mongoMaxRate));
+
+        const pid = `mpath${pi}`;
+        const cpx1 = x1 + (x2 - x1) * 0.4;
+        const cpx2 = x1 + (x2 - x1) * 0.6;
+
+        svg += `<path id="${pid}" d="M${x1},${py} C${cpx1},${py} ${cpx2},${mongoMidY} ${x2},${mongoMidY}" fill="none" />`;
+        svg += `<use href="#${pid}" class="flow-line mongo" stroke-width="${sw}" opacity="${opacity}" />`;
+
+        const dur = Math.max(1.5, Math.min(5, 8 / (podRate + 1)));
+        svg += `<circle class="flow-dot mongo" opacity="${opacity}">`;
+        svg += `<animateMotion dur="${dur}s" repeatCount="indefinite"><mpath href="#${pid}"/></animateMotion>`;
+        svg += `</circle>`;
+      }
+
+      currentBackendY += mongoBoxH + backendGap;
+    }
+
+    if (hasRabbitCol) {
+      const rabbitY = currentBackendY;
+      const rabbitTotalRate = rabbitOps.reduce((s, r) => s + r.rate, 0);
+
+      svg += `<rect class="node-box rabbit" x="${backendX}" y="${rabbitY}" width="${RABBIT_W}" height="${rabbitBoxH}" rx="8" />`;
+      svg += `<text class="node-label" x="${backendX + RABBIT_W / 2}" y="${rabbitY + 20}" style="font-size:13px">RabbitMQ</text>`;
+      svg += `<text class="node-sublabel" x="${backendX + RABBIT_W / 2}" y="${rabbitY + 38}">${rabbitTotalRate.toFixed(1)} msg/s</text>`;
+
+      // Show individual directions inside the RabbitMQ box
+      const dirColors = { publish: '#3fb950', deliver: '#58a6ff', ack: '#bc8cff' };
+      for (let ri = 0; ri < rabbitOps.length; ri++) {
+        const r = rabbitOps[ri];
+        const ry = rabbitY + 55 + ri * 18;
+        svg += `<text x="${backendX + 12}" y="${ry}" fill="${dirColors[r.direction] || '#8b949e'}" font-size="11" font-family="inherit" dominant-baseline="central">${r.direction}</text>`;
+        svg += `<text x="${backendX + RABBIT_W - 12}" y="${ry}" fill="${dirColors[r.direction] || '#8b949e'}" font-size="11" font-family="inherit" dominant-baseline="central" text-anchor="end">${r.rate.toFixed(1)}/s</text>`;
+      }
+
+      // Flow lines from each pod to RabbitMQ
+      const rabbitMidY = rabbitY + rabbitBoxH / 2;
+      let rabbitMaxRate = Math.max(...podNames.map(p => {
+        let t = 0; for (const c of clientOrder) t += (pods[p][c] || 0); return t;
+      }), 1);
+
+      for (let pi = 0; pi < podNames.length; pi++) {
+        const py = rightStartY + pi * rowH + NODE_H / 2;
+        const x1 = rightX + POD_W;
+        const x2 = backendX;
+        let podRate = 0;
+        for (const c of clientOrder) podRate += (pods[podNames[pi]][c] || 0);
+        if (podRate === 0) continue;
+
+        const sw = Math.max(1, Math.min(4, (podRate / rabbitMaxRate) * 4));
+        const opacity = Math.max(0.3, Math.min(0.7, podRate / rabbitMaxRate));
+
+        const pid = `rpath${pi}`;
+        const cpx1 = x1 + (x2 - x1) * 0.4;
+        const cpx2 = x1 + (x2 - x1) * 0.6;
+
+        svg += `<path id="${pid}" d="M${x1},${py} C${cpx1},${py} ${cpx2},${rabbitMidY} ${x2},${rabbitMidY}" fill="none" />`;
+        svg += `<use href="#${pid}" class="flow-line rabbit" stroke-width="${sw}" opacity="${opacity}" stroke-dasharray="4 3" />`;
+
+        const dur = Math.max(1.5, Math.min(5, 8 / (podRate + 1)));
+        svg += `<circle class="flow-dot rabbit" opacity="${opacity}">`;
+        svg += `<animateMotion dur="${dur}s" repeatCount="indefinite"><mpath href="#${pid}"/></animateMotion>`;
+        svg += `</circle>`;
+      }
+    }
+  }
+
+  // --- Collections column (4th): behind MongoDB ---
+  if (hasCollCol) {
+    const backendX = rightX + POD_W + COL_GAP2;
+    const collX = backendX + Math.max(MONGO_W, RABBIT_W) + COL_GAP3;
+    const collStartY = SVG_PAD + (svgH - SVG_PAD * 2 - collEntries.length * collRowH) / 2;
+
+    // MongoDB center for flow lines
+    const mongoY = SVG_PAD + (svgH - SVG_PAD * 2 - backendTotalH) / 2;
+    const mongoMidY = mongoY + mongoBoxH / 2;
+    const mongoRightX = backendX + MONGO_W;
+
+    // Max rate for scaling
+    const collMaxRate = Math.max(...collEntries.map(c => c.readRate + c.writeRate), 1);
+
+    for (let ci = 0; ci < collEntries.length; ci++) {
+      const coll = collEntries[ci];
+      const x = collX;
+      const y = collStartY + ci * collRowH;
+      const totalRate = coll.readRate + coll.writeRate;
+
+      // Collection node
+      svg += `<rect class="node-box collection" x="${x}" y="${y}" width="${COLL_W}" height="${NODE_H}" rx="6" />`;
+      svg += `<text class="node-label" x="${x + COLL_W / 2}" y="${y + 18}" style="font-size:11px">${coll.collection}</text>`;
+      const docLabel = coll.documents >= 1e6 ? (coll.documents/1e6).toFixed(1)+'M' : coll.documents >= 1e3 ? (coll.documents/1e3).toFixed(1)+'K' : coll.documents.toFixed(0);
+      svg += `<text class="node-sublabel" x="${x + COLL_W / 2}" y="${y + 34}">${docLabel} docs</text>`;
+      svg += `<text x="${x + 10}" y="${y + 50}" fill="#58a6ff" font-size="10" font-family="inherit" dominant-baseline="central">R ${coll.readRate.toFixed(1)}/s</text>`;
+      svg += `<text x="${x + COLL_W - 10}" y="${y + 50}" fill="#d29922" font-size="10" font-family="inherit" dominant-baseline="central" text-anchor="end">W ${coll.writeRate.toFixed(1)}/s</text>`;
+
+      // Flow line from MongoDB to collection
+      if (totalRate > 0) {
+        const cy = y + NODE_H / 2;
+        const sw = Math.max(1, Math.min(5, (totalRate / collMaxRate) * 5));
+        const opacity = Math.max(0.25, Math.min(0.7, totalRate / collMaxRate));
+
+        const pid = `cpath${ci}`;
+        const cpx1 = mongoRightX + (collX - mongoRightX) * 0.4;
+        const cpx2 = mongoRightX + (collX - mongoRightX) * 0.6;
+
+        svg += `<path id="${pid}" d="M${mongoRightX},${mongoMidY} C${cpx1},${mongoMidY} ${cpx2},${cy} ${collX},${cy}" fill="none" />`;
+        svg += `<use href="#${pid}" class="flow-line collection" stroke-width="${sw}" opacity="${opacity}" />`;
+
+        const dur = Math.max(1.5, Math.min(5, 8 / (totalRate + 1)));
+        svg += `<circle class="flow-dot collection" opacity="${opacity}">`;
+        svg += `<animateMotion dur="${dur}s" repeatCount="indefinite"><mpath href="#${pid}"/></animateMotion>`;
+        svg += `</circle>`;
+      }
+    }
+  }
+
+  svg += `</svg>`;
+  return svg;
+}
+
+async function fetchFlows() {
+  try {
+    const resp = await fetch('/api/flows');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    const container = document.getElementById('flowContainer');
+    if (!data.available || !data.flows || data.flows.length === 0) {
+      container.innerHTML = '<div class="no-data">No flow data available yet.<br>The <code>user_agent</code> label will appear after ror-api is redeployed with the updated metrics middleware.</div>';
+      return;
+    }
+    container.innerHTML = buildSVG(data.flows, data.mongoFlows, data.rabbitmqFlows, data.collectionFlows);
+  } catch (e) {
+    console.error('fetch flows error:', e);
+  }
+}
+
+fetchFlows();
+setInterval(fetchFlows, 15000);
+</script>
+</body>
+</html>

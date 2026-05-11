@@ -88,7 +88,7 @@ connectors:
   id: mocc
   name: Mocc
   config:
-    issuer: http://host.docker.internal:6006
+    issuer: http://ror-dev-mocc:6006
     providerDiscoveryOverrides:
       AuthURL: http://localhost:6006/authorize
     clientID: ror.sky.test.nhn.no

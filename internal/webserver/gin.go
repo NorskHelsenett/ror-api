@@ -18,6 +18,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/corsmiddleware"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/headersmiddleware"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/metricsmiddleware"
+	"github.com/NorskHelsenett/ror-api/pkg/middelware/pqcmiddleware"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/rlogmiddleware"
 
 	"github.com/gin-contrib/gzip"
@@ -68,6 +69,7 @@ func startHttpServer(ctx context.Context) error {
 
 	router.Use(gzip.Gzip(gzip.DefaultCompression, gzip.WithExcludedPaths([]string{"/metrics"})))
 	router.Use(gin.Recovery())
+	router.Use(pqcmiddleware.PostQuantumMetricsMiddleware())
 	if rorconfig.GetBool(rorconfig.ENABLE_TRACING) {
 		router.Use(otelgin.Middleware("ror-api"))
 	}
