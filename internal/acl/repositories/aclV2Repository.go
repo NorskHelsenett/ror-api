@@ -367,8 +367,7 @@ func createACLV2FilterByScopeSubject(identity identitymodels.Identity, scope acl
 			"$match": bson.M{
 				"subject": subject,
 			},
-		},
-		)
+		})
 		return filters
 	}
 
