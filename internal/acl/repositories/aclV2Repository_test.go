@@ -490,7 +490,7 @@ func Test_CheckAcl2ByIdentityQuery(t *testing.T) {
 	})
 }
 
-func Test_CheckAcl2ByCluster(t *testing.T) {
+func Test_GetAcl2ByQuery(t *testing.T) {
 	orig := mongoAggregate
 	t.Cleanup(func() { mongoAggregate = orig })
 
@@ -866,7 +866,7 @@ func Test_compileAccessSum(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := CompileAccessSum(tt.args.existing, tt.args.new); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("compileAccessSum() = %v, want %v", got, tt.want)
+				t.Errorf("CompileAccessSum() = %v, want %v", got, tt.want)
 			}
 		})
 	}
