@@ -3,7 +3,7 @@ module github.com/NorskHelsenett/ror-api
 go 1.26.3
 
 require (
-	github.com/NorskHelsenett/ror v1.18.7
+	github.com/NorskHelsenett/ror v1.18.8
 	github.com/blang/semver/v4 v4.0.0
 	github.com/dotse/go-health v1.0.2
 	github.com/evanphx/json-patch/v5 v5.9.11
@@ -31,7 +31,7 @@ require (
 	go.opentelemetry.io/otel v1.43.0
 	go.opentelemetry.io/otel/trace v1.43.0
 	go.uber.org/zap v1.28.0
-	golang.org/x/exp v0.0.0-20260218203240-3dfff04db8fa
+	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f
 	golang.org/x/time v0.15.0
 	k8s.io/apimachinery v0.36.0
 	sigs.k8s.io/yaml v1.6.0
