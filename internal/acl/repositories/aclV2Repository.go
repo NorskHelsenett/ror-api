@@ -88,7 +88,7 @@ func GetACL2ByIdentityQuery(ctx context.Context, aclQuery aclmodels.AclV2QueryAc
 		if len(dbResult) > 0 {
 			for _, result := range dbResult {
 				if result.Scope == aclmodels.Acl2ScopeRor {
-					aclReturnArray.Global = compileAccessSum(aclReturnArray.Global, result.Access)
+					aclReturnArray.Global = CompileAccessSum(aclReturnArray.Global, result.Access)
 				}
 				aclReturnArray.Items = append(aclReturnArray.Items, result)
 			}
@@ -146,7 +146,7 @@ func getAcl2ListByIdentityQuery(ctx context.Context, aclQuery aclmodels.AclV2Que
 	return dbResult, nil
 }
 
-func CheckAcl2ByCluster(ctx context.Context, aclQuery aclmodels.AclV2QueryAccessScopeSubject) []aclmodels.AclV2ListItem {
+func GetAcl2ByQuery(ctx context.Context, aclQuery aclmodels.AclV2QueryAccessScopeSubject) []aclmodels.AclV2ListItem {
 	identity := rorcontext.GetIdentityFromRorContext(ctx)
 	result := make([]aclmodels.AclV2ListItem, 0)
 
@@ -161,6 +161,30 @@ func CheckAcl2ByCluster(ctx context.Context, aclQuery aclmodels.AclV2QueryAccess
 
 	return result
 }
+
+// func GetACL2BySubjectScope(ctx context.Context, scope aclmodels.Acl2Scope, subject aclmodels.Acl2Subject) (map[aclmodels.Acl2Subject]aclmodels.AclV2ListItemAccess, error) {
+// 	identity := rorcontext.GetIdentityFromRorContext(ctx)
+// 	dbResult := make([]aclmodels.AclV2ListItem, 0)
+// 	var aggregationPipeline []bson.M
+// 	aggregationPipeline = append(aggregationPipeline, createACLV2FilterByScopeSubject(identity, scope, subject)...)
+// 	err := mongoAggregate(ctx, AclCollectionName, aggregationPipeline, &dbResult)
+// 	if err != nil {
+// 		rlog.Error("could not query mongodb", err)
+// 		return nil, err
+// 	}
+
+// 	accessMap := make(map[aclmodels.Acl2Subject]aclmodels.AclV2ListItemAccess)
+
+// 	for _, result := range dbResult {
+// 		if existingAccess, ok := accessMap[result.Subject]; ok {
+// 			accessMap[result.Subject] = compileAccessSum(existingAccess, result.Access)
+// 		} else {
+// 			accessMap[result.Subject] = result.Access
+// 		}
+// 	}
+
+// 	return accessMap, nil
+// }
 
 // GetOwnerrefsAcl2ByIdentityAccess Gets ownerrefs for identity with specific access returns []rorresourceowner.RorResourceOwnerReference
 func GetOwnerrefsQueryAcl2ByIdentityAccess(ctx context.Context, access aclmodels.AccessType) bson.M {
@@ -319,7 +343,7 @@ func compileAccess(acls []aclmodels.AclV2ListItem) aclmodels.AclV2ListItemAccess
 
 	compiledAccess := denyallACL
 	for _, result := range acls {
-		compiledAccess = compileAccessSum(compiledAccess, result.Access)
+		compiledAccess = CompileAccessSum(compiledAccess, result.Access)
 	}
 	return compiledAccess
 }
@@ -358,6 +382,38 @@ func createACLV2FilterByScopeSubject(identity identitymodels.Identity, scope acl
 		},
 	})
 
+	if scope == aclmodels.Acl2ScopeAll && subject == aclmodels.Acl2RorSubjectAll {
+		return filters
+	}
+
+	if scope == aclmodels.Acl2ScopeAll && subject != aclmodels.Acl2RorSubjectAll {
+		filters = append(filters, bson.M{
+			"$match": bson.M{
+				"subject": subject,
+			},
+		},
+		)
+		return filters
+	}
+
+	if subject == aclmodels.Acl2RorSubjectAll {
+		filters = append(filters, bson.M{
+			"$match": bson.M{
+				"$or": bson.A{
+					bson.M{
+						"scope": scope,
+					},
+					bson.M{
+						"scope": aclmodels.Acl2ScopeRor,
+						"subject": bson.M{
+							"$in": subjectArr,
+						},
+					},
+				},
+			},
+		})
+		return filters
+	}
 	filters = append(filters, bson.M{
 		"$match": bson.M{
 			"$or": bson.A{
@@ -464,7 +520,7 @@ func createACLV2Filter(identity identitymodels.Identity) []bson.M {
 }
 
 // Return the sum of two AclV2ListItemAccess
-func compileAccessSum(existing aclmodels.AclV2ListItemAccess, added aclmodels.AclV2ListItemAccess) aclmodels.AclV2ListItemAccess {
+func CompileAccessSum(existing aclmodels.AclV2ListItemAccess, added aclmodels.AclV2ListItemAccess) aclmodels.AclV2ListItemAccess {
 	compiledAccess := existing
 	if added.Read {
 		compiledAccess.Read = true

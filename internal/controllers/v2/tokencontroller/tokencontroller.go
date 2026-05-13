@@ -54,7 +54,7 @@ func ExchangeToken() gin.HandlerFunc {
 		// Subject: clusterId
 		// Access: kubernetes.logon
 		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeCluster, input.ClusterID)
-		access := aclrepository.CheckAcl2ByCluster(ctx, accessQuery)
+		access := aclrepository.GetAcl2ByQuery(ctx, accessQuery)
 		var hasAccess = false
 		for _, acl := range access {
 			if acl.Kubernetes.Logon {

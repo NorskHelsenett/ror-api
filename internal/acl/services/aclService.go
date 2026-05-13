@@ -159,3 +159,26 @@ func FilterGroupsInUse(ctx context.Context, groups []string) []string {
 
 	return groupsinuse
 }
+
+func GetAccessByContextScopeSubject(ctx context.Context, scope aclmodels.Acl2Scope, subject aclmodels.Acl2Subject) aclmodels.AclLookupResponse {
+	ctx, span := rortracer.StartSpan(ctx, "aclService.GetAccessByContextScopeSubject")
+	defer span.End()
+	acls := aclrepository.GetAcl2ByQuery(ctx, aclmodels.NewAclV2QueryAccessScopeSubject(scope, subject))
+	ret := aclmodels.AclLookupResponse{}
+	for _, acl := range acls {
+		if ret.Scopes == nil {
+			ret.Scopes = make(map[aclmodels.Acl2Scope]aclmodels.AclLookupResponseScope)
+		}
+		if _, ok := ret.Scopes[acl.Scope]; !ok {
+			ret.Scopes[acl.Scope] = aclmodels.AclLookupResponseScope{
+				Subject: make(map[aclmodels.Acl2Subject]aclmodels.AclV2ListItemAccess),
+			}
+		}
+		if cur, ok := ret.Scopes[acl.Scope].Subject[acl.Subject]; !ok {
+			ret.Scopes[acl.Scope].Subject[acl.Subject] = acl.Access
+		} else {
+			ret.Scopes[acl.Scope].Subject[acl.Subject] = aclrepository.CompileAccessSum(cur, acl.Access)
+		}
+	}
+	return ret
+}
