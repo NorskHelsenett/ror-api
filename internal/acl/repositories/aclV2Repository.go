@@ -162,30 +162,6 @@ func GetAcl2ByQuery(ctx context.Context, aclQuery aclmodels.AclV2QueryAccessScop
 	return result
 }
 
-// func GetACL2BySubjectScope(ctx context.Context, scope aclmodels.Acl2Scope, subject aclmodels.Acl2Subject) (map[aclmodels.Acl2Subject]aclmodels.AclV2ListItemAccess, error) {
-// 	identity := rorcontext.GetIdentityFromRorContext(ctx)
-// 	dbResult := make([]aclmodels.AclV2ListItem, 0)
-// 	var aggregationPipeline []bson.M
-// 	aggregationPipeline = append(aggregationPipeline, createACLV2FilterByScopeSubject(identity, scope, subject)...)
-// 	err := mongoAggregate(ctx, AclCollectionName, aggregationPipeline, &dbResult)
-// 	if err != nil {
-// 		rlog.Error("could not query mongodb", err)
-// 		return nil, err
-// 	}
-
-// 	accessMap := make(map[aclmodels.Acl2Subject]aclmodels.AclV2ListItemAccess)
-
-// 	for _, result := range dbResult {
-// 		if existingAccess, ok := accessMap[result.Subject]; ok {
-// 			accessMap[result.Subject] = compileAccessSum(existingAccess, result.Access)
-// 		} else {
-// 			accessMap[result.Subject] = result.Access
-// 		}
-// 	}
-
-// 	return accessMap, nil
-// }
-
 // GetOwnerrefsAcl2ByIdentityAccess Gets ownerrefs for identity with specific access returns []rorresourceowner.RorResourceOwnerReference
 func GetOwnerrefsQueryAcl2ByIdentityAccess(ctx context.Context, access aclmodels.AccessType) bson.M {
 
