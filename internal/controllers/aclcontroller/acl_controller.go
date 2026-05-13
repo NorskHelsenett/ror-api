@@ -93,7 +93,7 @@ func CheckAcl() gin.HandlerFunc {
 			return
 		}
 
-		accesstype, ok := parseAccessType(access)
+		accesstype, ok := aclmodels.ParseAcl2AccessType(access)
 		if !ok {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid access")
 			rerr.GinLogErrorAbort(c)
@@ -110,28 +110,73 @@ func CheckAcl() gin.HandlerFunc {
 	}
 }
 
-func parseAccessType(access string) (aclmodels.AccessType, bool) {
-	switch access {
-	case string(aclmodels.AccessTypeRead):
-		return aclmodels.AccessTypeRead, true
-	case string(aclmodels.AccessTypeCreate):
-		return aclmodels.AccessTypeCreate, true
-	case "write":
-		return aclmodels.AccessTypeCreate, true
-	case string(aclmodels.AccessTypeUpdate):
-		return aclmodels.AccessTypeUpdate, true
-	case string(aclmodels.AccessTypeDelete):
-		return aclmodels.AccessTypeDelete, true
-	case string(aclmodels.AccessTypeOwner):
-		return aclmodels.AccessTypeOwner, true
-	case string(aclmodels.AccessTypeRorMetadata):
-		return aclmodels.AccessTypeRorMetadata, true
-	case string(aclmodels.AccessTypeRorVulnerability):
-		return aclmodels.AccessTypeRorVulnerability, true
-	case string(aclmodels.AccessTypeClusterLogon):
-		return aclmodels.AccessTypeClusterLogon, true
-	default:
-		return "", false
+// @Summary	Check acl by parameters
+// @Schemes
+// @Description	Check acl by scope, subject and access method
+// @Tags			acl
+// @Success		200	{object}	aclmodels.AclLookupResponse
+// @Failure		403
+// @Failure		400
+// @Failure		401
+// @Param			scope								query		aclmodels.Acl2Scope	false	"Scope"
+// @Param			subject								query		aclmodels.Acl2Subject	false	"Subject"
+// @Param			access								query		string	false	"read,write,update or delete"
+// @Router			/v1/acl/lookup	[get]
+// @Security		ApiKey || AccessToken
+func LookupAcl() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
+		defer cancel()
+
+		scopeParam := c.Query("scope")
+		subjectParam := c.Query("subject")
+		accessParam := c.Query("access")
+
+		scope := aclmodels.Acl2ScopeAll
+		if scopeParam != "" {
+			scope = aclmodels.Acl2Scope(scopeParam)
+			if !scope.IsValid() {
+				rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid scope")
+				rerr.GinLogErrorAbort(c)
+				return
+			}
+		}
+
+		subject := aclmodels.Acl2RorSubjectAll
+		if subjectParam != "" {
+			subject = aclmodels.Acl2Subject(subjectParam)
+		}
+
+		acls := aclservice.GetAccessByContextScopeSubject(ctx, scope, subject)
+
+		if accessParam != "" {
+			accessType, ok := aclmodels.ParseAcl2AccessType(accessParam)
+			if !ok {
+				rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid access type")
+				rerr.GinLogErrorAbort(c)
+				return
+			}
+			filtered := aclmodels.AclLookupResponse{}
+			for scope, scopeData := range acls.Scopes {
+				for subject, access := range scopeData.Subject {
+					if access.HasAccessType(accessType) {
+						if filtered.Scopes == nil {
+							filtered.Scopes = make(map[aclmodels.Acl2Scope]aclmodels.AclLookupResponseScope)
+						}
+						if _, ok := filtered.Scopes[scope]; !ok {
+							filtered.Scopes[scope] = aclmodels.AclLookupResponseScope{
+								Subject: make(map[aclmodels.Acl2Subject]aclmodels.AclV2ListItemAccess),
+							}
+						}
+						filtered.Scopes[scope].Subject[subject] = access
+					}
+				}
+			}
+			c.JSON(http.StatusOK, filtered)
+			return
+		}
+
+		c.JSON(http.StatusOK, acls)
 	}
 }
 

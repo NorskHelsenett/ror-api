@@ -490,7 +490,7 @@ func Test_CheckAcl2ByIdentityQuery(t *testing.T) {
 	})
 }
 
-func Test_CheckAcl2ByCluster(t *testing.T) {
+func Test_GetAcl2ByQuery(t *testing.T) {
 	orig := mongoAggregate
 	t.Cleanup(func() { mongoAggregate = orig })
 
@@ -501,7 +501,7 @@ func Test_CheckAcl2ByCluster(t *testing.T) {
 		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value interface{}) error {
 			return errors.New("boom")
 		}
-		got := CheckAcl2ByCluster(ctx, q)
+		got := GetAcl2ByQuery(ctx, q)
 		if len(got) != 0 {
 			t.Fatalf("expected empty result, got %v", got)
 		}
@@ -513,7 +513,7 @@ func Test_CheckAcl2ByCluster(t *testing.T) {
 			*out = []aclmodels.AclV2ListItem{{Scope: aclmodels.Acl2ScopeCluster, Subject: aclmodels.Acl2Subject("c1")}}
 			return nil
 		}
-		got := CheckAcl2ByCluster(ctx, q)
+		got := GetAcl2ByQuery(ctx, q)
 		if len(got) != 1 {
 			t.Fatalf("expected 1 result, got %v", got)
 		}
@@ -701,6 +701,86 @@ func Test_createACLV2FilterByScopeSubject(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "ScopeAll and SubjectAll",
+			args: args{
+				identity: identitymocks.ValiduserWithGroups([]string{"T1-A-TEST-Admin@test.nhn.no"}),
+				scope:    aclmodels.Acl2ScopeAll,
+				subject:  aclmodels.Acl2RorSubjectAll,
+			},
+			want: []bson.M{
+				{
+					"$match": bson.M{
+						"group": bson.M{
+							"$in": bson.A{
+								"T1-A-TEST-Admin@test.nhn.no",
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "ScopeAll with specific subject",
+			args: args{
+				identity: identitymocks.ValiduserWithGroups([]string{"T1-A-TEST-Admin@test.nhn.no"}),
+				scope:    aclmodels.Acl2ScopeAll,
+				subject:  aclmodels.Acl2Subject("t-test-001"),
+			},
+			want: []bson.M{
+				{
+					"$match": bson.M{
+						"group": bson.M{
+							"$in": bson.A{
+								"T1-A-TEST-Admin@test.nhn.no",
+							},
+						},
+					},
+				},
+				{
+					"$match": bson.M{
+						"subject": aclmodels.Acl2Subject("t-test-001"),
+					},
+				},
+			},
+		},
+		{
+			name: "Specific scope with SubjectAll",
+			args: args{
+				identity: identitymocks.ValiduserWithGroups([]string{"T1-A-TEST-Admin@test.nhn.no"}),
+				scope:    aclmodels.Acl2ScopeCluster,
+				subject:  aclmodels.Acl2RorSubjectAll,
+			},
+			want: []bson.M{
+				{
+					"$match": bson.M{
+						"group": bson.M{
+							"$in": bson.A{
+								"T1-A-TEST-Admin@test.nhn.no",
+							},
+						},
+					},
+				},
+				{
+					"$match": bson.M{
+						"$or": bson.A{
+							bson.M{
+								"scope": aclmodels.Acl2ScopeCluster,
+							},
+							bson.M{
+								"scope": aclmodels.Acl2ScopeRor,
+								"subject": bson.M{
+									"$in": []string{
+										string(aclmodels.Acl2ScopeCluster),
+										string(aclmodels.Acl2RorSubjectGlobal),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -785,8 +865,8 @@ func Test_compileAccessSum(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := compileAccessSum(tt.args.existing, tt.args.new); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("compileAccessSum() = %v, want %v", got, tt.want)
+			if got := CompileAccessSum(tt.args.existing, tt.args.new); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("CompileAccessSum() = %v, want %v", got, tt.want)
 			}
 		})
 	}

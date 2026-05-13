@@ -542,8 +542,7 @@ func GetKubeconfig() gin.HandlerFunc {
 		//aclModel := aclmodels.NewAclV2QueryAccessScopeSubject(scope, clusterId)
 		//add a span for the access check
 		accessctx, accessspan := rortracer.StartSpan(ctx, "aclrepository.CheckAcl2ByCluster")
-		defer accessspan.End()
-		access := aclrepository.CheckAcl2ByCluster(accessctx, accessQuery)
+		access := aclrepository.GetAcl2ByQuery(accessctx, accessQuery)
 		accessspan.End()
 		var hasAccess = false
 		for _, acl := range access {
