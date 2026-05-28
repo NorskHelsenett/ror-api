@@ -374,7 +374,7 @@ func UpdateLastUsed(ctx context.Context, apikeyId string, identifier string) err
 func CreateOrRenew(ctx context.Context, req *apicontractsv2self.CreateOrRenewApikeyRequest) (*apicontractsv2self.CreateOrRenewApikeyResponse, error) {
 	resp := &apicontractsv2self.CreateOrRenewApikeyResponse{}
 
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	identifier := identity.GetId()
 
 	expires := time.Now().Local().Add(time.Duration(req.Ttl) * time.Second)

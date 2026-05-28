@@ -64,7 +64,7 @@ func GetByName(ctx context.Context, workspaceName string) (*apicontracts.Workspa
 }
 
 func Update(ctx context.Context, input *apicontracts.Workspace, id string) (*apicontracts.Workspace, *apicontracts.Workspace, error) {
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	var mappedInput mongoTypes.MongoWorkspace
 	err := mapping.Map(input, &mappedInput)
 	if err != nil {
@@ -144,7 +144,7 @@ func GetKubeconfig(ctx context.Context, workspaceName string, credentials apicon
 		return "", err
 	}
 
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	_, err = auditlog.Create(ctx, "Identity fetching kubeconfig for workspace",
 		models.AuditCategoryKubeconfig,
 		models.AuditActionRead,

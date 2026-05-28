@@ -158,7 +158,7 @@ func (sse *SSE) HandleSSE() gin.HandlerFunc {
 		defer cancel()
 
 		connection := make(chan string)
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 		client, err := getClientFromRequest(identity, connection)
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not get client from request", err)

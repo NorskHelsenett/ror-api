@@ -505,7 +505,7 @@ func GetSelf() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 		if !identity.IsCluster() {
 			c.JSON(http.StatusForbidden, "wrong identity type")
 			return

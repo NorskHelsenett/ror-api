@@ -38,7 +38,7 @@ func CreateOrRenewApikey() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 		if identity.Auth.AuthProvider == identitymodels.IdentityProviderApiKey {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "cannot create apikey with apikey")
 			rerr.GinLogErrorAbort(c)
@@ -94,7 +94,7 @@ func DeleteApiKey() gin.HandlerFunc {
 			return
 		}
 
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 
 		if !identity.IsUser() {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid identity")

@@ -320,7 +320,7 @@ func Create() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 
 		// Check access
 		// Scope: Ror
@@ -380,7 +380,7 @@ func Update() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 
 		// Check access
 		// Scope: Ror
@@ -448,7 +448,7 @@ func Delete() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 		aclId := c.Param("id")
 		if aclId == "" || len(aclId) == 0 {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid id")

@@ -279,7 +279,7 @@ func (r *ResourceMongoDB) GetHashlistByQuery(ctx context.Context, rorResourceQue
 		return hashList, err
 	}
 
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	if identity.IsCluster() {
 		agentResources := rordefs.Resourcedefs.GetResourcesByType(rordefs.ApiResourceTypeAgent)
 		apikindquery := bson.M{"$or": []bson.M{}}

@@ -38,7 +38,7 @@ func GetSelf() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, _ := gincontext.GetRorContextFromGinContext(c)
 
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 
 		result := apicontractsv2self.SelfData{
 			Auth: identity.GetAuthInfo(),

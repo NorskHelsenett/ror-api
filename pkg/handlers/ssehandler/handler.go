@@ -36,7 +36,7 @@ func HandleSSE() gin.HandlerFunc {
 
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 		client := &sseservice.EventClient{
 			Id:         sseservice.NewEventClientId(),
 			Identity:   identity,

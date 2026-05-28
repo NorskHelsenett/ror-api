@@ -167,7 +167,7 @@ func Create() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 
 		// Access check
 		// Scope: ror
@@ -236,7 +236,7 @@ func Update() gin.HandlerFunc {
 		datacenterId := c.Param("datacenterId")
 		defer cancel()
 
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 
 		// Access check
 		// Scope: ror

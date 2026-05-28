@@ -64,7 +64,7 @@ func GetAllACL2(ctx context.Context) ([]aclmodels.AclV2ListItem, error) {
 
 // GetACL2ByIdentityQuery Gets ACL2 Access model for identity/scope returns aclmodels.AclV2ListItems
 func GetACL2ByIdentityQuery(ctx context.Context, aclQuery aclmodels.AclV2QueryAccessScope) aclmodels.AclV2ListItems {
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	denyall := denyallACL
 
 	aclReturnArray := aclmodels.AclV2ListItems{
@@ -113,7 +113,7 @@ func GetACL2ByIdentityQuery(ctx context.Context, aclQuery aclmodels.AclV2QueryAc
 // CheckAcl2ByIdentityQuery Gets ACL2 Access model for identity/scope/subject returns aclmodels.AclV2ListItemAccess
 func CheckAcl2ByIdentityQuery(ctx context.Context, aclQuery aclmodels.AclV2QueryAccessScopeSubject) aclmodels.AclV2ListItemAccess {
 	denyall := denyallACL
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 
 	if !identity.IsCluster() {
 		dbResult, err := getAcl2ListByIdentityQuery(ctx, aclQuery)
@@ -133,7 +133,7 @@ func CheckAcl2ByIdentityQuery(ctx context.Context, aclQuery aclmodels.AclV2Query
 }
 
 func getAcl2ListByIdentityQuery(ctx context.Context, aclQuery aclmodels.AclV2QueryAccessScopeSubject) ([]aclmodels.AclV2ListItem, error) {
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	dbResult := make([]aclmodels.AclV2ListItem, 0)
 	var aggregationPipeline []bson.M
 	aggregationPipeline = append(aggregationPipeline, createACLV2FilterByScopeSubject(identity, aclQuery.Scope, aclQuery.Subject)...)
@@ -147,7 +147,7 @@ func getAcl2ListByIdentityQuery(ctx context.Context, aclQuery aclmodels.AclV2Que
 }
 
 func GetAcl2ByQuery(ctx context.Context, aclQuery aclmodels.AclV2QueryAccessScopeSubject) []aclmodels.AclV2ListItem {
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	result := make([]aclmodels.AclV2ListItem, 0)
 
 	var aggregationPipeline []bson.M
@@ -165,7 +165,7 @@ func GetAcl2ByQuery(ctx context.Context, aclQuery aclmodels.AclV2QueryAccessScop
 // GetOwnerrefsAcl2ByIdentityAccess Gets ownerrefs for identity with specific access returns []rorresourceowner.RorResourceOwnerReference
 func GetOwnerrefsQueryAcl2ByIdentityAccess(ctx context.Context, access aclmodels.AccessType) bson.M {
 
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 
 	if !identity.IsCluster() {
 		dbResult := make([]aclmodels.AclV2ListItem, 0)
@@ -193,7 +193,7 @@ func GetOwnerrefsQueryAcl2ByIdentityAccess(ctx context.Context, access aclmodels
 }
 
 func CheckAcl2AccessByIdentityQueryAccess(ctx context.Context, aclQuery aclmodels.AclV2QueryAccessScopeSubject, access aclmodels.AccessType) bool {
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	if identity.IsCluster() && aclQuery.Subject == aclmodels.Acl2Subject(identity.GetId()) && aclQuery.Scope == aclmodels.Acl2ScopeCluster {
 		if access == aclmodels.AccessTypeRead || access == aclmodels.AccessTypeCreate || access == aclmodels.AccessTypeUpdate {
 			return true
