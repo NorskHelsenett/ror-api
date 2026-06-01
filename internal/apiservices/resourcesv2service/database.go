@@ -369,21 +369,22 @@ func GenerateAggregateQuery(ctx context.Context, rorResourceQuery *rorresources.
 	}
 	query = append(query, bson.M{"$match": match})
 
-	// Add sorting
-	sortaggregate := bson.M{}
+	// Add sorting — use bson.D to guarantee field order (bson.M is a map with random iteration).
+	sortdoc := bson.D{}
 	if len(rorResourceQuery.Order) != 0 {
 		for _, orderline := range rorResourceQuery.GetOrderSorted() {
 			if orderline.Descending {
-				sortaggregate[orderline.Field] = -1
+				sortdoc = append(sortdoc, bson.E{Key: orderline.Field, Value: -1})
 			} else {
-				sortaggregate[orderline.Field] = 1
+				sortdoc = append(sortdoc, bson.E{Key: orderline.Field, Value: 1})
 			}
 		}
 
 	} else {
-		sortaggregate["metadata.name"] = 1
+		sortdoc = append(sortdoc, bson.E{Key: "metadata.name", Value: 1})
 	}
-	query = append(query, bson.M{"$sort": sortaggregate})
+	sortdoc = append(sortdoc, bson.E{Key: "_id", Value: 1})
+	query = append(query, bson.M{"$sort": sortdoc})
 	// Add projection
 	if len(rorResourceQuery.Fields) != 0 {
 		project := bson.M{}
