@@ -155,57 +155,13 @@ func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) r
 	}
 }
 
-func GetResourceByUID(ctx context.Context, uid string) *rorresources.ResourceSet {
+func GetResourceByUID(ctx context.Context, uid string) (*rorresources.ResourceSet, error) {
 	ctx, span := rortracer.StartSpan(ctx, "v2.resourcesv2service.GetResourceByUID")
 	defer span.End()
 	span.SetAttributes(attribute.String("resource.uid", uid))
 
-	var returnrs *rorresources.ResourceSet
-	//cache := GetResourceCache()
-	//resource := cache.Get(ctx, uid)
-	// if resource != nil {
-	// 	returnrs = rorresources.NewResourceSet()
-	// 	returnrs.Resources = append(returnrs.Resources, resource)
-	// 	rlog.Debug("Resource found in cache", rlog.String("uid", uid), rlog.Any("duration", time.Since(start)))
-	// } else {
-	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
-	mongoCtx, cancel := context.WithTimeout(ctx, getTimeout)
-	defer cancel()
-	var err error
 	query := rorresources.NewResourceQuery().WithUID(uid)
-	queryStart := time.Now()
-	returnrs, err = databaseHelpers.Get(mongoCtx, query)
-	if err != nil {
-		rortracer.SpanError(span, err, "could not get resource by uid")
-		rlog.Error("Could not get resource by uid", err, rlog.String("uid", uid), rlog.Any("error", err))
-		return nil
-	}
-	if returnrs == nil {
-		return nil
-	}
-	duration := time.Since(queryStart)
-	if duration > slowQueryDuration {
-		rlog.Warn("Slow query detected in GetResourceByUID", rlog.String("uid", uid), rlog.Any("duration", duration))
-	}
-	//cache.Set(ctx, returnrs.Resources[0])
-
-	// }
-
-	// Access check
-	// Scope: input.Owner.Scope
-	// Subject: input.Owner.Subject
-	// Access: read
-	for _, resource := range returnrs.Resources {
-		accessModel := aclservice.CheckAccessByRorOwnerref(ctx, resource.GetRorMeta().Ownerref)
-		if !accessModel.Read {
-			rortracer.SpanErrorf(span, "access denied")
-			return nil
-		}
-	}
-
-	rortracer.SpanOk(span)
-	span.SetAttributes(attribute.Int("resources.count", len(returnrs.Resources)))
-	return returnrs
+	return GetResourceByQuery(ctx, query)
 }
 
 func DeleteResource(ctx context.Context, resource *rorresources.Resource) error {
@@ -251,7 +207,7 @@ func PatchResource(ctx context.Context, uid string, partial *rorresources.Resour
 	span.SetAttributes(attribute.String("resource.uid", uid))
 
 	// Fetch existing resource to verify existence and perform access check
-	existing := GetResourceByUID(ctx, uid)
+	existing, _ := GetResourceByUID(ctx, uid)
 	if existing == nil || len(existing.Resources) == 0 {
 		rortracer.SpanErrorf(span, "resource not found")
 		return rorresources.ResourceUpdateResults{
@@ -343,6 +299,7 @@ func GetResourceByQuery(ctx context.Context, query *rorresources.ResourceQuery) 
 	for _, resource := range rs.Resources {
 		if checked, ok := checkedOwnerRef[resource.GetRorMeta().Ownerref.String()]; ok {
 			if checked == 1 {
+				resource.ApplyOutputFilter(ctx)
 				returnrs.Add(resource)
 			}
 			continue
@@ -350,6 +307,7 @@ func GetResourceByQuery(ctx context.Context, query *rorresources.ResourceQuery) 
 		accessModel := aclservice.CheckAccessByRorOwnerref(ctx, resource.GetRorMeta().Ownerref)
 		if accessModel.Read {
 			checkedOwnerRef[resource.GetRorMeta().Ownerref.String()] = 1
+			resource.ApplyOutputFilter(ctx)
 			returnrs.Add(resource)
 			continue
 		} else {
