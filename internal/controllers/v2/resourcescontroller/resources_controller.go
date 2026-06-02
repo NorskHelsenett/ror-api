@@ -64,7 +64,7 @@ func ExistsResources() gin.HandlerFunc {
 			return
 		}
 
-		resources := resourcesv2service.GetResourceByUID(ctx, c.Param("uid"))
+		resources, _ := resourcesv2service.GetResourceByUID(ctx, c.Param("uid"))
 		if resources == nil {
 			rortracer.SpanErrorf(span, "resource not found")
 			c.Status(http.StatusNotFound)

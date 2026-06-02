@@ -38,7 +38,7 @@ func DeleteResource() gin.HandlerFunc {
 		defer span.End()
 		span.SetAttributes(attribute.String("resource.uid", c.Param("uid")))
 
-		resources := resourcesv2service.GetResourceByUID(ctx, c.Param("uid"))
+		resources, _ := resourcesv2service.GetResourceByUID(ctx, c.Param("uid"))
 
 		if resources == nil {
 			rortracer.SpanErrorf(span, "resource not found")
