@@ -1,7 +1,9 @@
 package aclrepository
 
 import (
+	"cmp"
 	"context"
+	"maps"
 	"slices"
 
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
@@ -177,7 +179,6 @@ func GetOwnerrefsQueryAcl2ByIdentityAccess(ctx context.Context, access aclmodels
 			rlog.Error("could not query mongodb", err)
 			return denyAllOwnerref
 		}
-
 		return compileOwnerrefs(dbResult, access)
 	}
 
@@ -239,7 +240,11 @@ func compileOwnerrefs(acls []aclmodels.AclV2ListItem, access aclmodels.AccessTyp
 		}
 	}
 	inquery := bson.A{}
-	for scope, subjects := range ownerrefs {
+	sortedScopes := slices.SortedFunc(maps.Keys(ownerrefs), func(a, b aclmodels.Acl2Scope) int {
+		return cmp.Compare(string(a), string(b))
+	})
+	for _, scope := range sortedScopes {
+		subjects := ownerrefs[scope]
 		if scope == aclmodels.Acl2ScopeRor {
 			continue
 		}
@@ -247,9 +252,9 @@ func compileOwnerrefs(acls []aclmodels.AclV2ListItem, access aclmodels.AccessTyp
 			continue
 		}
 		for _, subject := range subjects {
-			inquery = append(inquery, bson.M{
-				"scope":   scope,
-				"subject": subject,
+			inquery = append(inquery, bson.D{
+				{Key: "scope", Value: scope},
+				{Key: "subject", Value: subject},
 			})
 		}
 	}
@@ -258,7 +263,6 @@ func compileOwnerrefs(acls []aclmodels.AclV2ListItem, access aclmodels.AccessTyp
 			"rormeta.ownerref": bson.M{"$in": inquery},
 		})
 	}
-
 	return bson.M{
 		"$match": bson.M{
 			"$or": orquery,
