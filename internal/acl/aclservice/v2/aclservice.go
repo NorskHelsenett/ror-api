@@ -6,6 +6,7 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/acl"
 	"github.com/NorskHelsenett/ror/pkg/acl/aclstore"
+	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
@@ -21,7 +22,8 @@ var resolver *acl.Resolver
 // InitResolver initializes the ACL resolver backed by MongoDB.
 // Call this during application startup after MongoDB is initialized.
 func InitResolver() {
-	store := aclstore.NewMongoStore()
+	db := mongodb.GetMongoDb()
+	store := aclstore.NewMongoStore(db)
 	resolver = acl.NewResolver(store)
 }
 
