@@ -3,7 +3,7 @@ package clusterscontroller
 import (
 	"net/http"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/aclservices"
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
 	"github.com/NorskHelsenett/ror-api/internal/models/viewsmodels"
 

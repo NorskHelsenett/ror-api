@@ -8,7 +8,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/customvalidators"
 	"github.com/NorskHelsenett/ror-api/internal/models/responses"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/aclservices"
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"

@@ -4,7 +4,7 @@ package auditlogscontroller
 import (
 	"net/http"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/aclservices"
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	auditLogService "github.com/NorskHelsenett/ror-api/internal/apiservices/auditlogs"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"

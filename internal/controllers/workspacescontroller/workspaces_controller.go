@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/aclservices"
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/workspacesservice"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"

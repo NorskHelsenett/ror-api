@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/aclservices"
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/apikeysservice"
 	"github.com/NorskHelsenett/ror-api/internal/customvalidators"
 

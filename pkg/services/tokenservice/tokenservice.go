@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/aclservices"
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror/pkg/helpers/fouramhelper"
 	"github.com/NorskHelsenett/ror/pkg/helpers/oidchelper"
 	"github.com/golang-jwt/jwt/v5"

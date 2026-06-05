@@ -3,7 +3,7 @@ package ordercontroller
 import (
 	"net/http"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/aclservices"
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/ordersservice"
 	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
 	"github.com/NorskHelsenett/ror-api/internal/customvalidators"
