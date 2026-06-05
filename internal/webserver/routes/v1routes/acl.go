@@ -19,7 +19,6 @@ func v1aclRoutes(v1 *gin.RouterGroup) {
 		//			aclRoute.GET("/access/:scope/:subject/", aclcontroller.CheckAcl()) // /api/acl/cluster/sdi-ror-dev-32342
 		//			aclRoute.GET("/access/:scope/", aclcontroller.CheckAcl())          // /api/acl/cluster
 		aclRoute.POST("/filter", aclcontroller.GetByFilter())
-		aclRoute.GET("/migrate", aclcontroller.MigrateAcls())
 		aclRoute.GET("/lookup", aclcontroller.LookupAcl())
 		aclRoute.GET("/scopes", aclcontroller.GetScopes())
 	}
