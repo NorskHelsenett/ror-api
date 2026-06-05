@@ -3,7 +3,7 @@ package resourcescontroller
 import (
 	"net/http"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
+	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/aclservices"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
 	"github.com/NorskHelsenett/ror-api/internal/models/responses"
 

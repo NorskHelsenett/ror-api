@@ -4,7 +4,7 @@ package aclcontroller
 import (
 	"net/http"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
+	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/aclservices"
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	"github.com/NorskHelsenett/ror-api/internal/customvalidators"
 

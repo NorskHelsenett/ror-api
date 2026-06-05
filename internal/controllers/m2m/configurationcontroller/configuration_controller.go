@@ -9,7 +9,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/operatorconfigservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/tasksservice"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
+	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/aclservices"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"

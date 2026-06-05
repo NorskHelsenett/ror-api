@@ -6,7 +6,7 @@ import (
 	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
 	"github.com/NorskHelsenett/ror-api/internal/models/responses"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
+	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/aclservices"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"

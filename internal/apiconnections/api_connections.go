@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services/v2"
+	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/aclservices/v2"
 	mongodbseeding "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/seeding"
 	"github.com/NorskHelsenett/ror-api/internal/rabbitmq/apirabbitmqdefinitions"
 	"github.com/NorskHelsenett/ror-api/internal/rabbitmq/apirabbitmqhandler"

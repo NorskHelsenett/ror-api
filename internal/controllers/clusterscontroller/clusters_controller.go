@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"strings"
 
+	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/aclservices"
 	aclrepository "github.com/NorskHelsenett/ror-api/internal/acl/repositories"
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
 	"github.com/NorskHelsenett/ror-api/internal/customvalidators"
 	"github.com/NorskHelsenett/ror-api/internal/models/responses"
