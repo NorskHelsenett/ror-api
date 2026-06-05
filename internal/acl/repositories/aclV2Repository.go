@@ -19,6 +19,11 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+const (
+	ClusterCollectionName = "clusters"
+	AclCollectionName     = "acl"
+)
+
 // dbcollection
 var (
 	collectionName  = "acl"
