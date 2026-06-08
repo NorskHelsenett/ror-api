@@ -3,6 +3,7 @@ package handlerv2selfcontroller
 import (
 	"net/http"
 
+	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
@@ -46,11 +47,16 @@ func GetSelf() gin.HandlerFunc {
 		}
 		if identity.IsUser() {
 			result.User = apicontractsv2self.SelfUser{
-				Name:   identity.User.Name,
-				Email:  identity.User.Email,
-				Groups: identity.User.Groups,
+				Name:  identity.User.Name,
+				Email: identity.User.Email,
+			}
+			if c.Query("filteredgroups") == "true" {
+				result.User.Groups = aclservice.FilterGroupsInUse(ctx, identity.User.Groups)
+			} else {
+				result.User.Groups = identity.User.Groups
 			}
 		}
+
 		if identity.IsCluster() {
 			result.User = apicontractsv2self.SelfUser{
 				Name: identity.ClusterIdentity.Id,

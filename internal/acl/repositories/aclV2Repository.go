@@ -25,6 +25,11 @@ const (
 )
 
 // dbcollection
+const (
+	ClusterCollectionName = "clusters"
+	AclCollectionName     = "acl"
+)
+
 var (
 	collectionName  = "acl"
 	denyallACL      = aclmodels.AclV2ListItemAccess{Read: false, Create: false, Update: false, Delete: false, Owner: false}
