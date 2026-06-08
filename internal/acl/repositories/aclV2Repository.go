@@ -71,11 +71,14 @@ func GetAllACL2(ctx context.Context) ([]aclmodels.AclV2ListItem, error) {
 
 // GetACL2ByIdentityQuery Gets ACL2 Access model for identity/scope returns aclmodels.AclV2ListItems
 func GetACL2ByIdentityQuery(ctx context.Context, aclQuery aclmodels.AclV2QueryAccessScope) aclmodels.AclV2ListItems {
+	// Translate legacy scope to Kind for DB query
+	aclQuery.Scope = aclQuery.Scope.ToKind()
+
 	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	denyall := denyallACL
 
 	aclReturnArray := aclmodels.AclV2ListItems{
-		Scope:   aclQuery.Scope,
+		Scope:   aclQuery.Scope.ToLegacy(),
 		Subject: "NA",
 		Global:  denyall,
 	}
@@ -97,12 +100,15 @@ func GetACL2ByIdentityQuery(ctx context.Context, aclQuery aclmodels.AclV2QueryAc
 				if result.Scope == aclmodels.Acl2ScopeRor {
 					aclReturnArray.Global = CompileAccessSum(aclReturnArray.Global, result.Access)
 				}
+				// Translate Kind scope/subject back to legacy for V2 consumers
+				result.Scope = result.Scope.ToLegacy()
+				result.Subject = result.Subject.ToLegacy()
 				aclReturnArray.Items = append(aclReturnArray.Items, result)
 			}
 		}
 
 		return aclReturnArray
-	} else if identity.IsCluster() && aclQuery.Scope == aclmodels.Acl2ScopeCluster {
+	} else if identity.IsCluster() && aclQuery.Scope == aclmodels.Acl2ScopeCluster.ToKind() {
 		aclReturn := aclmodels.AclV2ListItem{
 			Version:    2,
 			Group:      "NA",
@@ -119,6 +125,10 @@ func GetACL2ByIdentityQuery(ctx context.Context, aclQuery aclmodels.AclV2QueryAc
 
 // CheckAcl2ByIdentityQuery Gets ACL2 Access model for identity/scope/subject returns aclmodels.AclV2ListItemAccess
 func CheckAcl2ByIdentityQuery(ctx context.Context, aclQuery aclmodels.AclV2QueryAccessScopeSubject) aclmodels.AclV2ListItemAccess {
+	// Translate legacy scope/subject to Kind for DB query
+	aclQuery.Scope = aclQuery.Scope.ToKind()
+	aclQuery.Subject = aclQuery.Subject.ToKind()
+
 	denyall := denyallACL
 	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 
@@ -132,8 +142,15 @@ func CheckAcl2ByIdentityQuery(ctx context.Context, aclQuery aclmodels.AclV2Query
 		return compileAccess(dbResult)
 	}
 
-	if identity.IsCluster() && aclQuery.Subject == aclmodels.Acl2Subject(identity.GetId()) && aclQuery.Scope == aclmodels.Acl2ScopeCluster {
-		return aclmodels.AclV2ListItemAccess{Read: true, Create: true, Update: true, Delete: false, Owner: false}
+	if identity.IsCluster() && aclQuery.Scope == aclmodels.Acl2ScopeCluster.ToKind() {
+		clusterSubject := aclmodels.Acl2Subject(identity.GetId())
+		clusterUid := aclmodels.Acl2Subject(identity.ClusterIdentity.Uid)
+		rlog.Infoc(ctx, "ACL cluster check", rlog.String("query.subject", string(aclQuery.Subject)), rlog.String("query.scope", string(aclQuery.Scope)), rlog.String("identity.id", string(clusterSubject)), rlog.String("identity.uid", string(clusterUid)))
+		if aclQuery.Subject == clusterSubject || (clusterUid != "" && aclQuery.Subject == clusterUid) {
+			return aclmodels.AclV2ListItemAccess{Read: true, Create: true, Update: true, Delete: false, Owner: false}
+		}
+	} else if identity.IsCluster() {
+		rlog.Warnc(ctx, "ACL cluster DENY - scope mismatch", rlog.String("query.scope", string(aclQuery.Scope)), rlog.String("expected.scope", string(aclmodels.Acl2ScopeCluster.ToKind())), rlog.String("query.subject", string(aclQuery.Subject)))
 	}
 
 	return denyall
@@ -166,6 +183,12 @@ func GetAcl2ByQuery(ctx context.Context, aclQuery aclmodels.AclV2QueryAccessScop
 		return result
 	}
 
+	// Translate Kind scope/subject back to legacy for V2 consumers
+	for i := range result {
+		result[i].Scope = result[i].Scope.ToLegacy()
+		result[i].Subject = result[i].Subject.ToLegacy()
+	}
+
 	return result
 }
 
@@ -187,10 +210,17 @@ func GetOwnerrefsQueryAcl2ByIdentityAccess(ctx context.Context, access aclmodels
 		return compileOwnerrefs(dbResult, access)
 	}
 
+	// TODO(migration): Once all ownerref subjects are UIDs, remove the $or
+	// and match on UID only.
+	subjects := bson.A{aclmodels.Acl2Subject(identity.GetId())}
+	if identity.ClusterIdentity != nil && identity.ClusterIdentity.Uid != "" {
+		subjects = append(subjects, aclmodels.Acl2Subject(identity.ClusterIdentity.Uid))
+	}
+
 	clusterMatch := bson.M{
 		"$match": bson.M{
-			"rormeta.ownerref.scope":   aclmodels.Acl2ScopeCluster,
-			"rormeta.ownerref.subject": aclmodels.Acl2Subject(identity.GetId()),
+			"rormeta.ownerref.scope":   aclmodels.Acl2ScopeCluster.ToKind(),
+			"rormeta.ownerref.subject": bson.M{"$in": subjects},
 		},
 	}
 
@@ -199,12 +229,21 @@ func GetOwnerrefsQueryAcl2ByIdentityAccess(ctx context.Context, access aclmodels
 }
 
 func CheckAcl2AccessByIdentityQueryAccess(ctx context.Context, aclQuery aclmodels.AclV2QueryAccessScopeSubject, access aclmodels.AccessType) bool {
+	// Translate legacy scope/subject to Kind for DB query
+	aclQuery.Scope = aclQuery.Scope.ToKind()
+	aclQuery.Subject = aclQuery.Subject.ToKind()
+
 	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
-	if identity.IsCluster() && aclQuery.Subject == aclmodels.Acl2Subject(identity.GetId()) && aclQuery.Scope == aclmodels.Acl2ScopeCluster {
-		if access == aclmodels.AccessTypeRead || access == aclmodels.AccessTypeCreate || access == aclmodels.AccessTypeUpdate {
-			return true
+	// TODO(migration): Once all subjects are UIDs, remove the clusterID fallback.
+	if identity.IsCluster() && aclQuery.Scope == aclmodels.Acl2ScopeCluster.ToKind() {
+		clusterSubject := aclmodels.Acl2Subject(identity.GetId())
+		clusterUid := aclmodels.Acl2Subject(identity.ClusterIdentity.Uid)
+		if aclQuery.Subject == clusterSubject || (clusterUid != "" && aclQuery.Subject == clusterUid) {
+			if access == aclmodels.AccessTypeRead || access == aclmodels.AccessTypeCreate || access == aclmodels.AccessTypeUpdate {
+				return true
+			}
+			return false
 		}
-		return false
 	}
 
 	dbResult, err := getAcl2ListByIdentityQuery(ctx, aclQuery)
@@ -335,6 +374,10 @@ func compileAccess(acls []aclmodels.AclV2ListItem) aclmodels.AclV2ListItemAccess
 
 // createACLV2FilterByScopeSubject returns a mongodb query for querying the acl database based on the identiys groups.
 func createACLV2FilterByScopeSubject(identity identitymodels.Identity, scope aclmodels.Acl2Scope, subject aclmodels.Acl2Subject) []bson.M {
+	// Translate legacy scope/subject to Kind-based values for DB query
+	scope = scope.ToKind()
+	subject = aclmodels.Acl2Subject(aclmodels.Acl2Subject(subject).ToKind())
+
 	var filters []bson.M
 	var filterGroups bson.A
 	denyallGroups := []bson.M{{"$match": bson.M{"group": bson.M{"$in": bson.A{"Unknown-Unauthorized"}}}}}
@@ -418,6 +461,9 @@ func createACLV2FilterByScopeSubject(identity identitymodels.Identity, scope acl
 }
 
 func createACLV2FilterByScope(identity identitymodels.Identity, scope aclmodels.Acl2Scope) []bson.M {
+	// Translate legacy scope to Kind-based value for DB query
+	scope = scope.ToKind()
+
 	var filters []bson.M
 	var filterGroups bson.A
 	denyallGroups := []bson.M{{"$match": bson.M{"group": bson.M{"$in": bson.A{"Unknown-Unauthorized"}}}}}

@@ -11,7 +11,6 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/rabbitmq/apirabbitmqhandler"
 	"github.com/NorskHelsenett/ror-api/internal/webserver/sse"
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
-	"github.com/NorskHelsenett/ror/pkg/services/configservice"
 
 	"github.com/NorskHelsenett/ror/pkg/auth/userauth"
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
@@ -36,8 +35,6 @@ func InitConnections(ctx context.Context) {
 	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	VaultClient = vaultclient.NewVaultClient(rorconfig.GetString(rorconfig.ROLE), rorconfig.GetString(rorconfig.VAULT_URL))
-
-	configservice.AddLoader("vault", configservice.NewVaultConfigLoader(VaultClient))
 
 	mongocredshelper := databasecredhelper.NewVaultDBCredentials(VaultClient, rorconfig.GetString(rorconfig.ROLE), "mongodb")
 	mongodb.Init(mongocredshelper, rorconfig.GetString(rorconfig.MONGODB_HOST), rorconfig.GetString(rorconfig.MONGODB_PORT), rorconfig.GetString(rorconfig.MONGO_DATABASE))

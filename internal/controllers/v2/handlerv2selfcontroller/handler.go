@@ -54,6 +54,7 @@ func GetSelf() gin.HandlerFunc {
 		if identity.IsCluster() {
 			result.User = apicontractsv2self.SelfUser{
 				Name: identity.ClusterIdentity.Id,
+				Uid:  identity.ClusterIdentity.Uid,
 			}
 		}
 		if identity.IsService() {

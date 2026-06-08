@@ -6,6 +6,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/apikeysservice"
 
+	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type ApiKeyAuthProvider struct{}
@@ -71,7 +73,8 @@ func clusterAuth(c *gin.Context, ctx context.Context, apikey apicontracts.ApiKey
 		},
 		Type: identitymodels.IdentityTypeCluster,
 		ClusterIdentity: &identitymodels.ServiceIdentity{
-			Id: identifier,
+			Id:  identifier,
+			Uid: lookupClusterUid(ctx, identifier),
 		},
 	})
 
@@ -135,4 +138,24 @@ func userAuth(c *gin.Context, ctx context.Context, apikey apicontracts.ApiKey) {
 		rlog.Errorc(ctx, "could not update lastUsed for apikey", err, rlog.String("id", apikey.Id), rlog.String("identifier", identity.GetId()))
 	}
 
+}
+
+// lookupClusterUid queries resourcesv2 for the KubernetesCluster with the given
+// clusterid (metadata.name) and returns its UID. Returns empty string if not found.
+func lookupClusterUid(ctx context.Context, clusterID string) string {
+	db := mongodb.GetMongoDb()
+	if db == nil {
+		return ""
+	}
+	var result struct {
+		UID string `bson:"uid"`
+	}
+	err := db.Collection("resourcesv2").FindOne(ctx, bson.M{
+		"metadata.name": clusterID,
+		"typemeta.kind": "KubernetesCluster",
+	}).Decode(&result)
+	if err != nil {
+		return ""
+	}
+	return result.UID
 }

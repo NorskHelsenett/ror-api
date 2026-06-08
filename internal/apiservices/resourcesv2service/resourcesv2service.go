@@ -13,7 +13,9 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
+	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 	"github.com/NorskHelsenett/ror/pkg/messagebuscontracts"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/rorresourceowner"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
@@ -104,6 +106,10 @@ func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) r
 			},
 		}
 	}
+
+	// Normalize ownerref before persistence: translate legacy scope/subject
+	// to Kind/UID format so old agents don't re-insert legacy values.
+	normalizeOwnerref(ctx, resource)
 
 	err := resource.ApplyInputFilter()
 	if err != nil {
@@ -299,7 +305,6 @@ func GetResourceByQuery(ctx context.Context, query *rorresources.ResourceQuery) 
 	for _, resource := range rs.Resources {
 		if checked, ok := checkedOwnerRef[resource.GetRorMeta().Ownerref.String()]; ok {
 			if checked == 1 {
-				resource.ApplyOutputFilter(ctx)
 				returnrs.Add(resource)
 			}
 			continue
@@ -307,7 +312,6 @@ func GetResourceByQuery(ctx context.Context, query *rorresources.ResourceQuery) 
 		accessModel := aclservice.CheckAccessByRorOwnerref(ctx, resource.GetRorMeta().Ownerref)
 		if accessModel.Read {
 			checkedOwnerRef[resource.GetRorMeta().Ownerref.String()] = 1
-			resource.ApplyOutputFilter(ctx)
 			returnrs.Add(resource)
 			continue
 		} else {
@@ -378,4 +382,25 @@ func ResourceGetHashlist(ctx context.Context, owner rorresourceowner.RorResource
 	}
 	rortracer.SpanOk(span)
 	return result, nil
+}
+
+// normalizeOwnerref translates legacy ownerref values to the Kind/UID format
+// before persisting. This ensures old agents (sending scope="cluster" and
+// subject=clusterid) don't re-insert legacy values into the migrated database.
+func normalizeOwnerref(ctx context.Context, resource *rorresources.Resource) {
+	ownerref := &resource.RorMeta.Ownerref
+
+	// Translate legacy scope (e.g. "cluster" → "KubernetesCluster")
+	ownerref.Scope = ownerref.Scope.ToKind()
+
+	// For cluster-scoped resources, translate clusterid subject to UID
+	if ownerref.Scope == aclmodels.Acl2ScopeCluster {
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
+		if identity.IsCluster() && identity.ClusterIdentity != nil && identity.ClusterIdentity.Uid != "" {
+			clusterID := aclmodels.Acl2Subject(identity.ClusterIdentity.Id)
+			if ownerref.Subject == clusterID {
+				ownerref.Subject = aclmodels.Acl2Subject(identity.ClusterIdentity.Uid)
+			}
+		}
+	}
 }
