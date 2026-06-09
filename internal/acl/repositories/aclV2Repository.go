@@ -145,7 +145,7 @@ func CheckAcl2ByIdentityQuery(ctx context.Context, aclQuery aclmodels.AclV2Query
 	if identity.IsCluster() && aclQuery.Scope == aclmodels.Acl2ScopeCluster.ToKind() {
 		clusterSubject := aclmodels.Acl2Subject(identity.GetId())
 		clusterUid := aclmodels.Acl2Subject(identity.ClusterIdentity.Uid)
-		rlog.Infoc(ctx, "ACL cluster check", rlog.String("query.subject", string(aclQuery.Subject)), rlog.String("query.scope", string(aclQuery.Scope)), rlog.String("identity.id", string(clusterSubject)), rlog.String("identity.uid", string(clusterUid)))
+		rlog.Debugc(ctx, "ACL cluster check", rlog.String("query.subject", string(aclQuery.Subject)), rlog.String("query.scope", string(aclQuery.Scope)), rlog.String("identity.id", string(clusterSubject)), rlog.String("identity.uid", string(clusterUid)))
 		if aclQuery.Subject == clusterSubject || (clusterUid != "" && aclQuery.Subject == clusterUid) {
 			return aclmodels.AclV2ListItemAccess{Read: true, Create: true, Update: true, Delete: false, Owner: false}
 		}

@@ -213,7 +213,18 @@ func PatchResource(ctx context.Context, uid string, partial *rorresources.Resour
 	span.SetAttributes(attribute.String("resource.uid", uid))
 
 	// Fetch existing resource to verify existence and perform access check
-	existing, _ := GetResourceByUID(ctx, uid)
+	existing, err := GetResourceByUID(ctx, uid)
+	if err != nil {
+		rortracer.SpanError(span, err, "failed to get existing resource")
+		return rorresources.ResourceUpdateResults{
+			Results: map[string]rorresources.ResourceUpdateResult{
+				uid: {
+					Status:  http.StatusInternalServerError,
+					Message: "500: Could not get resource",
+				},
+			},
+		}
+	}
 	if existing == nil || len(existing.Resources) == 0 {
 		rortracer.SpanErrorf(span, "resource not found")
 		return rorresources.ResourceUpdateResults{
