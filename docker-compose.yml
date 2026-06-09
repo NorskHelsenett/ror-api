@@ -187,5 +187,39 @@ services:
       - PORT=6006
     volumes:
       - ${ROR_ASSETS_PATH:-./hacks/assets}/mocc/users.yaml:/config/users.yaml:ro
+  ror-api:
+    image: ${ROR_REPO:-ghcr.io/norskhelsenett/}ror-api:${ROR_BUILD_TAG:-latest}
+    restart: unless-stopped
+    env_file:
+      - .env
+      - .env.docker
+    depends_on:
+      vault:
+        condition: service_healthy
+    ports:
+      - '10000:8080'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    profiles:
+      - api
+
+  ror-api-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.compose
+    restart: unless-stopped
+    env_file:
+      - .env
+      - .env.docker
+    depends_on:
+      vault:
+        condition: service_healthy
+    ports:
+      - '10000:8080'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    profiles:
+      - api-dev
+
 volumes:
   data: {}
