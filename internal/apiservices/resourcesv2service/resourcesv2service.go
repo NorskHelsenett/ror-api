@@ -255,7 +255,7 @@ func PatchResource(ctx context.Context, uid string, partial *rorresources.Resour
 	mongoCtx, cancel := context.WithTimeout(ctx, setTimeout)
 	defer cancel()
 
-	err := databaseHelpers.Patch(mongoCtx, uid, partial)
+	err = databaseHelpers.Patch(mongoCtx, uid, partial)
 	if err != nil {
 		rlog.Errorc(ctx, "Failed to patch resource", err)
 		rortracer.SpanError(span, err, "failed to patch resource")
