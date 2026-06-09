@@ -2,6 +2,7 @@ package apikeyauth
 
 import (
 	"context"
+	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/apikeysservice"
@@ -147,10 +148,14 @@ func lookupClusterUid(ctx context.Context, clusterID string) string {
 	if db == nil {
 		return ""
 	}
+
+	lookupCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+
 	var result struct {
 		UID string `bson:"uid"`
 	}
-	err := db.Collection("resourcesv2").FindOne(ctx, bson.M{
+	err := db.Collection("resourcesv2").FindOne(lookupCtx, bson.M{
 		"metadata.name": clusterID,
 		"typemeta.kind": "KubernetesCluster",
 	}).Decode(&result)
