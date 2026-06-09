@@ -24,10 +24,14 @@ import (
 )
 
 var (
-	slowQueryDuration = 1000 * time.Millisecond
-	getTimeout        = 10000 * time.Millisecond
-	setTimeout        = 10000 * time.Millisecond
+	slowQueryDuration                    = 1000 * time.Millisecond
+	getTimeout                           = 10000 * time.Millisecond
+	setTimeout                           = 10000 * time.Millisecond
+	newResourceDB      resourceDBFactory = NewResourceMongoDB
+	getMongoConnection                   = mongodb.GetMongodbConnection
 )
+
+type resourceDBFactory func(*mongodb.MongodbCon) ResourceDBProvider
 
 func HandleResourceUpdate(ctx context.Context, resource *rorresources.Resource) rorresources.ResourceUpdateResults {
 	ctx, span := rortracer.StartSpan(ctx, "v2.resourcesv2service.HandleResourceUpdate")
@@ -155,7 +159,7 @@ func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) r
 	}
 }
 
-func GetResourceByUID(ctx context.Context, uid string) *rorresources.ResourceSet {
+func GetResourceByUID(ctx context.Context, uid string) (*rorresources.ResourceSet, error) {
 	ctx, span := rortracer.StartSpan(ctx, "v2.resourcesv2service.GetResourceByUID")
 	defer span.End()
 	span.SetAttributes(attribute.String("resource.uid", uid))
@@ -168,7 +172,7 @@ func GetResourceByUID(ctx context.Context, uid string) *rorresources.ResourceSet
 	// 	returnrs.Resources = append(returnrs.Resources, resource)
 	// 	rlog.Debug("Resource found in cache", rlog.String("uid", uid), rlog.Any("duration", time.Since(start)))
 	// } else {
-	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
+	databaseHelpers := newResourceDB(getMongoConnection())
 	mongoCtx, cancel := context.WithTimeout(ctx, getTimeout)
 	defer cancel()
 	var err error
@@ -178,10 +182,10 @@ func GetResourceByUID(ctx context.Context, uid string) *rorresources.ResourceSet
 	if err != nil {
 		rortracer.SpanError(span, err, "could not get resource by uid")
 		rlog.Error("Could not get resource by uid", err, rlog.String("uid", uid), rlog.Any("error", err))
-		return nil
+		return nil, err
 	}
 	if returnrs == nil {
-		return nil
+		return nil, nil
 	}
 	duration := time.Since(queryStart)
 	if duration > slowQueryDuration {
@@ -199,13 +203,13 @@ func GetResourceByUID(ctx context.Context, uid string) *rorresources.ResourceSet
 		accessModel := aclservice.CheckAccessByRorOwnerref(ctx, resource.GetRorMeta().Ownerref)
 		if !accessModel.Read {
 			rortracer.SpanErrorf(span, "access denied")
-			return nil
+			return nil, nil
 		}
 	}
 
 	rortracer.SpanOk(span)
 	span.SetAttributes(attribute.Int("resources.count", len(returnrs.Resources)))
-	return returnrs
+	return returnrs, nil
 }
 
 func DeleteResource(ctx context.Context, resource *rorresources.Resource) error {
@@ -251,7 +255,19 @@ func PatchResource(ctx context.Context, uid string, partial *rorresources.Resour
 	span.SetAttributes(attribute.String("resource.uid", uid))
 
 	// Fetch existing resource to verify existence and perform access check
-	existing := GetResourceByUID(ctx, uid)
+	existing, err := GetResourceByUID(ctx, uid)
+	if err != nil {
+		rlog.Errorc(ctx, "Failed to get resource before patch", err)
+		rortracer.SpanError(span, err, "failed to get resource before patch")
+		return rorresources.ResourceUpdateResults{
+			Results: map[string]rorresources.ResourceUpdateResult{
+				uid: {
+					Status:  http.StatusInternalServerError,
+					Message: "500: Could not get resource",
+				},
+			},
+		}
+	}
 	if existing == nil || len(existing.Resources) == 0 {
 		rortracer.SpanErrorf(span, "resource not found")
 		return rorresources.ResourceUpdateResults{
@@ -282,7 +298,7 @@ func PatchResource(ctx context.Context, uid string, partial *rorresources.Resour
 	mongoCtx, cancel := context.WithTimeout(ctx, setTimeout)
 	defer cancel()
 
-	err := databaseHelpers.Patch(mongoCtx, uid, partial)
+	err = databaseHelpers.Patch(mongoCtx, uid, partial)
 	if err != nil {
 		rlog.Errorc(ctx, "Failed to patch resource", err)
 		rortracer.SpanError(span, err, "failed to patch resource")

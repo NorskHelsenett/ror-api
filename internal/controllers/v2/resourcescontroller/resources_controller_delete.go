@@ -38,7 +38,12 @@ func DeleteResource() gin.HandlerFunc {
 		defer span.End()
 		span.SetAttributes(attribute.String("resource.uid", c.Param("uid")))
 
-		resources := resourcesv2service.GetResourceByUID(ctx, c.Param("uid"))
+		resources, err := getResourceByUID(ctx, c.Param("uid"))
+		if err != nil {
+			rortracer.SpanError(span, err, "failed to get resource")
+			c.JSON(http.StatusInternalServerError, "500: Failed to get resource")
+			return
+		}
 
 		if resources == nil {
 			rortracer.SpanErrorf(span, "resource not found")
@@ -72,7 +77,7 @@ func DeleteResource() gin.HandlerFunc {
 			return
 		}
 
-		err := resourcesv2service.DeleteResource(ctx, resource)
+		err = resourcesv2service.DeleteResource(ctx, resource)
 		if err != nil {
 			rortracer.SpanError(span, err, "delete failed")
 			c.JSON(

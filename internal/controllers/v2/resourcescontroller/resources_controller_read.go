@@ -149,7 +149,13 @@ func GetResource() gin.HandlerFunc {
 			return
 		}
 
-		resources := resourcesv2service.GetResourceByUID(ctx, c.Param("uid"))
+		resources, err := getResourceByUID(ctx, c.Param("uid"))
+		if err != nil {
+			rortracer.SpanError(span, err, "failed to get resource")
+			rlog.Error("Error getting resource by uid:", err)
+			c.JSON(http.StatusInternalServerError, "500: Failed to get resource")
+			return
+		}
 		if resources == nil {
 			rortracer.SpanErrorf(span, "resource not found")
 			c.JSON(http.StatusNotFound, "404: Resource not found")
