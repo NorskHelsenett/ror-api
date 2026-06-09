@@ -394,7 +394,7 @@ func normalizeOwnerref(ctx context.Context, resource *rorresources.Resource) {
 	ownerref.Scope = ownerref.Scope.ToKind()
 
 	// For cluster-scoped resources, translate clusterid subject to UID
-	if ownerref.Scope == aclmodels.Acl2ScopeCluster {
+	if ownerref.Scope == aclmodels.Acl2ScopeCluster.ToKind() {
 		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 		if identity.IsCluster() && identity.ClusterIdentity != nil && identity.ClusterIdentity.Uid != "" {
 			clusterID := aclmodels.Acl2Subject(identity.ClusterIdentity.Id)
