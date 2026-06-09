@@ -8,6 +8,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/models/responses"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
+	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 	"github.com/gin-gonic/gin"
@@ -41,7 +42,8 @@ func DeleteResource() gin.HandlerFunc {
 		resources, err := getResourceByUID(ctx, c.Param("uid"))
 		if err != nil {
 			rortracer.SpanError(span, err, "failed to get resource")
-			c.JSON(http.StatusInternalServerError, "500: Failed to get resource")
+			rlog.Error("Error getting resource by uid:", err)
+			c.JSON(http.StatusInternalServerError, "Failed to get resource")
 			return
 		}
 

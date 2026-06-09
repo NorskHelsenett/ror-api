@@ -153,7 +153,7 @@ func GetResource() gin.HandlerFunc {
 		if err != nil {
 			rortracer.SpanError(span, err, "failed to get resource")
 			rlog.Error("Error getting resource by uid:", err)
-			c.JSON(http.StatusInternalServerError, "500: Failed to get resource")
+			c.JSON(http.StatusInternalServerError, "Failed to get resource")
 			return
 		}
 		if resources == nil {
