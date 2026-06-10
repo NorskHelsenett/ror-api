@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/pricesservice"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"

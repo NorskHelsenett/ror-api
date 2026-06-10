@@ -8,12 +8,14 @@ import (
 	"net/http"
 	"time"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
+	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 	"github.com/NorskHelsenett/ror/pkg/messagebuscontracts"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/rorresourceowner"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
@@ -105,6 +107,10 @@ func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) r
 		}
 	}
 
+	// Normalize ownerref before persistence: translate legacy scope/subject
+	// to Kind/UID format so old agents don't re-insert legacy values.
+	normalizeOwnerref(ctx, resource)
+
 	err := resource.ApplyInputFilter()
 	if err != nil {
 		rortracer.SpanError(span, err, "could not apply input filter")
@@ -155,57 +161,13 @@ func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) r
 	}
 }
 
-func GetResourceByUID(ctx context.Context, uid string) *rorresources.ResourceSet {
+func GetResourceByUID(ctx context.Context, uid string) (*rorresources.ResourceSet, error) {
 	ctx, span := rortracer.StartSpan(ctx, "v2.resourcesv2service.GetResourceByUID")
 	defer span.End()
 	span.SetAttributes(attribute.String("resource.uid", uid))
 
-	var returnrs *rorresources.ResourceSet
-	//cache := GetResourceCache()
-	//resource := cache.Get(ctx, uid)
-	// if resource != nil {
-	// 	returnrs = rorresources.NewResourceSet()
-	// 	returnrs.Resources = append(returnrs.Resources, resource)
-	// 	rlog.Debug("Resource found in cache", rlog.String("uid", uid), rlog.Any("duration", time.Since(start)))
-	// } else {
-	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
-	mongoCtx, cancel := context.WithTimeout(ctx, getTimeout)
-	defer cancel()
-	var err error
 	query := rorresources.NewResourceQuery().WithUID(uid)
-	queryStart := time.Now()
-	returnrs, err = databaseHelpers.Get(mongoCtx, query)
-	if err != nil {
-		rortracer.SpanError(span, err, "could not get resource by uid")
-		rlog.Error("Could not get resource by uid", err, rlog.String("uid", uid), rlog.Any("error", err))
-		return nil
-	}
-	if returnrs == nil {
-		return nil
-	}
-	duration := time.Since(queryStart)
-	if duration > slowQueryDuration {
-		rlog.Warn("Slow query detected in GetResourceByUID", rlog.String("uid", uid), rlog.Any("duration", duration))
-	}
-	//cache.Set(ctx, returnrs.Resources[0])
-
-	// }
-
-	// Access check
-	// Scope: input.Owner.Scope
-	// Subject: input.Owner.Subject
-	// Access: read
-	for _, resource := range returnrs.Resources {
-		accessModel := aclservice.CheckAccessByRorOwnerref(ctx, resource.GetRorMeta().Ownerref)
-		if !accessModel.Read {
-			rortracer.SpanErrorf(span, "access denied")
-			return nil
-		}
-	}
-
-	rortracer.SpanOk(span)
-	span.SetAttributes(attribute.Int("resources.count", len(returnrs.Resources)))
-	return returnrs
+	return GetResourceByQuery(ctx, query)
 }
 
 func DeleteResource(ctx context.Context, resource *rorresources.Resource) error {
@@ -251,7 +213,18 @@ func PatchResource(ctx context.Context, uid string, partial *rorresources.Resour
 	span.SetAttributes(attribute.String("resource.uid", uid))
 
 	// Fetch existing resource to verify existence and perform access check
-	existing := GetResourceByUID(ctx, uid)
+	existing, err := GetResourceByUID(ctx, uid)
+	if err != nil {
+		rortracer.SpanError(span, err, "failed to get existing resource")
+		return rorresources.ResourceUpdateResults{
+			Results: map[string]rorresources.ResourceUpdateResult{
+				uid: {
+					Status:  http.StatusInternalServerError,
+					Message: "500: Could not get resource",
+				},
+			},
+		}
+	}
 	if existing == nil || len(existing.Resources) == 0 {
 		rortracer.SpanErrorf(span, "resource not found")
 		return rorresources.ResourceUpdateResults{
@@ -282,7 +255,7 @@ func PatchResource(ctx context.Context, uid string, partial *rorresources.Resour
 	mongoCtx, cancel := context.WithTimeout(ctx, setTimeout)
 	defer cancel()
 
-	err := databaseHelpers.Patch(mongoCtx, uid, partial)
+	err = databaseHelpers.Patch(mongoCtx, uid, partial)
 	if err != nil {
 		rlog.Errorc(ctx, "Failed to patch resource", err)
 		rortracer.SpanError(span, err, "failed to patch resource")
@@ -406,6 +379,17 @@ func ResourceGetHashlist(ctx context.Context, owner rorresourceowner.RorResource
 	ctx, span := rortracer.StartSpan(ctx, "v2.resourcesv2service.ResourceGetHashlist")
 	defer span.End()
 
+	// Normalize the ownerref: translate legacy scope and clusterid→UID
+	owner.Scope = owner.Scope.ToKind()
+	if owner.Scope == aclmodels.Acl2ScopeCluster.ToKind() {
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
+		if identity.IsCluster() && identity.ClusterIdentity != nil && identity.ClusterIdentity.Uid != "" {
+			if string(owner.Subject) == identity.ClusterIdentity.Id {
+				owner.Subject = aclmodels.Acl2Subject(identity.ClusterIdentity.Uid)
+			}
+		}
+	}
+
 	query := rorresources.ResourceQuery{
 		OwnerRefs: []rorresourceowner.RorResourceOwnerReference{owner},
 		Limit:     -1,
@@ -420,4 +404,25 @@ func ResourceGetHashlist(ctx context.Context, owner rorresourceowner.RorResource
 	}
 	rortracer.SpanOk(span)
 	return result, nil
+}
+
+// normalizeOwnerref translates legacy ownerref values to the Kind/UID format
+// before persisting. This ensures old agents (sending scope="cluster" and
+// subject=clusterid) don't re-insert legacy values into the migrated database.
+func normalizeOwnerref(ctx context.Context, resource *rorresources.Resource) {
+	ownerref := &resource.RorMeta.Ownerref
+
+	// Translate legacy scope (e.g. "cluster" → "KubernetesCluster")
+	ownerref.Scope = ownerref.Scope.ToKind()
+
+	// For cluster-scoped resources, translate clusterid subject to UID
+	if ownerref.Scope == aclmodels.Acl2ScopeCluster.ToKind() {
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
+		if identity.IsCluster() && identity.ClusterIdentity != nil && identity.ClusterIdentity.Uid != "" {
+			clusterID := aclmodels.Acl2Subject(identity.ClusterIdentity.Id)
+			if ownerref.Subject == clusterID {
+				ownerref.Subject = aclmodels.Acl2Subject(identity.ClusterIdentity.Uid)
+			}
+		}
+	}
 }

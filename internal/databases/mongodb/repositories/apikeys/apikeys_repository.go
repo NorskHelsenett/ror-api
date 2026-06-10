@@ -91,13 +91,13 @@ func UpdateByNameAndIdentifier(ctx context.Context, identifier string, name stri
 }
 
 func GetOwnByName(ctx context.Context, name string) (*apicontracts.ApiKey, error) {
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 
 	return GetByIdentifierAndName(ctx, identity.GetId(), name)
 }
 
 func UpdateOwnByName(ctx context.Context, name string, hash string, expires time.Time) error {
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 
 	return UpdateByNameAndIdentifier(ctx, identity.GetId(), name, hash, expires)
 }

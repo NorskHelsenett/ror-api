@@ -3,7 +3,7 @@ package handlerv2selfcontroller
 import (
 	"net/http"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
@@ -39,7 +39,7 @@ func GetSelf() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, _ := gincontext.GetRorContextFromGinContext(c)
 
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 
 		result := apicontractsv2self.SelfData{
 			Auth: identity.GetAuthInfo(),
@@ -60,6 +60,7 @@ func GetSelf() gin.HandlerFunc {
 		if identity.IsCluster() {
 			result.User = apicontractsv2self.SelfUser{
 				Name: identity.ClusterIdentity.Id,
+				Uid:  identity.ClusterIdentity.Uid,
 			}
 		}
 		if identity.IsService() {

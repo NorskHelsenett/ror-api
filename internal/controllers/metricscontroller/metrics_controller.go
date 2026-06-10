@@ -4,7 +4,7 @@ package metricscontroller
 import (
 	"net/http"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/metricsservice"
 	"github.com/NorskHelsenett/ror-api/internal/models/responses"
 

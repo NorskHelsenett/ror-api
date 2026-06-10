@@ -28,7 +28,7 @@ type ClusterOrder interface {
 // NewClusterOrder returns a new clusterorder based on the provider
 func NewClusterOrder(ctx context.Context, orderspec apiresourcecontracts.ResourceClusterOrderSpec) (ClusterOrder, error) {
 
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	if identity.GetId() == "" {
 		return nil, errors.New("user not found")
 	}

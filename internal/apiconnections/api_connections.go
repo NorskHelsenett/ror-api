@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice/v2"
 	mongodbseeding "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/seeding"
 	"github.com/NorskHelsenett/ror-api/internal/rabbitmq/apirabbitmqdefinitions"
 	"github.com/NorskHelsenett/ror-api/internal/rabbitmq/apirabbitmqhandler"
@@ -37,6 +38,8 @@ func InitConnections(ctx context.Context) {
 
 	mongocredshelper := databasecredhelper.NewVaultDBCredentials(VaultClient, rorconfig.GetString(rorconfig.ROLE), "mongodb")
 	mongodb.Init(mongocredshelper, rorconfig.GetString(rorconfig.MONGODB_HOST), rorconfig.GetString(rorconfig.MONGODB_PORT), rorconfig.GetString(rorconfig.MONGO_DATABASE))
+
+	aclservice.InitResolver()
 
 	rmqcredhelper := rabbitmqcredhelper.NewVaultRMQCredentials(VaultClient, rorconfig.GetString(rorconfig.ROLE))
 	RabbitMQConnection = rabbitmqclient.NewRabbitMQConnection(rmqcredhelper, rorconfig.GetString(rorconfig.RABBITMQ_HOST), rorconfig.GetString(rorconfig.RABBITMQ_PORT), rorconfig.GetString(rorconfig.RABBITMQ_BROADCAST_NAME))

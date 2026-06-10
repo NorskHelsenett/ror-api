@@ -46,7 +46,7 @@ func Create(ctx context.Context, desiredversion apicontracts.DesiredVersion) (*a
 		return nil, fmt.Errorf("desired version already exists")
 	}
 
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	if !identity.IsUser() {
 		errMsg := "must be a user to create"
 		rlog.Errorc(ctx, errMsg, nil)
@@ -85,7 +85,7 @@ func UpdateByKey(ctx context.Context, key string, desiredversion apicontracts.De
 		}
 	}
 
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	if !identity.IsUser() {
 		return nil, errors.New("must be a user to modify")
 	}
@@ -115,7 +115,7 @@ func DeleteByKey(ctx context.Context, key string) (int64, error) {
 		return 0, err
 	}
 
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	if !identity.IsUser() {
 		return 0, errors.New("must be a user to modify")
 	}

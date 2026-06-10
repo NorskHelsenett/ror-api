@@ -3,7 +3,7 @@ package clusterscontroller
 import (
 	"net/http"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
 	"github.com/NorskHelsenett/ror-api/internal/models/viewsmodels"
 
@@ -505,7 +505,7 @@ func GetSelf() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 		if !identity.IsCluster() {
 			c.JSON(http.StatusForbidden, "wrong identity type")
 			return

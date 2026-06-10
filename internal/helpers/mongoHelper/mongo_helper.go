@@ -40,7 +40,8 @@ func CreateClusterACLFilter(acl aclmodels.AclV2ListItems) bson.M {
 func getClusterFromAccessListItems(items []aclmodels.AclV2ListItem) bson.A {
 	returnArray := bson.A{}
 	for _, item := range items {
-		if item.Scope == aclmodels.Acl2ScopeCluster && item.Access.Read {
+		// TODO(migration): Once ToLegacy() is removed from callers, simplify to direct comparison.
+		if item.Scope.ToKind() == aclmodels.Acl2ScopeCluster && item.Access.Read {
 			returnArray = append(returnArray, item.Subject)
 		}
 	}
