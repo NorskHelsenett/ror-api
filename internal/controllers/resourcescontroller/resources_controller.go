@@ -4,7 +4,7 @@ package resourcescontroller
 import (
 	"net/http"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
 	"github.com/NorskHelsenett/ror-api/internal/customvalidators"
 	"github.com/NorskHelsenett/ror-api/internal/models/responses"

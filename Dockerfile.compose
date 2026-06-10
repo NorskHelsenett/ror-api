@@ -1,0 +1,16 @@
+FROM golang:1.26-alpine AS builder
+RUN apk add --no-cache git
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
+COPY . .
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    go mod tidy && CGO_ENABLED=0 go build -o /bin/ror-api ./cmd/api
+
+FROM gcr.io/distroless/static:nonroot
+WORKDIR /
+COPY --from=builder /bin/ror-api /bin/ror-api
+EXPOSE 8080
+ENTRYPOINT ["/bin/ror-api"]

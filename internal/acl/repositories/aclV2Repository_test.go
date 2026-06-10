@@ -152,7 +152,8 @@ func Test_GetOwnerrefsQueryAcl2ByIdentityAccess(t *testing.T) {
 	t.Run("cluster identity returns direct match", func(t *testing.T) {
 		ctx := context.WithValue(context.Background(), identitymodels.ContexIdentity, identitymocks.IdentityClusterValid)
 		got := GetOwnerrefsQueryAcl2ByIdentityAccess(ctx, aclmodels.AccessTypeRead)
-		want := bson.M{"$match": bson.M{"rormeta.ownerref.scope": aclmodels.Acl2ScopeCluster, "rormeta.ownerref.subject": aclmodels.Acl2Subject(identitymocks.IdentityClusterValid.GetId())}}
+		// TODO(migration): Once all subjects are UIDs, simplify back to direct match.
+		want := bson.M{"$match": bson.M{"rormeta.ownerref.scope": aclmodels.Acl2ScopeCluster, "rormeta.ownerref.subject": bson.M{"$in": bson.A{aclmodels.Acl2Subject(identitymocks.IdentityClusterValid.GetId())}}}}
 		if diff := cmp.Diff(want, got); diff != "" {
 			t.Errorf("GetOwnerrefsQueryAcl2ByIdentityAccess() mismatch (-want +got):\n%s", diff)
 		}

@@ -46,7 +46,7 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 }
 
 func Create(ctx context.Context, input *apicontracts.OperatorConfig) (*apicontracts.OperatorConfig, error) {
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	exists, err := operatorconfigrepo.FindOne(ctx, "kind", input.Kind)
 	if err != nil {
 		return exists, fmt.Errorf("could not check if operatorconfig exists: %v", err)
@@ -76,7 +76,7 @@ func Create(ctx context.Context, input *apicontracts.OperatorConfig) (*apicontra
 }
 
 func Update(ctx context.Context, id string, input *apicontracts.OperatorConfig) (*apicontracts.OperatorConfig, *apicontracts.OperatorConfig, error) {
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	var mongoOperatorConfig mongoTypes.MongoOperatorConfig
 	err := mapping.Map(input, &mongoOperatorConfig)
 	if err != nil {
@@ -109,7 +109,7 @@ func Update(ctx context.Context, id string, input *apicontracts.OperatorConfig) 
 }
 
 func Delete(ctx context.Context, id string) (bool, error) {
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	deleted, err := operatorconfigrepo.Delete(ctx, id)
 	if err != nil {
 		return false, fmt.Errorf("could not delete operatorconfig: %v", err)

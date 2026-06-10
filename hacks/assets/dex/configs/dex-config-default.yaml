@@ -32,34 +32,21 @@ oauth2:
   skipApprovalScreen: true
 
 staticClients:
-- id: ror.sky.test.nhn.no
-  name: ror.sky.test.nhn.no
+- id: dex.local.ror
+  name: dex.local.ror
   redirectURIs:
-  - https://ror.sky.test.nhn.no/auth/callback
   - http://localhost:11000/auth/callback
   - http://127.0.0.1:11000/auth/callback
   - http://localhost:11100/api/auth/callback/dex
   - http://127.0.0.1:11100/api/auth/callback/dex
-  secret: VQEj6sMwgxPsa8t9
   scopes: [openid profile email groups offline_access]
-- id: rorwebapp
-  name: rorwebapp
-  redirectURIs:
-  - https://ror.sky.test.nhn.no/auth/callback
-  - http://localhost:11000/auth/callback
-  - http://127.0.0.1:11000/auth/callback
-  - http://localhost:11100/api/auth/callback/dex
-  - http://127.0.0.1:11100/api/auth/callback/dex
   secret: VQEj6sMwgxPsa8t9
-  scopes: [openid profile email groups offline_access]
 - id: ror-cli
   name: 'ROR CLI'
   redirectURIs:
   - /device/callback
   public: true
   scopes: [openid profile email groups offline_access]
-
-
 connectors:
 # - type: ldap
 #   name: OpenLDAP
@@ -91,7 +78,7 @@ connectors:
     issuer: http://ror-dev-mocc:6006
     providerDiscoveryOverrides:
       AuthURL: http://localhost:6006/authorize
-    clientID: ror.sky.test.nhn.no
+    clientID: mocc.local.ror
     redirectURI: http://localhost:6556/dex/callback
     groupsClaim: groups
     scopes: [openid, profile, email, groups]

@@ -4,7 +4,7 @@ package datacenterscontroller
 import (
 	"net/http"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/datacentersservice"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
@@ -167,7 +167,7 @@ func Create() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 
 		// Access check
 		// Scope: ror
@@ -236,7 +236,7 @@ func Update() gin.HandlerFunc {
 		datacenterId := c.Param("datacenterId")
 		defer cancel()
 
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 
 		// Access check
 		// Scope: ror

@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror-api/internal/models/ssemodels"
 	"github.com/NorskHelsenett/ror-api/pkg/services/sseservice"
 
@@ -158,7 +158,7 @@ func (sse *SSE) HandleSSE() gin.HandlerFunc {
 		defer cancel()
 
 		connection := make(chan string)
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 		client, err := getClientFromRequest(identity, connection)
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not get client from request", err)

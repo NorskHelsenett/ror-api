@@ -157,7 +157,6 @@ func GetResource() gin.HandlerFunc {
 			return
 		}
 		if resources == nil {
-			rortracer.SpanErrorf(span, "resource not found")
 			c.JSON(http.StatusNotFound, "404: Resource not found")
 			return
 		}

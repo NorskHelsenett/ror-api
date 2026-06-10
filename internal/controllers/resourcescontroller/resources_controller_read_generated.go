@@ -4,15 +4,16 @@
 package resourcescontroller
 
 import (
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
+	"net/http"
+
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
 	"github.com/NorskHelsenett/ror-api/internal/models/apiresourcequery"
 	"github.com/NorskHelsenett/ror-api/internal/models/responses"
-	"net/http"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
-	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
 	"github.com/gin-gonic/gin"
 )

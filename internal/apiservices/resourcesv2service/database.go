@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
@@ -279,7 +279,7 @@ func (r *ResourceMongoDB) GetHashlistByQuery(ctx context.Context, rorResourceQue
 		return hashList, err
 	}
 
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	if identity.IsCluster() {
 		agentResources := rordefs.Resourcedefs.GetResourcesByType(rordefs.ApiResourceTypeAgent)
 		apikindquery := bson.M{"$or": []bson.M{}}

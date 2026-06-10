@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/apikeysservice"
 	"github.com/NorskHelsenett/ror-api/internal/customvalidators"
 
@@ -141,7 +141,7 @@ func Delete() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 
 		apikeyId := c.Param("id")
 		if apikeyId == "" || len(apikeyId) == 0 {
@@ -193,7 +193,7 @@ func CreateApikey() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 
 		// Access check
 		// Scope: ror
