@@ -24,7 +24,8 @@ var resolver *acl.Resolver
 func InitResolver() {
 	db := mongodb.GetMongoDb()
 	store := aclstore.NewMongoStore(db)
-	resolver = acl.NewResolver(store)
+	expander := newMongoScopeExpander(db)
+	resolver = acl.NewResolver(store, acl.WithScopeExpander(expander))
 }
 
 // identityGroups extracts the group list from the context identity.
