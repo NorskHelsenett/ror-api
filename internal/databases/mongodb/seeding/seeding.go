@@ -99,13 +99,17 @@ func ensureResourcesV2Indexes(ctx context.Context) {
 	// Migration: remove the denormalized top-level uid field from existing documents.
 	// The canonical UID lives in metadata.uid; the top-level uid was a redundant copy
 	// injected at write time and is no longer needed.
-	_, err = collection.UpdateMany(
+	result, err := collection.UpdateMany(
 		ctx,
 		bson.M{"uid": bson.M{"$exists": true}},
 		bson.M{"$unset": bson.M{"uid": ""}},
 	)
 	if err != nil {
-		rlog.Errorc(ctx, "could not remove top-level uid field from resourcesv2 documents", err)
+		rlog.Errorc(ctx, "migration failed: could not remove top-level uid field from resourcesv2 documents — documents with a top-level uid field may still exist", err)
+		return
+	}
+	if result.ModifiedCount > 0 {
+		rlog.Infoc(ctx, "migration complete: removed top-level uid field from resourcesv2 documents", rlog.Int64("modified", result.ModifiedCount))
 	}
 }
 
