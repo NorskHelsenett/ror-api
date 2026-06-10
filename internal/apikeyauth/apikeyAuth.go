@@ -142,7 +142,9 @@ func userAuth(c *gin.Context, ctx context.Context, apikey apicontracts.ApiKey) {
 }
 
 // lookupClusterUid queries resourcesv2 for the KubernetesCluster with the given
-// clusterid (metadata.name) and returns its UID. Returns empty string if not found.
+// clusterid and returns its UID. Returns empty string if not found.
+// Uses the agent-reported state (agentstatus.clusterid) which is stable across
+// ownerref normalization, unlike rormeta.ownerref.subject which gets migrated to UID.
 func lookupClusterUid(ctx context.Context, clusterID string) string {
 	db := mongodb.GetMongoDb()
 	if db == nil {
@@ -156,8 +158,8 @@ func lookupClusterUid(ctx context.Context, clusterID string) string {
 		UID string `bson:"uid"`
 	}
 	err := db.Collection("resourcesv2").FindOne(lookupCtx, bson.M{
-		"metadata.name": clusterID,
 		"typemeta.kind": "KubernetesCluster",
+		"kubernetescluster.status.agentstatus.clusterid": clusterID,
 	}).Decode(&result)
 	if err != nil {
 		return ""

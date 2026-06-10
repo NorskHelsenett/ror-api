@@ -379,6 +379,17 @@ func ResourceGetHashlist(ctx context.Context, owner rorresourceowner.RorResource
 	ctx, span := rortracer.StartSpan(ctx, "v2.resourcesv2service.ResourceGetHashlist")
 	defer span.End()
 
+	// Normalize the ownerref: translate legacy scope and clusterid→UID
+	owner.Scope = owner.Scope.ToKind()
+	if owner.Scope == aclmodels.Acl2ScopeCluster.ToKind() {
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
+		if identity.IsCluster() && identity.ClusterIdentity != nil && identity.ClusterIdentity.Uid != "" {
+			if string(owner.Subject) == identity.ClusterIdentity.Id {
+				owner.Subject = aclmodels.Acl2Subject(identity.ClusterIdentity.Uid)
+			}
+		}
+	}
+
 	query := rorresources.ResourceQuery{
 		OwnerRefs: []rorresourceowner.RorResourceOwnerReference{owner},
 		Limit:     -1,

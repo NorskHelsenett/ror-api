@@ -5,7 +5,7 @@
 //   - acl: subject (where scope=KubernetesCluster)
 //
 // The lookup table is built from KubernetesCluster resources in resourcesv2,
-// mapping metadata.name (clusterid) → uid.
+// mapping kubernetescluster.status.agentstatus.clusterid → uid.
 //
 // Usage:
 //   mongosh 'mongodb://<user>:<pass>@<host>:<port>/nhn-ror?authSource=admin' --file 002_subject_clusterid_to_uid.js
@@ -18,46 +18,26 @@ const db = db.getSiblingDB("nhn-ror");
 print("=== Subject Migration: clusterid → UID ===\n");
 
 // --- Build lookup map: clusterid → uid ---
-// We use two sources since some KubernetesCluster resources have
-// metadata.name = "unknown-undefined" but the original clusterid is
-// preserved in rormeta.ownerref.subject (for clusters whose subject
-// hasn't been migrated yet).
+// The authoritative source for clusterid is the agent-reported state field
+// kubernetescluster.status.agentstatus.clusterid. This is stable across
+// ownerref normalization (unlike rormeta.ownerref.subject which gets migrated).
 print("--- Building clusterid → UID lookup map ---");
 const clusterIdToUid = {};
 
 db.resourcesv2
   .find(
     { "typemeta.kind": "KubernetesCluster" },
-    { "metadata.name": 1, "rormeta.ownerref.subject": 1, uid: 1 }
+    { "kubernetescluster.status.agentstatus.clusterid": 1, uid: 1 }
   )
   .forEach((doc) => {
     if (!doc.uid) return;
-
-    // Source 1: metadata.name (if it's a real clusterid, not "unknown-undefined")
-    if (doc.metadata && doc.metadata.name && doc.metadata.name !== "unknown-undefined") {
-      clusterIdToUid[doc.metadata.name] = doc.uid;
-    }
-
-    // Source 2: ownerref.subject (if it's still a clusterid, not already a UUID)
-    const subject = doc.rormeta && doc.rormeta.ownerref && doc.rormeta.ownerref.subject;
-    if (subject && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(subject)) {
-      clusterIdToUid[subject] = doc.uid;
-    }
-  });
-
-// Source 3: clusters collection as fallback (may have clusterids not in resourcesv2)
-db.clusters
-  .find({}, { clusterid: 1, identifier: 1 })
-  .forEach((doc) => {
-    const cid = doc.clusterid || doc.identifier;
-    if (!cid || clusterIdToUid[cid]) return;
-    // Look up the UID from the KubernetesCluster resource by ownerref
-    const res = db.resourcesv2.findOne(
-      { "typemeta.kind": "KubernetesCluster", "rormeta.ownerref.subject": cid },
-      { uid: 1 }
-    );
-    if (res && res.uid) {
-      clusterIdToUid[cid] = res.uid;
+    const clusterid =
+      doc.kubernetescluster &&
+      doc.kubernetescluster.status &&
+      doc.kubernetescluster.status.agentstatus &&
+      doc.kubernetescluster.status.agentstatus.clusterid;
+    if (clusterid) {
+      clusterIdToUid[clusterid] = doc.uid;
     }
   });
 
