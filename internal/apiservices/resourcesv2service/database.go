@@ -47,7 +47,7 @@ func NewResourceMongoDB(db *mongodb.MongodbCon) ResourceDBProvider {
 
 func (r *ResourceMongoDB) Set(ctx context.Context, resource *rorresources.Resource) error {
 	uid := resource.GetUID()
-	filter := bson.M{"uid": uid}
+	filter := bson.M{"metadata.uid": uid}
 
 	data, err := bson.Marshal(resource)
 	if err != nil {
@@ -59,7 +59,6 @@ func (r *ResourceMongoDB) Set(ctx context.Context, resource *rorresources.Resour
 		rlog.Errorc(ctx, "Failed to unmarshal resource", err)
 		return err
 	}
-	doc["uid"] = uid
 
 	opts := options.Replace().SetUpsert(true)
 	_, err = r.db.GetMongoDb().Collection(RESOURCECOLLECTION).ReplaceOne(ctx, filter, doc, opts)
@@ -85,7 +84,7 @@ func (r *ResourceMongoDB) Patch(ctx context.Context, uid string, partial *rorres
 		return err
 	}
 
-	filter := bson.M{"uid": uid}
+	filter := bson.M{"metadata.uid": uid}
 	flatDoc := bson.M{}
 	flattenBsonM("", doc, flatDoc)
 	if len(flatDoc) == 0 {
@@ -264,7 +263,7 @@ func resourceFromRawDoc(doc bson.M) *rorresources.Resource {
 }
 
 func (r *ResourceMongoDB) Del(ctx context.Context, resource *rorresources.Resource) error {
-	filter := bson.M{"uid": resource.GetUID()}
+	filter := bson.M{"metadata.uid": resource.GetUID()}
 	_, err := r.db.DeleteOne(ctx, RESOURCECOLLECTION, filter)
 	if err != nil {
 		return err
@@ -328,7 +327,7 @@ func GenerateAggregateQuery(ctx context.Context, rorResourceQuery *rorresources.
 	}
 
 	if len(rorResourceQuery.Uids) > 0 {
-		match["uid"] = bson.M{"$in": rorResourceQuery.Uids}
+		match["metadata.uid"] = bson.M{"$in": rorResourceQuery.Uids}
 	}
 
 	if len(rorResourceQuery.OwnerRefs) > 0 {
