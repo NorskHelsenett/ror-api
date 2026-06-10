@@ -57,7 +57,7 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 }
 
 func Create(ctx context.Context, taskInput *apicontracts.Task) (*apicontracts.Task, error) {
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	exists, err := tasksrepo.FindOne(ctx, "name", taskInput.Name)
 	if err != nil {
 		return exists, fmt.Errorf("could not check if task exists: %v", err)
@@ -89,7 +89,7 @@ func Create(ctx context.Context, taskInput *apicontracts.Task) (*apicontracts.Ta
 }
 
 func Update(ctx context.Context, taskId string, taskInput *apicontracts.Task) (*apicontracts.Task, *apicontracts.Task, error) {
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 
 	if !strings.HasPrefix(taskInput.Config.Version, "sha") || !strings.Contains(taskInput.Config.Version, ":") {
 		_, err := semverv4.Parse(taskInput.Config.Version)
@@ -112,7 +112,7 @@ func Update(ctx context.Context, taskId string, taskInput *apicontracts.Task) (*
 }
 
 func Delete(ctx context.Context, taskId string) (bool, *apicontracts.Task, error) {
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	deleted, deletedTask, err := tasksrepo.Delete(ctx, taskId)
 	if err != nil {
 		return false, nil, fmt.Errorf("could not delete task: %v", err)

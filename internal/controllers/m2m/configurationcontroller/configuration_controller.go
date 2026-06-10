@@ -9,7 +9,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/operatorconfigservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/tasksservice"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
@@ -40,7 +40,7 @@ func GetOperatorConfiguration() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 		clusterId := identity.GetId()
 
 		// Access check
@@ -106,7 +106,7 @@ func GetTaskConfiguration() gin.HandlerFunc {
 
 		name = strings.TrimSpace(name)
 
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 		clusterId := identity.GetId()
 
 		// Access check

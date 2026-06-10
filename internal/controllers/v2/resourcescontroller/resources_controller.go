@@ -8,7 +8,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/customvalidators"
 	"github.com/NorskHelsenett/ror-api/internal/models/responses"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
@@ -64,7 +64,7 @@ func ExistsResources() gin.HandlerFunc {
 			return
 		}
 
-		resources := resourcesv2service.GetResourceByUID(ctx, c.Param("uid"))
+		resources, _ := resourcesv2service.GetResourceByUID(ctx, c.Param("uid"))
 		if resources == nil {
 			rortracer.SpanErrorf(span, "resource not found")
 			c.Status(http.StatusNotFound)

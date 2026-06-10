@@ -301,7 +301,7 @@ func GetMetadata(ctx context.Context) (map[string][]string, error) {
 }
 
 func UpdateMetadata(ctx context.Context, input *apicontracts.ClusterMetadataModel, existing *apicontracts.Cluster) error {
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	if !identity.IsUser() {
 		return errors.New("must be a user to update")
 	}
@@ -366,7 +366,7 @@ func GetKubeconfig(ctx context.Context, clusterId string, credentials apicontrac
 	duration := end.Sub(now)
 	rlog.Infoc(ctx, "kubeconfig fetched", rlog.String("clusterId", clusterId), rlog.String("duration", duration.String()))
 
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	_, err = auditlog.Create(ctx, "Identity fetching kubeconfig for workspace",
 		models.AuditCategoryKubeconfig,
 		models.AuditActionRead,

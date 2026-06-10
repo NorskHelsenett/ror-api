@@ -4,7 +4,7 @@ package desiredversioncontroller
 import (
 	"net/http"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/services"
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	desiredversionservice "github.com/NorskHelsenett/ror-api/internal/apiservices/desiredversionservice"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"

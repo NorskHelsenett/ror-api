@@ -29,6 +29,7 @@ tmp/
 # Environment files
 .env*
 !.env.example
+!.env.docker
 
 # Debug binaries
 cmd/api/__debug_bin*

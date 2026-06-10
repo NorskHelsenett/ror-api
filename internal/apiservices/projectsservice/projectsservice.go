@@ -82,7 +82,7 @@ func GetClustersByProjectId(ctx context.Context, projectId string) ([]*apicontra
 }
 
 func Create(ctx context.Context, projectInput *apicontracts.ProjectModel) (*apicontracts.Project, error) {
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	var mappedInput mongoTypes.MongoProject
 	err := mapping.Map(projectInput, &mappedInput)
 	if err != nil {
@@ -109,7 +109,7 @@ func Create(ctx context.Context, projectInput *apicontracts.ProjectModel) (*apic
 }
 
 func Update(ctx context.Context, projectId string, input *apicontracts.ProjectModel) (*apicontracts.Project, *apicontracts.Project, error) {
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	var mongoObject mongoTypes.MongoProject
 	err := mapping.Map(input, &mongoObject)
 	if err != nil {
@@ -143,7 +143,7 @@ func Update(ctx context.Context, projectId string, input *apicontracts.ProjectMo
 }
 
 func Delete(ctx context.Context, projectId string) (bool, *apicontracts.Project, error) {
-	identity := rorcontext.GetIdentityFromRorContext(ctx)
+	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	clustersUsingProject, err := clustersservice.GetClusterIdByProjectId(ctx, projectId)
 	if err != nil {
 		return false, nil, fmt.Errorf("could not delete object, could not check if project is used by others: %v", err)

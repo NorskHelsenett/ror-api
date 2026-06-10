@@ -47,7 +47,7 @@ func GetUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, _ := gincontext.GetRorContextFromGinContext(c)
 
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 		if !identity.IsUser() {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid identity")
 			rerr.GinLogErrorAbort(c)
@@ -105,7 +105,7 @@ func GetApiKeysByFilter() gin.HandlerFunc {
 			return
 		}
 
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 		if !identity.IsUser() {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid identity")
 			rerr.GinLogErrorAbort(c)
@@ -155,7 +155,7 @@ func CreateApikey() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 
 		if !identity.IsUser() {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid identity")
@@ -222,7 +222,7 @@ func DeleteApiKey() gin.HandlerFunc {
 			return
 		}
 
-		identity := rorcontext.GetIdentityFromRorContext(ctx)
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 
 		if !identity.IsUser() {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid identity")
