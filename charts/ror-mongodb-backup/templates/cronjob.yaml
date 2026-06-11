@@ -1,0 +1,78 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "ror-mongodb-backup.fullname" . }}
+  labels:
+    {{- include "ror-mongodb-backup.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.schedule | quote }}
+  suspend: {{ .Values.suspend }}
+  successfulJobsHistoryLimit: {{ .Values.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.failedJobsHistoryLimit }}
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      labels:
+        {{- include "ror-mongodb-backup.selectorLabels" . | nindent 8 }}
+    spec:
+      backoffLimit: 3
+      ttlSecondsAfterFinished: 3600
+      template:
+        metadata:
+          labels:
+            {{- include "ror-mongodb-backup.selectorLabels" . | nindent 12 }}
+        spec:
+          serviceAccountName: {{ include "ror-mongodb-backup.serviceAccountName" . }}
+          restartPolicy: Never
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          initContainers:
+            - name: vault-auth
+              image: "{{ .Values.initImage.repository }}:{{ .Values.initImage.tag }}"
+              imagePullPolicy: {{ .Values.initImage.pullPolicy }}
+              command: ["/bin/sh", "/scripts/vault-auth.sh"]
+              volumeMounts:
+                - name: vault-creds
+                  mountPath: /vault-creds
+                - name: backup-script
+                  mountPath: /scripts
+                  readOnly: true
+          containers:
+            - name: mongodump
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              command: ["/bin/sh", "/scripts/backup.sh"]
+              {{- with .Values.resources }}
+              resources:
+                {{- toYaml . | nindent 16 }}
+              {{- end }}
+              volumeMounts:
+                - name: backup-storage
+                  mountPath: /backup
+                - name: backup-script
+                  mountPath: /scripts
+                  readOnly: true
+                - name: vault-creds
+                  mountPath: /vault-creds
+                  readOnly: true
+          volumes:
+            - name: backup-storage
+              persistentVolumeClaim:
+                claimName: {{ include "ror-mongodb-backup.fullname" . }}
+            - name: backup-script
+              configMap:
+                name: {{ include "ror-mongodb-backup.fullname" . }}-script
+                defaultMode: 0755
+            - name: vault-creds
+              emptyDir:
+                medium: Memory

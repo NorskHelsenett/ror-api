@@ -1,0 +1,59 @@
+schedule: "0 2 * * *"
+
+mongodb:
+  host: "ror-mongodb.nhn-ror.svc"
+  port: 27017
+  database: "nhn-ror"
+
+vault:
+  url: "http://ror-vault-active.nhn-ror.svc:8200"
+  role: "ror-mongodb-backup"
+  authPath: "kubernetes"
+  dbMountPath: "mongodb"
+
+backup:
+  storage:
+    size: 100Gi
+    storageClassName: ""
+  retentionDays: 30
+  # Additional mongodump arguments
+  extraArgs: ""
+
+image:
+  repository: mongo
+  tag: "7.0"
+  pullPolicy: IfNotPresent
+
+initImage:
+  repository: curlimages/curl
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+# Number of successful/failed jobs to keep
+successfulJobsHistoryLimit: 3
+failedJobsHistoryLimit: 3
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 1Gi
+
+serviceAccount:
+  create: true
+  name: "ror-mongodb-backup"
+  annotations: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+suspend: false
+
+restore:
+  # Set to true and run helm upgrade to trigger a restore job
+  enabled: false
+  # Backup filename to restore (e.g. "20260611-124346.tar.gz")
+  # Leave empty to restore the most recent backup
+  backup: ""
