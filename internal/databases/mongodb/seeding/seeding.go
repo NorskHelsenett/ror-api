@@ -51,8 +51,8 @@ func ensureResourcesV2Indexes(ctx context.Context) {
 
 	indexes := []mongo.IndexModel{
 		{
-			Keys:    bson.D{{Key: "uid", Value: 1}},
-			Options: options.Index().SetName("uid_1").SetUnique(true),
+			Keys:    bson.D{{Key: "metadata.uid", Value: 1}},
+			Options: options.Index().SetName("metadata.uid_1").SetUnique(true),
 		},
 		{
 			Keys:    bson.D{{Key: "rormeta.ownerref", Value: 1}},
@@ -83,6 +83,7 @@ func ensureResourcesV2Indexes(ctx context.Context) {
 
 	// Drop redundant indexes that are prefixes of the compound indexes above
 	redundantIndexes := []string{
+		"uid_1",
 		"rormeta.ownerref.scope_1",
 		"rormeta.ownerref.scope_1_rormeta.ownerref.subject_1",
 		"typemeta.kind_1_typemeta.apiversion_1",
@@ -93,6 +94,22 @@ func ensureResourcesV2Indexes(ctx context.Context) {
 			// Ignore errors from indexes that don't exist
 			rlog.Debugc(ctx, "could not drop index (may not exist)", rlog.String("index", name), rlog.Any("error", err))
 		}
+	}
+
+	// Migration: remove the denormalized top-level uid field from existing documents.
+	// The canonical UID lives in metadata.uid; the top-level uid was a redundant copy
+	// injected at write time and is no longer needed.
+	result, err := collection.UpdateMany(
+		ctx,
+		bson.M{"uid": bson.M{"$exists": true}},
+		bson.M{"$unset": bson.M{"uid": ""}},
+	)
+	if err != nil {
+		rlog.Errorc(ctx, "migration failed: could not remove top-level uid field from resourcesv2 documents — documents with a top-level uid field may still exist", err)
+		return
+	}
+	if result.ModifiedCount > 0 {
+		rlog.Infoc(ctx, "migration complete: removed top-level uid field from resourcesv2 documents", rlog.Int64("modified", result.ModifiedCount))
 	}
 }
 
