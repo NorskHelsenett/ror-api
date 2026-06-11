@@ -28,7 +28,7 @@ func CreateClusterACLFilter(acl aclmodels.AclV2ListItems) bson.M {
 		}
 		filter := bson.M{
 			"$match": bson.M{
-				"clusterid": bson.M{
+				"uid": bson.M{
 					"$in": clusterFilter,
 				},
 			},
