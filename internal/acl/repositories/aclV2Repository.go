@@ -109,11 +109,15 @@ func GetACL2ByIdentityQuery(ctx context.Context, aclQuery aclmodels.AclV2QueryAc
 
 		return aclReturnArray
 	} else if identity.IsCluster() && aclQuery.Scope == aclmodels.Acl2ScopeCluster.ToKind() {
+		subject := aclmodels.Acl2Subject(identity.GetId())
+		if identity.ClusterIdentity != nil && identity.ClusterIdentity.Uid != "" {
+			subject = aclmodels.Acl2Subject(identity.ClusterIdentity.Uid)
+		}
 		aclReturn := aclmodels.AclV2ListItem{
 			Version:    2,
 			Group:      "NA",
 			Scope:      aclmodels.Acl2ScopeCluster,
-			Subject:    aclmodels.Acl2Subject(identity.GetId()),
+			Subject:    subject,
 			Access:     aclmodels.AclV2ListItemAccess{Read: true, Create: true, Update: true, Delete: false, Owner: false},
 			Kubernetes: aclmodels.AclV2ListItemKubernetes{Logon: false},
 		}
