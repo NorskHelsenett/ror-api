@@ -1,0 +1,79 @@
+{{/*
+Restore Job — only created when restore.enabled is true.
+Trigger with: helm upgrade --set restore.enabled=true --set restore.backup=<filename>
+*/}}
+{{- if .Values.restore.enabled -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "ror-mongodb-backup.fullname" . }}-restore
+  labels:
+    {{- include "ror-mongodb-backup.labels" . | nindent 4 }}
+    app.kubernetes.io/component: restore
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        {{- include "ror-mongodb-backup.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: restore
+    spec:
+      serviceAccountName: {{ include "ror-mongodb-backup.serviceAccountName" . }}
+      restartPolicy: Never
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: vault-auth
+          image: "{{ .Values.initImage.repository }}:{{ .Values.initImage.tag }}"
+          imagePullPolicy: {{ .Values.initImage.pullPolicy }}
+          command: ["/bin/sh", "/scripts/vault-auth.sh"]
+          volumeMounts:
+            - name: vault-creds
+              mountPath: /vault-creds
+            - name: backup-script
+              mountPath: /scripts
+              readOnly: true
+      containers:
+        - name: mongorestore
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/bin/sh", "/scripts/restore.sh"]
+          env:
+            - name: RESTORE_BACKUP
+              value: {{ .Values.restore.backup | quote }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: backup-storage
+              mountPath: /backup
+              readOnly: true
+            - name: backup-script
+              mountPath: /scripts
+              readOnly: true
+            - name: vault-creds
+              mountPath: /vault-creds
+              readOnly: true
+      volumes:
+        - name: backup-storage
+          persistentVolumeClaim:
+            claimName: {{ include "ror-mongodb-backup.fullname" . }}
+        - name: backup-script
+          configMap:
+            name: {{ include "ror-mongodb-backup.fullname" . }}-script
+            defaultMode: 0755
+        - name: vault-creds
+          emptyDir:
+            medium: Memory
+{{- end }}

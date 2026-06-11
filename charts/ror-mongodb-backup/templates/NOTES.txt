@@ -1,0 +1,57 @@
+=====================================
+  ror-mongodb-backup installed
+=====================================
+
+Schedule:         {{ .Values.schedule }}
+Database:         {{ .Values.mongodb.host }}:{{ .Values.mongodb.port }}/{{ .Values.mongodb.database }}
+Vault role:       {{ .Values.vault.role }}
+Service account:  {{ include "ror-mongodb-backup.serviceAccountName" . }}
+Backup PVC:       {{ include "ror-mongodb-backup.fullname" . }} ({{ .Values.backup.storage.size }})
+Retention:        {{ .Values.backup.retentionDays }} days
+
+PREREQUISITES — verify before the first scheduled run:
+
+  1. Vault Kubernetes auth role:
+
+     vault write auth/{{ .Values.vault.authPath }}/role/{{ .Values.vault.role }} \
+       bound_service_account_names={{ include "ror-mongodb-backup.serviceAccountName" . }} \
+       bound_service_account_namespaces={{ .Release.Namespace }} \
+       policies={{ .Values.vault.role }} \
+       ttl=1h
+
+  2. Vault database credentials role:
+
+     vault write {{ .Values.vault.dbMountPath }}/roles/{{ .Values.vault.role }} \
+       db_name={{ .Values.mongodb.database }} \
+       creation_statements='{ "db": "admin", "roles": [{"role":"readAnyDatabase","db":"admin"},{"role":"backup","db":"admin"}] }' \
+       default_ttl=15m max_ttl=1h
+
+  3. Vault policy ({{ .Values.vault.role }}):
+
+     path "{{ .Values.vault.dbMountPath }}/creds/{{ .Values.vault.role }}" { capabilities = ["read"] }
+     path "auth/token/revoke-self" { capabilities = ["update"] }
+
+MANUAL BACKUP:
+
+  kubectl create job --from=cronjob/{{ include "ror-mongodb-backup.fullname" . }} \
+    manual-backup-$(date +%s) -n {{ .Release.Namespace }}
+
+CHECK STATUS:
+
+  kubectl get cronjob {{ include "ror-mongodb-backup.fullname" . }} -n {{ .Release.Namespace }}
+  kubectl get jobs -l app.kubernetes.io/name={{ include "ror-mongodb-backup.name" . }} -n {{ .Release.Namespace }}
+
+RESTORE FROM BACKUP:
+
+  # Restore latest backup:
+  helm upgrade {{ .Release.Name }} ror-mongodb-backup -n {{ .Release.Namespace }} --set restore.enabled=true
+
+  # Restore specific backup:
+  helm upgrade {{ .Release.Name }} ror-mongodb-backup -n {{ .Release.Namespace }} \
+    --set restore.enabled=true --set restore.backup="<filename>.tar.gz"
+
+  # Check restore progress:
+  kubectl logs -n {{ .Release.Namespace }} -l app.kubernetes.io/component=restore --all-containers
+
+  # Disable restore after completion:
+  helm upgrade {{ .Release.Name }} ror-mongodb-backup -n {{ .Release.Namespace }} --set restore.enabled=false

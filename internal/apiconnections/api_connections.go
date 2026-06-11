@@ -20,9 +20,12 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/clients/vaultclient/databasecredhelper"
 	"github.com/NorskHelsenett/ror/pkg/clients/vaultclient/rabbitmqcredhelper"
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorhealth"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 var (
@@ -40,6 +43,24 @@ func InitConnections(ctx context.Context) {
 	mongodb.Init(mongocredshelper, rorconfig.GetString(rorconfig.MONGODB_HOST), rorconfig.GetString(rorconfig.MONGODB_PORT), rorconfig.GetString(rorconfig.MONGO_DATABASE))
 
 	aclservice.InitResolver()
+
+	aclmodels.ClusterIdToUidResolver = func(clusterID string) string {
+		db := mongodb.GetMongoDb()
+		if db == nil {
+			return ""
+		}
+		var result struct {
+			UID string `bson:"uid"`
+		}
+		err := db.Collection("resourcesv2").FindOne(context.Background(), bson.M{
+			"typemeta.kind": "KubernetesCluster",
+			"kubernetescluster.status.agentstatus.clusterid": clusterID,
+		}).Decode(&result)
+		if err != nil {
+			return ""
+		}
+		return result.UID
+	}
 
 	rmqcredhelper := rabbitmqcredhelper.NewVaultRMQCredentials(VaultClient, rorconfig.GetString(rorconfig.ROLE))
 	RabbitMQConnection = rabbitmqclient.NewRabbitMQConnection(rmqcredhelper, rorconfig.GetString(rorconfig.RABBITMQ_HOST), rorconfig.GetString(rorconfig.RABBITMQ_PORT), rorconfig.GetString(rorconfig.RABBITMQ_BROADCAST_NAME))

@@ -1,0 +1,208 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ror-mongodb-backup.fullname" . }}-script
+  labels:
+    {{- include "ror-mongodb-backup.labels" . | nindent 4 }}
+data:
+  vault-auth.sh: |
+    #!/bin/sh
+    set -e
+
+    VAULT_URL="{{ .Values.vault.url }}"
+    VAULT_AUTH_PATH="{{ .Values.vault.authPath }}"
+    VAULT_ROLE="{{ .Values.vault.role }}"
+    VAULT_DB_MOUNT="{{ .Values.vault.dbMountPath }}"
+
+    echo "$(date -Iseconds) [init] Authenticating to Vault at $VAULT_URL"
+
+    SA_TOKEN_PATH="/var/run/secrets/kubernetes.io/serviceaccount/token"
+    if [ ! -f "$SA_TOKEN_PATH" ]; then
+      echo "ERROR: Kubernetes service account token not found at $SA_TOKEN_PATH"
+      exit 1
+    fi
+
+    SA_TOKEN=$(cat "$SA_TOKEN_PATH")
+
+    VAULT_RESPONSE=$(curl -s --connect-timeout 10 --max-time 30 \
+      -H "Content-Type: application/json" \
+      -d "{\"jwt\":\"$SA_TOKEN\",\"role\":\"$VAULT_ROLE\"}" \
+      "$VAULT_URL/v1/auth/$VAULT_AUTH_PATH/login")
+    CURL_EXIT=$?
+    if [ $CURL_EXIT -ne 0 ]; then
+      echo "ERROR: curl failed with exit code $CURL_EXIT connecting to $VAULT_URL"
+      exit 1
+    fi
+
+    VAULT_TOKEN=$(echo "$VAULT_RESPONSE" | sed -n 's/.*"client_token":"\([^"]*\)".*/\1/p')
+
+    if [ -z "$VAULT_TOKEN" ]; then
+      echo "ERROR: Failed to authenticate to Vault"
+      echo "$VAULT_RESPONSE"
+      exit 1
+    fi
+
+    echo "$(date -Iseconds) [init] Vault authentication successful"
+
+    echo "$(date -Iseconds) [init] Requesting MongoDB credentials"
+    DB_CREDS=$(curl -s --connect-timeout 10 --max-time 30 \
+      -H "X-Vault-Token: $VAULT_TOKEN" \
+      "$VAULT_URL/v1/$VAULT_DB_MOUNT/creds/$VAULT_ROLE")
+    CURL_EXIT=$?
+    if [ $CURL_EXIT -ne 0 ]; then
+      echo "ERROR: curl failed with exit code $CURL_EXIT fetching DB credentials"
+      exit 1
+    fi
+
+    MONGO_USER=$(echo "$DB_CREDS" | sed -n 's/.*"username":"\([^"]*\)".*/\1/p')
+    MONGO_PASS=$(echo "$DB_CREDS" | sed -n 's/.*"password":"\([^"]*\)".*/\1/p')
+
+    if [ -z "$MONGO_USER" ] || [ -z "$MONGO_PASS" ]; then
+      echo "ERROR: Failed to get MongoDB credentials from Vault"
+      echo "$DB_CREDS"
+      exit 1
+    fi
+
+    echo "$(date -Iseconds) [init] Credentials acquired (user: $MONGO_USER)"
+
+    # Write credentials and vault token to shared volume
+    echo "$MONGO_USER" > /vault-creds/username
+    echo "$MONGO_PASS" > /vault-creds/password
+    echo "$VAULT_TOKEN" > /vault-creds/vault-token
+    chmod 600 /vault-creds/*
+
+    echo "$(date -Iseconds) [init] Credentials written to shared volume"
+
+  backup.sh: |
+    #!/bin/sh
+    set -e
+
+    VAULT_URL="{{ .Values.vault.url }}"
+    MONGODB_HOST="{{ .Values.mongodb.host }}"
+    MONGODB_PORT="{{ .Values.mongodb.port }}"
+    MONGODB_DATABASE="{{ .Values.mongodb.database }}"
+    RETENTION_DAYS="{{ .Values.backup.retentionDays }}"
+    BACKUP_DIR="/backup"
+
+    echo "$(date -Iseconds) Starting MongoDB backup"
+
+    # Read credentials from init container
+    if [ ! -f /vault-creds/username ] || [ ! -f /vault-creds/password ]; then
+      echo "ERROR: Credentials not found in /vault-creds/"
+      exit 1
+    fi
+
+    MONGO_USER=$(cat /vault-creds/username)
+    MONGO_PASS=$(cat /vault-creds/password)
+
+    echo "$(date -Iseconds) Using credentials (user: $MONGO_USER)"
+
+    # --- Run mongodump ---
+    TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+    BACKUP_PATH="$BACKUP_DIR/$TIMESTAMP"
+    mkdir -p "$BACKUP_PATH"
+
+    echo "$(date -Iseconds) Running mongodump to $BACKUP_PATH"
+    mongodump \
+      --host="$MONGODB_HOST" \
+      --port="$MONGODB_PORT" \
+      --username="$MONGO_USER" \
+      --password="$MONGO_PASS" \
+      --authenticationDatabase="admin" \
+      --db="$MONGODB_DATABASE" \
+      --gzip \
+      --out="$BACKUP_PATH" \
+      {{ .Values.backup.extraArgs }}
+
+    # Archive the already-compressed output (no additional compression needed)
+    echo "$(date -Iseconds) Archiving backup"
+    cd "$BACKUP_DIR"
+    tar cf "${TIMESTAMP}.tar.gz" "$TIMESTAMP"
+    rm -rf "$TIMESTAMP"
+
+    BACKUP_SIZE=$(du -sh "${TIMESTAMP}.tar.gz" | cut -f1)
+    echo "$(date -Iseconds) Backup completed: ${TIMESTAMP}.tar.gz ($BACKUP_SIZE)"
+
+    # --- Cleanup old backups ---
+    if [ "$RETENTION_DAYS" -gt 0 ]; then
+      echo "$(date -Iseconds) Cleaning up backups older than $RETENTION_DAYS days"
+      find "$BACKUP_DIR" -name "*.tar.gz" -mtime +"$RETENTION_DAYS" -delete
+      echo "$(date -Iseconds) Cleanup done"
+    fi
+
+    echo "$(date -Iseconds) Backup job finished successfully"
+
+  restore.sh: |
+    #!/bin/sh
+    set -e
+
+    MONGODB_HOST="{{ .Values.mongodb.host }}"
+    MONGODB_PORT="{{ .Values.mongodb.port }}"
+    MONGODB_DATABASE="{{ .Values.mongodb.database }}"
+    BACKUP_DIR="/backup"
+
+    echo "$(date -Iseconds) Starting MongoDB restore"
+
+    # Read credentials from init container
+    if [ ! -f /vault-creds/username ] || [ ! -f /vault-creds/password ]; then
+      echo "ERROR: Credentials not found in /vault-creds/"
+      exit 1
+    fi
+
+    MONGO_USER=$(cat /vault-creds/username)
+    MONGO_PASS=$(cat /vault-creds/password)
+
+    echo "$(date -Iseconds) Using credentials (user: $MONGO_USER)"
+
+    # Determine which backup to restore
+    BACKUP_FILE="${RESTORE_BACKUP:-}"
+    if [ -z "$BACKUP_FILE" ]; then
+      # Use the most recent backup
+      BACKUP_FILE=$(ls -t "$BACKUP_DIR"/*.tar.gz 2>/dev/null | head -1)
+      if [ -z "$BACKUP_FILE" ]; then
+        echo "ERROR: No backups found in $BACKUP_DIR"
+        ls -la "$BACKUP_DIR"
+        exit 1
+      fi
+      echo "$(date -Iseconds) No RESTORE_BACKUP specified, using latest: $BACKUP_FILE"
+    else
+      BACKUP_FILE="$BACKUP_DIR/$BACKUP_FILE"
+      if [ ! -f "$BACKUP_FILE" ]; then
+        echo "ERROR: Backup file not found: $BACKUP_FILE"
+        echo "Available backups:"
+        ls -lh "$BACKUP_DIR"/*.tar.gz 2>/dev/null || echo "  (none)"
+        exit 1
+      fi
+    fi
+
+    echo "$(date -Iseconds) Restoring from: $BACKUP_FILE"
+
+    # Extract backup to temp directory
+    RESTORE_DIR=$(mktemp -d)
+    tar xf "$BACKUP_FILE" -C "$RESTORE_DIR"
+
+    # Find the extracted directory (named by timestamp)
+    DUMP_DIR=$(find "$RESTORE_DIR" -mindepth 1 -maxdepth 1 -type d | head -1)
+    if [ -z "$DUMP_DIR" ]; then
+      echo "ERROR: Could not find dump directory in archive"
+      exit 1
+    fi
+
+    echo "$(date -Iseconds) Extracted to: $DUMP_DIR"
+    echo "$(date -Iseconds) Running mongorestore (drop existing collections)"
+
+    mongorestore \
+      --host="$MONGODB_HOST" \
+      --port="$MONGODB_PORT" \
+      --username="$MONGO_USER" \
+      --password="$MONGO_PASS" \
+      --authenticationDatabase="admin" \
+      --db="$MONGODB_DATABASE" \
+      --gzip \
+      --drop \
+      "$DUMP_DIR/$MONGODB_DATABASE/"
+
+    echo "$(date -Iseconds) Cleaning up temp directory"
+    rm -rf "$RESTORE_DIR"
+
+    echo "$(date -Iseconds) Restore completed successfully"
