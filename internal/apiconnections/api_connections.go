@@ -3,6 +3,7 @@ package apiconnections
 import (
 	"context"
 	"encoding/json"
+	"sync"
 	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice/v2"
@@ -32,6 +33,8 @@ var (
 	VaultClient        *vaultclient.VaultClient
 	RabbitMQConnection rabbitmqclient.RabbitMQConnection
 	DomainResolvers    *userauth.DomainResolvers
+
+	clusterIdToUidCache sync.Map // map[string]string: clusterID -> uid
 )
 
 func InitConnections(ctx context.Context) {
@@ -45,6 +48,9 @@ func InitConnections(ctx context.Context) {
 	aclservice.InitResolver()
 
 	aclmodels.ClusterIdToUidResolver = func(clusterID string) string {
+		if uid, ok := clusterIdToUidCache.Load(clusterID); ok {
+			return uid.(string)
+		}
 		db := mongodb.GetMongoDb()
 		if db == nil {
 			return ""
@@ -59,6 +65,7 @@ func InitConnections(ctx context.Context) {
 		if err != nil {
 			return ""
 		}
+		clusterIdToUidCache.Store(clusterID, result.UID)
 		return result.UID
 	}
 
