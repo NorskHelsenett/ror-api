@@ -411,6 +411,35 @@ func CreateForAgentV2(ctx context.Context, req *apikeystypes.RegisterClusterRequ
 	}, nil
 }
 
+// ResolveClusterUid returns the authoritative uid for a cluster apikey. The uid
+// stored on the apikey is the source of truth and is deterministic. For legacy
+// cluster apikeys created before the uid was stored at registration, it resolves
+// the uid deterministically from the canonical KubernetesCluster resource and
+// lazily backfills it onto the apikey so subsequent authentications are
+// authoritative and independent of resourcesv2 contents. Returns an empty string
+// when no uid can be determined.
+func ResolveClusterUid(ctx context.Context, apikey apicontracts.ApiKey) string {
+	if apikey.Uid != "" {
+		return apikey.Uid
+	}
+
+	uid, err := resourcesv2service.GetKubernetesClusterUIDByClusterId(ctx, apikey.Identifier)
+	if err != nil {
+		rlog.Errorc(ctx, "could not resolve cluster uid", err, rlog.String("identifier", apikey.Identifier))
+		return ""
+	}
+	if uid == "" {
+		return ""
+	}
+
+	// Lazily backfill the resolved uid onto the apikey so future lookups are
+	// authoritative. Best-effort: a failure here does not affect the current request.
+	if err := apikeyrepo.UpdateUid(ctx, apikey.Id, apikey.Identifier, uid); err != nil {
+		rlog.Errorc(ctx, "could not backfill cluster uid on apikey", err, rlog.String("identifier", apikey.Identifier))
+	}
+	return uid
+}
+
 func UpdateLastUsed(ctx context.Context, apikeyId string, identifier string) error {
 	err := apikeyrepo.UpdateLastUsed(ctx, apikeyId, identifier)
 	if err != nil {

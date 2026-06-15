@@ -17,6 +17,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
 	"github.com/NorskHelsenett/ror/pkg/clients/rabbitmqclient"
 
+	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 	"github.com/NorskHelsenett/ror/pkg/clients/vaultclient"
 	"github.com/NorskHelsenett/ror/pkg/clients/vaultclient/databasecredhelper"
 	"github.com/NorskHelsenett/ror/pkg/clients/vaultclient/rabbitmqcredhelper"
@@ -55,18 +56,67 @@ func InitConnections(ctx context.Context) {
 		if db == nil {
 			return ""
 		}
-		var result struct {
+
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+
+		// Authoritative source: the uid stored on the cluster's apikey. This is
+		// deterministic and set at registration (or lazily backfilled), so it is
+		// preferred over scanning resourcesv2.
+		var apikeyResult struct {
 			UID string `bson:"uid"`
 		}
-		err := db.Collection("resourcesv2").FindOne(context.Background(), bson.M{
-			"typemeta.kind": "KubernetesCluster",
-			"kubernetescluster.status.agentstatus.clusterid": clusterID,
-		}).Decode(&result)
+		err := db.Collection("apikeys").FindOne(ctx, bson.M{
+			"identifier": clusterID,
+			"type":       string(apicontracts.ApiKeyTypeCluster),
+		}).Decode(&apikeyResult)
+		if err == nil && apikeyResult.UID != "" {
+			clusterIdToUidCache.Store(clusterID, apikeyResult.UID)
+			return apikeyResult.UID
+		}
+
+		// Fallback for legacy clusters without a stored apikey uid: deterministically
+		// pick the canonical KubernetesCluster (uid == ownerref.subject), then the
+		// oldest, so resolution is stable even when duplicates exist.
+		pipeline := []bson.M{
+			{"$match": bson.M{
+				"typemeta.kind": "KubernetesCluster",
+				"kubernetescluster.status.agentstatus.clusterid": clusterID,
+			}},
+			{"$addFields": bson.M{
+				"_iscanonical": bson.M{
+					"$cond": bson.A{
+						bson.M{"$eq": bson.A{"$uid", "$rormeta.ownerref.subject"}}, 0, 1,
+					},
+				},
+			}},
+			{"$sort": bson.D{
+				{Key: "_iscanonical", Value: 1},
+				{Key: "metadata.creationtimestamp.time", Value: 1},
+				{Key: "_id", Value: 1},
+			}},
+			{"$limit": 1},
+		}
+
+		cursor, err := db.Collection("resourcesv2").Aggregate(ctx, pipeline)
 		if err != nil {
 			return ""
 		}
-		clusterIdToUidCache.Store(clusterID, result.UID)
-		return result.UID
+		defer func() { _ = cursor.Close(ctx) }()
+
+		var results []struct {
+			UID string `bson:"uid"`
+		}
+		if err := cursor.All(ctx, &results); err != nil || len(results) == 0 {
+			return ""
+		}
+
+		uid := results[0].UID
+		// Only cache non-empty resolutions so a transient miss is not sticky.
+		if uid != "" {
+			clusterIdToUidCache.Store(clusterID, uid)
+		}
+		return uid
 	}
 
 	rmqcredhelper := rabbitmqcredhelper.NewVaultRMQCredentials(VaultClient, rorconfig.GetString(rorconfig.ROLE))

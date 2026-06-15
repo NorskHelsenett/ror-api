@@ -195,7 +195,18 @@ func GetKubernetesClusterUIDByClusterId(ctx context.Context, clusterId string) (
 			"typemeta.kind":       kind,
 			"kubernetescluster.status.agentstatus.clusterid": clusterId,
 		}},
+		// Prefer the canonical document where the resource owns itself
+		// (uid == rormeta.ownerref.subject); among ties fall back to the oldest.
+		// This makes resolution deterministic even when legacy duplicates exist.
+		{"$addFields": bson.M{
+			"_iscanonical": bson.M{
+				"$cond": bson.A{
+					bson.M{"$eq": bson.A{"$uid", "$rormeta.ownerref.subject"}}, 0, 1,
+				},
+			},
+		}},
 		{"$sort": bson.D{
+			{Key: "_iscanonical", Value: 1},
 			{Key: "metadata.creationtimestamp.time", Value: 1},
 			{Key: "_id", Value: 1},
 		}},

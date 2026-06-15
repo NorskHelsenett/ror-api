@@ -177,3 +177,27 @@ func UpdateLastUsed(ctx context.Context, apikeyId string, identifier string) err
 
 	return nil
 }
+
+// UpdateUid sets the cluster uid on an apikey. It is used to lazily backfill the
+// authoritative uid for legacy cluster apikeys that were created before the uid
+// was stored at registration time.
+func UpdateUid(ctx context.Context, apikeyId string, identifier string, uid string) error {
+	mongoID, err := bson.ObjectIDFromHex(apikeyId)
+	if err != nil {
+		return fmt.Errorf("could not convert ID: %v", err)
+	}
+
+	filter := bson.M{"_id": mongoID, "identifier": identifier}
+	update := bson.M{"$set": bson.M{"uid": uid}}
+
+	updateResult, err := mongodb.UpdateOne(ctx, collectionName, filter, update)
+	if err != nil {
+		return err
+	}
+
+	if updateResult.MatchedCount == 0 {
+		return fmt.Errorf("could not update object")
+	}
+
+	return nil
+}
