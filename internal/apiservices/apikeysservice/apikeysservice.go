@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
+	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
 	apikeyrepo "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/apikeys"
 	datacenterRepo "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/datacenters"
 
@@ -321,19 +322,60 @@ func CreateForAgentV2(ctx context.Context, req *apikeystypes.RegisterClusterRequ
 		return response, errors.New("input is nil")
 	}
 
-	if req.ClusterId == "" {
-		return response, errors.New("cluster id is required")
+	if req.ClusterId == "" && req.Uid == "" {
+		return response, errors.New("clusterid or uid is required")
 	}
 
 	mongoctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	apikeys, err := apikeyrepo.GetByIdentifier(mongoctx, req.ClusterId)
+
+	// Resolve the authoritative cluster identity. The uid is the stable cluster
+	// identity and must never change for a given cluster. The agent may identify
+	// itself by clusterid, uid, or both, but a caller-supplied uid is only a hint:
+	// we verify it against an existing KubernetesCluster and never blindly trust
+	// it. The clusterid is required for the apikey identifier (it drives cluster
+	// auth), so when only a uid is supplied we derive the clusterid from the
+	// matched resource.
+	clusterId := req.ClusterId
+	var clusterUid string
+
+	if req.Uid != "" {
+		existingClusterId, err := resourcesv2service.GetKubernetesClusterClusterIdByUID(mongoctx, req.Uid)
+		if err != nil {
+			return response, fmt.Errorf("error when verifying provided uid: %w", err)
+		}
+		// Only honour the provided uid if it maps to a real cluster. When it does,
+		// the existing record is authoritative for the identity: adopt both its uid
+		// and its clusterid (overriding any clusterid the agent supplied).
+		if existingClusterId != "" {
+			clusterUid = req.Uid
+			clusterId = existingClusterId
+		}
+	}
+
+	if clusterUid == "" && clusterId != "" {
+		// Reuse an existing cluster uid (e.g. re-registration after the apikey was
+		// removed) so the identity stays stable, independent of resourcesv2 contents.
+		existingUid, err := resourcesv2service.GetKubernetesClusterUIDByClusterId(mongoctx, clusterId)
+		if err != nil {
+			return response, fmt.Errorf("error when looking up existing cluster uid: %w", err)
+		}
+		clusterUid = existingUid
+	}
+
+	if clusterId == "" {
+		// We only received a uid that does not match any existing cluster, so we
+		// cannot derive a clusterid for the apikey identifier.
+		return response, errors.New("could not determine clusterid: provided uid does not match an existing cluster")
+	}
+
+	apikeys, err := apikeyrepo.GetByIdentifier(mongoctx, clusterId)
 	if err != nil {
 		return response, fmt.Errorf("error when checking apikey for identifier: %w", err)
 	}
 
 	if len(apikeys) > 0 {
-		return response, fmt.Errorf("already a key for idenitifier: %s", req.ClusterId)
+		return response, fmt.Errorf("already a key for idenitifier: %s", clusterId)
 	}
 
 	uniqueId, err := uuid.NewUUID()
@@ -341,11 +383,17 @@ func CreateForAgentV2(ctx context.Context, req *apikeystypes.RegisterClusterRequ
 		return response, err
 	}
 
+	// Only mint a new uid when we positively confirmed no cluster resource exists.
+	if clusterUid == "" {
+		clusterUid = uuid.NewString()
+	}
+
 	apikey := apicontracts.ApiKey{}
 	hash := stringhelper.HashSHA512(uniqueId.String(), []byte(mustGetApikeySalt()))
 
-	apikey.DisplayName = req.ClusterId
-	apikey.Identifier = req.ClusterId
+	apikey.DisplayName = clusterId
+	apikey.Identifier = clusterId
+	apikey.Uid = clusterUid
 
 	apikey.ReadOnly = false
 	apikey.Type = apicontracts.ApiKeyTypeCluster
@@ -357,8 +405,9 @@ func CreateForAgentV2(ctx context.Context, req *apikeystypes.RegisterClusterRequ
 	}
 
 	return apikeystypes.RegisterClusterResponse{
-		ClusterId: req.ClusterId,
+		ClusterId: clusterId,
 		ApiKey:    uniqueId.String(),
+		Uid:       clusterUid,
 	}, nil
 }
 
