@@ -83,6 +83,14 @@ func InitConnections(ctx context.Context) {
 				"typemeta.kind": "KubernetesCluster",
 				"kubernetescluster.status.agentstatus.clusterid": clusterID,
 			}},
+			// Only carry the fields needed for canonical selection, sorting and
+			// the returned uid so the full cluster document is not pulled through
+			// $sort or over the wire.
+			{"$project": bson.M{
+				"uid":                             1,
+				"rormeta.ownerref.subject":        1,
+				"metadata.creationtimestamp.time": 1,
+			}},
 			{"$addFields": bson.M{
 				"_iscanonical": bson.M{
 					"$cond": bson.A{

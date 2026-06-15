@@ -196,7 +196,7 @@ func UpdateUid(ctx context.Context, apikeyId string, identifier string, uid stri
 	}
 
 	if updateResult.MatchedCount == 0 {
-		return fmt.Errorf("could not update object")
+		return fmt.Errorf("could not update uid: no apikey matched id %q with identifier %q", apikeyId, identifier)
 	}
 
 	return nil

@@ -195,6 +195,14 @@ func GetKubernetesClusterUIDByClusterId(ctx context.Context, clusterId string) (
 			"typemeta.kind":       kind,
 			"kubernetescluster.status.agentstatus.clusterid": clusterId,
 		}},
+		// Only carry the fields needed for canonical selection, sorting and the
+		// returned uid so the (potentially large) cluster document is not pulled
+		// through $sort or over the wire.
+		{"$project": bson.M{
+			"uid":                             1,
+			"rormeta.ownerref.subject":        1,
+			"metadata.creationtimestamp.time": 1,
+		}},
 		// Prefer the canonical document where the resource owns itself
 		// (uid == rormeta.ownerref.subject); among ties fall back to the oldest.
 		// This makes resolution deterministic even when legacy duplicates exist.
@@ -253,6 +261,11 @@ func GetKubernetesClusterClusterIdByUID(ctx context.Context, uid string) (string
 			"typemeta.apiversion": apiversion,
 			"typemeta.kind":       kind,
 			"uid":                 uid,
+		}},
+		// The caller only needs the agent-reported clusterid; avoid pulling the
+		// full cluster document over the wire.
+		{"$project": bson.M{
+			"kubernetescluster.status.agentstatus.clusterid": 1,
 		}},
 		{"$limit": 1},
 	}

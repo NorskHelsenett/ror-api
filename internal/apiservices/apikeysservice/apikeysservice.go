@@ -375,7 +375,7 @@ func CreateForAgentV2(ctx context.Context, req *apikeystypes.RegisterClusterRequ
 	}
 
 	if len(apikeys) > 0 {
-		return response, fmt.Errorf("already a key for idenitifier: %s", clusterId)
+		return response, fmt.Errorf("already a key for identifier: %s", clusterId)
 	}
 
 	uniqueId, err := uuid.NewUUID()
