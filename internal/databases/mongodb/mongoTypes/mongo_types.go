@@ -36,6 +36,7 @@ type MongoWorkspace struct {
 type MongoCluster struct {
 	ID            bson.ObjectID          `json:"id" bson:"_id,omitempty"`
 	Identifier    string                 `json:"identifier"`
+	Uid           string                 `json:"uid" bson:"uid,omitempty"`
 	ACL           MongoAccessControlList `json:"acl"`
 	ClusterId     string                 `json:"clusterId"`
 	ClusterName   string                 `json:"clusterName"`
