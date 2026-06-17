@@ -27,10 +27,14 @@ import (
 )
 
 var (
-	slowQueryDuration = 1000 * time.Millisecond
-	getTimeout        = 10000 * time.Millisecond
-	setTimeout        = 10000 * time.Millisecond
+	slowQueryDuration                    = 1000 * time.Millisecond
+	getTimeout                           = 10000 * time.Millisecond
+	setTimeout                           = 10000 * time.Millisecond
+	newResourceDB      resourceDBFactory = NewResourceMongoDB
+	getMongoConnection                   = mongodb.GetMongodbConnection
 )
+
+type resourceDBFactory func(*mongodb.MongodbCon) ResourceDBProvider
 
 func HandleResourceUpdate(ctx context.Context, resource *rorresources.Resource) rorresources.ResourceUpdateResults {
 	ctx, span := rortracer.StartSpan(ctx, "v2.resourcesv2service.HandleResourceUpdate")
@@ -353,7 +357,8 @@ func PatchResource(ctx context.Context, uid string, partial *rorresources.Resour
 	// Fetch existing resource to verify existence and perform access check
 	existing, err := GetResourceByUID(ctx, uid)
 	if err != nil {
-		rortracer.SpanError(span, err, "failed to get existing resource")
+		rlog.Errorc(ctx, "Failed to get resource before patch", err)
+		rortracer.SpanError(span, err, "failed to get resource before patch")
 		return rorresources.ResourceUpdateResults{
 			Results: map[string]rorresources.ResourceUpdateResult{
 				uid: {
@@ -427,7 +432,7 @@ func GetResourceByQuery(ctx context.Context, query *rorresources.ResourceQuery) 
 	ctx, span := rortracer.StartSpan(ctx, "v2.resourcesv2service.GetResourceByQuery")
 	defer span.End()
 
-	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
+	databaseHelpers := newResourceDB(getMongoConnection())
 	mongoCtx, cancel := context.WithTimeout(ctx, getTimeout)
 	defer cancel()
 	queryStart := time.Now()

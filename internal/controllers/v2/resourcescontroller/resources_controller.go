@@ -22,7 +22,8 @@ import (
 )
 
 var (
-	validate *validator.Validate
+	validate         *validator.Validate
+	getResourceByUID = resourcesv2service.GetResourceByUID
 )
 
 // Init is called to initialize the resources controller
@@ -64,7 +65,13 @@ func ExistsResources() gin.HandlerFunc {
 			return
 		}
 
-		resources, _ := resourcesv2service.GetResourceByUID(ctx, c.Param("uid"))
+		resources, err := getResourceByUID(ctx, c.Param("uid"))
+		if err != nil {
+			rortracer.SpanError(span, err, "failed to get resource")
+			rlog.Error("Error getting resource by uid:", err)
+			c.Status(http.StatusInternalServerError)
+			return
+		}
 		if resources == nil {
 			rortracer.SpanErrorf(span, "resource not found")
 			c.Status(http.StatusNotFound)
