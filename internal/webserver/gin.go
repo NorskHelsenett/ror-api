@@ -8,13 +8,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/NorskHelsenett/ror-api/internal/apikeyauth"
 	"github.com/NorskHelsenett/ror-api/internal/webserver/routes/utilityroutes"
 	"github.com/NorskHelsenett/ror-api/internal/webserver/routes/v1routes"
 	"github.com/NorskHelsenett/ror-api/internal/webserver/routes/v2routes"
 
-	"github.com/NorskHelsenett/ror-api/pkg/middelware/authmiddleware"
-	"github.com/NorskHelsenett/ror-api/pkg/middelware/authmiddleware/oauthmiddleware"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/corsmiddleware"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/headersmiddleware"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/metricsmiddleware"
@@ -48,13 +45,6 @@ func startHttpServer(ctx context.Context) error {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	oauthMw, err := oauthmiddleware.NewDefaultOauthMiddleware()
-	if err != nil {
-		return fmt.Errorf("could not initialize OIDC middleware: %w", err)
-	}
-	authmiddleware.RegisterAuthProvider(oauthMw)
-	authmiddleware.RegisterAuthProvider(apikeyauth.NewApiKeyAuthProvider())
-
 	useCors := rorconfig.GetBool(rorconfig.HTTP_USE_CORS)
 	allowOrigins := rorconfig.GetString(rorconfig.HTTP_ALLOW_ORIGINS)
 
@@ -79,7 +69,7 @@ func startHttpServer(ctx context.Context) error {
 	router.Use(headersmiddleware.HeadersMiddleware())
 	router.Use(corsmiddleware.CORS())
 
-	err = router.SetTrustedProxies([]string{"127.0.0.1"})
+	err := router.SetTrustedProxies([]string{"127.0.0.1"})
 	if err != nil {
 		rlog.Error("could not set trusted proxies", err)
 		return err

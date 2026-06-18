@@ -53,17 +53,17 @@ spec:
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /health
+              path: /health/live
               port: health
           startupProbe:
             httpGet:
-              path: /health
+              path: /health/live
               port: health
             failureThreshold: 15
             periodSeconds: 2
           readinessProbe:
             httpGet:
-              path: /health
+              path: /health/ready
               port: health
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
