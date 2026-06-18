@@ -78,7 +78,9 @@ func ensureResourcesV2Indexes(ctx context.Context) {
 
 	_, err := collection.Indexes().CreateMany(ctx, indexes)
 	if err != nil {
-		rlog.Errorc(ctx, "could not ensure resourcesv2 indexes", err)
+		// The API user typically lacks index-management rights; this is expected
+		// and non-fatal, so log a short message without the verbose driver error.
+		rlog.Info("skipped ensuring resourcesv2 indexes (insufficient permissions)")
 	}
 
 	// Drop redundant indexes that are prefixes of the compound indexes above
