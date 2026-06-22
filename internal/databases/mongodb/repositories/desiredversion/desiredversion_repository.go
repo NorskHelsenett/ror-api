@@ -49,7 +49,7 @@ func GetByKey(ctx context.Context, key string) (*apicontracts.DesiredVersion, er
 	return &result, nil
 }
 
-func GetByID(ctx context.Context, id interface{}) (*apicontracts.DesiredVersion, error) {
+func GetByID(ctx context.Context, id any) (*apicontracts.DesiredVersion, error) {
 	db := mongodb.GetMongoDb()
 	query := bson.M{"_id": id}
 	var result apicontracts.DesiredVersion

@@ -57,9 +57,9 @@ func OptionSort(sort string) ViewGeneratorsOption {
 	return optionFunc(func(cfg *viewGeneratorOptions) {
 		cfg.sort = make(map[int]viewGeneratorOptionSort) // Initialize the map
 		for i, item := range strings.Split(sort, ",") {
-			if strings.HasPrefix(item, "-") {
+			if after, ok := strings.CutPrefix(item, "-"); ok {
 				cfg.sort[i] = viewGeneratorOptionSort{
-					name: strings.TrimPrefix(item, "-"),
+					name: after,
 					desc: true,
 				}
 			} else {

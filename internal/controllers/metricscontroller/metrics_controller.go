@@ -118,13 +118,13 @@ func RegisterResourceMetricsReport() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]any{"data": err.Error()}})
 			return
 		}
 
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&input); validationErr != nil {
-			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": validationErr.Error()}})
+			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]any{"data": validationErr.Error()}})
 			return
 		}
 		ownerref := apiresourcecontracts.ResourceOwnerReference{
@@ -139,7 +139,7 @@ func RegisterResourceMetricsReport() gin.HandlerFunc {
 
 		err := metricsservice.ProcessMetricReport(ctx, &input)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]any{"data": err.Error()}})
 			return
 		}
 

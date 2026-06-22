@@ -49,7 +49,7 @@ func PatchResource() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, responses.Cluster{
 				Status:  http.StatusBadRequest,
 				Message: "error",
-				Data:    map[string]interface{}{"data": "uid is required"},
+				Data:    map[string]any{"data": "uid is required"},
 			})
 			return
 		}
@@ -60,7 +60,7 @@ func PatchResource() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, responses.Cluster{
 				Status:  http.StatusBadRequest,
 				Message: "error",
-				Data:    map[string]interface{}{"data": err.Error()},
+				Data:    map[string]any{"data": err.Error()},
 			})
 			return
 		}

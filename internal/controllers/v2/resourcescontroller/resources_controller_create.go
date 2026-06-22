@@ -1,6 +1,7 @@
 package resourcescontroller
 
 import (
+	"maps"
 	"net/http"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
@@ -57,13 +58,13 @@ func NewResource() gin.HandlerFunc {
 		if err := c.BindJSON(&input); err != nil {
 			rortracer.SpanError(span, err, "failed to bind JSON")
 			rlog.Error("error binding json", err)
-			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]any{"data": err.Error()}})
 			return
 		}
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&input); validationErr != nil {
 			rortracer.SpanError(span, validationErr, "validation failed")
-			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": validationErr.Error()}})
+			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]any{"data": validationErr.Error()}})
 			return
 		}
 		span.AddEvent("request validated")
@@ -85,9 +86,7 @@ func NewResource() gin.HandlerFunc {
 
 		for i := 0; i < len(rs.Resources); i++ {
 			result := <-returnChannel
-			for key, result := range result.Results {
-				returnArray.Results[key] = result
-			}
+			maps.Copy(returnArray.Results, result.Results)
 		}
 		span.AddEvent("processing complete")
 

@@ -46,10 +46,10 @@ type MongoCluster struct {
 	Topology      MongoTopology          `json:"topology"`
 	Versions      MongoVersions          `json:"versions"`
 	Ingresses     []MongoIngress         `json:"ingresses"`
-	Updated       time.Time              `json:"updated,omitempty"`
-	Created       time.Time              `json:"created,omitempty"`
-	LastObserved  time.Time              `json:"lastObserved,omitempty"`
-	FirstObserved time.Time              `json:"firstObserved,omitempty"`
+	Updated       time.Time              `json:"updated"`
+	Created       time.Time              `json:"created"`
+	LastObserved  time.Time              `json:"lastObserved"`
+	FirstObserved time.Time              `json:"firstObserved"`
 	HealthStatus  MongoHealthStatus      `json:"healthStatus"`
 	CreatedBy     string                 `json:"createdBy"`
 	SplunkIndex   string                 `json:"splunkIndex"`
@@ -89,8 +89,8 @@ type ClusterMetadata struct {
 }
 
 type MongoClusterConfig struct {
-	Versions  map[string]interface{} `json:"versions"`
-	Overrides map[string]interface{} `json:"overrides"`
+	Versions  map[string]any `json:"versions"`
+	Overrides map[string]any `json:"overrides"`
 }
 
 type MongoClusterWithWorkspace struct {

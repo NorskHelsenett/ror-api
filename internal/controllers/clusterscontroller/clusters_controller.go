@@ -79,7 +79,7 @@ func ClusterGetById() gin.HandlerFunc {
 		var _ apicontracts.Cluster
 		cluster, err := clustersservice.GetByClusterId(ctx, clusterId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, map[string]interface{}{"success": false, "message": "error when fetching data centers"})
+			c.JSON(http.StatusInternalServerError, map[string]any{"success": false, "message": "error when fetching data centers"})
 			return
 		}
 
@@ -124,11 +124,11 @@ func ClusterExistsById() gin.HandlerFunc {
 
 		exists, err := clustersservice.Exists(ctx, clusterId)
 		if err != nil {
-			c.JSON(http.StatusOK, map[string]interface{}{"exists": false})
+			c.JSON(http.StatusOK, map[string]any{"exists": false})
 			return
 		}
 
-		c.JSON(http.StatusOK, map[string]interface{}{"exists": exists})
+		c.JSON(http.StatusOK, map[string]any{"exists": exists})
 	}
 }
 
@@ -371,7 +371,7 @@ func UpdateMetadata() gin.HandlerFunc {
 
 		err = clustersservice.UpdateMetadata(ctx, &input, clusters.Data[0])
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, map[string]interface{}{"status": false, "message": "could not update cluster metadata"})
+			c.JSON(http.StatusInternalServerError, map[string]any{"status": false, "message": "could not update cluster metadata"})
 			return
 		}
 
@@ -411,14 +411,14 @@ func RegisterHeartbeat() gin.HandlerFunc {
 		//TODO: return rorerror.RorError
 		//validate the request body
 		if err := c.BindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]any{"data": err.Error()}})
 			return
 		}
 
 		//TODO: return rorerror.RorError
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&input); validationErr != nil {
-			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": validationErr.Error()}})
+			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]any{"data": validationErr.Error()}})
 			return
 		}
 		// Access check
@@ -437,7 +437,7 @@ func RegisterHeartbeat() gin.HandlerFunc {
 		defer span1.End()
 		err := clustersservice.CreateOrUpdate(ctx, &input, input.ClusterId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]any{"data": err.Error()}})
 			return
 		}
 		span1.End()

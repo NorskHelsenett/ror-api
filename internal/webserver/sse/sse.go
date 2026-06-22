@@ -274,7 +274,7 @@ func KeepAlive() {
 
 func SendWelcomeMessage(client apicontracts.SSEClient) {
 	go func() {
-		payload := map[string]interface{}{
+		payload := map[string]any{
 			"message": "Welcome to ROR",
 		}
 		jsonData, err := json.Marshal(payload)

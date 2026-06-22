@@ -16,13 +16,13 @@ func Map[F any, D any](from F, destination *D) error {
 	}
 
 	if err := json.Unmarshal(jsonByte, &destination); err != nil {
-		return fmt.Errorf("could not convert from json to %s: %v", reflect.TypeOf(destination), err)
+		return fmt.Errorf("could not convert from json to %s: %v", reflect.TypeFor[*D](), err)
 	}
 
 	return nil
 }
 
-func InterfaceToInt64(i interface{}) (int64, error) {
+func InterfaceToInt64(i any) (int64, error) {
 	switch v := i.(type) {
 	case int64:
 		return v, nil

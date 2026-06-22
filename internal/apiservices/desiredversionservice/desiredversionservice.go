@@ -20,7 +20,7 @@ func GetByKey(ctx context.Context, key string) (*apicontracts.DesiredVersion, er
 	return desiredversionrepo.GetByKey(ctx, key)
 }
 
-func GetByID(ctx context.Context, id interface{}) (*apicontracts.DesiredVersion, error) {
+func GetByID(ctx context.Context, id any) (*apicontracts.DesiredVersion, error) {
 	return desiredversionrepo.GetByID(ctx, id)
 }
 func GetAll(ctx context.Context) ([]apicontracts.DesiredVersion, error) {

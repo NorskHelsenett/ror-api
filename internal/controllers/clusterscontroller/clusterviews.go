@@ -92,7 +92,7 @@ func PolicyreportsView() gin.HandlerFunc {
 
 		policyreport, err := clustersservice.GetViewPolicyreport(ctx, ownerref)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]any{"data": err.Error()}})
 			return
 		}
 
@@ -147,7 +147,7 @@ func PolicyreportSummaryView() gin.HandlerFunc {
 		policyreport, err := clustersservice.GetViewPolicyReportSummary(ctx, query, clusterID)
 
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]any{"data": err.Error()}})
 			return
 		}
 
@@ -200,7 +200,7 @@ func VulnerabilityreportSummaryView() gin.HandlerFunc {
 
 		policyreport, err := clustersservice.GetViewPolicyReportSummary(ctx, query, clusterID)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]any{"data": err.Error()}})
 			return
 		}
 
@@ -249,7 +249,7 @@ func VulnerabilityReportsView() gin.HandlerFunc {
 
 		vulnerabilityreports, err := clustersservice.GetViewVulnerabilityReports(ctx, ownerref)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]any{"data": err.Error()}})
 			return
 		}
 
@@ -298,7 +298,7 @@ func VulnerabilityReportsViewById() gin.HandlerFunc {
 
 		vulnerabilityreports, err := clustersservice.GetViewVulnerabilityReportsById(ctx, cveId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]any{"data": err.Error()}})
 			return
 		}
 
@@ -339,7 +339,7 @@ func VulnerabilityReportsGlobal() gin.HandlerFunc {
 		vulnerabilityreports, err := clustersservice.GetViewVulnerabilityReportsGlobal(ctx)
 		if err != nil {
 			rlog.Error("error while fetching global vulnerability reports: %w", err)
-			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]any{"data": err.Error()}})
 			return
 		}
 
@@ -388,7 +388,7 @@ func GlobalVulnerabilityReportsViewById() gin.HandlerFunc {
 		vulnerabilityreports, err := clustersservice.GetGlobalViewVulnerabilityReportsById(ctx, cveId)
 		if err != nil {
 			rlog.Errorc(ctx, "Error while getting global vulnerabilityreportview by CVE ID", err)
-			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]any{"data": err.Error()}})
 			return
 		}
 
@@ -478,7 +478,7 @@ func ComplianceReportsGlobal() gin.HandlerFunc {
 		complianceReports, err := clustersservice.GetClusterComplianceReportsGlobal(ctx)
 		if err != nil {
 			rlog.Error("error while fetching global vulnerability reports: %w", err)
-			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]any{"data": err.Error()}})
 			return
 		}
 

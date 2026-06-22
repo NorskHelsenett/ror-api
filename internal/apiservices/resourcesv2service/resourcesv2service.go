@@ -503,17 +503,17 @@ func sendToMessageBus(ctx context.Context, resource *rorresources.Resource, acti
 		_ = apiconnections.RabbitMQConnection.SendMessage(ctx,
 			payload,
 			messagebuscontracts.Route_ResourceCreated,
-			map[string]interface{}{"apiVersion": payload.ApiVersion, "kind": payload.Kind})
+			map[string]any{"apiVersion": payload.ApiVersion, "kind": payload.Kind})
 	case rortypes.K8sActionUpdate:
 		_ = apiconnections.RabbitMQConnection.SendMessage(ctx,
 			payload,
 			messagebuscontracts.Route_ResourceUpdated,
-			map[string]interface{}{"apiVersion": payload.ApiVersion, "kind": payload.Kind})
+			map[string]any{"apiVersion": payload.ApiVersion, "kind": payload.Kind})
 	case rortypes.K8sActionDelete:
 		_ = apiconnections.RabbitMQConnection.SendMessage(ctx,
 			payload,
 			messagebuscontracts.Route_ResourceDeleted,
-			map[string]interface{}{"apiVersion": payload.ApiVersion, "kind": payload.Kind})
+			map[string]any{"apiVersion": payload.ApiVersion, "kind": payload.Kind})
 	}
 	return nil
 }

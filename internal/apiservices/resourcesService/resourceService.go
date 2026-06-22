@@ -110,7 +110,7 @@ func ResourceDeleteService(ctx context.Context, resourceUpdate apiresourcecontra
 	if err := apiconnections.RabbitMQConnection.SendMessage(ctx,
 		resourceUpdate,
 		messagebuscontracts.Route_ResourceDeleted,
-		map[string]interface{}{"apiVersion": resourceUpdate.ApiVersion, "kind": resourceUpdate.Kind}); err != nil {
+		map[string]any{"apiVersion": resourceUpdate.ApiVersion, "kind": resourceUpdate.Kind}); err != nil {
 		return err
 	}
 
@@ -142,12 +142,12 @@ func sendToMessageBus(ctx context.Context, resource any, action apiresourcecontr
 		_ = apiconnections.RabbitMQConnection.SendMessage(ctx,
 			payload,
 			messagebuscontracts.Route_ResourceCreated,
-			map[string]interface{}{"apiVersion": payload.ApiVersion, "kind": payload.Kind})
+			map[string]any{"apiVersion": payload.ApiVersion, "kind": payload.Kind})
 	case apiresourcecontracts.K8sActionUpdate:
 		_ = apiconnections.RabbitMQConnection.SendMessage(ctx,
 			payload,
 			messagebuscontracts.Route_ResourceUpdated,
-			map[string]interface{}{"apiVersion": payload.ApiVersion, "kind": payload.Kind})
+			map[string]any{"apiVersion": payload.ApiVersion, "kind": payload.Kind})
 	}
 	return nil
 }

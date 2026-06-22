@@ -34,7 +34,7 @@ func FindMachineClass(memoryAllocatedBytes int64, cpuAllocated int64, provider p
 	}
 	memorygb := math.Round(float64(memoryAllocatedBytes) / float64(1050000000))
 	var price apicontracts.Price
-	for i := 0; i < pricesCount; i++ {
+	for i := range pricesCount {
 		p := prices[i]
 		if p.Cpu == int(cpuAllocated) && p.Memory == int64(memorygb) && p.Provider == provider {
 			price = p

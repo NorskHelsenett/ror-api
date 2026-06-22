@@ -29,13 +29,13 @@ func MockCreateOne() gin.HandlerFunc {
 		var input apicontracts.DesiredVersion
 
 		if err := c.BindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]any{"data": err.Error()}})
 			return
 		}
 
 		for _, v := range mockData {
 			if v.Key == input.Key {
-				c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": fmt.Sprintf("Desired version with key: %s already exists.", input.Key)}})
+				c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]any{"data": fmt.Sprintf("Desired version with key: %s already exists.", input.Key)}})
 				return
 			}
 		}

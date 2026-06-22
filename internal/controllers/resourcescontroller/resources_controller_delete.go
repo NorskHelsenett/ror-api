@@ -47,12 +47,12 @@ func DeleteResource() gin.HandlerFunc {
 		if hasBody {
 			//validate the request body
 			if err := c.BindJSON(&input); err != nil {
-				c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			//use the validator library to validate required fields
 			if validationErr := validate.Struct(&input); validationErr != nil {
-				c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": validationErr.Error()}})
+				c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]any{"data": validationErr.Error()}})
 				return
 			}
 
@@ -66,7 +66,7 @@ func DeleteResource() gin.HandlerFunc {
 			subject := input.Owner.Subject
 
 			if subject == "" || scope == "" {
-				c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": "owner scope and subject must be set"}})
+				c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]any{"data": "owner scope and subject must be set"}})
 				return
 			}
 
@@ -83,7 +83,7 @@ func DeleteResource() gin.HandlerFunc {
 
 			err := resourcesservice.ResourceDeleteService(ctx, input)
 			if err != nil {
-				c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 
@@ -92,17 +92,17 @@ func DeleteResource() gin.HandlerFunc {
 		} else {
 			uid := c.Param("uid")
 			if uid == "" {
-				c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": "uid must be set"}})
+				c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]any{"data": "uid must be set"}})
 				return
 			}
 			resourcemeta, err := resourcesservice.GetResourceMetadataByUid(ctx, uid)
 			if err != nil {
-				c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 
 			if resourcemeta.Uid == "" {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": "resource not found"}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": "resource not found"}})
 				return
 			}
 
@@ -110,7 +110,7 @@ func DeleteResource() gin.HandlerFunc {
 			subject := resourcemeta.Owner.Subject
 
 			if subject == "" || scope == "" {
-				c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": "owner scope and subject must be set"}})
+				c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]any{"data": "owner scope and subject must be set"}})
 				return
 			}
 
@@ -135,7 +135,7 @@ func DeleteResource() gin.HandlerFunc {
 				Resource:   nil, // Resource is not needed for delete
 			})
 			if err != nil {
-				c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 
