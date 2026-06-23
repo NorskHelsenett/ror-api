@@ -73,7 +73,7 @@ func (d *OauthMiddleware) Authenticate(c *gin.Context, ctx context.Context) {
 
 	identity, rerr := d.getIdentityFromToken(c.Request.Context(), token)
 	if rerr != nil {
-		rortracer.SpanError(span, rerr, "Could not get identity from token")
+		_ = rortracer.SpanError(span, rerr, "Could not get identity from token")
 		rerr.GinLogErrorAbort(c)
 		return
 	}
