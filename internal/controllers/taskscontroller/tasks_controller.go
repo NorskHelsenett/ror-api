@@ -277,7 +277,7 @@ func Delete() gin.HandlerFunc {
 
 		taskId := c.Param("taskId")
 		if taskId == "" || len(taskId) == 0 {
-			rlog.Errorc(ctx, "invalid id", fmt.Errorf("id is zero lenght"))
+			rlog.Errorc(ctx, "invalid id", fmt.Errorf("id is zero length"))
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid id")
 			rerr.GinLogErrorAbort(c)
 			return

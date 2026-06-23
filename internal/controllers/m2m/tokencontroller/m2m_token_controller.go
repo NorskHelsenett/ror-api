@@ -76,14 +76,14 @@ func SelfRegister() gin.HandlerFunc {
 			clusterSecret.Data.RorClientSecret = newSecret
 			secretByteArray, err := json.Marshal(clusterSecret)
 			if err != nil {
-				rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "A error occured", err)
+				rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "A error occurred", err)
 				rerr.GinLogErrorAbort(c, rlog.String("clusterId", tokenModel.ClusterId))
 				return
 			}
 
 			_, err = apiconnections.VaultClient.SetSecret(secretPath, secretByteArray)
 			if err != nil {
-				rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "A error occured", err)
+				rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "A error occurred", err)
 				rerr.GinLogErrorAbort(c, rlog.String("clusterId", tokenModel.ClusterId))
 				return
 			}

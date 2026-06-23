@@ -55,7 +55,7 @@ func WriteMetrics(metricsreport *apicontracts.MetricsReport, clusterId string, c
 	}
 }
 
-// GetPodMetricsByFilter returns timeseries data filterd with the apicontracts.MetricsFilter.
+// GetPodMetricsByFilter returns timeseries data filtered with the apicontracts.MetricsFilter.
 //
 //   - Type must be set to either node or pod.
 //   - Default time is common era (year 0 - now()).
