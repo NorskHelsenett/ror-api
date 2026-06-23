@@ -1,6 +1,7 @@
 package viewcontroller
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
@@ -36,7 +37,7 @@ func GetView() gin.HandlerFunc {
 		ctx, _ := gincontext.GetRorContextFromGinContext(c)
 		_ = apiview.View{} // Ensure apiview is imported
 		generator, err := viewservice.Generators.GetGenerator(c.Param("viewid"))
-		if err == viewservice.ErrViewNotRegistered {
+		if errors.Is(err, viewservice.ErrViewNotRegistered) {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid or unsupported view", err)
 			rerr.GinLogErrorAbort(c)
 		}
