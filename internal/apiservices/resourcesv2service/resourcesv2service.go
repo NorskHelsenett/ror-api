@@ -53,7 +53,7 @@ func HandleResourceUpdate(ctx context.Context, resource *rorresources.Resource) 
 		err := DeleteResource(ctx, resource)
 		if err != nil {
 			rlog.Error("Could not delete resource", err)
-			rortracer.SpanError(span, err, "could not delete resource")
+			_ = rortracer.SpanError(span, err, "could not delete resource")
 			return rorresources.ResourceUpdateResults{
 				Results: map[string]rorresources.ResourceUpdateResult{
 					resource.GetUID(): {
@@ -72,7 +72,7 @@ func HandleResourceUpdate(ctx context.Context, resource *rorresources.Resource) 
 			},
 		}
 	default:
-		rortracer.SpanErrorf(span, "unknown action")
+		_ = rortracer.SpanErrorf(span, "unknown action")
 		return rorresources.ResourceUpdateResults{
 			Results: map[string]rorresources.ResourceUpdateResult{
 				resource.GetUID(): {
@@ -101,7 +101,7 @@ func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) r
 	// Access: create
 	accessObject := aclservice.CheckAccessByRorOwnerref(ctx, ownerref)
 	if !accessObject.Create {
-		rortracer.SpanErrorf(span, "access denied")
+		_ = rortracer.SpanErrorf(span, "access denied")
 		return rorresources.ResourceUpdateResults{
 			Results: map[string]rorresources.ResourceUpdateResult{
 				resource.GetUID(): {
@@ -118,7 +118,7 @@ func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) r
 
 	err := resource.ApplyInputFilter()
 	if err != nil {
-		rortracer.SpanError(span, err, "could not apply input filter")
+		_ = rortracer.SpanError(span, err, "could not apply input filter")
 		return rorresources.ResourceUpdateResults{
 			Results: map[string]rorresources.ResourceUpdateResult{
 				resource.GetUID(): {
@@ -369,7 +369,7 @@ func PatchResource(ctx context.Context, uid string, partial *rorresources.Resour
 		}
 	}
 	if existing == nil || len(existing.Resources) == 0 {
-		rortracer.SpanErrorf(span, "resource not found")
+		_ = rortracer.SpanErrorf(span, "resource not found")
 		return rorresources.ResourceUpdateResults{
 			Results: map[string]rorresources.ResourceUpdateResult{
 				uid: {
@@ -383,7 +383,7 @@ func PatchResource(ctx context.Context, uid string, partial *rorresources.Resour
 
 	accessModel := aclservice.CheckAccessByRorOwnerref(ctx, resource.GetRorMeta().Ownerref)
 	if !accessModel.Update {
-		rortracer.SpanErrorf(span, "access denied")
+		_ = rortracer.SpanErrorf(span, "access denied")
 		return rorresources.ResourceUpdateResults{
 			Results: map[string]rorresources.ResourceUpdateResult{
 				uid: {

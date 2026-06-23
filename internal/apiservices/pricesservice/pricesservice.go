@@ -41,7 +41,7 @@ func GetById(ctx context.Context, id string) (*apicontracts.Price, error) {
 func Create(ctx context.Context, priceInput *apicontracts.Price) (*apicontracts.Price, error) {
 	exists, err := pricesRepo.FindOne(ctx, "machineclass", priceInput.MachineClass)
 	if err != nil {
-		return exists, fmt.Errorf("could not check if price exists: %v", err)
+		return exists, fmt.Errorf("could not check if price exists: %w", err)
 	}
 
 	if exists != nil {
@@ -51,18 +51,18 @@ func Create(ctx context.Context, priceInput *apicontracts.Price) (*apicontracts.
 	var mappedInput mongoTypes.MongoPrice
 	err = mapping.Map(priceInput, &mappedInput)
 	if err != nil {
-		return nil, fmt.Errorf("could not map price from apitype to mongotype: %v", err)
+		return nil, fmt.Errorf("could not map price from apitype to mongotype: %w", err)
 	}
 
 	createdPrice, err := pricesRepo.Create(ctx, &mappedInput)
 	if err != nil {
-		return nil, fmt.Errorf("could not create price: %v", err)
+		return nil, fmt.Errorf("could not create price: %w", err)
 	}
 
 	var mappedResult apicontracts.Price
 	err = mapping.Map(createdPrice, &mappedResult)
 	if err != nil {
-		return nil, fmt.Errorf("could not map price from mongotype to apitype: %v", err)
+		return nil, fmt.Errorf("could not map price from mongotype to apitype: %w", err)
 	}
 
 	return &mappedResult, nil

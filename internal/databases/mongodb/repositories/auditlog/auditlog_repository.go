@@ -27,7 +27,7 @@ func Create(ctx context.Context, auditLog mongoTypes.MongoAuditLog) (string, err
 
 	insertResult, err := collection.InsertOne(ctx, auditLog)
 	if err != nil {
-		return "", fmt.Errorf("unable to save auditlog: %v", err)
+		return "", fmt.Errorf("unable to save auditlog: %w", err)
 	}
 
 	if insertResult.InsertedID == nil {
@@ -45,17 +45,17 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) ([]mongoTypes
 	collection := db.Collection(collectionName)
 	cursor, err := collection.Aggregate(ctx, aggregationPipeline)
 	if err != nil {
-		return nil, 0, fmt.Errorf("error when finding auditlogs: %v", err)
+		return nil, 0, fmt.Errorf("error when finding auditlogs: %w", err)
 	}
 
 	totalCountResult, err := collection.Aggregate(ctx, totalCountPipeline)
 	if err != nil {
-		return nil, 0, fmt.Errorf("could not get auditlogs: %v", err)
+		return nil, 0, fmt.Errorf("could not get auditlogs: %w", err)
 	}
 
 	var totalCountAcc []bson.M
 	if err = totalCountResult.All(ctx, &totalCountAcc); err != nil {
-		return nil, 0, fmt.Errorf("Could not get total count for auditlogs: %v", err)
+		return nil, 0, fmt.Errorf("Could not get total count for auditlogs: %w", err)
 	}
 
 	totalCount := len(totalCountAcc)

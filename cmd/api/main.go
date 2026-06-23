@@ -6,7 +6,7 @@ import (
 
 //	@title			Swagger ROR-API
 //	@version		0.1
-//	@description	ROR-API, need any help? Go to channel #drift-sdi-devops in norskhelsenett.slack.com slack workspace
+//	@description	ROR-API
 //	@BasePath		/
 
 //	@contact.name	ROR

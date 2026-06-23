@@ -58,7 +58,7 @@ func (d *OauthMiddleware) Authenticate(c *gin.Context, ctx context.Context) {
 	auth := c.Request.Header.Get("Authorization")
 	if auth == "" {
 		rerr := rorginerror.NewRorGinError(http.StatusUnauthorized, "No Authorization header provided")
-		rortracer.SpanError(span, rerr, "No Authorization header provided")
+		_ = rortracer.SpanError(span, rerr, "No Authorization header provided")
 		rerr.GinLogErrorAbort(c)
 		return
 	}
@@ -66,14 +66,14 @@ func (d *OauthMiddleware) Authenticate(c *gin.Context, ctx context.Context) {
 	token := strings.TrimPrefix(auth, "Bearer ")
 	if token == auth {
 		rerr := rorginerror.NewRorGinError(http.StatusUnauthorized, "Could not find bearer token in Authorization header")
-		rortracer.SpanError(span, rerr, "Missing bearer token")
+		_ = rortracer.SpanError(span, rerr, "Missing bearer token")
 		rerr.GinLogErrorAbort(c)
 		return
 	}
 
 	identity, rerr := d.getIdentityFromToken(c.Request.Context(), token)
 	if rerr != nil {
-		rortracer.SpanError(span, rerr, "Could not get identity from token")
+		_ = rortracer.SpanError(span, rerr, "Could not get identity from token")
 		rerr.GinLogErrorAbort(c)
 		return
 	}

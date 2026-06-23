@@ -138,7 +138,7 @@ func DeleteResourceByUid(resourceUpdate apiresourcecontracts.ResourceUpdateModel
 	return nil
 }
 
-// GetHashList return list of registerd hashes by ownerref
+// GetHashList return list of registered hashes by ownerref
 func GetHashList(ctx context.Context, owner apiresourcecontracts.ResourceOwnerReference) (apiresourcecontracts.HashList, error) {
 	var hashList apiresourcecontracts.HashList
 	db := mongodb.GetMongoDb()

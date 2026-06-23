@@ -119,8 +119,8 @@ func verifySeed[T any](ctx context.Context, collection *mongo.Collection, seed *
 		return nil
 	}
 
-	if err != mongo.ErrNoDocuments {
-		rlog.Errorc(ctx, "unkown error, could not find entry", err, rlog.String("collection_name", collection.Name()), rlog.Any("identifier", identifier))
+	if !errors.Is(err, mongo.ErrNoDocuments) {
+		rlog.Errorc(ctx, "unknown error, could not find entry", err, rlog.String("collection_name", collection.Name()), rlog.Any("identifier", identifier))
 		return ErrUnknownError
 	}
 

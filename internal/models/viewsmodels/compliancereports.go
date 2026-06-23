@@ -31,5 +31,5 @@ const (
 	HIGH     ComplianceReportSeverity = "HIGH"
 	MEDIUM   ComplianceReportSeverity = "MEDIUM"
 	LOW      ComplianceReportSeverity = "LOW"
-	UNKNOWN  ComplianceReportSeverity = "UNKOWN"
+	UNKNOWN  ComplianceReportSeverity = "UNKNOWN"
 )

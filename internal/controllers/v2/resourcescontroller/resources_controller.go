@@ -60,7 +60,7 @@ func ExistsResources() gin.HandlerFunc {
 		span.SetAttributes(attribute.String("resource.uid", c.Param("uid")))
 
 		if c.Param("uid") == "" {
-			rortracer.SpanErrorf(span, "missing uid")
+			_ = rortracer.SpanErrorf(span, "missing uid")
 			c.JSON(http.StatusBadRequest, "empty uid")
 			return
 		}
@@ -73,7 +73,7 @@ func ExistsResources() gin.HandlerFunc {
 			return
 		}
 		if resources == nil {
-			rortracer.SpanErrorf(span, "resource not found")
+			_ = rortracer.SpanErrorf(span, "resource not found")
 			c.Status(http.StatusNotFound)
 			return
 		}

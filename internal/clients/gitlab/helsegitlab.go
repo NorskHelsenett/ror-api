@@ -43,7 +43,12 @@ func GetFileContent(projectId int, filePath string, branch string, vaultClient *
 	if err != nil {
 		return nil, errors.New("could not get a response from helsegitlab client")
 	}
-	defer response.Body.Close()
+	defer func() {
+		err := response.Body.Close()
+		if err != nil {
+			rlog.Error("could not close helsegitlab response body", err)
+		}
+	}()
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {

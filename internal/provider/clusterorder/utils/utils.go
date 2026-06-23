@@ -38,7 +38,7 @@ func NewClusterOrderResource(ctx context.Context, order apiresourcecontracts.Res
 		},
 		Spec: order,
 		Status: apiresourcecontracts.ResourceClusterOrderStatus{
-			Phase:            "Recieved",
+			Phase:            "Received",
 			CreatedTime:      time.Now().Format(time.RFC3339),
 			LastObservedTime: time.Now().Format(time.RFC3339),
 			UpdatedTime:      time.Now().Format(time.RFC3339),
