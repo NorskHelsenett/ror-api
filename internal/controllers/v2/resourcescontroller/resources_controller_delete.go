@@ -87,7 +87,7 @@ func DeleteResource() gin.HandlerFunc {
 				responses.Cluster{
 					Status:  http.StatusInternalServerError,
 					Message: "error",
-					Data:    map[string]interface{}{"data": err.Error()},
+					Data:    map[string]any{"data": err.Error()},
 				})
 			return
 		}

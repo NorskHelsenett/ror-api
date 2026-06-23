@@ -165,7 +165,7 @@ func GetResourceHashList() gin.HandlerFunc {
 		if err != nil {
 			rortracer.SpanError(span, err, "failed to get hash list")
 			rlog.Error("Error getting resource hash list:", err)
-			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]any{"data": err.Error()}})
 			return
 		}
 

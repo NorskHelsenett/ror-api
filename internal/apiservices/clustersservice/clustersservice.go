@@ -208,20 +208,20 @@ func CpuMemPercentageCalc(cluster *apicontracts.Cluster) {
 	cluster.Topology.ControlPlane.Metrics.MemoryPercentage = services.MemoryPercentage(cluster.Topology.ControlPlane.Metrics.Memory, cluster.Topology.ControlPlane.Metrics.MemoryConsumed)
 	controlPlaneNodesLength := len(cluster.Topology.ControlPlane.Nodes)
 
-	for i := 0; i < controlPlaneNodesLength; i++ {
+	for i := range controlPlaneNodesLength {
 		node := cluster.Topology.ControlPlane.Nodes[i]
 		(&cluster.Topology.ControlPlane.Nodes[i]).Metrics.CpuPercentage = services.CpuPercentage(node.Metrics.Cpu, node.Metrics.CpuConsumed)
 		(&cluster.Topology.ControlPlane.Nodes[i]).Metrics.MemoryPercentage = services.MemoryPercentage(node.Metrics.Memory, node.Metrics.MemoryConsumed)
 	}
 
 	lengthNodePools := len(cluster.Topology.NodePools)
-	for j := 0; j < lengthNodePools; j++ {
+	for j := range lengthNodePools {
 		nodePool := cluster.Topology.NodePools[j]
 		(&cluster.Topology.NodePools[j]).Metrics.CpuPercentage = services.CpuPercentage(nodePool.Metrics.Cpu, nodePool.Metrics.CpuConsumed)
 		(&cluster.Topology.NodePools[j]).Metrics.MemoryPercentage = services.MemoryPercentage(nodePool.Metrics.Memory, nodePool.Metrics.MemoryConsumed)
 
 		lengthNodePoolNodes := len(nodePool.Nodes)
-		for k := 0; k < lengthNodePoolNodes; k++ {
+		for k := range lengthNodePoolNodes {
 			node := nodePool.Nodes[k]
 			(&nodePool.Nodes[k]).Metrics.CpuPercentage = services.CpuPercentage(node.Metrics.Cpu, node.Metrics.CpuConsumed)
 			(&nodePool.Nodes[k]).Metrics.MemoryPercentage = services.MemoryPercentage(node.Metrics.Memory, node.Metrics.MemoryConsumed)
@@ -268,12 +268,12 @@ func FindMachineClass(ctx context.Context, cluster *apicontracts.Cluster) {
 
 	var aggPrice int64
 	lengthNodePools := len(cluster.Topology.NodePools)
-	for j := 0; j < lengthNodePools; j++ {
+	for j := range lengthNodePools {
 		nodePool := cluster.Topology.NodePools[j]
 		lengthNodePoolNodes := len(nodePool.Nodes)
 		var nodePoolPrice int64
 		var machineClassName string
-		for k := 0; k < lengthNodePoolNodes; k++ {
+		for k := range lengthNodePoolNodes {
 			node := nodePool.Nodes[k]
 			var price int64
 			price, machineClassName = services.FindMachineClass(node.Metrics.Memory, node.Metrics.Cpu, provider, prices)

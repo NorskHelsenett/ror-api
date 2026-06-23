@@ -393,7 +393,7 @@ func GetForWorkspaces(ctx context.Context, filter *apicontracts.Filter) (*apicon
 		return nil, errors.New("Could not get metrics for workspaces")
 	}
 
-	for i := 0; i < lengthAgg; i++ {
+	for i := range lengthAgg {
 		data := agg[i]
 		metric := GetMetricItemFromPrimitivM(data)
 		metric.Id = fmt.Sprint(data["_id"])
@@ -514,7 +514,7 @@ func GetForWorkspacesByDatacenterId(ctx context.Context, filter *apicontracts.Fi
 		return nil, errors.New("Could not get metrics for workspaces by datacenter")
 	}
 
-	for i := 0; i < lengthAgg; i++ {
+	for i := range lengthAgg {
 		data := agg[i]
 		metric := GetMetricItemFromPrimitivM(data)
 		metric.Id = fmt.Sprint(data["_id"])

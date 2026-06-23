@@ -27,8 +27,8 @@ func SSEHeadersMiddlewareV1() gin.HandlerFunc {
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET")
 		requestOrigin := c.Request.Header.Get("Origin")
 		allowOrigins := rorconfig.GetString(rorconfig.HTTP_ALLOW_ORIGINS)
-		origins := strings.Split(allowOrigins, ";")
-		for _, origin := range origins {
+		origins := strings.SplitSeq(allowOrigins, ";")
+		for origin := range origins {
 			if strings.Contains(requestOrigin, origin) {
 				c.Writer.Header().Set("Access-Control-Allow-Origin", requestOrigin)
 			}

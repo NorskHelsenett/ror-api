@@ -20,7 +20,7 @@ type Time struct {
 }
 
 type SseMessage struct {
-	Id    string      `json:"id omitempty"`
-	Event SseType     `json:"event"`
-	Data  interface{} `json:"data"`
+	Id    string  `json:"id omitempty"`
+	Event SseType `json:"event"`
+	Data  any     `json:"data"`
 }

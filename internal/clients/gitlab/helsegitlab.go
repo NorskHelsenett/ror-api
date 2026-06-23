@@ -75,7 +75,7 @@ func getGitlabClient(vaultClient *vaultclient.VaultClient) (*http.Client, string
 		return nil, "", errors.New("could not extract gitlab access token from vault")
 	}
 
-	commonConfig, ok := vaultData["data"].(map[string]interface{})
+	commonConfig, ok := vaultData["data"].(map[string]any)
 	if !ok {
 		rlog.Error("", fmt.Errorf("data type assertion failed: %T %#v", vaultData["data"], vaultData["data"]))
 		return nil, "", errors.New("could not extract gitlab access token from vault-data")

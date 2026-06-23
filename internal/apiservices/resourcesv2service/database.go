@@ -149,7 +149,7 @@ func flattenBsonM(prefix string, doc bson.M, result bson.M) {
 
 // isZeroValue returns true for primitive zero values that should be skipped
 // during partial updates: empty strings, zero numbers, and false booleans.
-func isZeroValue(v interface{}) bool {
+func isZeroValue(v any) bool {
 	switch val := v.(type) {
 	case string:
 		return val == ""

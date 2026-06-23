@@ -22,7 +22,7 @@ const (
 
 func WriteMetrics(metricsreport *apicontracts.MetricsReport, clusterId string, ctx context.Context) {
 	db := mongodb.GetMongoDb()
-	queries := make([]interface{}, 0)
+	queries := make([]any, 0)
 
 	for _, metricUpdate := range metricsreport.Nodes {
 		query := bson.M{

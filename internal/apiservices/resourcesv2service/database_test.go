@@ -453,7 +453,7 @@ func TestSet_Idempotent(t *testing.T) {
 	resource := makePodResource("uid-idem", map[string]string{"app": "test"}, nil, "Running")
 
 	// Set the same resource 3 times — should always succeed with the same data
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		err := repo.Set(ctx, resource)
 		require.NoError(t, err, "Set should be idempotent (attempt %d)", i+1)
 	}
@@ -561,7 +561,7 @@ func TestSet_LargeLabelsCount(t *testing.T) {
 	ctx := testCtx()
 
 	labels := make(map[string]string, 50)
-	for i := 0; i < 50; i++ {
+	for i := range 50 {
 		labels[fmt.Sprintf("label-%d", i)] = fmt.Sprintf("value-%d", i)
 	}
 
@@ -719,7 +719,7 @@ func TestGet_MultipleUIDs(t *testing.T) {
 	repo := newTestRepo(t)
 	ctx := testCtx()
 
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		r := makePodResource(fmt.Sprintf("uid-multi-%d", i), nil, nil, "Running")
 		r.Metadata.Name = fmt.Sprintf("pod-%d", i)
 		require.NoError(t, repo.Set(ctx, r))
@@ -805,7 +805,7 @@ func TestGet_WithPagination(t *testing.T) {
 	repo := newTestRepo(t)
 	ctx := testCtx()
 
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		r := makePodResource(fmt.Sprintf("uid-page-%02d", i), nil, nil, "Running")
 		r.Metadata.Name = fmt.Sprintf("pod-%02d", i)
 		require.NoError(t, repo.Set(ctx, r))
@@ -1005,7 +1005,7 @@ func TestFlattenBsonM_BsonDWithDottedKeys(t *testing.T) {
 func TestIsZeroValue(t *testing.T) {
 	tests := []struct {
 		name   string
-		value  interface{}
+		value  any
 		isZero bool
 	}{
 		{"empty string", "", true},

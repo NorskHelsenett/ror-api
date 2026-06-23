@@ -55,7 +55,7 @@ func (o ownerRefs) SubjectIsSet(scope aclmodels.Acl2Scope, subject aclmodels.Acl
 	return false
 }
 
-type mongoAggregateFunc func(ctx context.Context, col string, query []bson.M, value interface{}) error
+type mongoAggregateFunc func(ctx context.Context, col string, query []bson.M, value any) error
 
 var mongoAggregate mongoAggregateFunc = mongodb.Aggregate
 

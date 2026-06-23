@@ -161,7 +161,7 @@ func Test_GetOwnerrefsQueryAcl2ByIdentityAccess(t *testing.T) {
 
 	t.Run("mongo error => deny all", func(t *testing.T) {
 		orig := mongoAggregate
-		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value interface{}) error {
+		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value any) error {
 			return errors.New("boom")
 		}
 		t.Cleanup(func() { mongoAggregate = orig })
@@ -175,7 +175,7 @@ func Test_GetOwnerrefsQueryAcl2ByIdentityAccess(t *testing.T) {
 
 	t.Run("mongo success => compiled match", func(t *testing.T) {
 		orig := mongoAggregate
-		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value interface{}) error {
+		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value any) error {
 			out, ok := value.(*[]aclmodels.AclV2ListItem)
 			if !ok {
 				return errors.New("unexpected output type")
@@ -219,7 +219,7 @@ func Test_CheckAcl2AccessByIdentityQueryAccess(t *testing.T) {
 
 	t.Run("user identity uses db results", func(t *testing.T) {
 		orig := mongoAggregate
-		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value interface{}) error {
+		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value any) error {
 			out, ok := value.(*[]aclmodels.AclV2ListItem)
 			if !ok {
 				return errors.New("unexpected output type")
@@ -326,7 +326,7 @@ func Test_GetAllACL2(t *testing.T) {
 	ctx := context.WithValue(context.Background(), identitymodels.ContexIdentity, identitymocks.IdentityUserValid)
 
 	t.Run("propagates mongo error", func(t *testing.T) {
-		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value interface{}) error {
+		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value any) error {
 			return errors.New("db down")
 		}
 		_, err := GetAllACL2(ctx)
@@ -336,7 +336,7 @@ func Test_GetAllACL2(t *testing.T) {
 	})
 
 	t.Run("returns results", func(t *testing.T) {
-		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value interface{}) error {
+		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value any) error {
 			out, ok := value.(*[]aclmodels.AclV2ListItem)
 			if !ok {
 				return errors.New("unexpected output type")
@@ -385,7 +385,7 @@ func Test_GetACL2ByIdentityQuery(t *testing.T) {
 
 	t.Run("user identity uses db and compiles global", func(t *testing.T) {
 		orig := mongoAggregate
-		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value interface{}) error {
+		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value any) error {
 			out, ok := value.(*[]aclmodels.AclV2ListItem)
 			if !ok {
 				return errors.New("unexpected output type")
@@ -411,7 +411,7 @@ func Test_GetACL2ByIdentityQuery(t *testing.T) {
 
 	t.Run("user identity mongo error => empty result", func(t *testing.T) {
 		orig := mongoAggregate
-		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value interface{}) error {
+		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value any) error {
 			return errors.New("boom")
 		}
 		t.Cleanup(func() { mongoAggregate = orig })
@@ -442,7 +442,7 @@ func Test_CheckAcl2ByIdentityQuery(t *testing.T) {
 		ctx := context.WithValue(context.Background(), identitymodels.ContexIdentity, identitymocks.IdentityClusterValid)
 		q := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeCluster, aclmodels.Acl2Subject("other"))
 		orig := mongoAggregate
-		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value interface{}) error {
+		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value any) error {
 			out := value.(*[]aclmodels.AclV2ListItem)
 			*out = []aclmodels.AclV2ListItem{}
 			return nil
@@ -457,7 +457,7 @@ func Test_CheckAcl2ByIdentityQuery(t *testing.T) {
 
 	t.Run("user identity compiles access", func(t *testing.T) {
 		orig := mongoAggregate
-		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value interface{}) error {
+		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value any) error {
 			out, ok := value.(*[]aclmodels.AclV2ListItem)
 			if !ok {
 				return errors.New("unexpected output type")
@@ -477,7 +477,7 @@ func Test_CheckAcl2ByIdentityQuery(t *testing.T) {
 
 	t.Run("user identity mongo error => denyall", func(t *testing.T) {
 		orig := mongoAggregate
-		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value interface{}) error {
+		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value any) error {
 			return errors.New("boom")
 		}
 		t.Cleanup(func() { mongoAggregate = orig })
@@ -499,7 +499,7 @@ func Test_GetAcl2ByQuery(t *testing.T) {
 	q := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeCluster, aclmodels.Acl2Subject("c1"))
 
 	t.Run("mongo error => empty", func(t *testing.T) {
-		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value interface{}) error {
+		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value any) error {
 			return errors.New("boom")
 		}
 		got := GetAcl2ByQuery(ctx, q)
@@ -509,7 +509,7 @@ func Test_GetAcl2ByQuery(t *testing.T) {
 	})
 
 	t.Run("mongo success => returns list", func(t *testing.T) {
-		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value interface{}) error {
+		mongoAggregate = func(ctx context.Context, col string, query []bson.M, value any) error {
 			out := value.(*[]aclmodels.AclV2ListItem)
 			*out = []aclmodels.AclV2ListItem{{Scope: aclmodels.Acl2ScopeCluster, Subject: aclmodels.Acl2Subject("c1")}}
 			return nil
@@ -523,7 +523,7 @@ func Test_GetAcl2ByQuery(t *testing.T) {
 
 func Test_CheckAcl2AccessByIdentityQueryAccess_ErrorFromDB(t *testing.T) {
 	orig := mongoAggregate
-	mongoAggregate = func(ctx context.Context, col string, query []bson.M, value interface{}) error {
+	mongoAggregate = func(ctx context.Context, col string, query []bson.M, value any) error {
 		return errors.New("boom")
 	}
 	t.Cleanup(func() { mongoAggregate = orig })

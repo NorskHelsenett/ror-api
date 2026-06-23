@@ -51,7 +51,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "v1" && query.Kind == "Namespace" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceNamespace](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -59,7 +59,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "v1" && query.Kind == "Node" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceNode](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -67,7 +67,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "v1" && query.Kind == "PersistentVolumeClaim" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourcePersistentVolumeClaim](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -75,7 +75,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "apps/v1" && query.Kind == "Deployment" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceDeployment](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -83,7 +83,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "storage.k8s.io/v1" && query.Kind == "StorageClass" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceStorageClass](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -91,7 +91,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "wgpolicyk8s.io/v1alpha2" && query.Kind == "PolicyReport" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourcePolicyReport](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -99,7 +99,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "argoproj.io/v1alpha1" && query.Kind == "Application" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceApplication](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -107,7 +107,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "argoproj.io/v1alpha1" && query.Kind == "AppProject" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceAppProject](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -115,7 +115,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "cert-manager.io/v1" && query.Kind == "Certificate" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceCertificate](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -123,7 +123,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "v1" && query.Kind == "Service" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceService](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -131,7 +131,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "v1" && query.Kind == "Pod" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourcePod](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -139,7 +139,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "apps/v1" && query.Kind == "ReplicaSet" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceReplicaSet](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -147,7 +147,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "apps/v1" && query.Kind == "StatefulSet" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceStatefulSet](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -155,7 +155,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "apps/v1" && query.Kind == "DaemonSet" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceDaemonSet](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -163,7 +163,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "networking.k8s.io/v1" && query.Kind == "Ingress" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceIngress](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -171,7 +171,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "networking.k8s.io/v1" && query.Kind == "IngressClass" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceIngressClass](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -179,7 +179,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "aquasecurity.github.io/v1alpha1" && query.Kind == "VulnerabilityReport" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceVulnerabilityReport](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -187,7 +187,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "aquasecurity.github.io/v1alpha1" && query.Kind == "ExposedSecretReport" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceExposedSecretReport](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -195,7 +195,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "aquasecurity.github.io/v1alpha1" && query.Kind == "ConfigAuditReport" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceConfigAuditReport](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -203,7 +203,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "aquasecurity.github.io/v1alpha1" && query.Kind == "RbacAssessmentReport" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceRbacAssessmentReport](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -211,7 +211,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "run.tanzu.vmware.com/v1alpha3" && query.Kind == "TanzuKubernetesCluster" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceTanzuKubernetesCluster](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -219,7 +219,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "run.tanzu.vmware.com/v1alpha3" && query.Kind == "TanzuKubernetesRelease" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceTanzuKubernetesRelease](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -227,7 +227,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "vmoperator.vmware.com/v1alpha2" && query.Kind == "VirtualMachineClass" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceVirtualMachineClass](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -235,7 +235,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "general.ror.internal/v1alpha1" && query.Kind == "KubernetesCluster" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceKubernetesCluster](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -243,7 +243,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "general.ror.internal/v1alpha1" && query.Kind == "ClusterOrder" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceClusterOrder](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -251,7 +251,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "general.ror.internal/v1alpha1" && query.Kind == "Project" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceProject](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -259,7 +259,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "general.ror.internal/v1alpha1" && query.Kind == "Configuration" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceConfiguration](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -267,7 +267,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "aquasecurity.github.io/v1alpha1" && query.Kind == "ClusterComplianceReport" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceClusterComplianceReport](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -275,7 +275,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "general.ror.internal/v1alpha1" && query.Kind == "ClusterVulnerabilityReport" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceClusterVulnerabilityReport](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -283,7 +283,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "general.ror.internal/v1alpha1" && query.Kind == "Route" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceRoute](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -291,7 +291,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "general.ror.internal/v1alpha1" && query.Kind == "SlackMessage" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceSlackMessage](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -299,7 +299,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "general.ror.internal/v1alpha1" && query.Kind == "VulnerabilityEvent" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceVulnerabilityEvent](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -307,7 +307,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "general.ror.internal/v1alpha1" && query.Kind == "VirtualMachine" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceVirtualMachine](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -315,7 +315,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "v1" && query.Kind == "Endpoints" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceEndpoints](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -323,7 +323,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "networking.k8s.io/v1" && query.Kind == "NetworkPolicy" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.ResourceNetworkPolicy](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -379,7 +379,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "v1" && query.Kind == "Namespace" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceNamespace](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -387,7 +387,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "v1" && query.Kind == "Node" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceNode](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -395,7 +395,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "v1" && query.Kind == "PersistentVolumeClaim" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourcePersistentVolumeClaim](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -403,7 +403,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "apps/v1" && query.Kind == "Deployment" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceDeployment](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -411,7 +411,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "storage.k8s.io/v1" && query.Kind == "StorageClass" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceStorageClass](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -419,7 +419,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "wgpolicyk8s.io/v1alpha2" && query.Kind == "PolicyReport" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourcePolicyReport](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -427,7 +427,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "argoproj.io/v1alpha1" && query.Kind == "Application" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceApplication](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -435,7 +435,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "argoproj.io/v1alpha1" && query.Kind == "AppProject" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceAppProject](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -443,7 +443,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "cert-manager.io/v1" && query.Kind == "Certificate" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceCertificate](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -451,7 +451,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "v1" && query.Kind == "Service" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceService](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -459,7 +459,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "v1" && query.Kind == "Pod" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourcePod](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -467,7 +467,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "apps/v1" && query.Kind == "ReplicaSet" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceReplicaSet](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -475,7 +475,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "apps/v1" && query.Kind == "StatefulSet" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceStatefulSet](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -483,7 +483,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "apps/v1" && query.Kind == "DaemonSet" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceDaemonSet](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -491,7 +491,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "networking.k8s.io/v1" && query.Kind == "Ingress" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceIngress](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -499,7 +499,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "networking.k8s.io/v1" && query.Kind == "IngressClass" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceIngressClass](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -507,7 +507,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "aquasecurity.github.io/v1alpha1" && query.Kind == "VulnerabilityReport" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceVulnerabilityReport](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -515,7 +515,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "aquasecurity.github.io/v1alpha1" && query.Kind == "ExposedSecretReport" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceExposedSecretReport](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -523,7 +523,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "aquasecurity.github.io/v1alpha1" && query.Kind == "ConfigAuditReport" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceConfigAuditReport](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -531,7 +531,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "aquasecurity.github.io/v1alpha1" && query.Kind == "RbacAssessmentReport" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceRbacAssessmentReport](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -539,7 +539,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "run.tanzu.vmware.com/v1alpha3" && query.Kind == "TanzuKubernetesCluster" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceTanzuKubernetesCluster](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -547,7 +547,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "run.tanzu.vmware.com/v1alpha3" && query.Kind == "TanzuKubernetesRelease" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceTanzuKubernetesRelease](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -555,7 +555,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "vmoperator.vmware.com/v1alpha2" && query.Kind == "VirtualMachineClass" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceVirtualMachineClass](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -563,7 +563,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "general.ror.internal/v1alpha1" && query.Kind == "KubernetesCluster" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceKubernetesCluster](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -571,7 +571,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "general.ror.internal/v1alpha1" && query.Kind == "ClusterOrder" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceClusterOrder](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -579,7 +579,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "general.ror.internal/v1alpha1" && query.Kind == "Project" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceProject](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -587,7 +587,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "general.ror.internal/v1alpha1" && query.Kind == "Configuration" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceConfiguration](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -595,7 +595,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "aquasecurity.github.io/v1alpha1" && query.Kind == "ClusterComplianceReport" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceClusterComplianceReport](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -603,7 +603,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "general.ror.internal/v1alpha1" && query.Kind == "ClusterVulnerabilityReport" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceClusterVulnerabilityReport](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -611,7 +611,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "general.ror.internal/v1alpha1" && query.Kind == "Route" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceRoute](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -619,7 +619,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "general.ror.internal/v1alpha1" && query.Kind == "SlackMessage" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceSlackMessage](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -627,7 +627,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "general.ror.internal/v1alpha1" && query.Kind == "VulnerabilityEvent" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceVulnerabilityEvent](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -635,7 +635,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "general.ror.internal/v1alpha1" && query.Kind == "VirtualMachine" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceVirtualMachine](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -643,7 +643,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "v1" && query.Kind == "Endpoints" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceEndpoints](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -651,7 +651,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "networking.k8s.io/v1" && query.Kind == "NetworkPolicy" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.ResourceNetworkPolicy](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)

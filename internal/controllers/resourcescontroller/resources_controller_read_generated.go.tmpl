@@ -53,7 +53,7 @@ func GetResources() gin.HandlerFunc {
 		if query.ApiVersion == "{{.GetApiVersion}}" && query.Kind == "{{.Kind}}" {
 			resources, err := resourcesservice.GetResources[apiresourcecontracts.Resource{{.Kind}}](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
@@ -111,7 +111,7 @@ func GetResource() gin.HandlerFunc {
 		if query.ApiVersion == "{{.GetApiVersion}}" && query.Kind == "{{.Kind}}" {
 			resources, err := resourcesservice.GetResource[apiresourcecontracts.Resource{{.Kind}}](ctx, query)
 			if err != nil {
-				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				c.JSON(http.StatusNotFound, responses.Cluster{Status: http.StatusNotFound, Message: "error", Data: map[string]any{"data": err.Error()}})
 				return
 			}
 			c.JSON(http.StatusOK, resources)
