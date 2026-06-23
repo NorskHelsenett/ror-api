@@ -35,13 +35,14 @@ import (
 // - workspaceName: name of the workspace, used when workspaceId is empty to find or create one
 //
 // - projectId: id of the project
-func Create(ctx context.Context, clusterName, clusterId, datacenterId, workspaceId, workspaceName, projectId string) (string, error) {
+func Create(ctx context.Context, clusterName, clusterId, datacenterId, workspaceId, workspaceName, projectId, uid string) (string, error) {
 	if datacenterId == "" {
 		return "", fmt.Errorf("datacenterId must be set")
 	}
 
 	clusterInput := apicontracts.Cluster{
 		ClusterName: clusterName,
+		Uid:         uid,
 		Metadata: apicontracts.ClusterMetadata{
 			ProjectID: projectId,
 		},

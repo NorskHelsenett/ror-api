@@ -130,7 +130,7 @@ func CreateOrUpdate(ctx context.Context, input *apicontracts.Cluster, clusterId 
 }
 
 func Create(ctx context.Context, input *apicontracts.Cluster) (string, error) {
-	clusterId, err := clusterservice.Create(ctx, input.ClusterName, input.ClusterId, input.Workspace.DatacenterID, input.WorkspaceId, input.Workspace.Name, input.Metadata.ProjectID)
+	clusterId, err := clusterservice.Create(ctx, input.ClusterName, input.ClusterId, input.Workspace.DatacenterID, input.WorkspaceId, input.Workspace.Name, input.Metadata.ProjectID, input.Uid)
 	if err != nil {
 		rlog.Errorc(ctx, "could not create cluster", err, rlog.String("clusterName", input.ClusterName))
 		return "", fmt.Errorf("could not create cluster with id: %s", input.ClusterId)
@@ -163,6 +163,10 @@ func Update(ctx context.Context, input *apicontracts.Cluster, existing *apicontr
 	input.WorkspaceId = existing.WorkspaceId
 	input.Status = existing.Status
 	input.Identifier = existing.Identifier
+	// Preserve uid from heartbeat; only use existing uid if heartbeat doesn't provide one
+	if existing.Uid != "" && input.Uid == "" {
+		input.Uid = existing.Uid
+	}
 	if len(input.Identifier) == 0 {
 		input.Identifier = idhelper.GetIdentifier(input.ClusterName)
 	}
