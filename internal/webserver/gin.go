@@ -112,7 +112,7 @@ func startHttpServer(ctx context.Context) error {
 	}()
 
 	select {
-	// if we are toldt to abort, initate gracefull shutdown of the http
+	// if we are toldt to abort, initate graceful shutdown of the http
 	// server
 	case <-ctx.Done():
 		rlog.Info("http server: attempting graceful shutdown")
