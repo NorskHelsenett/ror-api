@@ -57,11 +57,17 @@ func Run() {
 	//TODO: Refactor the init functions called to respect context cancelations
 	apiconnections.InitConnections(ctx)
 
-	rortracer.InitWithDefault(ctx, rortracer.WithTimeout(time.Second*5))
+	err := rortracer.InitWithDefault(ctx, rortracer.WithTimeout(time.Second*5))
+	if err != nil {
+		rlog.Fatal("failed to initialize tracer with default values", err)
+	}
 	defer func() {
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		rortracer.Shutdown(shutdownCtx)
+		err = rortracer.Shutdown(shutdownCtx)
+		if err != nil {
+			rlog.Error("shutdown tracer with error", err)
+		}
 	}()
 
 	// Initialize token storage for ror-auth (used by the OIDC signer).
