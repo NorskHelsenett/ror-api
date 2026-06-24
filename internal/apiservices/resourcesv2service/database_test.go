@@ -1055,3 +1055,30 @@ func TestDToM(t *testing.T) {
 	assert.Equal(t, true, m["c"])
 	assert.Len(t, m, 3)
 }
+
+// TestSet_NoTopLevelUID verifies that after a Set() call the stored BSON document
+// does NOT contain a top-level "uid" field.  The canonical UID lives exclusively
+// in metadata.uid.
+func TestSet_NoTopLevelUID(t *testing.T) {
+	repo := newTestRepo(t)
+	ctx := testCtx()
+
+	resource := makePodResource("uid-no-toplevel", nil, nil, "Running")
+	err := repo.Set(ctx, resource)
+	require.NoError(t, err)
+
+	// Read the raw document directly from MongoDB so we can inspect the stored BSON.
+	db := repo.db.GetMongoDb()
+	var raw bson.M
+	err = db.Collection(RESOURCECOLLECTION).
+		FindOne(ctx, bson.M{"metadata.uid": "uid-no-toplevel"}).
+		Decode(&raw)
+	require.NoError(t, err, "document should be findable by metadata.uid")
+
+	_, hasTopUID := raw["uid"]
+	assert.False(t, hasTopUID, "top-level uid field must not be present in stored document")
+
+	metadataRaw, ok := raw["metadata"].(bson.M)
+	require.True(t, ok, "metadata field should be a bson.M")
+	assert.Equal(t, "uid-no-toplevel", metadataRaw["uid"], "metadata.uid should hold the UID")
+}
