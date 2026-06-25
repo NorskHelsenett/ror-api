@@ -68,7 +68,7 @@ func InitConnections(ctx context.Context) {
 	RedisDB = redisdb.MustNewWithContext(ctx, rediscredhelper, rorconfig.GetString(rorconfig.KV_HOST), rorconfig.GetString(rorconfig.KV_PORT))
 
 	// ACL service resolver setup
-	aclservice.InitResolver()
+	aclservice.InitResolver(RedisDB)
 	aclmodels.ClusterIdToUidResolver = resolveClusterIdToUid
 
 	// Domain resolvers are initialized up front as an empty, ready-to-use

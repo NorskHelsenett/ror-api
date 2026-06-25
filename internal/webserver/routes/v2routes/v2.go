@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/controllers/apikeyscontroller/v2"
+	"github.com/NorskHelsenett/ror-api/internal/controllers/v2/aclcontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/v2/resourcescontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/v2/tokencontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/v2/viewcontroller"
@@ -67,6 +68,11 @@ func SetupRoutes(router *gin.Engine) error {
 	tokenroute := v2.Group("/token")
 	{
 		tokenroute.POST("/exchange", tokencontroller.ExchangeToken())
+	}
+
+	aclroute := v2.Group("/acl")
+	{
+		aclroute.GET("/lookup", aclcontroller.LookupAcl())
 	}
 	return nil
 }

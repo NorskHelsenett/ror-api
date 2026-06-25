@@ -449,32 +449,14 @@ func GetResourceByQuery(ctx context.Context, query *rorresources.ResourceQuery) 
 		return nil, nil
 	}
 
-	// Access check
-	// Scope: input.Owner.Scope
-	// Subject: input.Owner.Subject
-	// Access: read
-
-	returnrs := rorresources.NewResourceSet()
-	var checkedOwnerRef = make(map[string]int, 0)
-	for _, resource := range rs.Resources {
-		if checked, ok := checkedOwnerRef[resource.GetRorMeta().Ownerref.String()]; ok {
-			if checked == 1 {
-				returnrs.Add(resource)
-			}
-			continue
-		}
-		accessModel := aclservice.CheckAccessByRorOwnerref(ctx, resource.GetRorMeta().Ownerref)
-		if accessModel.Read {
-			checkedOwnerRef[resource.GetRorMeta().Ownerref.String()] = 1
-			returnrs.Add(resource)
-			continue
-		} else {
-			checkedOwnerRef[resource.GetRorMeta().Ownerref.String()] = -1
-		}
-	}
+	// Authorization is enforced at query time: GenerateAggregateQuery injects an
+	// ACL $match (aclservice.GetOwnerrefByContextAccess) so the database only
+	// returns resources the caller is authorized to read. A per-resource
+	// re-check here would be redundant (it re-queries the acl collection once per
+	// returned ownerref), so the query result is returned directly.
 	rortracer.SpanOk(span)
-	span.SetAttributes(attribute.Int("resources.count", len(returnrs.Resources)))
-	return returnrs, nil
+	span.SetAttributes(attribute.Int("resources.count", len(rs.Resources)))
+	return rs, nil
 }
 
 func sendToMessageBus(ctx context.Context, resource *rorresources.Resource, action rortypes.ResourceAction) error {
