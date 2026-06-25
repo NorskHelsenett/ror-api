@@ -1,0 +1,27 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: ror-api-publisering
+  namespace: nhn-ror
+  annotations:
+    gatewayapi-operator.vitistack.io/enabled: "true"
+    ipam.vitistack.io/zone: hnet-private # eller hnet-public eller inet
+    gatewayapi-operator.vitistack.io/cluster-issuer: internpki # eller letsencrypt-prod
+spec:
+  parentRefs:
+    - name: ror-gateway 
+      sectionName: test.ror.nhn.no
+      namespace: gateways
+  hostnames:
+    - test.ror.nhn.no
+  rules:
+    - backendRefs:
+        - group: ""
+          kind: Service
+          name: <service navn>
+          port: <port>
+          weight: 1
+      matches:
+        - path:
+            type: PathPrefix
+            value: /
