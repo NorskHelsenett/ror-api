@@ -198,7 +198,10 @@ func (r *ResourceMongoDB) Get(ctx context.Context, rorResourceQuery *rorresource
 	queryStart := time.Now()
 
 	// Read as raw BSON first to ensure we always get UIDs even if resource definitions changed.
-	var rawDocs []bson.M
+	// Decoding into bson.Raw copies the document bytes straight from the cursor,
+	// avoiding a reflective decode into bson.M (and a subsequent re-marshal in
+	// resourceFromRawDoc) for every document.
+	var rawDocs []bson.Raw
 	err = r.db.Aggregate(ctx, RESOURCECOLLECTION, query, &rawDocs)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
@@ -228,12 +231,7 @@ func (r *ResourceMongoDB) Get(ctx context.Context, rorResourceQuery *rorresource
 // It first attempts full typed deserialization. If that fails or produces a nil resource,
 // it falls back to extracting only CommonResource (which contains the UID) and sets
 // the hash to "invalid" to trigger an update from the agent.
-func resourceFromRawDoc(doc bson.M) *rorresources.Resource {
-	raw, err := bson.Marshal(doc)
-	if err != nil {
-		return nil
-	}
-
+func resourceFromRawDoc(raw bson.Raw) *rorresources.Resource {
 	// Try full typed deserialization first
 	var typedRes rorresources.Resource
 	if err := bson.Unmarshal(raw, &typedRes); err == nil {

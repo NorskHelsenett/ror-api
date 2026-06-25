@@ -59,6 +59,13 @@ func ensureResourcesV2Indexes(ctx context.Context) {
 			Options: options.Index().SetName("rormeta.ownerref_1"),
 		},
 		{
+			// Single-field index on the ownerref subject so the ACL scope
+			// expander's $graphLookup (connectToField: rormeta.ownerref.subject)
+			// is index-driven instead of doing a collection scan per traversal level.
+			Keys:    bson.D{{Key: "rormeta.ownerref.subject", Value: 1}},
+			Options: options.Index().SetName("rormeta.ownerref.subject_1"),
+		},
+		{
 			Keys: bson.D{
 				{Key: "rormeta.ownerref.scope", Value: 1},
 				{Key: "rormeta.ownerref.subject", Value: 1},

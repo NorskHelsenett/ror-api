@@ -3,10 +3,12 @@ package aclservice
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/NorskHelsenett/ror/pkg/acl"
 	"github.com/NorskHelsenett/ror/pkg/acl/aclstore"
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
+	"github.com/NorskHelsenett/ror/pkg/clients/redisdb"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
@@ -15,16 +17,29 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+// aclCacheTTL is the time-to-live for cached ACL entries and scope expansions.
+const aclCacheTTL = 5 * time.Minute
+
 // resolver is the package-level ACL resolver.
 // Must be initialized by calling InitResolver before use.
 var resolver *acl.Resolver
 
-// InitResolver initializes the ACL resolver backed by MongoDB.
-// Call this during application startup after MongoDB is initialized.
-func InitResolver() {
+// InitResolver initializes the ACL resolver backed by MongoDB, fronted by a
+// Redis-cached store and an in-memory cached scope expander for hierarchical
+// (inherited) access resolution.
+// Call this during application startup after MongoDB and Redis are initialized.
+func InitResolver(redis redisdb.RedisDB) {
 	db := mongodb.GetMongoDb()
-	store := aclstore.NewMongoStore(db)
-	resolver = acl.NewResolver(store)
+
+	store := acl.Store(aclstore.NewMongoStore(db))
+	if redis != nil {
+		store = aclstore.NewCachedStore(store, redis, aclCacheTTL)
+	}
+
+	expander := acl.ScopeExpander(aclstore.NewMongoScopeExpander(db))
+	expander = acl.NewCachedScopeExpander(expander, aclCacheTTL)
+
+	resolver = acl.NewResolver(store, acl.WithScopeExpander(expander))
 }
 
 // identityGroups extracts the group list from the context identity.
@@ -109,6 +124,52 @@ func ResolveAccess(ctx context.Context, scope aclscope.Scope, subject aclscope.S
 	return resolver.ResolveAccess(ctx, groups, scope, subject)
 }
 
+// ResolveOwnerrefs returns the scope+subject pairs the caller has the required
+// access type for. The unrestricted return value is true when the caller has
+// global access for the required access type; in that case the returned slice
+// is empty.
+//
+// The optional filter narrows the result to specific scopes and/or subjects.
+//
+// Cluster identities resolve to their own resource only.
+func ResolveOwnerrefs(ctx context.Context, required aclmodels.AccessTypeV3, filter acl.OwnerrefFilter) (refs []acl.Ownerref, unrestricted bool, err error) {
+	ctx, span := rortracer.StartSpan(ctx, "aclservice.ResolveOwnerrefs")
+	defer span.End()
+
+	identity, err := rorcontext.GetIdentityFromRorContext(ctx)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to get identity from context: %w", err)
+	}
+
+	if identity.IsCluster() {
+		if isImplicitClusterAccess(required) {
+			ref := acl.Ownerref{Scope: aclscope.ScopeCluster, Subject: aclscope.Subject(identity.GetId())}
+			if !filter.Matches(ref) {
+				return []acl.Ownerref{}, false, nil
+			}
+			return []acl.Ownerref{ref}, false, nil
+		}
+		return nil, false, nil
+	}
+
+	groups, err := identityGroups(ctx)
+	if err != nil {
+		return nil, false, err
+	}
+
+	resolved, err := resolver.ResolveOwnerrefs(ctx, groups, required, filter)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to resolve ownerrefs: %w", err)
+	}
+
+	// The resolver returns a nil slice to signal unrestricted (global) access.
+	if resolved == nil {
+		return nil, true, nil
+	}
+
+	return resolved, false, nil
+}
+
 // ResourceOwnerFilter returns a MongoDB aggregation pipeline stage that scopes
 // resource queries to resources the caller has the required access type for.
 //
@@ -132,7 +193,7 @@ func ResourceOwnerFilter(ctx context.Context, required aclmodels.AccessTypeV3) (
 		return aclstore.DenyAllFilter, err
 	}
 
-	refs, err := resolver.ResolveOwnerrefs(ctx, groups, required)
+	refs, err := resolver.ResolveOwnerrefs(ctx, groups, required, acl.OwnerrefFilter{})
 	if err != nil {
 		return aclstore.DenyAllFilter, fmt.Errorf("failed to resolve ownerrefs: %w", err)
 	}
