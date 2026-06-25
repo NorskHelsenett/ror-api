@@ -17,6 +17,19 @@
             }
         },
         {
+            "name": "Debug API (tracing)",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/api/main.go",
+            "debugAdapter": "dlv-dap",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "ENV": "",
+                "ENV_FILE": ".env,.env.tracing"
+            }
+        },
+        {
             "name": "Debug ROR-Api tests",
             "type": "go",
             "request": "launch",

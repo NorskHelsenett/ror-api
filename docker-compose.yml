@@ -135,21 +135,14 @@ services:
 
   jaeger:
     image: ${DOCKER_MIRROR}jaegertracing/all-in-one:latest
+    environment:
+      # Enable Jaeger's native OTLP receiver so services can send traces
+      # directly to Jaeger without a separate OpenTelemetry Collector.
+      - COLLECTOR_OTLP_ENABLED=true
     ports:
-      - '17686:16686'
-      - '15250:14250'
-    profiles:
-      - tracing
-
-  opentelemetry-collector:
-    image: ${DOCKER_MIRROR}otel/opentelemetry-collector:latest
-    volumes:
-      - ${DOCKER_VOLUME_PATH:-../ror/hacks/data}/opentelemetry-collector/configs:/configs
-    command: ['--config=/configs/opentelemetry-collector-config.yaml']
-    depends_on:
-      - jaeger
-    ports:
-      - '5317:4317'
+      - '17686:16686' # Jaeger UI -> http://localhost:17686
+      - '4317:4317' # OTLP gRPC receiver -> OPENTELEMETRY_COLLECTOR_ENDPOINT=localhost:4317
+      - '4318:4318' # OTLP HTTP receiver
     profiles:
       - tracing
   valkey:
