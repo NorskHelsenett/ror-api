@@ -91,7 +91,7 @@ func newExpanderTestDB(t *testing.T) (*mongo.Database, *aclstore.MongoScopeExpan
 		_ = client.Disconnect(ctx)
 	})
 
-	return db, aclstore.NewMongoScopeExpander(db)
+	return db, aclstore.NewMongoScopeExpander(func() *mongo.Database { return db })
 }
 
 func expanderEnvOrDefault(key, fallback string) string {
