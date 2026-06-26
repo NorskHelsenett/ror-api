@@ -29,14 +29,17 @@ var resolver *acl.Resolver
 // (inherited) access resolution.
 // Call this during application startup after MongoDB and Redis are initialized.
 func InitResolver(redis redisdb.RedisDB) {
-	db := mongodb.GetMongoDb()
-
-	store := acl.Store(aclstore.NewMongoStore(db))
+	// mongodb.GetMongoDb returns the live database handle on every call. It must
+	// be passed as a provider (not invoked once here): the mongo client is
+	// reconnected and the previous one disconnected on credential rotation, so a
+	// captured handle would fail with "client is disconnected" after the first
+	// renewal.
+	store := acl.Store(aclstore.NewMongoStore(mongodb.GetMongoDb))
 	if redis != nil {
 		store = aclstore.NewCachedStore(store, redis, aclCacheTTL)
 	}
 
-	expander := acl.ScopeExpander(aclstore.NewMongoScopeExpander(db))
+	expander := acl.ScopeExpander(aclstore.NewMongoScopeExpander(mongodb.GetMongoDb))
 	expander = acl.NewCachedScopeExpander(expander, aclCacheTTL)
 
 	resolver = acl.NewResolver(store, acl.WithScopeExpander(expander))
