@@ -16,6 +16,7 @@ func v1ClustersRoutes(v1 *gin.RouterGroup) {
 		clustersRoute.GET("/:clusterid", clusterscontroller.ClusterGetById())
 		clustersRoute.GET("/:clusterid/exists", clusterscontroller.ClusterExistsById())
 		clustersRoute.PATCH("/:clusterid/metadata", clusterscontroller.UpdateMetadata())
+		clustersRoute.DELETE("/uid/:uid", clusterscontroller.DeleteClusterByUid())
 
 		clustersRoute.GET("/:clusterid/views/policyreports", clusterscontroller.PolicyreportsView())
 		clustersRoute.GET("/:clusterid/views/vulnerabilityreports", clusterscontroller.VulnerabilityReportsView())
