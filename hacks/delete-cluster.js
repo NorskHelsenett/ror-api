@@ -46,6 +46,10 @@
 		quit(1);
 	}
 	const clusterId = clusterDoc.clusterid;
+	if (!clusterId) {
+		print("ERROR: cluster document is missing 'clusterid' for uid=" + UID + ". Aborting.");
+		quit(1);
+	}
 	print("clusterid: " + clusterId + "  (clustername: " + (clusterDoc.clustername || "") + ")");
 
 	// Filters.
