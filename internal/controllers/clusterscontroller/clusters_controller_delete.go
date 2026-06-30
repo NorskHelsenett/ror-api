@@ -31,6 +31,7 @@ import (
 //	@Failure		403	{string}	Forbidden
 //	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		404	{string}	NotFound
+//	@Failure		409	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
 //	@Router			/v1/clusters/uid/{uid} [delete]
 //	@Security		ApiKey || AccessToken
@@ -61,6 +62,11 @@ func DeleteClusterByUid() gin.HandlerFunc {
 		if err != nil {
 			if errors.Is(err, clustersservice.ErrClusterNotFound) {
 				c.JSON(http.StatusNotFound, "404: Cluster not found")
+				return
+			}
+			if errors.Is(err, clustersservice.ErrClusterRecentlyActive) {
+				rerr := rorginerror.NewRorGinError(http.StatusConflict, "cluster has reported recently, refusing to purge", err)
+				rerr.GinLogErrorAbort(c)
 				return
 			}
 			rlog.Errorc(ctx, "could not purge cluster", err, rlog.String("uid", uid))

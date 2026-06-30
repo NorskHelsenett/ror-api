@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
@@ -19,10 +20,18 @@ const (
 	purgeResourcesV1Collection = "resources"
 	purgeResourcesV2Collection = "resourcesv2"
 	purgeAclCollection         = "acl"
+
+	// clusterInactivityThreshold is how long a cluster must have been silent
+	// (no v1 heartbeat or v2 agent report) before it may be purged.
+	clusterInactivityThreshold = 10 * time.Minute
 )
 
 // ErrClusterNotFound is returned when no cluster document matches the given uid.
 var ErrClusterNotFound = errors.New("cluster not found")
+
+// ErrClusterRecentlyActive is returned when the cluster has reported within the
+// inactivity threshold and is therefore considered still active.
+var ErrClusterRecentlyActive = errors.New("cluster has reported recently")
 
 // PurgeResult reports how many documents were removed from each collection when
 // purging a cluster.
@@ -59,7 +68,8 @@ func PurgeClusterByUid(ctx context.Context, uid string) (PurgeResult, error) {
 	// Resolve the cluster document to obtain the clusterid. The v1 resources
 	// collection keys ownership by clusterid, not uid.
 	var clusterDoc struct {
-		ClusterId string `bson:"clusterid"`
+		ClusterId    string    `bson:"clusterid"`
+		LastObserved time.Time `bson:"lastobserved"`
 	}
 	err := db.Collection(purgeClustersCollection).FindOne(ctx, bson.M{"uid": uid}).Decode(&clusterDoc)
 	if err != nil {
@@ -70,6 +80,28 @@ func PurgeClusterByUid(ctx context.Context, uid string) (PurgeResult, error) {
 		return result, fmt.Errorf("could not look up cluster by uid: %w", err)
 	}
 	result.ClusterId = clusterDoc.ClusterId
+
+	// Safety check: refuse to purge a cluster that has reported recently. Both
+	// the v1 cluster heartbeat (clusters.lastobserved) and the v2 agent report
+	// (resourcesv2 kubernetescluster.status.agentstatus.lastseen) are consulted;
+	// if either is within the inactivity threshold the cluster is still active.
+	lastSeenV2, err := getV2ClusterLastSeen(ctx, db, uid)
+	if err != nil {
+		rortracer.SpanError(span, err, "failed to look up v2 cluster last seen")
+		return result, err
+	}
+	lastReport := clusterDoc.LastObserved
+	if lastSeenV2.After(lastReport) {
+		lastReport = lastSeenV2
+	}
+	if !lastReport.IsZero() && time.Since(lastReport) < clusterInactivityThreshold {
+		return result, fmt.Errorf("%w: last reported %s ago (v1: %s, v2: %s)",
+			ErrClusterRecentlyActive,
+			time.Since(lastReport).Round(time.Second),
+			formatReportTime(clusterDoc.LastObserved),
+			formatReportTime(lastSeenV2),
+		)
+	}
 
 	kind := string(aclmodels.Acl2ScopeCluster.ToKind())
 
@@ -124,4 +156,38 @@ func PurgeClusterByUid(ctx context.Context, uid string) (PurgeResult, error) {
 
 	rortracer.SpanOk(span)
 	return result, nil
+}
+
+// getV2ClusterLastSeen returns the agent last-seen time from the resourcesv2
+// KubernetesCluster document for the given uid. A zero time is returned if the
+// document or the field is missing.
+func getV2ClusterLastSeen(ctx context.Context, db *mongo.Database, uid string) (time.Time, error) {
+	var v2Doc struct {
+		KubernetesCluster struct {
+			Status struct {
+				AgentStatus struct {
+					LastSeen time.Time `bson:"lastseen"`
+				} `bson:"agentstatus"`
+			} `bson:"status"`
+		} `bson:"kubernetescluster"`
+	}
+	err := db.Collection(purgeResourcesV2Collection).
+		FindOne(ctx, bson.M{"uid": uid, "typemeta.kind": "KubernetesCluster"}).
+		Decode(&v2Doc)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return time.Time{}, nil
+		}
+		return time.Time{}, fmt.Errorf("could not look up v2 cluster last seen: %w", err)
+	}
+	return v2Doc.KubernetesCluster.Status.AgentStatus.LastSeen, nil
+}
+
+// formatReportTime renders a report timestamp for diagnostics, returning "never"
+// for a zero time.
+func formatReportTime(t time.Time) string {
+	if t.IsZero() {
+		return "never"
+	}
+	return t.UTC().Format(time.RFC3339)
 }
