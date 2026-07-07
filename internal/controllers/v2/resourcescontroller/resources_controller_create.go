@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
-	"github.com/NorskHelsenett/ror-api/internal/models/responses"
+	"github.com/NorskHelsenett/ror-api/internal/helpers/responsehelper"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"go.opentelemetry.io/otel/attribute"
@@ -59,13 +59,14 @@ func NewResource() gin.HandlerFunc {
 		if err := c.BindJSON(&input); err != nil {
 			_ = rortracer.SpanError(span, err, "failed to bind JSON")
 			rlog.Error("error binding json", err)
-			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]any{"data": err.Error()}})
+			responsehelper.ErrorResponse(c, http.StatusBadRequest, err)
 			return
 		}
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&input); validationErr != nil {
 			_ = rortracer.SpanError(span, validationErr, "validation failed")
-			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]any{"data": validationErr.Error()}})
+			rlog.Error("validation failed", validationErr)
+			responsehelper.ErrorResponse(c, http.StatusBadRequest, validationErr)
 			return
 		}
 		span.AddEvent("request validated")
@@ -77,18 +78,18 @@ func NewResource() gin.HandlerFunc {
 		case errors.Is(err, rorresources.ErrResourceSetEmpty):
 			_ = rortracer.SpanError(span, err, "resource set is empty")
 			rlog.Error("resource set is empty", err)
-			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]any{"data": err.Error()}})
+			responsehelper.ErrorResponse(c, http.StatusBadRequest, err)
 			return
 
 		case errors.Is(err, rorresources.ErrUnknownResourceKind):
 			_ = rortracer.SpanError(span, err, "unknown resource kind")
 			rlog.Error("unknown resource kind", err)
-			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]any{"data": err.Error()}})
+			responsehelper.ErrorResponse(c, http.StatusBadRequest, err)
 			return
 		default:
 			_ = rortracer.SpanError(span, err, "failed to create resource set from struct")
 			rlog.Error("error creating resource set from struct", err)
-			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]any{"data": err.Error()}})
+			responsehelper.ErrorResponse(c, http.StatusInternalServerError, err)
 			return
 		}
 
