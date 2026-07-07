@@ -215,7 +215,11 @@ func (r *ResourceMongoDB) Get(ctx context.Context, rorResourceQuery *rorresource
 	}
 	resourceSet := rorresources.NewResourceSet()
 	for _, doc := range rawDocs {
-		resource := resourceFromRawDoc(doc)
+		resource, err := resourceFromRawDoc(doc)
+		if err != nil {
+			rlog.Errorc(ctx, "Failed to construct resource from raw document", err, rlog.Any("document", doc))
+			continue
+		}
 		if resource != nil {
 			resourceSet.Add(resource)
 		}
@@ -227,38 +231,50 @@ func (r *ResourceMongoDB) Get(ctx context.Context, rorResourceQuery *rorresource
 	return nil, nil
 }
 
+var (
+	ErrNoKindOrAPIVersion = errors.New("document missing kind or apiVersion")
+)
+
 // resourceFromRawDoc constructs a Resource from a raw BSON document.
 // It first attempts full typed deserialization. If that fails or produces a nil resource,
 // it falls back to extracting only CommonResource (which contains the UID) and sets
 // the hash to "invalid" to trigger an update from the agent.
-func resourceFromRawDoc(raw bson.Raw) *rorresources.Resource {
+func resourceFromRawDoc(raw bson.Raw) (*rorresources.Resource, error) {
 	// Try full typed deserialization first
 	var typedRes rorresources.Resource
-	if err := bson.Unmarshal(raw, &typedRes); err == nil {
-		if r := rorresources.NewResourceFromStruct(typedRes); r != nil {
-			return r
+	err := bson.Unmarshal(raw, &typedRes)
+	if err == nil {
+		r, err := rorresources.NewResourceFromStruct(typedRes)
+		if err != nil {
+			return nil, err
+		}
+		if r != nil {
+			return r, nil
 		}
 	}
 
 	// Fallback: extract only CommonResource to preserve UID
 	var common rortypes.CommonResource
 	if err := bson.Unmarshal(raw, &common); err != nil {
-		return nil
+		return nil, fmt.Errorf("failed to unmarshal CommonResource: %w", err)
 	}
 
 	if common.Kind == "" || common.APIVersion == "" {
-		return nil
+		return nil, ErrNoKindOrAPIVersion
 	}
 
 	emptyRes := rorresources.Resource{}
 	emptyRes.CommonResource = common
-	r := rorresources.NewResourceFromStruct(emptyRes)
+	r, err := rorresources.NewResourceFromStruct(emptyRes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Resource from CommonResource: %w", err)
+	}
 	if r == nil {
-		return nil
+		return nil, fmt.Errorf("failed to create Resource without an error: %v", common)
 	}
 
 	r.RorMeta.Hash = "invalid"
-	return r
+	return r, nil
 }
 
 func (r *ResourceMongoDB) Del(ctx context.Context, resource *rorresources.Resource) error {
