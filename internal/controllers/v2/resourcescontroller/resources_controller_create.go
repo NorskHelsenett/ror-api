@@ -1,6 +1,7 @@
 package resourcescontroller
 
 import (
+	"errors"
 	"maps"
 	"net/http"
 
@@ -56,20 +57,41 @@ func NewResource() gin.HandlerFunc {
 
 		//validate the request body
 		if err := c.BindJSON(&input); err != nil {
-			rortracer.SpanError(span, err, "failed to bind JSON")
+			_ = rortracer.SpanError(span, err, "failed to bind JSON")
 			rlog.Error("error binding json", err)
 			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]any{"data": err.Error()}})
 			return
 		}
 		//use the validator library to validate required fields
 		if validationErr := validate.Struct(&input); validationErr != nil {
-			rortracer.SpanError(span, validationErr, "validation failed")
+			_ = rortracer.SpanError(span, validationErr, "validation failed")
 			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]any{"data": validationErr.Error()}})
 			return
 		}
 		span.AddEvent("request validated")
 
-		rs := rorresources.NewResourceSetFromStruct(input)
+		rs, err := rorresources.NewResourceSetFromStruct(input)
+		switch {
+		case err == nil:
+			// No error, continue processing
+		case errors.Is(err, rorresources.ErrResourceSetEmpty):
+			_ = rortracer.SpanError(span, err, "resource set is empty")
+			rlog.Error("resource set is empty", err)
+			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]any{"data": err.Error()}})
+			return
+
+		case errors.Is(err, rorresources.ErrUnknownResourceKind):
+			_ = rortracer.SpanError(span, err, "unknown resource kind")
+			rlog.Error("unknown resource kind", err)
+			c.JSON(http.StatusBadRequest, responses.Cluster{Status: http.StatusBadRequest, Message: "error", Data: map[string]any{"data": err.Error()}})
+			return
+		default:
+			_ = rortracer.SpanError(span, err, "failed to create resource set from struct")
+			rlog.Error("error creating resource set from struct", err)
+			c.JSON(http.StatusInternalServerError, responses.Cluster{Status: http.StatusInternalServerError, Message: "error", Data: map[string]any{"data": err.Error()}})
+			return
+		}
+
 		span.SetAttributes(attribute.Int("resources.count", len(rs.Resources)))
 
 		returnChannel := make(chan rorresources.ResourceUpdateResults, len(rs.Resources))
