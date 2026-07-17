@@ -53,9 +53,9 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version-file: go.mod
+          go-version-file: statuspage/go.mod
           cache: true
-          cache-dependency-path: go.sum
+          cache-dependency-path: statuspage/go.sum
       - name: Test
         working-directory: ${{ env.MODULE_PATH }}
         run: |
