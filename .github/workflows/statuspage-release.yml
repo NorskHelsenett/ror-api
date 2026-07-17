@@ -46,9 +46,9 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version-file: statuspage/go.mod
           cache: true
-          cache-dependency-path: go.sum
+          cache-dependency-path: statuspage/go.sum
       - name: Start build
         run: |
           echo "Building ${{ env.APP }} ${{ needs.setenv.outputs.rorversion }} (${{ needs.setenv.outputs.shortsha }}) for ${{ matrix.goos }}/${{ matrix.goarch }}"
