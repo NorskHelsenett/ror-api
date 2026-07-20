@@ -164,7 +164,7 @@ func createClusterListHeaders(_ context.Context, _ ...ViewGeneratorsOption) []ap
 			Type:        apiview.ViewFieldTypeNumber,
 		},
 		{
-			Name:        "nodePools",
+			Name:        "nodepoolsNum",
 			Description: "The number of nodepools in the cluster",
 			Default:     true,
 			Order:       11,
@@ -254,6 +254,13 @@ func createClusterListHeaders(_ context.Context, _ ...ViewGeneratorsOption) []ap
 			Order:       23,
 			Type:        apiview.ViewFieldTypeDateTime,
 		},
+		{
+			Name:        "nodepools",
+			Description: "The nodepools the cluster has",
+			Default:     true,
+			Order:       24,
+			Type:        apiview.ViewFieldTypeArray,
+		},
 	}
 }
 
@@ -306,7 +313,7 @@ func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []api
 			"nodes": {
 				FieldValue: cluster.Status.AgentStatus.GetNodeCount(),
 			},
-			"nodePools": {
+			"nodepoolsNum": {
 				FieldValue: cluster.Status.AgentStatus.GetNodepoolCount(),
 			},
 			"resourcesCpu": {
@@ -362,8 +369,9 @@ func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []api
 			"priceYear": {
 				FieldValue: priceMonth * 12,
 			},
-
-			// Add more fields as needed
+			"nodepools": {
+				FieldValue: cluster.Status.AgentStatus.Nodes.Nodepools,
+			},
 		}
 		ret = append(ret, row)
 	}
