@@ -165,7 +165,7 @@ func createClusterListItemHeaders(_ context.Context, _ ...ViewGeneratorsOption) 
 			Type:        apiview.ViewFieldTypeNumber,
 		},
 		{
-			Name:        "nodePools",
+			Name:        "nodepoolsCount",
 			Description: "The number of nodepools in the cluster",
 			Default:     true,
 			Order:       17,
@@ -269,6 +269,13 @@ func createClusterListItemHeaders(_ context.Context, _ ...ViewGeneratorsOption) 
 			Order:       31,
 			Type:        apiview.ViewFieldTypeArray,
 		},
+		{
+			Name:        "nodepools",
+			Description: "The nodepools the cluster has",
+			Default:     true,
+			Order:       32,
+			Type:        apiview.ViewFieldTypeArray,
+		},
 	}
 }
 
@@ -345,7 +352,7 @@ func createClusterListItemData(ctx context.Context, options ...ViewGeneratorsOpt
 			"nodes": {
 				FieldValue: cluster.Status.AgentStatus.GetNodeCount(),
 			},
-			"nodePools": {
+			"nodepoolsCount": {
 				FieldValue: cluster.Status.AgentStatus.GetNodepoolCount(),
 			},
 			"resourcesCpu": {
@@ -407,8 +414,9 @@ func createClusterListItemData(ctx context.Context, options ...ViewGeneratorsOpt
 			"slackChannels": {
 				FieldValue: cluster.Spec.SlackChannels,
 			},
-
-			// Add more fields as needed
+			"nodepools": {
+				FieldValue: cluster.Status.AgentStatus.Nodes.Nodepools,
+			},
 		}
 		ret = append(ret, row)
 	}
