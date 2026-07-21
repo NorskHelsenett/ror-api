@@ -23,7 +23,7 @@ func init() {
 func (g *nodepoollistgenerator) GenerateView(ctx context.Context, opts ...ViewGeneratorsOption) (apiview.View, error) {
 	// Placeholder implementation
 	return apiview.View{
-		Type:    ClusterListView,
+		Type:    NodepoolListView,
 		Columns: createNodepoolListHeaders(ctx, opts...),
 		Rows:    createNodepoolListData(ctx, opts...),
 	}, nil
@@ -43,10 +43,24 @@ func (g *nodepoollistgenerator) GetMetadata() apiview.ViewMetadata {
 func createNodepoolListHeaders(_ context.Context, _ ...ViewGeneratorsOption) []apiview.ViewColumn {
 	return []apiview.ViewColumn{
 		{
+			Name:        "clusterUid",
+			Description: "The unique identifier of the cluster",
+			Default:     true,
+			Order:       0,
+			Type:        apiview.ViewFieldTypeString,
+		},
+		{
+			Name:        "clusterName",
+			Description: "The name of the cluster",
+			Default:     true,
+			Order:       1,
+			Type:        apiview.ViewFieldTypeString,
+		},
+		{
 			Name:        "nodepools",
 			Description: "The available nodepools",
 			Default:     true,
-			Order:       1,
+			Order:       2,
 			Type:        apiview.ViewFieldTypeArray,
 		},
 	}
@@ -67,6 +81,12 @@ func createNodepoolListData(ctx context.Context, _ ...ViewGeneratorsOption) []ap
 		nodePool := resource.KubernetesClusterResource.Status.AgentStatus.Nodes.Nodepools
 
 		row := apiview.ViewRow{
+			"clusterUid": {
+				FieldValue: resource.Metadata.UID,
+			},
+			"clusterName": {
+				FieldValue: resource.KubernetesClusterResource.Status.AgentStatus.ClusterName,
+			},
 			"nodepools": {
 				FieldValue: nodePool,
 			},

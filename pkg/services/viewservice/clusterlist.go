@@ -164,7 +164,7 @@ func createClusterListHeaders(_ context.Context, _ ...ViewGeneratorsOption) []ap
 			Type:        apiview.ViewFieldTypeNumber,
 		},
 		{
-			Name:        "nodepoolsNum",
+			Name:        "nodepoolsCount",
 			Description: "The number of nodepools in the cluster",
 			Default:     true,
 			Order:       11,
@@ -313,7 +313,7 @@ func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []api
 			"nodes": {
 				FieldValue: cluster.Status.AgentStatus.GetNodeCount(),
 			},
-			"nodepoolsNum": {
+			"nodepoolsCount": {
 				FieldValue: cluster.Status.AgentStatus.GetNodepoolCount(),
 			},
 			"resourcesCpu": {
