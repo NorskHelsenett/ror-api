@@ -3,6 +3,7 @@ package clusterscontroller
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
@@ -26,7 +27,8 @@ import (
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			uid	path		string	true	"cluster uid"
+//	@Param			uid		path	string	true	"cluster uid"
+//	@Param			force	query	bool	false	"skip the recent-activity safety check; for controlled decommissioning where the caller has verified the cluster's agents are stopped"
 //	@Success		200	{object}	clustersservice.PurgeResult
 //	@Failure		403	{string}	Forbidden
 //	@Failure		401	{object}	rorerror.ErrorData
@@ -58,7 +60,11 @@ func DeleteClusterByUid() gin.HandlerFunc {
 			return
 		}
 
-		result, err := clustersservice.PurgeClusterByUid(ctx, uid)
+		// force=true skips the recent-activity guard — restricted to callers that
+		// already hold ror global delete access (checked above).
+		force, _ := strconv.ParseBool(c.Query("force"))
+
+		result, err := clustersservice.PurgeClusterByUid(ctx, uid, force)
 		if err != nil {
 			if errors.Is(err, clustersservice.ErrClusterNotFound) {
 				c.JSON(http.StatusNotFound, "404: Cluster not found")
