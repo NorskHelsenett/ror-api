@@ -53,7 +53,12 @@ type PurgeResult struct {
 //
 // The clusterid required for the v1 resources collection is resolved from the
 // cluster document. ErrClusterNotFound is returned if no cluster matches uid.
-func PurgeClusterByUid(ctx context.Context, uid string) (PurgeResult, error) {
+//
+// force skips the recent-activity safety check. Intended for controlled
+// decommissioning where the caller has already verified the cluster's agents
+// are stopped (e.g. pre-cluster-delete tooling); external reporters may keep
+// refreshing lastobserved long after the cluster itself is being torn down.
+func PurgeClusterByUid(ctx context.Context, uid string, force bool) (PurgeResult, error) {
 	ctx, span := rortracer.StartSpan(ctx, "clustersservice.PurgeClusterByUid")
 	defer span.End()
 
@@ -95,11 +100,19 @@ func PurgeClusterByUid(ctx context.Context, uid string) (PurgeResult, error) {
 		lastReport = lastSeenV2
 	}
 	if !lastReport.IsZero() && time.Since(lastReport) < clusterInactivityThreshold {
-		return result, fmt.Errorf("%w: last reported %s ago (v1: %s, v2: %s)",
-			ErrClusterRecentlyActive,
-			time.Since(lastReport).Round(time.Second),
-			formatReportTime(clusterDoc.LastObserved),
-			formatReportTime(lastSeenV2),
+		if !force {
+			return result, fmt.Errorf("%w: last reported %s ago (v1: %s, v2: %s)",
+				ErrClusterRecentlyActive,
+				time.Since(lastReport).Round(time.Second),
+				formatReportTime(clusterDoc.LastObserved),
+				formatReportTime(lastSeenV2),
+			)
+		}
+		rlog.Warnc(ctx, "force purge: skipping recent-activity check",
+			rlog.String("uid", uid),
+			rlog.String("clusterid", clusterDoc.ClusterId),
+			rlog.String("last report v1", formatReportTime(clusterDoc.LastObserved)),
+			rlog.String("last report v2", formatReportTime(lastSeenV2)),
 		)
 	}
 
