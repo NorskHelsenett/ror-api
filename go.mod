@@ -3,7 +3,7 @@ module github.com/NorskHelsenett/ror-api
 go 1.26.5
 
 require (
-	github.com/NorskHelsenett/ror v1.21.4
+	github.com/NorskHelsenett/ror v1.21.5
 	github.com/blang/semver/v4 v4.0.0
 	github.com/dotse/go-health v1.0.3
 	github.com/evanphx/json-patch/v5 v5.9.11
