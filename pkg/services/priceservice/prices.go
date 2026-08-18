@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	PriceMemoryPrGiB = 67.83
-	PriceCpuPrCore   = 312.50
+	PriceMemoryPrGiB = 59.50
+	PriceCpuPrCore   = 269.50
 )
 
 func CalculatePrice(cluster *rortypes.ResourceKubernetesCluster) float64 {
