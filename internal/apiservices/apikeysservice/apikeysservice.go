@@ -33,6 +33,11 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	minApikeyTtlSeconds int64 = 60                 // 1 minute
+	maxApikeyTtlSeconds int64 = 365 * 24 * 60 * 60 // 1 year
+)
+
 // TODO: Move and remove duplicate in repo
 func mustGetApikeySalt() string {
 	apisalt := rorconfig.GetString(rorconfig.ROR_API_KEY_SALT)
@@ -449,13 +454,32 @@ func UpdateLastUsed(ctx context.Context, apikeyId string, identifier string) err
 	return nil
 }
 
+// OwnApikeyExists reports whether the calling identity already owns an api key with the given name.
+func OwnApikeyExists(ctx context.Context, name string) bool {
+	existing, _ := apikeyrepo.GetOwnByName(ctx, name)
+	return existing != nil
+}
+
+// clampApikeyTtl bounds a caller supplied ttl so a renewal/creation can't be requested
+// with a negligible or an effectively unbounded expiry.
+func clampApikeyTtl(ttl int64) int64 {
+	switch {
+	case ttl < minApikeyTtlSeconds:
+		return minApikeyTtlSeconds
+	case ttl > maxApikeyTtlSeconds:
+		return maxApikeyTtlSeconds
+	default:
+		return ttl
+	}
+}
+
 func CreateOrRenew(ctx context.Context, req *apicontractsv2self.CreateOrRenewApikeyRequest) (*apicontractsv2self.CreateOrRenewApikeyResponse, error) {
 	resp := &apicontractsv2self.CreateOrRenewApikeyResponse{}
 
 	identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 	identifier := identity.GetId()
 
-	expires := time.Now().Local().Add(time.Duration(req.Ttl) * time.Second)
+	expires := time.Now().Local().Add(time.Duration(clampApikeyTtl(req.Ttl)) * time.Second)
 
 	existing, _ := apikeyrepo.GetOwnByName(ctx, req.Name)
 
