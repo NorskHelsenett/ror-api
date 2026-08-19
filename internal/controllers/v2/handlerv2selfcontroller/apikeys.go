@@ -38,12 +38,6 @@ func CreateOrRenewApikey() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
-		if identity.Auth.AuthProvider == identitymodels.IdentityProviderApiKey {
-			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "cannot create apikey with apikey")
-			rerr.GinLogErrorAbort(c)
-		}
-
 		if err := c.BindJSON(&input); err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Required fields are missing", err)
 			rerr.GinLogErrorAbort(c)
@@ -52,6 +46,13 @@ func CreateOrRenewApikey() gin.HandlerFunc {
 
 		if err := validate.Struct(&input); err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not validate project object", err)
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
+		if identity.Auth.AuthProvider == identitymodels.IdentityProviderApiKey && !apikeysservice.OwnApikeyExists(ctx, input.Name) {
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "cannot create a new apikey with apikey auth, only renewing an existing one is allowed")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
