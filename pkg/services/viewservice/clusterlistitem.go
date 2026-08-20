@@ -412,7 +412,7 @@ func createClusterListItemData(ctx context.Context, options ...ViewGeneratorsOpt
 				FieldValue: cluster.Spec.VitiSpec.Cluster.Project,
 			},
 			"slackChannels": {
-				FieldValue: cluster.Spec.SlackChannels,
+				FieldValue: cluster.Spec.ClusterMetadata.SlackChannels,
 			},
 			"nodepools": {
 				FieldValue: cluster.Status.AgentStatus.Nodes.Nodepools,
