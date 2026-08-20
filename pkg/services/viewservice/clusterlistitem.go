@@ -276,6 +276,13 @@ func createClusterListItemHeaders(_ context.Context, _ ...ViewGeneratorsOption) 
 			Order:       32,
 			Type:        apiview.ViewFieldTypeArray,
 		},
+		{
+			Name:        "egressIP",
+			Description: "The egress IPs of the cluster",
+			Default:     true,
+			Order:       33,
+			Type:        apiview.ViewFieldTypeString,
+		},
 	}
 }
 
@@ -416,6 +423,9 @@ func createClusterListItemData(ctx context.Context, options ...ViewGeneratorsOpt
 			},
 			"nodepools": {
 				FieldValue: cluster.Status.AgentStatus.Nodes.Nodepools,
+			},
+			"egressIP": {
+				FieldValue: cluster.Status.AgentStatus.Endpoint.EgressIp,
 			},
 		}
 		ret = append(ret, row)
