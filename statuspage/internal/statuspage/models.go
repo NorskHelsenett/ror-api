@@ -38,3 +38,32 @@ type StatusSnapshot struct {
 	Ingresses    []ResourceStatus `json:"ingresses"`
 	PVCs         []ResourceStatus `json:"pvcs"`
 }
+
+// ComponentCheck is a single dependency check result parsed from a pod's
+// rorhealth readiness endpoint (e.g. mongodb, redis, rabbitmq, vault).
+type ComponentCheck struct {
+	Name          string `json:"name"`
+	ComponentID   string `json:"componentId,omitempty"`
+	ComponentType string `json:"componentType,omitempty"`
+	Status        string `json:"status"` // pass | warn | fail
+	Output        string `json:"output,omitempty"`
+}
+
+// PodHealth holds the parsed rorhealth readiness result for a single pod,
+// correlated to its node so per-pod vs per-node failures can be told apart.
+type PodHealth struct {
+	PodName   string           `json:"podName"`
+	Owner     string           `json:"owner,omitempty"`
+	NodeName  string           `json:"nodeName,omitempty"`
+	PodIP     string           `json:"podIP,omitempty"`
+	Overall   string           `json:"overall"` // pass | warn | fail | unknown
+	Reachable bool             `json:"reachable"`
+	Error     string           `json:"error,omitempty"`
+	Checks    []ComponentCheck `json:"checks,omitempty"`
+}
+
+// PodHealthSnapshot bundles all pod health results for SSE push.
+type PodHealthSnapshot struct {
+	Timestamp time.Time   `json:"timestamp"`
+	Pods      []PodHealth `json:"pods"`
+}

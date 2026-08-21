@@ -66,12 +66,16 @@ func Run() {
 	alertClient := NewAlertmanagerClient(alertmanagerURL, namespace, hub)
 	go alertClient.Start(ctx)
 
+	// Per-pod dependency health poller (reuses the watcher's k8s client)
+	healthChecker := NewHealthChecker(watcher.Clientset(), namespace, hub)
+	go healthChecker.Start(ctx)
+
 	// Routes
 	router.GET("/health", func(c *gin.Context) {
 		c.String(http.StatusOK, "ok")
 	})
 
-	router.GET("/events", hub.HandleSSE(watcher.CurrentSnapshot, alertClient.CurrentAlerts, promClient.CurrentMetrics))
+	router.GET("/events", hub.HandleSSE(watcher.CurrentSnapshot, alertClient.CurrentAlerts, promClient.CurrentMetrics, healthChecker.CurrentPodHealth))
 
 	router.GET("/api/stats", func(c *gin.Context) {
 		stats := promClient.CurrentStats()
@@ -101,6 +105,14 @@ func Run() {
 	router.GET("/api/alerts", func(c *gin.Context) {
 		alerts := alertClient.CurrentAlerts()
 		c.JSON(http.StatusOK, alerts)
+	})
+
+	router.GET("/api/health", func(c *gin.Context) {
+		ph := healthChecker.CurrentPodHealth()
+		if ph == nil {
+			ph = &PodHealthSnapshot{}
+		}
+		c.JSON(http.StatusOK, ph)
 	})
 
 	router.GET("/flow", func(c *gin.Context) {

@@ -66,6 +66,12 @@ func (w *Watcher) CurrentSnapshot() *StatusSnapshot {
 	return w.snapshot
 }
 
+// Clientset returns the Kubernetes client used by the watcher so other
+// components can reuse the same in-cluster/kubeconfig connection.
+func (w *Watcher) Clientset() kubernetes.Interface {
+	return w.clientset
+}
+
 // Start begins watching resources and broadcasting updates.
 func (w *Watcher) Start(ctx context.Context) {
 	w.factory = informers.NewSharedInformerFactoryWithOptions(
