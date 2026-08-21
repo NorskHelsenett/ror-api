@@ -10,6 +10,10 @@ api:
     health:
       host: "0.0.0.0"
       port: "9999"
+      # livenessGrace: after mongodb has been failing continuously for this long,
+      # /health/live fails so Kubernetes restarts the pod. Empty disables it.
+      livenessGrace: "5m"
+      livenessCriticalChecks: "mongodb"
   config:
     useCors: true
     allowOrigins: "https://ror.sky.test.nhn.no;https://ror.nhn.no"
