@@ -76,7 +76,7 @@ func (h *SSEHub) send(msg sseMessage) {
 }
 
 // HandleSSE returns a Gin handler for the SSE endpoint.
-func (h *SSEHub) HandleSSE(currentSnapshot func() *StatusSnapshot, currentAlerts func() *AlertsResponse, currentMetrics func() *MetricsSnapshot) gin.HandlerFunc {
+func (h *SSEHub) HandleSSE(currentSnapshot func() *StatusSnapshot, currentAlerts func() *AlertsResponse, currentMetrics func() *MetricsSnapshot, currentPodHealth func() *PodHealthSnapshot) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Header("Content-Type", "text/event-stream")
 		c.Header("Cache-Control", "no-cache")
@@ -105,6 +105,13 @@ func (h *SSEHub) HandleSSE(currentSnapshot func() *StatusSnapshot, currentAlerts
 			data, err := json.Marshal(metrics)
 			if err == nil {
 				c.SSEvent("metrics", string(data))
+				c.Writer.Flush()
+			}
+		}
+		if podHealth := currentPodHealth(); podHealth != nil {
+			data, err := json.Marshal(podHealth)
+			if err == nil {
+				c.SSEvent("podhealth", string(data))
 				c.Writer.Flush()
 			}
 		}
