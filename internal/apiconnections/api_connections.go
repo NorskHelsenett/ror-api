@@ -26,6 +26,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
+	"github.com/NorskHelsenett/ror/pkg/services/configservice"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -49,6 +50,7 @@ func InitConnections(ctx context.Context) {
 	defer cancel()
 	// Vault
 	VaultClient = vaultclient.MustNewVaultClientWithContext(ctx, rorconfig.GetString(rorconfig.ROLE), rorconfig.GetString(rorconfig.VAULT_URL))
+	configservice.AddLoader("vault", configservice.NewVaultConfigLoader(VaultClient))
 
 	//MongoDB
 	mongocredshelper := databasecredhelper.NewVaultDBCredentials(VaultClient, rorconfig.GetString(rorconfig.ROLE), "mongodb")
