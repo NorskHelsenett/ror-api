@@ -454,6 +454,16 @@ func GetResourceByQuery(ctx context.Context, query *rorresources.ResourceQuery) 
 	// returns resources the caller is authorized to read. A per-resource
 	// re-check here would be redundant (it re-queries the acl collection once per
 	// returned ownerref), so the query result is returned directly.
+
+	// Apply the output filter to every resource before returning it. This lets
+	for _, resource := range rs.GetAll() {
+		if err := resource.ApplyOutputFilter(ctx); err != nil {
+			rortracer.SpanError(span, err, "could not apply output filter")
+			rlog.Error("Could not apply output filter", err, rlog.String("uid", resource.GetUID()))
+			return nil, fmt.Errorf("could not apply output filter: %w", err)
+		}
+	}
+
 	rortracer.SpanOk(span)
 	span.SetAttributes(attribute.Int("resources.count", len(rs.Resources)))
 	return rs, nil

@@ -171,7 +171,7 @@ services:
     profiles:
       - ui
   mocc:
-    image: ghcr.io/jonasbg/mocc:latest
+    image: ghcr.io/jonasbg/mocc:v0.1.6
     container_name: ${COMPOSE_PROJECT_NAME}-mocc
     restart: unless-stopped
     ports:
