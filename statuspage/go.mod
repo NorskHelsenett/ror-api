@@ -4,9 +4,9 @@ go 1.27.0
 
 require (
 	github.com/gin-gonic/gin v1.12.0
-	k8s.io/api v0.36.3
+	k8s.io/api v0.36.4
 	k8s.io/apimachinery v0.36.4
-	k8s.io/client-go v0.36.3
+	k8s.io/client-go v0.36.4
 )
 
 require (
