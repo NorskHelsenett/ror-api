@@ -9,7 +9,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/helpers/fouramhelper"
 	"github.com/NorskHelsenett/ror/pkg/helpers/oidchelper"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v4/jwk"
 )
 
 const INTERNAL_DOMAIN = "ror.io"
