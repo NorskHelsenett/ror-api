@@ -47,6 +47,15 @@ staticClients:
   - /device/callback
   public: true
   scopes: [openid profile email groups offline_access]
+- id: ror.sky.test.nhn.no
+  name: 'ROR API'
+  redirectURIs:
+  - http://localhost:11000/auth/callback
+  - http://127.0.0.1:11000/auth/callback
+  - http://localhost:10000/auth/callback
+  - http://127.0.0.1:10000/auth/callback
+  scopes: [openid profile email groups offline_access]
+  secret: VQEj6sMwgxPsa8t9
 connectors:
 # - type: ldap
 #   name: OpenLDAP
