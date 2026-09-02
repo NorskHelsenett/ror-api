@@ -1,7 +1,7 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: ror-api-publisering
+  name: {{ include "ror-api.fullname" . }}-publisering
   namespace: nhn-ror
   annotations:
     gatewayapi-operator.vitistack.io/enabled: "true"
@@ -10,18 +10,18 @@ metadata:
 spec:
   parentRefs:
     - name: ror-gateway 
-      sectionName: test.ror.nhn.no
+      sectionName: {{ .Values.api.fqdn}}
       namespace: gateways
   hostnames:
-    - test.ror.nhn.no
+    - {{ .Values.api.fqdn}}
   rules:
     - backendRefs:
         - group: ""
           kind: Service
-          name: <service navn>
-          port: <port>
+          name: {{ include "ror-api.fullname" . }}
+          port: {{ .Values.service.port }}
           weight: 1
       matches:
         - path:
             type: PathPrefix
-            value: /
+            value: {{ .Values.ingress.path }}
