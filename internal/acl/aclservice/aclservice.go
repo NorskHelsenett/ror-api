@@ -31,9 +31,10 @@ const aclCacheTTL = 5 * time.Minute
 
 // Package-level ACL state. Must be initialized by calling InitResolver.
 var (
-	resolver  *acl.Resolver
-	aclStore  aclstorev2.Store
-	refresher *aclstorev2.Refresher
+	resolver         *acl.Resolver
+	aclStore         aclstorev2.Store
+	refresher        *aclstorev2.Refresher
+	ancestorResolver acl.AncestorResolver
 )
 
 // InitResolver initializes the ACL resolver backed by an in-memory snapshot of
@@ -77,6 +78,8 @@ func InitResolver(rmq rabbitmqclient.RabbitMQConnection) error {
 	expander = acl.NewCachedScopeExpander(expander, aclCacheTTL)
 
 	resolver = acl.NewResolver(snapshot, acl.WithScopeExpander(expander))
+
+	ancestorResolver = aclstore.NewMongoAncestorResolver(mongodb.GetMongoDb)
 	return nil
 }
 
