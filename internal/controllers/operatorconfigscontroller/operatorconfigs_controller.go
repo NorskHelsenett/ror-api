@@ -55,9 +55,12 @@ func GetById() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: read
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Read {
+		allowed, err := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -103,9 +106,12 @@ func GetAll() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: read
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Read {
+		allowed, err := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -144,9 +150,12 @@ func Create() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: create
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Create {
+		allowed, err := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -217,9 +226,12 @@ func Update() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: update
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Update {
+		allowed, err := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -291,9 +303,12 @@ func Delete() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: delete
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Delete {
+		allowed, err := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbDelete))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}

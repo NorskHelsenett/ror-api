@@ -53,9 +53,12 @@ func DeleteClusterByUid() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: delete
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Delete {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbDelete))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}

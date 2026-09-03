@@ -6,7 +6,6 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/internal/databases/mongodb/mongoTypes"
 	"github.com/NorskHelsenett/ror-api/internal/helpers/mapping"
-	mongoHelper "github.com/NorskHelsenett/ror-api/internal/helpers/mongoHelper"
 
 	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
@@ -17,7 +16,7 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
-	aclrepo "github.com/NorskHelsenett/ror-api/internal/acl/repositories"
+	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
@@ -35,10 +34,12 @@ func GetAllByUser(ctx context.Context) (*[]apicontracts.Datacenter, error) {
 	db := mongodb.GetMongoDb()
 	var datacentersQuery []bson.M
 
-	datacentersCursor, err := db.Collection(CollectionName).Aggregate(ctx, datacentersQuery)
-	accessLists := aclrepo.GetACL2ByIdentityQuery(ctx, aclmodels.AclV2QueryAccessScope{Scope: aclmodels.Acl2ScopeCluster})
-	accessQuery := mongoHelper.CreateClusterACLFilter(accessLists)
+	accessQuery, err := aclservice.ClusterUIDFilter(ctx, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+	if err != nil {
+		return nil, err
+	}
 
+	datacentersCursor, err := db.Collection(CollectionName).Aggregate(ctx, datacentersQuery)
 	empty := make([]apicontracts.Datacenter, 0)
 	if err != nil {
 		return &empty, nil

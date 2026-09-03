@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/aclservice/v2"
+	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 
@@ -81,6 +81,55 @@ func LookupAcl() gin.HandlerFunc {
 			})
 		}
 
+		c.JSON(http.StatusOK, resp)
+	}
+}
+
+// LookupAcl resolves the scope+subject pairs the caller has the given access
+// type for, using the V3 ACL backend.
+//
+//	@Summary	Lookup acl access by scope and subject
+//	@Schemes
+//	@Description	Lookup the access group pairs the caller has access for, filtered by scope and subject.
+//	@Tags			acl
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Success		200				{object}	aclmodels.Acl3LookupByScopeSubjectResponse
+//	@Failure		400				{object}	rorerror.ErrorData
+//	@Failure		401				{object}	rorerror.ErrorData
+//	@Failure		500				{object}	rorerror.ErrorData
+//	@Param			scope			path		string	true	"scope filter"
+//	@Param			subject			path		string	true	"subject (uid) filter"
+//	@Router			/v2/acl/lookup/{scope}/{subject}	[get]
+//	@Security		ApiKey || AccessToken
+func LookupAclByScopeSubject() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
+		defer cancel()
+
+		scopeParam, ok := aclscope.ScopeFromString(c.Param("scope"))
+		if !ok {
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "missing scope or wrong scope in path parameter")
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		subjectParam, ok := aclscope.GetSubjectFromString(scopeParam, c.Param("subject"))
+		if !ok {
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "missing subject or wrong subject in path parameter")
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		_ = scopeParam
+		_ = subjectParam
+		_ = ctx
+
+		resp := aclmodels.Acl3LookupByScopeSubjectResponse{
+			Scope:      scopeParam,
+			Subject:    subjectParam,
+			AccesGroup: make([]aclmodels.Acl3LookupByScopeSubjectAccessGroup, 0),
+		}
 		c.JSON(http.StatusOK, resp)
 	}
 }

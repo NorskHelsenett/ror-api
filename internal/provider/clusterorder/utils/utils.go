@@ -22,7 +22,8 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
-	"github.com/google/uuid"
+	"uuid"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -96,7 +97,7 @@ func UpdateStatus(ctx context.Context, uid string, status apiresourcecontracts.R
 	return err
 }
 func GenerateUUID() uuid.UUID {
-	uniqueId, _ := uuid.NewRandom()
+	uniqueId := uuid.NewV4()
 	return uniqueId
 }
 

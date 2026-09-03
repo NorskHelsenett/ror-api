@@ -6,10 +6,11 @@ import (
 	"errors"
 	"fmt"
 
+	"uuid"
+
 	"github.com/NorskHelsenett/ror/pkg/clients/rabbitmqclient"
 	"github.com/NorskHelsenett/ror/pkg/handlers/rabbitmqhandler"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
-	"github.com/google/uuid"
 	amqp091 "github.com/rabbitmq/amqp091-go"
 )
 

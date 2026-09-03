@@ -3,10 +3,9 @@ package resourcescontroller
 import (
 	"net/http"
 
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
 	"github.com/NorskHelsenett/ror-api/internal/models/responses"
-
-	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
@@ -77,9 +76,13 @@ func UpdateResource() gin.HandlerFunc {
 		// Scope: input.Owner.Scope
 		// Subject: input.Owner.Subject
 		// Access: update
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(scope, subject)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Update {
+		allowed, accessErr := aclservice.HasAccess(ctx, scope, aclmodels.Acl2Subject(subject), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+		if accessErr != nil {
+			rortracer.SpanError(span, accessErr, "access check failed")
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			rortracer.SpanErrorf(span, "access denied")
 			c.JSON(http.StatusForbidden, "403: No access")
 			return

@@ -4,11 +4,10 @@ package resourcescontroller
 import (
 	"net/http"
 
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
 	"github.com/NorskHelsenett/ror-api/internal/customvalidators"
 	"github.com/NorskHelsenett/ror-api/internal/models/responses"
-
-	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
@@ -97,8 +96,13 @@ func ExistsResources() gin.HandlerFunc {
 		// Scope: input.Owner.Scope
 		// Subject: input.Owner.Subject
 		// Access: Read
-		accessModel := aclservice.CheckAccessByRorOwnerref(ctx, resource.GetRorMeta().Ownerref)
-		if !accessModel.Read {
+		allowed, accessErr := aclservice.HasAccess(ctx, resource.GetRorMeta().Ownerref.Scope, resource.GetRorMeta().Ownerref.Subject, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if accessErr != nil {
+			rortracer.SpanError(span, accessErr, "access check failed")
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			rortracer.SpanErrorf(span, "access denied")
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
@@ -154,8 +158,13 @@ func GetResourceHashList() gin.HandlerFunc {
 		// Scope: c.Query("ownerScope")
 		// Subject: c.Query("ownerSubject")
 		// Access: update
-		accessObject := aclservice.CheckAccessByRorOwnerref(ctx, resourceOwner)
-		if !accessObject.Update {
+		allowed, accessErr := aclservice.HasAccess(ctx, resourceOwner.Scope, resourceOwner.Subject, aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+		if accessErr != nil {
+			rortracer.SpanError(span, accessErr, "access check failed")
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			rortracer.SpanErrorf(span, "access denied")
 			c.JSON(http.StatusForbidden, "403: No access")
 			return

@@ -6,8 +6,9 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/clients/rabbitmqclient"
 	"github.com/NorskHelsenett/ror/pkg/messagebuscontracts"
 
+	"uuid"
+
 	"github.com/NorskHelsenett/ror/pkg/rlog"
-	"github.com/google/uuid"
 
 	"github.com/rabbitmq/amqp091-go"
 )

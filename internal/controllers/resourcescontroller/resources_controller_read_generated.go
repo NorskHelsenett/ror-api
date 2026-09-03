@@ -4,15 +4,17 @@
 package resourcescontroller
 
 import (
+	"net/http"
+
 	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
 	"github.com/NorskHelsenett/ror-api/internal/models/apiresourcequery"
 	"github.com/NorskHelsenett/ror-api/internal/models/responses"
-	"net/http"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 
 	"github.com/gin-gonic/gin"
 )
@@ -42,8 +44,12 @@ func GetResources() gin.HandlerFunc {
 
 		query := apiresourcequery.NewResourceQueryFromClient(c)
 
-		accessObject := aclservice.CheckAccessByOwnerref(ctx, query.Owner)
-		if !accessObject.Read {
+		allowed, err := aclservice.HasAccess(ctx, query.Owner.Scope, aclscope.Subject(query.Owner.Subject), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "")
 			return
 		}
@@ -370,8 +376,12 @@ func GetResource() gin.HandlerFunc {
 			Uid:        c.Param("uid"),
 		}
 
-		accessObject := aclservice.CheckAccessByOwnerref(ctx, query.Owner)
-		if !accessObject.Read {
+		allowed, err := aclservice.HasAccess(ctx, query.Owner.Scope, aclscope.Subject(query.Owner.Subject), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "")
 			return
 		}
