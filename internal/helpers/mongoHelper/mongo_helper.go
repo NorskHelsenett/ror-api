@@ -18,7 +18,7 @@ var (
 
 // CreateClusterACLFilter builds a clusters-collection $match from legacy ACL lists.
 //
-// Deprecated: unused. Superseded by the V3 ACL resolver (pkg/acl); use aclservicev2.ClusterUIDFilter.
+// Deprecated: unused. Superseded by the V3 ACL resolver (pkg/acl); use aclservice.ClusterUIDFilter.
 func CreateClusterACLFilter(acl aclmodels.AclV2ListItems) bson.M {
 	if acl.Global.Read {
 		return bson.M{"$match": bson.M{}}

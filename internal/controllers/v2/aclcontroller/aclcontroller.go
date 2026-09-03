@@ -98,8 +98,8 @@ func LookupAcl() gin.HandlerFunc {
 //	@Failure		400				{object}	rorerror.ErrorData
 //	@Failure		401				{object}	rorerror.ErrorData
 //	@Failure		500				{object}	rorerror.ErrorData
-//	@Param			scope			path		[]string	true	"scope filter"
-//	@Param			subject			path		[]string	true	"subject (uid) filter"
+//	@Param			scope			path		string	true	"scope filter"
+//	@Param			subject			path		string	true	"subject (uid) filter"
 //	@Router			/v2/acl/lookup/{scope}/{subject}	[get]
 //	@Security		ApiKey || AccessToken
 func LookupAclByScopeSubject() gin.HandlerFunc {

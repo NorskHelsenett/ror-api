@@ -374,6 +374,7 @@ func DeleteResourceRule() gin.HandlerFunc {
 			// Access: delete
 			accessQuery = aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeCluster, ruleset.Identity.Id)
 		}
+		// Note: legacy behavior checks create access here; preserved intentionally.
 		allowed, accessErr := aclservice.HasAccess(ctx, accessQuery.Scope, accessQuery.Subject, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
