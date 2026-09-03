@@ -21,7 +21,7 @@ jobs:
           VERSION: v4.44.5
           BINARY: yq_linux_amd64
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -63,7 +63,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
@@ -86,7 +86,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
