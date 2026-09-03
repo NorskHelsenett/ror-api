@@ -121,14 +121,30 @@ func LookupAclByScopeSubject() gin.HandlerFunc {
 			return
 		}
 
-		_ = scopeParam
-		_ = subjectParam
-		_ = ctx
+		// Gate: the caller must be able to read the resource (incl. inherited access).
+		allowed, err := aclservice.HasAccess(ctx, scopeParam, subjectParam, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if err != nil {
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not check access", err)
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+		if !allowed {
+			rerr := rorginerror.NewRorGinError(http.StatusForbidden, "no read access to resource")
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		accessGroups, err := aclservice.GetAccessGroupsByScopeSubject(ctx, scopeParam, subjectParam)
+		if err != nil {
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not look up acl", err)
+			rerr.GinLogErrorAbort(c)
+			return
+		}
 
 		resp := aclmodels.Acl3LookupByScopeSubjectResponse{
 			Scope:      scopeParam,
 			Subject:    subjectParam,
-			AccesGroup: make([]aclmodels.Acl3LookupByScopeSubjectAccessGroup, 0),
+			AccesGroup: accessGroups,
 		}
 		c.JSON(http.StatusOK, resp)
 	}

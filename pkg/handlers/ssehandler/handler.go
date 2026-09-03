@@ -92,17 +92,8 @@ func Send() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
-		// // // Access check
-		// // // Scope: ror
-		// // // Subject: global
-		// // // Access: create
-		// // // TODO: check if this is the right way to do it
-		// accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal)
-		// accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		// if !accessObject.Create {
-		// 	c.JSON(http.StatusForbidden, "403: No access")
-		// 	return
-		// }
+		// TODO: no access check is enforced here. If gating is desired, use
+		// aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate)).
 
 		var input sseservice.SseEvent
 		err := c.BindJSON(&input)
@@ -125,17 +116,8 @@ func Subscribe() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
-		// // // Access check
-		// // // Scope: ror
-		// // // Subject: global
-		// // // Access: create
-		// // // TODO: check if this is the right way to do it
-		// accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal)
-		// accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		// if !accessObject.Create {
-		// 	c.JSON(http.StatusForbidden, "403: No access")
-		// 	return
-		// }
+		// TODO: no access check is enforced here. If gating is desired, use
+		// aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate)).
 
 		var input sseservice.SSESubscribe
 		err := c.BindJSON(&input)
