@@ -84,8 +84,12 @@ func PolicyreportsView() gin.HandlerFunc {
 			Subject: clusterid,
 		}
 
-		accessObject := aclservice.CheckAccessByOwnerref(ctx, ownerref)
-		if !accessObject.Read {
+		allowed, accessErr := aclservice.HasAccess(ctx, ownerref.Scope, aclmodels.Acl2Subject(ownerref.Subject), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -133,11 +137,12 @@ func PolicyreportSummaryView() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: cluster
 		// Access: read
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		//TODO: investegate why this worked (cluster with upper C)
-		//accessObject := aclservice.CheckAccessByContextScopeSubject(ctx, aclmodels.Acl2ScopeRor, "Cluster")
-		if !accessObject.Read {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -189,9 +194,12 @@ func VulnerabilityreportSummaryView() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: cluster
 		// Access: read
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Read {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -241,8 +249,12 @@ func VulnerabilityReportsView() gin.HandlerFunc {
 			Subject: clusterid,
 		}
 
-		accessObject := aclservice.CheckAccessByOwnerref(ctx, ownerref)
-		if !accessObject.Read {
+		allowed, accessErr := aclservice.HasAccess(ctx, ownerref.Scope, aclmodels.Acl2Subject(ownerref.Subject), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -289,9 +301,12 @@ func VulnerabilityReportsViewById() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: cluster
 		// Access: read
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Read {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -329,9 +344,12 @@ func VulnerabilityReportsGlobal() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: cluster
 		// Access: read
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Read {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -378,9 +396,12 @@ func GlobalVulnerabilityReportsViewById() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: cluster
 		// Access: read
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Read {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -429,8 +450,12 @@ func ComplianceReports() gin.HandlerFunc {
 			Subject: clusterId,
 		}
 
-		accessObject := aclservice.CheckAccessByOwnerref(ctx, ownerref)
-		if !accessObject.Read {
+		allowed, accessErr := aclservice.HasAccess(ctx, ownerref.Scope, aclmodels.Acl2Subject(ownerref.Subject), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -468,9 +493,12 @@ func ComplianceReportsGlobal() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: cluster
 		// Access: read
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Read {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}

@@ -30,7 +30,7 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/helpers/stringhelper"
 
-	"github.com/google/uuid"
+	"uuid"
 )
 
 const (
@@ -197,13 +197,9 @@ func Create(ctx context.Context, input *apicontracts.ApiKey, identity *identitym
 		return "", fmt.Errorf("already a key for idenitifier: %s", input.Identifier)
 	}
 
-	uniqueId, err := uuid.NewRandom()
-	if err != nil {
-		return "", err
-	}
+	uniqueId := uuid.NewV4().String()
 
-	universalId := uniqueId.String()
-	hash := stringhelper.HashSHA512(universalId, []byte(rorconfig.GetString(rorconfig.ROR_API_KEY_SALT)))
+	hash := stringhelper.HashSHA512(uniqueId, []byte(rorconfig.GetString(rorconfig.ROR_API_KEY_SALT)))
 
 	if identity.IsCluster() {
 		input.Identifier = identity.GetId()
@@ -233,7 +229,7 @@ func Create(ctx context.Context, input *apicontracts.ApiKey, identity *identitym
 		return "", fmt.Errorf("could not audit log create action: %v", err)
 	}
 
-	return universalId, nil
+	return uniqueId, nil
 }
 
 func CreateForAgent(ctx context.Context, input *apicontracts.AgentApiKeyModel) (string, error) {
@@ -255,13 +251,10 @@ func CreateForAgent(ctx context.Context, input *apicontracts.AgentApiKeyModel) (
 		return "", fmt.Errorf("already a key for idenitifier: %s", input.Identifier)
 	}
 
-	uniqueId, err := uuid.NewUUID()
-	if err != nil {
-		return "", err
-	}
+	uniqueId := uuid.NewV4().String()
 
 	apikey := apicontracts.ApiKey{}
-	hash := stringhelper.HashSHA512(uniqueId.String(), []byte(mustGetApikeySalt()))
+	hash := stringhelper.HashSHA512(uniqueId, []byte(mustGetApikeySalt()))
 	existingCluster, err := clustersservice.FindByName(mongoctx, input.Identifier)
 	if err != nil {
 		return "", err
@@ -318,7 +311,7 @@ func CreateForAgent(ctx context.Context, input *apicontracts.AgentApiKeyModel) (
 		return "", err
 	}
 
-	return uniqueId.String(), nil
+	return uniqueId, nil
 }
 
 func CreateForAgentV2(ctx context.Context, req *apikeystypes.RegisterClusterRequest) (apikeystypes.RegisterClusterResponse, error) {
@@ -383,18 +376,15 @@ func CreateForAgentV2(ctx context.Context, req *apikeystypes.RegisterClusterRequ
 		return response, fmt.Errorf("already a key for identifier: %s", clusterId)
 	}
 
-	uniqueId, err := uuid.NewUUID()
-	if err != nil {
-		return response, err
-	}
+	uniqueId := uuid.NewV4().String()
 
 	// Only mint a new uid when we positively confirmed no cluster resource exists.
 	if clusterUid == "" {
-		clusterUid = uuid.NewString()
+		clusterUid = uuid.NewV4().String()
 	}
 
 	apikey := apicontracts.ApiKey{}
-	hash := stringhelper.HashSHA512(uniqueId.String(), []byte(mustGetApikeySalt()))
+	hash := stringhelper.HashSHA512(uniqueId, []byte(mustGetApikeySalt()))
 
 	apikey.DisplayName = clusterId
 	apikey.Identifier = clusterId
@@ -411,7 +401,7 @@ func CreateForAgentV2(ctx context.Context, req *apikeystypes.RegisterClusterRequ
 
 	return apikeystypes.RegisterClusterResponse{
 		ClusterId: clusterId,
-		ApiKey:    uniqueId.String(),
+		ApiKey:    uniqueId,
 		Uid:       clusterUid,
 	}, nil
 }
@@ -483,11 +473,9 @@ func CreateOrRenew(ctx context.Context, req *apicontractsv2self.CreateOrRenewApi
 
 	existing, _ := apikeyrepo.GetOwnByName(ctx, req.Name)
 
-	token, err := uuid.NewUUID()
-	if err != nil {
-		return nil, err
-	}
-	hash := stringhelper.HashSHA512(token.String(), []byte(mustGetApikeySalt()))
+	tokenId := uuid.NewV4().String()
+
+	hash := stringhelper.HashSHA512(tokenId, []byte(mustGetApikeySalt()))
 
 	if existing != nil {
 
@@ -514,7 +502,7 @@ func CreateOrRenew(ctx context.Context, req *apicontractsv2self.CreateOrRenewApi
 			Expires:     expires,
 			Created:     time.Now(),
 		}
-		err = apikeyrepo.Create(ctx, newkey)
+		err := apikeyrepo.Create(ctx, newkey)
 		if err != nil {
 			return nil, err
 		}
@@ -524,7 +512,7 @@ func CreateOrRenew(ctx context.Context, req *apicontractsv2self.CreateOrRenewApi
 		}
 	}
 
-	resp.Token = token.String()
+	resp.Token = tokenId
 	resp.Expires = expires
 
 	return resp, nil

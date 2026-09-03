@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice/v2"
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	mongodbseeding "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/seeding"
 	"github.com/NorskHelsenett/ror-api/internal/rabbitmq/apirabbitmqdefinitions"
 	"github.com/NorskHelsenett/ror-api/internal/rabbitmq/apirabbitmqhandler"
@@ -68,7 +68,9 @@ func InitConnections(ctx context.Context) {
 	RedisDB = redisdb.MustNewWithContext(ctx, rediscredhelper, rorconfig.GetString(rorconfig.KV_HOST), rorconfig.GetString(rorconfig.KV_PORT))
 
 	// ACL service resolver setup
-	aclservice.InitResolver(RedisDB)
+	if err := aclservice.InitResolver(RabbitMQConnection); err != nil {
+		rlog.Fatalc(ctx, "failed to initialize ACL resolver", err)
+	}
 	aclmodels.ClusterIdToUidResolver = resolveClusterIdToUid
 
 	// Domain resolvers are initialized up front as an empty, ready-to-use

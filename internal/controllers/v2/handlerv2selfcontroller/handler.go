@@ -51,7 +51,8 @@ func GetSelf() gin.HandlerFunc {
 				Email: identity.User.Email,
 			}
 			if c.Query("filteredgroups") == "true" {
-				result.User.Groups = aclservice.FilterGroupsInUse(ctx, identity.User.Groups)
+				result.User.Groups, _ = aclservice.GetGroupsInUse(ctx, identity.User.Groups)
+
 			} else {
 				result.User.Groups = identity.User.Groups
 			}

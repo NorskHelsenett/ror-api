@@ -55,9 +55,12 @@ func GetByCluster() gin.HandlerFunc {
 		// Scope: cluster
 		// Subject: clusterId
 		// Access: read
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeCluster, clusterId)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Read {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeCluster, aclmodels.Acl2Subject(clusterId), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -96,9 +99,12 @@ func GetInternal() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: read
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Read {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -163,8 +169,12 @@ func AddResource() gin.HandlerFunc {
 			// Access: create
 			accessQuery = aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeCluster, ruleset.Identity.Id)
 		}
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Create {
+		allowed, accessErr := aclservice.HasAccess(ctx, accessQuery.Scope, accessQuery.Subject, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -226,8 +236,12 @@ func DeleteResource() gin.HandlerFunc {
 			// Access: delete
 			accessQuery = aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeCluster, ruleset.Identity.Id)
 		}
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Delete {
+		allowed, accessErr := aclservice.HasAccess(ctx, accessQuery.Scope, accessQuery.Subject, aclmodels.CapRor.WithVerb(aclmodels.VerbDelete))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -293,8 +307,12 @@ func AddResourceRule() gin.HandlerFunc {
 			// Access: create
 			accessQuery = aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeCluster, ruleset.Identity.Id)
 		}
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Create {
+		allowed, accessErr := aclservice.HasAccess(ctx, accessQuery.Scope, accessQuery.Subject, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -356,8 +374,12 @@ func DeleteResourceRule() gin.HandlerFunc {
 			// Access: delete
 			accessQuery = aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeCluster, ruleset.Identity.Id)
 		}
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Create {
+		allowed, accessErr := aclservice.HasAccess(ctx, accessQuery.Scope, accessQuery.Subject, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}

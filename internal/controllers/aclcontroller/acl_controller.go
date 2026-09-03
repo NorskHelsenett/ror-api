@@ -100,8 +100,19 @@ func CheckAcl() gin.HandlerFunc {
 			return
 		}
 
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(scope, subject)
-		if aclservice.CheckAcl2AccessByIdentityQueryAccess(ctx, accessQuery, accesstype) {
+		accessV3, ok := aclmodels.AccessTypeV2ToV3(accesstype)
+		if !ok {
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "unsupported access type")
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		allowed, err := aclservice.HasAccess(ctx, aclmodels.Acl2Scope(scope), aclmodels.Acl2Subject(subject), accessV3)
+		if err != nil {
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+		if allowed {
 			c.Status(http.StatusOK)
 			return
 		}
@@ -147,7 +158,12 @@ func LookupAcl() gin.HandlerFunc {
 			subject = aclmodels.Acl2Subject(subjectParam)
 		}
 
-		acls := aclservice.GetAccessByContextScopeSubject(ctx, scope, subject)
+		acls, err := aclservice.GetAccessByScopeSubject(ctx, scope, subject)
+		if err != nil {
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not look up acl", err)
+			rerr.GinLogErrorAbort(c)
+			return
+		}
 
 		if accessParam != "" {
 			accessType, ok := aclmodels.ParseAcl2AccessType(accessParam)
@@ -205,9 +221,12 @@ func GetById() gin.HandlerFunc {
 		// Scope: Ror
 		// Subject: Acl
 		// Access: Read
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2Subject(aclmodels.Acl2RorSubjectAcl))
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Read {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -220,7 +239,7 @@ func GetById() gin.HandlerFunc {
 		}
 
 		var _ aclmodels.AclV2ListItem
-		object, err := aclservice.GetById(ctx, aclId)
+		object, err := aclservice.GetV2ById(ctx, aclId)
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not get object", err)
 			rerr.GinLogErrorAbort(c)
@@ -258,10 +277,12 @@ func GetByFilter() gin.HandlerFunc {
 		// Scope: Ror
 		// Subject: Acl
 		// Access: Read
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2Subject(aclmodels.Acl2RorSubjectAcl))
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-
-		if !accessObject.Read {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -326,9 +347,12 @@ func Create() gin.HandlerFunc {
 		// Scope: Ror
 		// Subject: Acl
 		// Access: Create
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2Subject(aclmodels.Acl2RorSubjectAcl))
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Create {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -386,9 +410,12 @@ func Update() gin.HandlerFunc {
 		// Scope: Ror
 		// Subject: Acl
 		// Access: Update
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2Subject(aclmodels.Acl2RorSubjectAcl))
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Update {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -460,9 +487,12 @@ func Delete() gin.HandlerFunc {
 		// Scope: Ror
 		// Subject: Acl
 		// Access: Delete
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2Subject(aclmodels.Acl2RorSubjectAcl))
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Delete {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbDelete))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}

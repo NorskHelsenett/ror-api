@@ -1,9 +1,10 @@
 package sseservice
 
 import (
+	"uuid"
+
 	"github.com/NorskHelsenett/ror/pkg/clients/rabbitmqclient"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
-	"github.com/google/uuid"
 )
 
 var Server *EventServer
@@ -68,6 +69,6 @@ func (es *EventServer) listen() {
 }
 
 func NewEventClientId() EventClientId {
-	id, _ := uuid.NewUUID()
-	return EventClientId(id.String())
+	id := uuid.NewV4().String()
+	return EventClientId(id)
 }

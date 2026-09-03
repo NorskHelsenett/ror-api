@@ -68,9 +68,12 @@ func ExistsResources() gin.HandlerFunc {
 		// Scope: c.Query("ownerScope")
 		// Subject: c.Query("ownerSubject")
 		// Access: update
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(resourceOwner.Scope, resourceOwner.Subject)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Update {
+		allowed, accessErr := aclservice.HasAccess(ctx, resourceOwner.Scope, aclmodels.Acl2Subject(resourceOwner.Subject), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "")
 			return
 		}
@@ -115,9 +118,12 @@ func GetResourceHashList() gin.HandlerFunc {
 		// Scope: c.Query("ownerScope")
 		// Subject: c.Query("ownerSubject")
 		// Access: update
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(resourceOwner.Scope, resourceOwner.Subject)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Update {
+		allowed, accessErr := aclservice.HasAccess(ctx, resourceOwner.Scope, aclmodels.Acl2Subject(resourceOwner.Subject), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}

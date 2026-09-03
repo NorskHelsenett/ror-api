@@ -8,7 +8,6 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/internal/databases/mongodb/mongoTypes"
 	"github.com/NorskHelsenett/ror-api/internal/helpers/mapping"
-	mongoHelper "github.com/NorskHelsenett/ror-api/internal/helpers/mongoHelper"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -16,7 +15,7 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
-	aclrepo "github.com/NorskHelsenett/ror-api/internal/acl/repositories"
+	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
@@ -32,8 +31,10 @@ const (
 
 func GetAllByIdentity(ctx context.Context) (*[]apicontracts.Workspace, error) {
 	db := mongodb.GetMongoDb()
-	accessLists := aclrepo.GetACL2ByIdentityQuery(ctx, aclmodels.AclV2QueryAccessScope{Scope: aclmodels.Acl2ScopeCluster})
-	accessQuery := mongoHelper.CreateClusterACLFilter(accessLists)
+	accessQuery, err := aclservice.ClusterUIDFilter(ctx, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+	if err != nil {
+		return nil, err
+	}
 
 	workspacesQuery := []bson.M{
 		accessQuery,
@@ -151,8 +152,10 @@ func GetByName(ctx context.Context, workspaceName string) (*apicontracts.Workspa
 			return nil, errors.New("could not find workspace")
 		}
 	}
-	accessLists := aclrepo.GetACL2ByIdentityQuery(ctx, aclmodels.AclV2QueryAccessScope{Scope: aclmodels.Acl2ScopeCluster})
-	accessQuery := mongoHelper.CreateClusterACLFilter(accessLists)
+	accessQuery, err := aclservice.ClusterUIDFilter(ctx, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+	if err != nil {
+		return nil, err
+	}
 
 	clusterQuery := []bson.M{
 		accessQuery,

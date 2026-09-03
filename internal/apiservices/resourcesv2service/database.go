@@ -319,7 +319,10 @@ func (r *ResourceMongoDB) GetHashlistByQuery(ctx context.Context, rorResourceQue
 
 func GenerateAggregateQuery(ctx context.Context, rorResourceQuery *rorresources.ResourceQuery) ([]bson.M, error) {
 	query := make([]bson.M, 0)
-	authorizedOwnerRefsQuery := aclservice.GetOwnerrefByContextAccess(ctx, aclmodels.AccessTypeRead)
+	authorizedOwnerRefsQuery, err := aclservice.ResourceOwnerFilter(ctx, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+	if err != nil {
+		return query, fmt.Errorf("could not generate acl owner filter: %w", err)
+	}
 	if len(authorizedOwnerRefsQuery) > 0 {
 		query = append(query, authorizedOwnerRefsQuery)
 	}
