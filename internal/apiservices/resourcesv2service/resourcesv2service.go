@@ -450,7 +450,6 @@ func GetResourceByQuery(ctx context.Context, query *rorresources.ResourceQuery) 
 	}
 
 	// Authorization is enforced at query time: GenerateAggregateQuery injects an
-<<<<<<< HEAD
 	// ACL $match (aclservice.GetOwnerrefByContextAccess) so the database only
 	// returns resources the caller is authorized to read. A per-resource
 	// re-check here would be redundant (it re-queries the acl collection once per
@@ -465,11 +464,6 @@ func GetResourceByQuery(ctx context.Context, query *rorresources.ResourceQuery) 
 		}
 	}
 
-=======
-	// ACL $match (aclservice.ResourceOwnerFilter) so the database only returns
-	// resources the caller is authorized to read. A per-resource re-check here
-	// would be redundant, so the query result is returned directly.
->>>>>>> origin/main
 	rortracer.SpanOk(span)
 	span.SetAttributes(attribute.Int("resources.count", len(rs.Resources)))
 	return rs, nil
