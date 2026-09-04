@@ -15,7 +15,8 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
-	"github.com/google/uuid"
+	"uuid"
+
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
@@ -145,7 +146,7 @@ func AddResource(ctx context.Context, setId string, input *messages.RulesetResou
 		}
 	}
 
-	model.Id = uuid.NewString()
+	model.Id = uuid.NewV4().String()
 
 	if err := mongorulesets.AddResource(ctx, set, model); err != nil {
 		return nil, err
@@ -157,7 +158,7 @@ func AddResource(ctx context.Context, setId string, input *messages.RulesetResou
 func AddResourceRule(ctx context.Context, setId string, resourceId string, input *messages.RulesetRuleInput) (*messages.RulesetRuleModel, error) {
 	model := new(messages.RulesetRuleModel)
 
-	model.Id = uuid.NewString()
+	model.Id = uuid.NewV4().String()
 	model.Lifetime = input.Lifetime
 	model.Type = input.Type
 	model.Service = input.Service

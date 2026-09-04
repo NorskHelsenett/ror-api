@@ -31,17 +31,8 @@ func RegisterAgent() gin.HandlerFunc {
 		ctx, cancel := context.WithCancel(c.Request.Context())
 		defer cancel()
 
-		// // Access check
-		// // Scope: ror
-		// // Subject: cluster
-		// // Access: create
-		// accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster)
-		// accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		// if !accessObject.Create {
-		// 	rerr := rorginerror.NewRorGinError(http.StatusForbidden, "No access")
-		// 	rerr.GinLogErrorAbort(c)
-		// 	return
-		// }
+		// TODO: no access check is enforced here. If gating is desired, use
+		// aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate)).
 
 		var req apikeystypes.RegisterClusterRequest
 		if err := c.BindJSON(&req); err != nil {

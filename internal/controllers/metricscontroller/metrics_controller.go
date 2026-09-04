@@ -12,6 +12,8 @@ import (
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 
+	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
 	"github.com/gin-gonic/gin"
@@ -131,8 +133,12 @@ func RegisterResourceMetricsReport() gin.HandlerFunc {
 			Scope:   input.Owner.Scope,
 			Subject: string(input.Owner.Subject),
 		}
-		accessObject := aclservice.CheckAccessByOwnerref(ctx, ownerref)
-		if !accessObject.Update {
+		allowed, accessErr := aclservice.HasAccess(ctx, ownerref.Scope, aclmodels.Acl2Subject(ownerref.Subject), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}

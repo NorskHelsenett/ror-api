@@ -53,9 +53,12 @@ func GetByFilter() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: read
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Read {
+		allowed, err := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -110,9 +113,12 @@ func GetById() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: read
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Read {
+		allowed, err := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -158,9 +164,12 @@ func GetMetadata() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: read
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Read {
+		allowed, err := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}

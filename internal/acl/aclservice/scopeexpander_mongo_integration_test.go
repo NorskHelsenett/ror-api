@@ -15,7 +15,7 @@
 // To run:
 //
 //	docker compose up -d mongodb
-//	go test -v -timeout 60s ./internal/acl/aclservice/v2/
+//	go test -v -timeout 60s ./internal/acl/aclservice/
 package aclservice
 
 import (

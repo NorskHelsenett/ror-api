@@ -3,7 +3,7 @@ package tokencontroller
 import (
 	"net/http"
 
-	aclrepository "github.com/NorskHelsenett/ror-api/internal/acl/repositories"
+	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror-api/pkg/services/tokenservice"
@@ -53,13 +53,11 @@ func ExchangeToken() gin.HandlerFunc {
 		// Scope: cluster
 		// Subject: clusterId
 		// Access: kubernetes.logon
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeCluster, input.ClusterID)
-		access := aclrepository.GetAcl2ByQuery(ctx, accessQuery)
-		var hasAccess = false
-		for _, acl := range access {
-			if acl.Kubernetes.Logon {
-				hasAccess = true
-			}
+		hasAccess, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeCluster, aclmodels.Acl2Subject(input.ClusterID), aclmodels.CapKubernetes.WithVerb(aclmodels.VerbLogon))
+		if accessErr != nil {
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "access check failed", accessErr)
+			rerr.GinLogErrorAbort(c)
+			return
 		}
 
 		if !hasAccess {

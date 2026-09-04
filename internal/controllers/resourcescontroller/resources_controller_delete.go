@@ -74,9 +74,12 @@ func DeleteResource() gin.HandlerFunc {
 			// Scope: input.Owner.Scope
 			// Subject: input.Owner.Subject
 			// Access: update
-			accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(scope, subject)
-			accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-			if !accessObject.Update {
+			allowed, accessErr := aclservice.HasAccess(ctx, scope, aclmodels.Acl2Subject(subject), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+			if accessErr != nil {
+				c.JSON(http.StatusInternalServerError, "")
+				return
+			}
+			if !allowed {
 				c.JSON(http.StatusForbidden, "403: No access")
 				return
 			}
@@ -118,8 +121,12 @@ func DeleteResource() gin.HandlerFunc {
 			// Scope: input.Owner.Scope
 			// Subject: input.Owner.Subject
 			// Access: update
-			accessObject := aclservice.CheckAccessByContextScopeSubject(ctx, scope, subject)
-			if !accessObject.Update {
+			allowed, accessErr := aclservice.HasAccess(ctx, scope, aclmodels.Acl2Subject(subject), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+			if accessErr != nil {
+				c.JSON(http.StatusInternalServerError, "")
+				return
+			}
+			if !allowed {
 				c.JSON(http.StatusForbidden, "403: No access")
 				return
 			}

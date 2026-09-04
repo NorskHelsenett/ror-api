@@ -18,9 +18,10 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
+	"uuid"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
 )
 
 var (
@@ -61,9 +62,12 @@ func OrderCluster() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: create
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Create {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -121,9 +125,12 @@ func DeleteCluster() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: create
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Create {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -181,9 +188,12 @@ func GetOrders() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: read
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Read {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -227,9 +237,12 @@ func GetOrder() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: read
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Read {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -300,9 +313,12 @@ func DeleteOrder() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: delete
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Delete {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbDelete))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}

@@ -4,11 +4,12 @@ import (
 	"context"
 	"strings"
 
+	"uuid"
+
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/v2/apiview"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
-	"github.com/google/uuid"
 )
 
 type overviewitemslistgenerator struct{}
@@ -260,13 +261,13 @@ func createOverviewItemsListData(ctx context.Context, _ ...ViewGeneratorsOption)
 
 	ret := make([]apiview.ViewRow, 0, 16) // Make sure limit is higher than amount of overview items
 
-	randomUidCluster, _ := uuid.NewRandom()
-	randomUidVm, _ := uuid.NewRandom()
-	randomUidVulnerabilities, _ := uuid.NewRandom()
+	randomUidCluster := uuid.NewV4().String()
+	randomUidVm := uuid.NewV4().String()
+	randomUidVulnerabilities := uuid.NewV4().String()
 
-	ret = aggregateClusterHealthData(ctx, ret, randomUidCluster.String())
-	ret = aggregateVmHealthData(ctx, ret, randomUidVm.String())
-	ret = aggregateVulnerabilitiesHealthData(ctx, ret, randomUidVulnerabilities.String())
+	ret = aggregateClusterHealthData(ctx, ret, randomUidCluster)
+	ret = aggregateVmHealthData(ctx, ret, randomUidVm)
+	ret = aggregateVulnerabilitiesHealthData(ctx, ret, randomUidVulnerabilities)
 
 	return ret
 }

@@ -73,6 +73,7 @@ func SetupRoutes(router *gin.Engine) error {
 	aclroute := v2.Group("/acl")
 	{
 		aclroute.GET("/lookup", aclcontroller.LookupAcl())
+		aclroute.GET("/lookup/:scope/:subject", aclcontroller.LookupAclByScopeSubject())
 	}
 	return nil
 }

@@ -51,7 +51,13 @@ func GetSelf() gin.HandlerFunc {
 				Email: identity.User.Email,
 			}
 			if c.Query("filteredgroups") == "true" {
-				result.User.Groups = aclservice.FilterGroupsInUse(ctx, identity.User.Groups)
+				groupsInUse, err := aclservice.GetGroupsInUse(ctx, identity.User.Groups)
+				if err != nil {
+					rlog.Errorc(ctx, "could not filter groups in use, falling back to unfiltered groups", err)
+					result.User.Groups = identity.User.Groups
+				} else {
+					result.User.Groups = groupsInUse
+				}
 			} else {
 				result.User.Groups = identity.User.Groups
 			}

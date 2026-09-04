@@ -44,7 +44,10 @@ func ExchangeToken(ctx context.Context, clusterID string, token string, admin bo
 		return "", err
 	}
 
-	groupsWithDomain = aclservice.FilterGroupsInUse(ctx, groupsWithDomain)
+	groupsWithDomain, err = aclservice.GetGroupsInUse(ctx, groupsWithDomain)
+	if err != nil {
+		return "", err
+	}
 
 	// Filter out groups with internal domain
 	filtered := groupsWithDomain[:0]

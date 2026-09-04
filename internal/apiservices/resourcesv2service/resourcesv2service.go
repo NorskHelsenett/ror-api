@@ -99,8 +99,8 @@ func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) r
 	// Scope: input.Owner.Scope
 	// Subject: input.Owner.Subject
 	// Access: create
-	accessObject := aclservice.CheckAccessByRorOwnerref(ctx, ownerref)
-	if !accessObject.Create {
+	accessAllowed, accessErr := aclservice.HasAccess(ctx, ownerref.Scope, ownerref.Subject, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
+	if accessErr != nil || !accessAllowed {
 		_ = rortracer.SpanErrorf(span, "access denied")
 		return rorresources.ResourceUpdateResults{
 			Results: map[string]rorresources.ResourceUpdateResult{
@@ -322,8 +322,8 @@ func DeleteResource(ctx context.Context, resource *rorresources.Resource) error 
 	// Subject: input.Owner.Subject
 	// Access: delete
 
-	accessModel := aclservice.CheckAccessByRorOwnerref(ctx, resource.GetRorMeta().Ownerref)
-	if !accessModel.Update {
+	accessAllowed, accessErr := aclservice.HasAccess(ctx, resource.GetRorMeta().Ownerref.Scope, resource.GetRorMeta().Ownerref.Subject, aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+	if accessErr != nil || !accessAllowed {
 		err := fmt.Errorf("403: No access to uid %s", resource.GetUID())
 		rortracer.SpanError(span, err, "access denied")
 		return err
@@ -381,8 +381,8 @@ func PatchResource(ctx context.Context, uid string, partial *rorresources.Resour
 	}
 	resource := existing.Resources[0]
 
-	accessModel := aclservice.CheckAccessByRorOwnerref(ctx, resource.GetRorMeta().Ownerref)
-	if !accessModel.Update {
+	accessAllowed, accessErr := aclservice.HasAccess(ctx, resource.GetRorMeta().Ownerref.Scope, resource.GetRorMeta().Ownerref.Subject, aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+	if accessErr != nil || !accessAllowed {
 		_ = rortracer.SpanErrorf(span, "access denied")
 		return rorresources.ResourceUpdateResults{
 			Results: map[string]rorresources.ResourceUpdateResult{
@@ -450,6 +450,7 @@ func GetResourceByQuery(ctx context.Context, query *rorresources.ResourceQuery) 
 	}
 
 	// Authorization is enforced at query time: GenerateAggregateQuery injects an
+<<<<<<< HEAD
 	// ACL $match (aclservice.GetOwnerrefByContextAccess) so the database only
 	// returns resources the caller is authorized to read. A per-resource
 	// re-check here would be redundant (it re-queries the acl collection once per
@@ -464,6 +465,11 @@ func GetResourceByQuery(ctx context.Context, query *rorresources.ResourceQuery) 
 		}
 	}
 
+=======
+	// ACL $match (aclservice.ResourceOwnerFilter) so the database only returns
+	// resources the caller is authorized to read. A per-resource re-check here
+	// would be redundant, so the query result is returned directly.
+>>>>>>> origin/main
 	rortracer.SpanOk(span)
 	span.SetAttributes(attribute.Int("resources.count", len(rs.Resources)))
 	return rs, nil

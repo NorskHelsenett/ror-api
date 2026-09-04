@@ -4,12 +4,11 @@ package configurationcontroller
 import (
 	"net/http"
 
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/configurationservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/operatorconfigservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/tasksservice"
-
-	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
@@ -47,9 +46,12 @@ func GetOperatorConfiguration() gin.HandlerFunc {
 		// Scope: cluster
 		// Subject: clusterId
 		// Access: read
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeCluster, clusterId)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Read {
+		allowed, err := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeCluster, aclmodels.Acl2Subject(clusterId), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -113,9 +115,12 @@ func GetTaskConfiguration() gin.HandlerFunc {
 		// Scope: cluster
 		// Subject: clusterId
 		// Access: read
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeCluster, clusterId)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Read {
+		allowed, err := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeCluster, aclmodels.Acl2Subject(clusterId), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}

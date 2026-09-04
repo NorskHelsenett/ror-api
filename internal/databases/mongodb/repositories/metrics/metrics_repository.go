@@ -6,9 +6,8 @@ import (
 	"errors"
 	"fmt"
 
-	aclrepo "github.com/NorskHelsenett/ror-api/internal/acl/repositories"
+	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror-api/internal/helpers/mapping"
-	mongoHelper "github.com/NorskHelsenett/ror-api/internal/helpers/mongoHelper"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 
@@ -89,8 +88,10 @@ func GetTotalByUser(ctx context.Context) (*apicontracts.MetricsTotal, error) {
 	groupQuery := getGroupBaseQuery()
 	groupQuery["_id"] = "$id"
 
-	accessLists := aclrepo.GetACL2ByIdentityQuery(ctx, aclmodels.AclV2QueryAccessScope{Scope: aclmodels.Acl2ScopeCluster})
-	accessQuery := mongoHelper.CreateClusterACLFilter(accessLists)
+	accessQuery, err := aclservice.ClusterUIDFilter(ctx, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+	if err != nil {
+		return nil, err
+	}
 
 	queryFiltered := []bson.M{
 		accessQuery,
@@ -140,8 +141,10 @@ func GetForDatacenters(ctx context.Context) (*apicontracts.MetricList, error) {
 	groupQuery["_id"] = bson.M{"$toString": "$workspace.datacenter._id"}
 	groupQuery["_name"] = bson.M{"$first": "$workspace.datacenter.name"}
 
-	accessLists := aclrepo.GetACL2ByIdentityQuery(ctx, aclmodels.AclV2QueryAccessScope{Scope: aclmodels.Acl2ScopeCluster})
-	accessQuery := mongoHelper.CreateClusterACLFilter(accessLists)
+	accessQuery, err := aclservice.ClusterUIDFilter(ctx, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+	if err != nil {
+		return nil, err
+	}
 
 	queryCount := []bson.M{
 		accessQuery,
@@ -229,8 +232,10 @@ func GetForDatacenterId(ctx context.Context, datacenterId string) (*apicontracts
 	groupQuery["_id"] = bson.M{"$toString": "$workspace.datacenter._id"}
 	groupQuery["_name"] = bson.M{"$first": "$workspace.datacenter.name"}
 
-	accessLists := aclrepo.GetACL2ByIdentityQuery(ctx, aclmodels.AclV2QueryAccessScope{Scope: aclmodels.Acl2ScopeCluster})
-	accessQuery := mongoHelper.CreateClusterACLFilter(accessLists)
+	accessQuery, err := aclservice.ClusterUIDFilter(ctx, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+	if err != nil {
+		return nil, err
+	}
 	queryCount := []bson.M{
 		accessQuery,
 		{
@@ -318,8 +323,10 @@ func GetForWorkspaces(ctx context.Context, filter *apicontracts.Filter) (*apicon
 	groupQuery := getGroupBaseQuery()
 	groupQuery["_id"] = bson.M{"$toString": "$workspace._id"}
 	groupQuery["_name"] = bson.M{"$first": "$workspace.name"}
-	accessLists := aclrepo.GetACL2ByIdentityQuery(ctx, aclmodels.AclV2QueryAccessScope{Scope: aclmodels.Acl2ScopeCluster})
-	accessQuery := mongoHelper.CreateClusterACLFilter(accessLists)
+	accessQuery, err := aclservice.ClusterUIDFilter(ctx, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+	if err != nil {
+		return nil, err
+	}
 
 	queryCount := []bson.M{
 		accessQuery,
@@ -436,8 +443,10 @@ func GetForWorkspacesByDatacenterId(ctx context.Context, filter *apicontracts.Fi
 	groupQuery["_id"] = bson.M{"$toString": "$workspace._id"}
 	groupQuery["_name"] = bson.M{"$first": "$workspace.name"}
 
-	accessLists := aclrepo.GetACL2ByIdentityQuery(ctx, aclmodels.AclV2QueryAccessScope{Scope: aclmodels.Acl2ScopeCluster})
-	accessQuery := mongoHelper.CreateClusterACLFilter(accessLists)
+	accessQuery, err := aclservice.ClusterUIDFilter(ctx, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+	if err != nil {
+		return nil, err
+	}
 
 	queryCount := []bson.M{
 		accessQuery,
@@ -548,8 +557,10 @@ func GetForWorkspaceId(ctx context.Context, workspaceName string) (*apicontracts
 	groupQuery["_id"] = bson.M{"$toString": "$workspace._id"}
 	groupQuery["_name"] = bson.M{"$first": "$workspace.name"}
 
-	accessLists := aclrepo.GetACL2ByIdentityQuery(ctx, aclmodels.AclV2QueryAccessScope{Scope: aclmodels.Acl2ScopeCluster})
-	accessQuery := mongoHelper.CreateClusterACLFilter(accessLists)
+	accessQuery, err := aclservice.ClusterUIDFilter(ctx, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+	if err != nil {
+		return nil, err
+	}
 
 	queryCount := []bson.M{
 		accessQuery,

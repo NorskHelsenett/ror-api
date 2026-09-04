@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
-	aclrepository "github.com/NorskHelsenett/ror-api/internal/acl/repositories"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
 	"github.com/NorskHelsenett/ror-api/internal/customvalidators"
 	"github.com/NorskHelsenett/ror-api/internal/models/responses"
@@ -68,9 +67,12 @@ func ClusterGetById() gin.HandlerFunc {
 		// Scope: cluster
 		// Subject: clusterId
 		// Access: read
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeCluster, clusterId)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Read {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeCluster, aclmodels.Acl2Subject(clusterId), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -322,9 +324,12 @@ func UpdateMetadata() gin.HandlerFunc {
 		// Scope: cluster
 		// Subject: clusterId
 		// Access: read
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeCluster, clusterId)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Read {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeCluster, aclmodels.Acl2Subject(clusterId), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -425,9 +430,12 @@ func RegisterHeartbeat() gin.HandlerFunc {
 		// Scope: cluster
 		// Subject: input.ClusterId
 		// Access: update
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeCluster, input.ClusterId)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Update {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeCluster, aclmodels.Acl2Subject(input.ClusterId), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -473,9 +481,12 @@ func GetControlPlanesMetadata() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: delete
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Read {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
@@ -531,27 +542,25 @@ func GetKubeconfig() gin.HandlerFunc {
 		// Scope: cluster
 		// Subject: clusterId
 		// Access: read
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeCluster, clusterid)
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Read {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeCluster, aclmodels.Acl2Subject(clusterid), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		if accessErr != nil {
+			rerr := rorginerror.NewRorGinSpanError(span, http.StatusInternalServerError, "access check failed")
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+		if !allowed {
 			rerr := rorginerror.NewRorGinSpanError(span, http.StatusForbidden, "No access")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
-		//aclModel := aclmodels.NewAclV2QueryAccessScopeSubject(scope, clusterId)
-		//add a span for the access check
-		accessctx, accessspan := rortracer.StartSpan(ctx, "aclrepository.CheckAcl2ByCluster")
-		access := aclrepository.GetAcl2ByQuery(accessctx, accessQuery)
-		accessspan.End()
-		var hasAccess = false
-		for _, acl := range access {
-			if acl.Kubernetes.Logon {
-				hasAccess = true
-			}
+		logon, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeCluster, aclmodels.Acl2Subject(clusterid), aclmodels.CapKubernetes.WithVerb(aclmodels.VerbLogon))
+		if accessErr != nil {
+			rerr := rorginerror.NewRorGinSpanError(span, http.StatusInternalServerError, "access check failed")
+			rerr.GinLogErrorAbort(c)
+			return
 		}
-
-		if !hasAccess {
+		if !logon {
 			rerr := rorginerror.NewRorGinSpanError(span, http.StatusForbidden, "no access to login to cluster")
 			rerr.GinLogErrorAbort(c)
 			return
@@ -642,9 +651,12 @@ func CreateCluster() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: globalscope
 		// Access: create
-		accessQuery := aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal) // TODO: what is correct here?
-		accessObject := aclservice.CheckAccessByContextAclQuery(ctx, accessQuery)
-		if !accessObject.Create {
+		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate)) // TODO: what is correct here?
+		if accessErr != nil {
+			c.JSON(http.StatusInternalServerError, "")
+			return
+		}
+		if !allowed {
 			c.JSON(http.StatusForbidden, "403: No access")
 			return
 		}
