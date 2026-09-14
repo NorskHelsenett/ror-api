@@ -107,16 +107,16 @@ func LookupAclByScopeSubject() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		scopeParam, ok := aclscope.ScopeFromString(c.Param("scope"))
-		if !ok {
-			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "missing scope or wrong scope in path parameter")
+		scopeParam, err := aclscope.ParseScope(c.Param("scope"))
+		if err != nil {
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "missing scope or wrong scope in path parameter", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
-		subjectParam, ok := aclscope.GetSubjectFromString(scopeParam, c.Param("subject"))
-		if !ok {
-			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "missing subject or wrong subject in path parameter")
+		subjectParam, err := aclscope.ParseSubject(scopeParam, c.Param("subject"))
+		if err != nil {
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "missing subject or wrong subject in path parameter", err)
 			rerr.GinLogErrorAbort(c)
 			return
 		}
@@ -147,6 +147,88 @@ func LookupAclByScopeSubject() gin.HandlerFunc {
 			AccesGroup: accessGroups,
 		}
 		c.JSON(http.StatusOK, resp)
+	}
+}
+
+// CheckAccess checks if the caller has the specified access for the given scope and subject and accesstype using the V3 ACL backend.
+//
+//	@Summary	Check acl access by scope and subject and accesstype
+//	@Schemes
+//	@Description	CheckAccess checks if the caller has the specified access for the given scope and subject and accesstype using the V3 ACL backend.
+//	@Tags			acl
+//
+// @Success      200            {string}  string  "Access Granted"
+// @Header       200            {string}  Cache-Control   "Anti-caching directives"
+// @Failure      401            {string}  string  "Unauthorized - Token missing or malformed"
+// @Header       401            {string}  X-ROR-ERROR "Authentication scheme requirements"
+// @Failure      403            {string}  string  "Forbidden - Insufficient permissions"
+//
+//	@Param			scope			path		string	true	"scope filter"
+//	@Param			subject			path		string	true	"subject (uid) filter"
+//	@Param			accesstype		path		string	true	"access type filter"
+//	@Router			/v2/acl/lookup/{scope}/{subject}/{accesstype}	[head]
+//	@Security		ApiKey || AccessToken
+func CheckAccess() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		// Implementation for checking access goes here.
+		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
+		defer cancel()
+		c.Header("Cache-Control", "no-store, no-cache, must-revalidate")
+		scope := c.Param("scope")
+		if scope == "" || len(scope) == 0 {
+			rerr := rorginerror.NewRorGinError(http.StatusUnauthorized, "invalid scope")
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		subject := c.Param("subject")
+		if subject == "" || len(subject) == 0 {
+			rerr := rorginerror.NewRorGinError(http.StatusUnauthorized, "invalid subject")
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		access := c.Param("accesstype")
+		if access == "" || len(access) == 0 {
+			rerr := rorginerror.NewRorGinError(http.StatusUnauthorized, "invalid accesstype")
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		v3access, err := aclmodels.ParseAccessTypeV3(access)
+		if err != nil {
+			rerr := rorginerror.NewRorGinError(http.StatusUnauthorized, "invalid accesstype")
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		v3scope, err := aclscope.ParseScope(scope)
+		if err != nil {
+			rerr := rorginerror.NewRorGinError(http.StatusUnauthorized, "invalid scope")
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		v3subject, err := aclscope.ParseSubject(v3scope, subject)
+		if err != nil {
+			rerr := rorginerror.NewRorGinError(http.StatusUnauthorized, "invalid subject or scope subject combination")
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		allowed, err := aclservice.HasAccess(ctx, v3scope, v3subject, v3access)
+		if err != nil {
+			rerr := rorginerror.NewRorGinError(http.StatusUnauthorized, "failed to lookup acl")
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+		if allowed {
+			c.Status(http.StatusOK)
+			return
+		}
+
+		c.Status(http.StatusForbidden)
 	}
 }
 

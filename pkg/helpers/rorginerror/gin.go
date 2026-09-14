@@ -127,7 +127,12 @@ func (e RorGinErrorData) GinLogErrorJSON(c *gin.Context, fields ...Field) {
 //	}
 func (e RorGinErrorData) GinLogErrorAbort(c *gin.Context, fields ...Field) {
 	e.logError(c, fields...)
-	c.AbortWithStatusJSON(e.GetStatusCode(), e)
+	c.Header("X-ROR-ERROR", e.Error())
+	if c.Request.Method != "HEAD" {
+		c.AbortWithStatusJSON(e.GetStatusCode(), e)
+		return
+	}
+	c.Abort()
 }
 
 // logError is an internal method that handles the actual logging of errors.
