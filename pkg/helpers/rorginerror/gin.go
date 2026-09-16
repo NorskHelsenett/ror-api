@@ -132,7 +132,7 @@ func (e RorGinErrorData) GinLogErrorAbort(c *gin.Context, fields ...Field) {
 		c.AbortWithStatusJSON(e.GetStatusCode(), e)
 		return
 	}
-	c.Abort()
+c.AbortWithStatus(e.GetStatusCode())
 }
 
 // logError is an internal method that handles the actual logging of errors.
