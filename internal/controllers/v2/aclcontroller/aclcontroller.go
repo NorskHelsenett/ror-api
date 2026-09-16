@@ -177,42 +177,42 @@ func CheckAccess() gin.HandlerFunc {
 		c.Header("Cache-Control", "no-store, no-cache, must-revalidate")
 		scope := c.Param("scope")
 		if scope == "" || len(scope) == 0 {
-			rerr := rorginerror.NewRorGinError(http.StatusUnauthorized, "invalid scope")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid scope")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		subject := c.Param("subject")
 		if subject == "" || len(subject) == 0 {
-			rerr := rorginerror.NewRorGinError(http.StatusUnauthorized, "invalid subject")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid subject")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		access := c.Param("accesstype")
 		if access == "" || len(access) == 0 {
-			rerr := rorginerror.NewRorGinError(http.StatusUnauthorized, "invalid accesstype")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid accesstype")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		v3access, err := aclmodels.ParseAccessTypeV3(access)
 		if err != nil {
-			rerr := rorginerror.NewRorGinError(http.StatusUnauthorized, "invalid accesstype")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid accesstype")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		v3scope, err := aclscope.ParseScope(scope)
 		if err != nil {
-			rerr := rorginerror.NewRorGinError(http.StatusUnauthorized, "invalid scope")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid scope")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
 
 		v3subject, err := aclscope.ParseSubject(v3scope, subject)
 		if err != nil {
-			rerr := rorginerror.NewRorGinError(http.StatusUnauthorized, "invalid subject or scope subject combination")
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid subject or scope subject combination")
 			rerr.GinLogErrorAbort(c)
 			return
 		}
