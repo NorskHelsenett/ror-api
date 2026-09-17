@@ -12,6 +12,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -97,7 +98,7 @@ func GetAll() gin.HandlerFunc {
 		// Subject: acl
 		// Access: read
 		// TODO: check if this is the right way to do it
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -141,7 +142,7 @@ func Create() gin.HandlerFunc {
 		// Subject: acl
 		// Access: create
 		// TODO: check if this is the right way to do it
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -219,7 +220,7 @@ func Update() gin.HandlerFunc {
 		// Subject: acl
 		// Access: update
 		// TODO: check if this is the right way to do it
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -296,7 +297,7 @@ func Delete() gin.HandlerFunc {
 		// Subject: acl
 		// Access: delete
 		// TODO: check if this is the right way to do it
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbDelete))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbDelete))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return

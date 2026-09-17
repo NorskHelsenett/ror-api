@@ -26,7 +26,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
 
-	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/rorresourceowner"
 
 	"github.com/joho/godotenv"
@@ -141,8 +141,8 @@ func makeResource(uid string, kind string, labels map[string]string, annotations
 		Version: "v2",
 		Hash:    "testhash123",
 		Ownerref: rorresourceowner.RorResourceOwnerReference{
-			Scope:   aclmodels.Acl2ScopeCluster,
-			Subject: aclmodels.Acl2Subject(testClusterID),
+			Scope:   aclscope.ScopeCluster,
+			Subject: aclscope.Subject(testClusterID),
 		},
 	}
 	return r
@@ -624,9 +624,9 @@ func TestPatch_PreservesOwnerRef(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	got := result.Resources[0]
-	assert.Equal(t, aclmodels.Acl2ScopeCluster, got.RorMeta.Ownerref.Scope,
+	assert.Equal(t, aclscope.ScopeCluster, got.RorMeta.Ownerref.Scope,
 		"ownerref scope should be preserved after patch")
-	assert.Equal(t, aclmodels.Acl2Subject(testClusterID), got.RorMeta.Ownerref.Subject,
+	assert.Equal(t, aclscope.Subject(testClusterID), got.RorMeta.Ownerref.Subject,
 		"ownerref subject should be preserved after patch")
 }
 

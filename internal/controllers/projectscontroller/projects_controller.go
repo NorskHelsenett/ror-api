@@ -13,6 +13,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -54,7 +55,7 @@ func Create() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: project
 		// Access: create
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectProject, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectProject, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -242,7 +243,7 @@ func Update() gin.HandlerFunc {
 		// Scope: project
 		// Subject: projectId
 		// Access: update
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeProject, aclmodels.Acl2Subject(projectId), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeProject, aclscope.Subject(projectId), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -317,7 +318,7 @@ func Delete() gin.HandlerFunc {
 		// Scope: project
 		// Subject: projectId
 		// Access: delete
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeProject, aclmodels.Acl2Subject(projectId), aclmodels.CapRor.WithVerb(aclmodels.VerbDelete))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeProject, aclscope.Subject(projectId), aclmodels.CapRor.WithVerb(aclmodels.VerbDelete))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return

@@ -12,6 +12,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 	"github.com/gin-gonic/gin"
@@ -173,7 +174,7 @@ func Create() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: datacenter
 		// Access: create
-		allowed, err := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectDatacenter, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
+		allowed, err := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectDatacenter, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -245,7 +246,7 @@ func Update() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: datacenter
 		// Access: update
-		allowed, err := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectDatacenter, aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+		allowed, err := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectDatacenter, aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return

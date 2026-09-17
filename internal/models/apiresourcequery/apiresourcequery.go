@@ -2,14 +2,14 @@ package apiresourcequery
 
 import (
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
-	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 	"github.com/gin-gonic/gin"
 )
 
 func NewResourceQueryFromClient(c *gin.Context) apiresourcecontracts.ResourceQuery {
 
 	owner := apiresourcecontracts.ResourceOwnerReference{
-		Scope:   aclmodels.Acl2Scope(c.Query("ownerScope")),
+		Scope:   aclscope.Scope(c.Query("ownerScope")),
 		Subject: c.Query("ownerSubject"),
 	}
 
@@ -19,7 +19,7 @@ func NewResourceQueryFromClient(c *gin.Context) apiresourcecontracts.ResourceQue
 		ApiVersion: c.Query("apiversion"),
 	}
 
-	if query.Owner.Scope == aclmodels.Acl2ScopeRor {
+	if query.Owner.Scope == aclscope.ScopeRor {
 		query.Global = true
 	}
 

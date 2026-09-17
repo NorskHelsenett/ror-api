@@ -38,6 +38,7 @@ func AuthenticationMiddleware(c *gin.Context) {
 	rerr := rorginerror.NewRorGinError(http.StatusUnauthorized, "Authorization provider not supported")
 	_ = rortracer.SpanError(span, rerr, "Autentications failed")
 	rerr.GinLogErrorAbort(c)
+
 }
 
 func RegisterAuthProvider(provider GinAuthProvider) {

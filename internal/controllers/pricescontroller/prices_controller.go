@@ -13,6 +13,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -56,7 +57,7 @@ func Create() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: price
 		// Access: create
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectPrice, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectPrice, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -171,7 +172,7 @@ func Update() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: price
 		// Access: update
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectPrice, aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectPrice, aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -249,7 +250,7 @@ func Delete() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: price
 		// Access: delete
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectPrice, aclmodels.CapRor.WithVerb(aclmodels.VerbDelete))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectPrice, aclmodels.CapRor.WithVerb(aclmodels.VerbDelete))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -333,7 +334,7 @@ func GetById() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: price
 		// Access: read
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectPrice, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectPrice, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return

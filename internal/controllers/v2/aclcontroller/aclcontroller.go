@@ -3,14 +3,19 @@
 package aclcontroller
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
 	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
+	"github.com/NorskHelsenett/ror-api/internal/apiconnections"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 
 	"github.com/NorskHelsenett/ror/pkg/acl"
+	"github.com/NorskHelsenett/ror/pkg/apicontracts"
+	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
+	"github.com/NorskHelsenett/ror/pkg/messagebuscontracts"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 
@@ -229,6 +234,258 @@ func CheckAccess() gin.HandlerFunc {
 		}
 
 		c.Status(http.StatusForbidden)
+	}
+}
+
+// aclManageAllowed gates ACL management on ScopeRor/SubjectAcl + the given verb.
+// It writes the error response and returns false when not allowed.
+func aclManageAllowed(c *gin.Context, ctx context.Context, verb aclmodels.Verb) bool {
+	allowed, err := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectAcl, aclmodels.CapRor.WithVerb(verb))
+	if err != nil {
+		rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not check access", err)
+		rerr.GinLogErrorAbort(c)
+		return false
+	}
+	if !allowed {
+		rerr := rorginerror.NewRorGinError(http.StatusForbidden, "no access")
+		rerr.GinLogErrorAbort(c)
+		return false
+	}
+	return true
+}
+
+// CreateAcl creates a V3 ACL entry (no V2 conversion; preserves all v3 capabilities).
+//
+//	@Summary	Create acl
+//	@Schemes
+//	@Description	Create a V3 ACL entry
+//	@Tags			acl
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Success		200		{object}	aclmodels.AclV3ListItem
+//	@Failure		400		{object}	rorerror.ErrorData
+//	@Failure		401		{object}	rorerror.ErrorData
+//	@Failure		403		{object}	rorerror.ErrorData
+//	@Failure		500		{object}	rorerror.ErrorData
+//	@Param			acl		body		aclmodels.AclV3ListItem	true	"Acl"
+//	@Router			/v2/acl	[post]
+//	@Security		ApiKey || AccessToken
+func CreateAcl() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
+		defer cancel()
+
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
+		if !aclManageAllowed(c, ctx, aclmodels.VerbCreate) {
+			return
+		}
+
+		var item aclmodels.AclV3ListItem
+		if err := c.BindJSON(&item); err != nil {
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "could not bind request body", err)
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		created, err := aclservice.CreateV3(ctx, &item, &identity)
+		if err != nil {
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "could not create acl", err)
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		_ = apiconnections.RabbitMQConnection.SendMessage(ctx, messagebuscontracts.AclUpdateEvent{Action: "Create"}, messagebuscontracts.Route_Acl_Update, nil)
+		c.JSON(http.StatusOK, created)
+	}
+}
+
+// UpdateAcl updates a V3 ACL entry by id.
+//
+//	@Summary	Update acl
+//	@Schemes
+//	@Description	Update a V3 ACL entry by id
+//	@Tags			acl
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Success		200			{object}	aclmodels.AclV3ListItem
+//	@Failure		400			{object}	rorerror.ErrorData
+//	@Failure		401			{object}	rorerror.ErrorData
+//	@Failure		403			{object}	rorerror.ErrorData
+//	@Failure		500			{object}	rorerror.ErrorData
+//	@Param			id			path		string					true	"acl id"
+//	@Param			acl			body		aclmodels.AclV3ListItem	true	"Acl"
+//	@Router			/v2/acl/{id}	[put]
+//	@Security		ApiKey || AccessToken
+func UpdateAcl() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
+		defer cancel()
+
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
+		if !aclManageAllowed(c, ctx, aclmodels.VerbUpdate) {
+			return
+		}
+
+		id := c.Param("id")
+		if id == "" {
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid id")
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		var item aclmodels.AclV3ListItem
+		if err := c.BindJSON(&item); err != nil {
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "could not bind request body", err)
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		updated, err := aclservice.UpdateV3(ctx, id, &item, &identity)
+		if err != nil {
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "could not update acl", err)
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		_ = apiconnections.RabbitMQConnection.SendMessage(ctx, messagebuscontracts.AclUpdateEvent{Action: "Update"}, messagebuscontracts.Route_Acl_Update, nil)
+		c.JSON(http.StatusOK, updated)
+	}
+}
+
+// DeleteAcl deletes a V3 ACL entry by id.
+//
+//	@Summary	Delete acl
+//	@Schemes
+//	@Description	Delete a V3 ACL entry by id
+//	@Tags			acl
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Success		200			{boolean}	bool
+//	@Failure		400			{object}	rorerror.ErrorData
+//	@Failure		401			{object}	rorerror.ErrorData
+//	@Failure		403			{object}	rorerror.ErrorData
+//	@Failure		500			{object}	rorerror.ErrorData
+//	@Param			id			path		string	true	"acl id"
+//	@Router			/v2/acl/{id}	[delete]
+//	@Security		ApiKey || AccessToken
+func DeleteAcl() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
+		defer cancel()
+
+		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
+		if !aclManageAllowed(c, ctx, aclmodels.VerbDelete) {
+			return
+		}
+
+		id := c.Param("id")
+		if id == "" {
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid id")
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		ok, _, err := aclservice.DeleteV3(ctx, id, &identity)
+		if err != nil {
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "could not delete acl", err)
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		_ = apiconnections.RabbitMQConnection.SendMessage(ctx, messagebuscontracts.AclUpdateEvent{Action: "Delete"}, messagebuscontracts.Route_Acl_Update, nil)
+		c.JSON(http.StatusOK, ok)
+	}
+}
+
+// GetAclById returns a V3 ACL entry by id.
+//
+//	@Summary	Get acl by id
+//	@Schemes
+//	@Description	Get a V3 ACL entry by id
+//	@Tags			acl
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Success		200			{object}	aclmodels.AclV3ListItem
+//	@Failure		400			{object}	rorerror.ErrorData
+//	@Failure		401			{object}	rorerror.ErrorData
+//	@Failure		403			{object}	rorerror.ErrorData
+//	@Failure		404			{object}	rorerror.ErrorData
+//	@Failure		500			{object}	rorerror.ErrorData
+//	@Param			id			path		string	true	"acl id"
+//	@Router			/v2/acl/{id}	[get]
+//	@Security		ApiKey || AccessToken
+func GetAclById() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
+		defer cancel()
+
+		if !aclManageAllowed(c, ctx, aclmodels.VerbRead) {
+			return
+		}
+
+		id := c.Param("id")
+		if id == "" {
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid id")
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		item, err := aclservice.GetV3ById(ctx, id)
+		if err != nil {
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not get acl", err)
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+		if item == nil {
+			rerr := rorginerror.NewRorGinError(http.StatusNotFound, "acl not found")
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		c.JSON(http.StatusOK, item)
+	}
+}
+
+// GetAclByFilter returns a page of V3 ACL entries matching the filter.
+//
+//	@Summary	Get acl by filter
+//	@Schemes
+//	@Description	Get a page of V3 ACL entries matching the filter
+//	@Tags			acl
+//	@Accept			application/json
+//	@Produce		application/json
+//	@Success		200				{object}	apicontracts.PaginatedResult[aclmodels.AclV3ListItem]
+//	@Failure		400				{object}	rorerror.ErrorData
+//	@Failure		401				{object}	rorerror.ErrorData
+//	@Failure		403				{object}	rorerror.ErrorData
+//	@Failure		500				{object}	rorerror.ErrorData
+//	@Param			filter			body		apicontracts.Filter	true	"Filter"
+//	@Router			/v2/acl/filter	[post]
+//	@Security		ApiKey || AccessToken
+func GetAclByFilter() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
+		defer cancel()
+
+		if !aclManageAllowed(c, ctx, aclmodels.VerbRead) {
+			return
+		}
+
+		var filter apicontracts.Filter
+		if err := c.BindJSON(&filter); err != nil {
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "could not bind filter", err)
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		result, err := aclservice.GetByFilterV3(ctx, &filter)
+		if err != nil {
+			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not get acl by filter", err)
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
+		c.JSON(http.StatusOK, result)
 	}
 }
 

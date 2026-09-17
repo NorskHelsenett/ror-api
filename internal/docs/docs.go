@@ -37,6 +37,7 @@ const docTemplate = `{
                     "acl"
                 ],
                 "summary": "Create acl",
+                "deprecated": true,
                 "parameters": [
                     {
                         "description": "Acl",
@@ -101,6 +102,7 @@ const docTemplate = `{
                     "acl"
                 ],
                 "summary": "Get acl by filter",
+                "deprecated": true,
                 "parameters": [
                     {
                         "description": "Filter",
@@ -146,7 +148,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/acl/migrate": {
+        "/v1/acl/lookup": {
             "get": {
                 "security": [
                     {
@@ -154,42 +156,76 @@ const docTemplate = `{
                         "ApiKey": []
                     }
                 ],
-                "description": "Migrate acl from v1 to v2",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
+                "description": "Check acl by scope, subject and access method",
                 "tags": [
                     "acl"
                 ],
-                "summary": "Migrate acl",
+                "summary": "Check acl by parameters",
+                "deprecated": true,
+                "parameters": [
+                    {
+                        "enum": [
+                            "UNKNOWN",
+                            "ror",
+                            "KubernetesCluster",
+                            "Project",
+                            "Datacenter",
+                            "VirtualMachine",
+                            "Machine",
+                            "BackupJob",
+                            "Database",
+                            "all",
+                            "spam"
+                        ],
+                        "type": "string",
+                        "description": "Scope",
+                        "name": "scope",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "UNKNOWN",
+                            "cluster",
+                            "project",
+                            "globalscope",
+                            "acl",
+                            "apikey",
+                            "datacenter",
+                            "workspace",
+                            "price",
+                            "virtualmachine",
+                            "backup",
+                            "database",
+                            "all",
+                            "spamgit"
+                        ],
+                        "type": "string",
+                        "description": "Subject",
+                        "name": "subject",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "read,write,update or delete",
+                        "name": "access",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/aclmodels.AclLookupResponse"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request"
                     },
                     "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/rorerror.ErrorData"
-                        }
+                        "description": "Unauthorized"
                     },
                     "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
+                        "description": "Forbidden"
                     }
                 }
             }
@@ -213,13 +249,14 @@ const docTemplate = `{
                     "acl"
                 ],
                 "summary": "Get acl scopes",
+                "deprecated": true,
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/aclmodels.Acl2Scope"
+                                "$ref": "#/definitions/aclscope.Scope"
                             }
                         }
                     },
@@ -251,6 +288,7 @@ const docTemplate = `{
                     "acl"
                 ],
                 "summary": "Get acl by id",
+                "deprecated": true,
                 "parameters": [
                     {
                         "type": "string",
@@ -311,6 +349,7 @@ const docTemplate = `{
                     "acl"
                 ],
                 "summary": "Update acl",
+                "deprecated": true,
                 "parameters": [
                     {
                         "type": "string",
@@ -380,6 +419,7 @@ const docTemplate = `{
                     "acl"
                 ],
                 "summary": "Delete acl",
+                "deprecated": true,
                 "parameters": [
                     {
                         "type": "string",
@@ -436,6 +476,7 @@ const docTemplate = `{
                     "acl"
                 ],
                 "summary": "Check acl",
+                "deprecated": true,
                 "parameters": [
                     {
                         "type": "string",
@@ -1402,6 +1443,80 @@ const docTemplate = `{
                         "description": "Not Found",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/clusters/uid/{uid}": {
+            "delete": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Delete a cluster and all of its related data (resources, resourcesv2, acl) by uid",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "clusters"
+                ],
+                "summary": "Purge a cluster by uid",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "cluster uid",
+                        "name": "uid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "skip the recent-activity safety check; for controlled decommissioning where the caller has verified the cluster's agents are stopped",
+                        "name": "force",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_NorskHelsenett_ror-api_internal_apiservices_clustersservice.PurgeResult"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
                         }
                     },
                     "500": {
@@ -5453,11 +5568,15 @@ const docTemplate = `{
                         "enum": [
                             "UNKNOWN",
                             "ror",
-                            "cluster",
-                            "project",
-                            "datacenter",
-                            "virtualmachine",
-                            "backup"
+                            "KubernetesCluster",
+                            "Project",
+                            "Datacenter",
+                            "VirtualMachine",
+                            "Machine",
+                            "BackupJob",
+                            "Database",
+                            "all",
+                            "spam"
                         ],
                         "type": "string",
                         "description": "The kind of the owner, currently only support 'Cluster'",
@@ -5542,11 +5661,15 @@ const docTemplate = `{
                         "enum": [
                             "UNKNOWN",
                             "ror",
-                            "cluster",
-                            "project",
-                            "datacenter",
-                            "virtualmachine",
-                            "backup"
+                            "KubernetesCluster",
+                            "Project",
+                            "Datacenter",
+                            "VirtualMachine",
+                            "Machine",
+                            "BackupJob",
+                            "Database",
+                            "all",
+                            "spam"
                         ],
                         "type": "string",
                         "description": "The kind of the owner, currently only support 'Cluster'",
@@ -5687,11 +5810,15 @@ const docTemplate = `{
                         "enum": [
                             "UNKNOWN",
                             "ror",
-                            "cluster",
-                            "project",
-                            "datacenter",
-                            "virtualmachine",
-                            "backup"
+                            "KubernetesCluster",
+                            "Project",
+                            "Datacenter",
+                            "VirtualMachine",
+                            "Machine",
+                            "BackupJob",
+                            "Database",
+                            "all",
+                            "spam"
                         ],
                         "type": "string",
                         "description": "The kind of the owner, currently only support 'Cluster'",
@@ -5879,11 +6006,15 @@ const docTemplate = `{
                         "enum": [
                             "UNKNOWN",
                             "ror",
-                            "cluster",
-                            "project",
-                            "datacenter",
-                            "virtualmachine",
-                            "backup"
+                            "KubernetesCluster",
+                            "Project",
+                            "Datacenter",
+                            "VirtualMachine",
+                            "Machine",
+                            "BackupJob",
+                            "Database",
+                            "all",
+                            "spam"
                         ],
                         "type": "string",
                         "description": "The kind of the owner, currently only support 'Cluster'",
@@ -7172,6 +7303,540 @@ const docTemplate = `{
                 }
             }
         },
+        "/v2/acl": {
+            "post": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Create a V3 ACL entry",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "acl"
+                ],
+                "summary": "Create acl",
+                "parameters": [
+                    {
+                        "description": "Acl",
+                        "name": "acl",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/aclmodels.AclV3ListItem"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/aclmodels.AclV3ListItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/acl/filter": {
+            "post": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Get a page of V3 ACL entries matching the filter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "acl"
+                ],
+                "summary": "Get acl by filter",
+                "parameters": [
+                    {
+                        "description": "Filter",
+                        "name": "filter",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/apicontracts.Filter"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/apicontracts.PaginatedResult-aclmodels_AclV3ListItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/acl/lookup": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Lookup the scope+subject pairs the caller has the given access type for",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "acl"
+                ],
+                "summary": "Lookup acl access",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access type, e.g. kubernetes:logon",
+                        "name": "access",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Optional scope filter; repeat or comma-separate to narrow results, e.g. KubernetesCluster",
+                        "name": "scope",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Optional subject (uid) filter; repeat or comma-separate to narrow results",
+                        "name": "subject",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/aclmodels.AclV3LookupResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/acl/lookup/{scope}/{subject}": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Lookup the access group pairs the caller has access for, filtered by scope and subject.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "acl"
+                ],
+                "summary": "Lookup acl access by scope and subject",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "scope filter",
+                        "name": "scope",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "subject (uid) filter",
+                        "name": "subject",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/aclmodels.Acl3LookupByScopeSubjectResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/acl/lookup/{scope}/{subject}/{accesstype}": {
+            "head": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "CheckAccess checks if the caller has the specified access for the given scope and subject and accesstype using the V3 ACL backend.",
+                "tags": [
+                    "acl"
+                ],
+                "summary": "Check acl access by scope and subject and accesstype",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "scope filter",
+                        "name": "scope",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "subject (uid) filter",
+                        "name": "subject",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "access type filter",
+                        "name": "accesstype",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Access Granted",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "headers": {
+                            "Cache-Control": {
+                                "type": "string",
+                                "description": "Anti-caching directives"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Token missing or malformed",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "headers": {
+                            "X-ROR-ERROR": {
+                                "type": "string",
+                                "description": "Authentication scheme requirements"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Insufficient permissions",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/acl/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Get a V3 ACL entry by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "acl"
+                ],
+                "summary": "Get acl by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "acl id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/aclmodels.AclV3ListItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Update a V3 ACL entry by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "acl"
+                ],
+                "summary": "Update acl",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "acl id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Acl",
+                        "name": "acl",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/aclmodels.AclV3ListItem"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/aclmodels.AclV3ListItem"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Delete a V3 ACL entry by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "acl"
+                ],
+                "summary": "Delete acl",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "acl id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    }
+                }
+            }
+        },
         "/v2/apikeys/agent/register": {
             "post": {
                 "security": [
@@ -7478,11 +8143,15 @@ const docTemplate = `{
                         "enum": [
                             "UNKNOWN",
                             "ror",
-                            "cluster",
-                            "project",
-                            "datacenter",
-                            "virtualmachine",
-                            "backup"
+                            "KubernetesCluster",
+                            "Project",
+                            "Datacenter",
+                            "VirtualMachine",
+                            "Machine",
+                            "BackupJob",
+                            "Database",
+                            "all",
+                            "spam"
                         ],
                         "type": "string",
                         "description": "The kind of the owner, currently only support 'Cluster'",
@@ -7614,20 +8283,20 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "ResourceUpdate",
-                        "name": "resourcereport",
+                        "description": "Resource",
+                        "name": "rorresource",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/apiresourcecontracts.ResourceUpdateModel"
+                            "$ref": "#/definitions/rorresources.Resource"
                         }
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rorresources.ResourceUpdateResults"
                         }
                     },
                     "401": {
@@ -7727,11 +8396,15 @@ const docTemplate = `{
                         "enum": [
                             "UNKNOWN",
                             "ror",
-                            "cluster",
-                            "project",
-                            "datacenter",
-                            "virtualmachine",
-                            "backup"
+                            "KubernetesCluster",
+                            "Project",
+                            "Datacenter",
+                            "VirtualMachine",
+                            "Machine",
+                            "BackupJob",
+                            "Database",
+                            "all",
+                            "spam"
                         ],
                         "type": "string",
                         "description": "The kind of the owner, currently only support 'Cluster'",
@@ -7762,6 +8435,81 @@ const docTemplate = `{
                         "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Partially update a resource",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "resources"
+                ],
+                "summary": "Patch resource by uid",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UID",
+                        "name": "uid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Partial resource fields to update",
+                        "name": "patch",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/rorresources.ResourceUpdateResults"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_NorskHelsenett_ror-api_internal_models_responses.Cluster"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "404": {
@@ -8181,86 +8929,113 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "aclmodels.Acl2Scope": {
+        "aclmodels.AccessTypeV3": {
             "type": "string",
             "enum": [
-                "UNKNOWN",
-                "ror",
-                "cluster",
-                "project",
-                "datacenter",
-                "virtualmachine",
-                "backup"
-            ],
-            "x-enum-comments": {
-                "Acl2ScopeRor": "ROR",
-                "Acl2ScopeUnknown": "unknown"
-            },
-            "x-enum-descriptions": [
-                "unknown",
-                "ROR",
-                "",
-                "",
-                "",
-                "",
-                ""
+                "ror:read",
+                "ror:write",
+                "ror:owner",
+                "ror:metadata:write",
+                "ror:vulnerability:read",
+                "ror:vulnerability:write",
+                "ror:config:read",
+                "ror:config:write",
+                "kubernetes:logon",
+                "kubernetes:admin",
+                "kubernetes:readonly",
+                "kubernetes:argocd:admin",
+                "kubernetes:argocd:project:admin",
+                "kubernetes:grafana:admin",
+                "virtualmachine:delete"
             ],
             "x-enum-varnames": [
-                "Acl2ScopeUnknown",
-                "Acl2ScopeRor",
-                "Acl2ScopeCluster",
-                "Acl2ScopeProject",
-                "Acl2ScopeDatacenter",
-                "Acl2ScopeVirtualMachine",
-                "Acl2ScopeBackup"
+                "AccessRorRead",
+                "AccessRorWrite",
+                "AccessRorOwner",
+                "AccessRorMetadataWrite",
+                "AccessRorVulnerabilityRead",
+                "AccessRorVulnerabilityWrite",
+                "AccessRorConfigRead",
+                "AccessRorConfigWrite",
+                "AccessKubernetesLogon",
+                "AccessKubernetesAdmin",
+                "AccessKubernetesReadonly",
+                "AccessKubernetesArgocdAdmin",
+                "AccessKubernetesArgocdProjectAdmin",
+                "AccessKubernetesGrafanaAdmin",
+                "AccessVirtualmachineDelete"
             ]
         },
-        "aclmodels.Acl2Subject": {
-            "type": "string",
-            "enum": [
-                "UNKNOWN",
-                "cluster",
-                "project",
-                "globalscope",
-                "acl",
-                "apikey",
-                "datacenter",
-                "workspace",
-                "price",
-                "virtualmachine",
-                "backup"
-            ],
-            "x-enum-comments": {
-                "Acl2RorSubjectAcl": "for subject, not scope, TODO: new const",
-                "Acl2RorSubjectApiKey": "api key",
-                "Acl2RorSubjectGlobal": "for subject, not scope, TODO: new const"
-            },
-            "x-enum-descriptions": [
-                "",
-                "",
-                "",
-                "for subject, not scope, TODO: new const",
-                "for subject, not scope, TODO: new const",
-                "api key",
-                "",
-                "",
-                "",
-                "",
-                ""
-            ],
-            "x-enum-varnames": [
-                "Acl2RorSubjecUnknown",
-                "Acl2RorSubjectCluster",
-                "Acl2RorSubjectProject",
-                "Acl2RorSubjectGlobal",
-                "Acl2RorSubjectAcl",
-                "Acl2RorSubjectApiKey",
-                "Acl2RorSubjectDatacenter",
-                "Acl2RorSubjectWorkspace",
-                "Acl2RorSubjectPrice",
-                "Acl2RorSubjectVirtualMachine",
-                "Acl2RorSubjectBackup"
-            ]
+        "aclmodels.Acl3LookupByScopeSubjectAccessGroup": {
+            "type": "object",
+            "properties": {
+                "access": {
+                    "$ref": "#/definitions/aclmodels.AccessTypeV3"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "provenance": {
+                    "description": "Provenance lists every resource in the tree (the queried resource and/or\nits ancestors) on which this group has this access, one entry per level.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/aclmodels.Acl3LookupProvenance"
+                    }
+                }
+            }
+        },
+        "aclmodels.Acl3LookupByScopeSubjectResponse": {
+            "type": "object",
+            "properties": {
+                "accessGroups": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/aclmodels.Acl3LookupByScopeSubjectAccessGroup"
+                    }
+                },
+                "scope": {
+                    "$ref": "#/definitions/aclscope.Scope"
+                },
+                "subject": {
+                    "$ref": "#/definitions/aclscope.Subject"
+                }
+            }
+        },
+        "aclmodels.Acl3LookupProvenance": {
+            "type": "object",
+            "properties": {
+                "level": {
+                    "type": "integer"
+                },
+                "scope": {
+                    "$ref": "#/definitions/aclscope.Scope"
+                },
+                "subject": {
+                    "$ref": "#/definitions/aclscope.Subject"
+                }
+            }
+        },
+        "aclmodels.AclLookupResponse": {
+            "type": "object",
+            "properties": {
+                "scopes": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/aclmodels.AclLookupResponseScope"
+                    }
+                }
+            }
+        },
+        "aclmodels.AclLookupResponseScope": {
+            "type": "object",
+            "properties": {
+                "subject": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/aclmodels.AclV2ListItemAccess"
+                    }
+                }
+            }
         },
         "aclmodels.AclV2ListItem": {
             "type": "object",
@@ -8308,7 +9083,7 @@ const docTemplate = `{
                     "minLength": 1,
                     "allOf": [
                         {
-                            "$ref": "#/definitions/aclmodels.Acl2Scope"
+                            "$ref": "#/definitions/aclscope.Scope"
                         }
                     ]
                 },
@@ -8317,7 +9092,7 @@ const docTemplate = `{
                     "minLength": 1,
                     "allOf": [
                         {
-                            "$ref": "#/definitions/aclmodels.Acl2Subject"
+                            "$ref": "#/definitions/aclscope.Subject"
                         }
                     ]
                 },
@@ -8337,6 +9112,10 @@ const docTemplate = `{
                 },
                 "delete": {
                     "description": "Delete metadata of subject",
+                    "type": "boolean"
+                },
+                "kuberneteslogon": {
+                    "description": "Logon to cluster",
                     "type": "boolean"
                 },
                 "owner": {
@@ -8361,6 +9140,148 @@ const docTemplate = `{
                     "type": "boolean"
                 }
             }
+        },
+        "aclmodels.AclV3ListItem": {
+            "type": "object",
+            "required": [
+                "access",
+                "group",
+                "scope",
+                "subject"
+            ],
+            "properties": {
+                "access": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/aclmodels.AccessTypeV3"
+                    }
+                },
+                "created": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "id": {
+                    "type": "string"
+                },
+                "issuedBy": {
+                    "type": "string"
+                },
+                "scope": {
+                    "minLength": 1,
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/aclscope.Scope"
+                        }
+                    ]
+                },
+                "subject": {
+                    "minLength": 1,
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/aclscope.Subject"
+                        }
+                    ]
+                },
+                "version": {
+                    "type": "integer",
+                    "default": 3
+                }
+            }
+        },
+        "aclmodels.AclV3LookupOwnerref": {
+            "type": "object",
+            "properties": {
+                "scope": {
+                    "$ref": "#/definitions/aclscope.Scope"
+                },
+                "subject": {
+                    "$ref": "#/definitions/aclscope.Subject"
+                }
+            }
+        },
+        "aclmodels.AclV3LookupResponse": {
+            "type": "object",
+            "properties": {
+                "access": {
+                    "$ref": "#/definitions/aclmodels.AccessTypeV3"
+                },
+                "ownerrefs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/aclmodels.AclV3LookupOwnerref"
+                    }
+                },
+                "unrestricted": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "aclscope.Scope": {
+            "type": "string",
+            "enum": [
+                "UNKNOWN",
+                "ror",
+                "KubernetesCluster",
+                "Project",
+                "Datacenter",
+                "VirtualMachine",
+                "Machine",
+                "BackupJob",
+                "Database",
+                "all",
+                "spam"
+            ],
+            "x-enum-varnames": [
+                "ScopeUnknown",
+                "ScopeRor",
+                "ScopeCluster",
+                "ScopeProject",
+                "ScopeDatacenter",
+                "ScopeVirtualMachine",
+                "ScopeMachine",
+                "ScopeBackup",
+                "ScopeDatabase",
+                "ScopeAll",
+                "ScopeSpam"
+            ]
+        },
+        "aclscope.Subject": {
+            "type": "string",
+            "enum": [
+                "UNKNOWN",
+                "cluster",
+                "project",
+                "globalscope",
+                "acl",
+                "apikey",
+                "datacenter",
+                "workspace",
+                "price",
+                "virtualmachine",
+                "backup",
+                "database",
+                "all",
+                "spamgit"
+            ],
+            "x-enum-varnames": [
+                "SubjectUnknown",
+                "SubjectCluster",
+                "SubjectProject",
+                "SubjectGlobal",
+                "SubjectAcl",
+                "SubjectApiKey",
+                "SubjectDatacenter",
+                "SubjectWorkspace",
+                "SubjectPrice",
+                "SubjectVirtualMachine",
+                "SubjectBackup",
+                "SubjectDatabase",
+                "SubjectAll",
+                "SubjectSpamGit"
+            ]
         },
         "apicontracts.AccessControlList": {
             "type": "object",
@@ -8427,6 +9348,9 @@ const docTemplate = `{
                             "$ref": "#/definitions/apicontracts.ApiKeyType"
                         }
                     ]
+                },
+                "uid": {
+                    "type": "string"
                 }
             }
         },
@@ -8566,6 +9490,9 @@ const docTemplate = `{
                 "topology": {
                     "$ref": "#/definitions/apicontracts.Topology"
                 },
+                "uid": {
+                    "type": "string"
+                },
                 "updated": {
                     "type": "string"
                 },
@@ -8605,14 +9532,14 @@ const docTemplate = `{
             "properties": {
                 "overrides": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 },
                 "projectMetadata": {
                     "$ref": "#/definitions/apicontracts.ProjectMetadata"
                 },
                 "versions": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 }
             }
         },
@@ -9401,6 +10328,25 @@ const docTemplate = `{
                 "cpupercentage": {
                     "type": "number"
                 },
+                "diskPercent": {
+                    "type": "number"
+                },
+                "diskTotalBytes": {
+                    "type": "integer"
+                },
+                "diskUsageBytes": {
+                    "description": "Node exporter fields (populated from Prometheus node_exporter, omitted when zero)",
+                    "type": "integer"
+                },
+                "load1": {
+                    "type": "number"
+                },
+                "load15": {
+                    "type": "number"
+                },
+                "load5": {
+                    "type": "number"
+                },
                 "memory": {
                     "type": "integer"
                 },
@@ -9412,6 +10358,12 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "networkRxBytes": {
+                    "type": "number"
+                },
+                "networkTxBytes": {
+                    "type": "number"
                 },
                 "time": {
                     "type": "string"
@@ -9493,6 +10445,26 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/aclmodels.AclV2ListItem"
+                    }
+                },
+                "dataCount": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "totalCount": {
+                    "type": "integer"
+                }
+            }
+        },
+        "apicontracts.PaginatedResult-aclmodels_AclV3ListItem": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/aclmodels.AclV3ListItem"
                     }
                 },
                 "dataCount": {
@@ -10102,6 +11074,9 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "uid": {
+                    "type": "string"
                 }
             }
         },
@@ -10109,6 +11084,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "clusterid": {
+                    "type": "string"
+                },
+                "uid": {
                     "type": "string"
                 }
             }
@@ -10120,6 +11098,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "clusterid": {
+                    "type": "string"
+                },
+                "uid": {
                     "type": "string"
                 }
             }
@@ -10296,7 +11277,7 @@ const docTemplate = `{
                 },
                 "providerConfig": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 },
                 "sensitivity": {
                     "maximum": 4,
@@ -10658,7 +11639,7 @@ const docTemplate = `{
                     "description": "cluster, workspace,...",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/aclmodels.Acl2Scope"
+                            "$ref": "#/definitions/aclscope.Scope"
                         }
                     ]
                 },
@@ -10764,10 +11745,7 @@ const docTemplate = `{
                 "rows": {
                     "type": "array",
                     "items": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/apiview.ViewValue"
-                        }
+                        "$ref": "#/definitions/apiview.ViewRow"
                     }
                 },
                 "type": {
@@ -10785,6 +11763,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "description": "name of the column, used as a key in the rows, must be unique within a view",
                     "type": "string"
                 },
                 "order": {
@@ -10825,7 +11804,9 @@ const docTemplate = `{
                 "date",
                 "datetime",
                 "boolean",
-                "enum"
+                "enum",
+                "array",
+                "object"
             ],
             "x-enum-varnames": [
                 "ViewFieldTypeString",
@@ -10833,7 +11814,9 @@ const docTemplate = `{
                 "ViewFieldTypeDate",
                 "ViewFieldTypeDateTime",
                 "ViewFieldTypeBoolean",
-                "ViewFieldTypeEnum"
+                "ViewFieldTypeEnum",
+                "ViewFieldTypeArray",
+                "ViewFieldTypeObject"
             ]
         },
         "apiview.ViewMetadata": {
@@ -10856,6 +11839,12 @@ const docTemplate = `{
                 }
             }
         },
+        "apiview.ViewRow": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/apiview.ViewValue"
+            }
+        },
         "apiview.ViewType": {
             "type": "string",
             "enum": [
@@ -10873,14 +11862,34 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "fieldName": {
-                    "description": "must match the column name",
+                "fieldUnit": {
                     "type": "string"
                 },
-                "fieldValue": {
-                    "type": "string"
-                },
+                "fieldValue": {},
                 "resourceUid": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_NorskHelsenett_ror-api_internal_apiservices_clustersservice.PurgeResult": {
+            "type": "object",
+            "properties": {
+                "acl": {
+                    "type": "integer"
+                },
+                "clusterId": {
+                    "type": "string"
+                },
+                "clusters": {
+                    "type": "integer"
+                },
+                "resources": {
+                    "type": "integer"
+                },
+                "resourcesV2": {
+                    "type": "integer"
+                },
+                "uid": {
                     "type": "string"
                 }
             }
@@ -10890,7 +11899,7 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 },
                 "message": {
                     "type": "string"
@@ -10955,7 +11964,7 @@ const docTemplate = `{
                 "HIGH",
                 "MEDIUM",
                 "LOW",
-                "UNKOWN"
+                "UNKNOWN"
             ],
             "x-enum-varnames": [
                 "CRITICAL",
@@ -11390,7 +12399,13 @@ const docTemplate = `{
                 "kind",
                 "gke",
                 "talos",
-                "vitistack"
+                "vitistack",
+                "eks",
+                "kubevirt",
+                "openshift",
+                "rancher",
+                "proxmox",
+                "vmware"
             ],
             "x-enum-varnames": [
                 "ProviderTypeUnknown",
@@ -11400,7 +12415,13 @@ const docTemplate = `{
                 "ProviderTypeKind",
                 "ProviderTypeGke",
                 "ProviderTypeTalos",
-                "ProviderTypeVitistack"
+                "ProviderTypeVitistack",
+                "ProviderTypeEKS",
+                "ProviderTypeKubevirt",
+                "ProviderTypeOpenShift",
+                "ProviderTypeRancher",
+                "ProviderTypeProxmox",
+                "ProviderTypeVmware"
             ]
         },
         "resource.Quantity": {
@@ -11453,7 +12474,7 @@ const docTemplate = `{
                     "description": "cluster, workspace,...",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/aclmodels.Acl2Scope"
+                            "$ref": "#/definitions/aclscope.Scope"
                         }
                     ]
                 },
@@ -11461,7 +12482,7 @@ const docTemplate = `{
                     "description": "ror id eg clusterId or workspaceName",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/aclmodels.Acl2Subject"
+                            "$ref": "#/definitions/aclscope.Subject"
                         }
                     ]
                 }
@@ -11497,6 +12518,9 @@ const docTemplate = `{
                 },
                 "clustervulnerabilityreport": {
                     "$ref": "#/definitions/rortypes.ResourceClusterVulnerabilityReport"
+                },
+                "config": {
+                    "$ref": "#/definitions/rortypes.ResourceConfig"
                 },
                 "configauditreport": {
                     "$ref": "#/definitions/rortypes.ResourceConfigAuditReport"
@@ -11535,6 +12559,12 @@ const docTemplate = `{
                 "kubernetesmachineclass": {
                     "$ref": "#/definitions/rortypes.ResourceKubernetesMachineClass"
                 },
+                "machine": {
+                    "$ref": "#/definitions/rortypes.ResourceMachine"
+                },
+                "manageddatabase": {
+                    "$ref": "#/definitions/rortypes.ResourceManagedDatabase"
+                },
                 "metadata": {
                     "$ref": "#/definitions/v1.ObjectMeta"
                 },
@@ -11546,6 +12576,9 @@ const docTemplate = `{
                 },
                 "node": {
                     "$ref": "#/definitions/rortypes.ResourceNode"
+                },
+                "organizationalunit": {
+                    "$ref": "#/definitions/rortypes.ResourceOrganizationalUnit"
                 },
                 "persistentvolumeclaim": {
                     "$ref": "#/definitions/rortypes.ResourcePersistentVolumeClaim"
@@ -11603,6 +12636,9 @@ const docTemplate = `{
                 },
                 "virtualmachineclass": {
                     "$ref": "#/definitions/rortypes.ResourceVirtualMachineClass"
+                },
+                "virtualmachinevulnerabilityinfo": {
+                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineVulnerabilityInfo"
                 },
                 "vulnerabilityevent": {
                     "$ref": "#/definitions/rortypes.ResourceVulnerabilityEvent"
@@ -11682,6 +12718,35 @@ const docTemplate = `{
                 }
             }
         },
+        "rortypes.CVE": {
+            "type": "object",
+            "properties": {
+                "cvss": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "references": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "vulnerableVersions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.VulnerableVersion"
+                    }
+                }
+            }
+        },
         "rortypes.CriticalityLevel": {
             "type": "integer",
             "enum": [
@@ -11750,6 +12815,207 @@ const docTemplate = `{
                 "EnvironmentProduction"
             ]
         },
+        "rortypes.KubernetesClusterAgentStatus": {
+            "type": "object",
+            "properties": {
+                "az": {
+                    "type": "string"
+                },
+                "clusterId": {
+                    "type": "string"
+                },
+                "clusterName": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "datacenter": {
+                    "type": "string"
+                },
+                "endpoint": {
+                    "$ref": "#/definitions/rortypes.KubernetesClusterAgentStatusEndpoint"
+                },
+                "environment": {
+                    "type": "string"
+                },
+                "kubernetesProvider": {
+                    "$ref": "#/definitions/providermodels.ProviderType"
+                },
+                "lastSeen": {
+                    "type": "string"
+                },
+                "nodes": {
+                    "$ref": "#/definitions/rortypes.KubernetesClusterAgentStatusNodes"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "urls": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "versions": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "workspaceId": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.KubernetesClusterAgentStatusEndpoint": {
+            "type": "object",
+            "properties": {
+                "apiServer": {
+                    "type": "string"
+                },
+                "caCert": {
+                    "type": "string"
+                },
+                "egress": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.KubernetesClusterAgentStatusNodes": {
+            "type": "object",
+            "properties": {
+                "controlPlane": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.KubernetesClusterAgentStatusNodesNodepoolsNodes"
+                    }
+                },
+                "nodepools": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.KubernetesClusterAgentStatusNodesNodepools"
+                    }
+                }
+            }
+        },
+        "rortypes.KubernetesClusterAgentStatusNodesNodepools": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "nodes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.KubernetesClusterAgentStatusNodesNodepoolsNodes"
+                    }
+                }
+            }
+        },
+        "rortypes.KubernetesClusterAgentStatusNodesNodepoolsNodes": {
+            "type": "object",
+            "properties": {
+                "architecture": {
+                    "type": "string"
+                },
+                "cpu": {
+                    "$ref": "#/definitions/rortypes.KubernetesClusterAgentStatusNodesNodepoolsNodesResource"
+                },
+                "kernelVersion": {
+                    "type": "string"
+                },
+                "kubernetesVersion": {
+                    "type": "string"
+                },
+                "memory": {
+                    "$ref": "#/definitions/rortypes.KubernetesClusterAgentStatusNodesNodepoolsNodesResource"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "operatingSystem": {
+                    "type": "string"
+                },
+                "osImage": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.KubernetesClusterAgentStatusNodesNodepoolsNodesResource": {
+            "type": "object",
+            "properties": {
+                "allocated": {
+                    "$ref": "#/definitions/rortypes.Quantity"
+                },
+                "capacity": {
+                    "$ref": "#/definitions/rortypes.Quantity"
+                }
+            }
+        },
+        "rortypes.KubernetesClusterSpec": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "+kubebuilder:validation:Required",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.KubernetesClusterSpecData"
+                        }
+                    ]
+                },
+                "topology": {
+                    "description": "+kubebuilder:validation:Required",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.KubernetesClusterSpecTopology"
+                        }
+                    ]
+                }
+            }
+        },
+        "rortypes.KubernetesClusterStatus": {
+            "type": "object",
+            "properties": {
+                "conditions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1alpha1.KubernetesClusterCondition"
+                    }
+                },
+                "message": {
+                    "description": "Human-readable message describing current activity",
+                    "type": "string"
+                },
+                "phase": {
+                    "description": "Provisioning, Running, Deleting, Failed, Updating",
+                    "type": "string"
+                },
+                "state": {
+                    "$ref": "#/definitions/v1alpha1.KubernetesClusterClusterState"
+                },
+                "workers": {
+                    "description": "Total number of worker machines",
+                    "type": "integer"
+                }
+            }
+        },
+        "rortypes.OrganizationalUnitType": {
+            "type": "string",
+            "enum": [
+                "organization",
+                "project",
+                "group"
+            ],
+            "x-enum-varnames": [
+                "OrganizationalUnitTypeOrganization",
+                "OrganizationalUnitTypeProject",
+                "OrganizationalUnitTypeGroup"
+            ]
+        },
         "rortypes.ProviderType": {
             "type": "string",
             "enum": [
@@ -11764,6 +13030,34 @@ const docTemplate = `{
                 "ProviderTypeAzure",
                 "ProviderTypeK3d"
             ]
+        },
+        "rortypes.Quantity": {
+            "type": "object",
+            "properties": {
+                "Format": {
+                    "type": "string",
+                    "enum": [
+                        "DecimalExponent",
+                        "BinarySI",
+                        "DecimalSI"
+                    ],
+                    "x-enum-comments": {
+                        "BinarySI": "e.g., 12Mi (12 * 2^20)",
+                        "DecimalExponent": "e.g., 12e6",
+                        "DecimalSI": "e.g., 12M  (12 * 10^6)"
+                    },
+                    "x-enum-descriptions": [
+                        "e.g., 12e6",
+                        "e.g., 12Mi (12 * 2^20)",
+                        "e.g., 12M  (12 * 10^6)"
+                    ],
+                    "x-enum-varnames": [
+                        "DecimalExponent",
+                        "BinarySI",
+                        "DecimalSI"
+                    ]
+                }
+            }
         },
         "rortypes.ResourceAction": {
             "type": "string",
@@ -12433,7 +13727,7 @@ const docTemplate = `{
                 },
                 "providerConfig": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": {}
                 },
                 "sensitivity": {
                     "maximum": 4,
@@ -12618,11 +13912,34 @@ const docTemplate = `{
                 }
             }
         },
+        "rortypes.ResourceConfig": {
+            "type": "object",
+            "properties": {
+                "spec": {
+                    "$ref": "#/definitions/rortypes.ResourceConfigSpec"
+                }
+            }
+        },
         "rortypes.ResourceConfigAuditReport": {
             "type": "object",
             "properties": {
                 "report": {
                     "$ref": "#/definitions/rortypes.ResourceVulnerabilityReportReport"
+                }
+            }
+        },
+        "rortypes.ResourceConfigSpec": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "map of key value pairs, where value can be a template string to be resolved by configservice",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "filter": {
+                    "type": "string"
                 }
             }
         },
@@ -12647,6 +13964,38 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "rortypes.ResourceContact": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "role": {
+                    "$ref": "#/definitions/rortypes.ResourceContactRoleDefinition"
+                }
+            }
+        },
+        "rortypes.ResourceContactRoleDefinition": {
+            "type": "string",
+            "enum": [
+                "",
+                "Owner",
+                "Responsible",
+                "TechnicalContact"
+            ],
+            "x-enum-varnames": [
+                "ResourceRoleUnknown",
+                "ResourceRoleOwner",
+                "ResourceRoleResponsible",
+                "ResourceRoleTechnicalContact"
+            ]
         },
         "rortypes.ResourceDaemonSet": {
             "type": "object",
@@ -13124,10 +14473,10 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "spec": {
-                    "$ref": "#/definitions/v1alpha1.KubernetesClusterSpec"
+                    "$ref": "#/definitions/rortypes.ResourceKubernetesClusterSpec"
                 },
                 "status": {
-                    "$ref": "#/definitions/v1alpha1.KubernetesClusterStatus"
+                    "$ref": "#/definitions/rortypes.ResourceKubernetesClusterStatus"
                 }
             }
         },
@@ -13148,6 +14497,54 @@ const docTemplate = `{
                 },
                 "type": {
                     "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceKubernetesClusterSpec": {
+            "type": "object",
+            "properties": {
+                "clusterMetadata": {
+                    "$ref": "#/definitions/rortypes.ResourceKubernetesClusterSpecMetadataDetails"
+                },
+                "vitiSpec": {
+                    "$ref": "#/definitions/rortypes.KubernetesClusterSpec"
+                }
+            }
+        },
+        "rortypes.ResourceKubernetesClusterSpecMetadataDetails": {
+            "type": "object",
+            "properties": {
+                "contacts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.ResourceContact"
+                    }
+                },
+                "criticality": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "sensitivity": {
+                    "type": "string"
+                },
+                "slackChannels": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "rortypes.ResourceKubernetesClusterStatus": {
+            "type": "object",
+            "properties": {
+                "agentstatus": {
+                    "$ref": "#/definitions/rortypes.KubernetesClusterAgentStatus"
+                },
+                "providerstatus": {
+                    "$ref": "#/definitions/rortypes.KubernetesClusterStatus"
                 }
             }
         },
@@ -13189,6 +14586,72 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "memory": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceMachine": {
+            "type": "object",
+            "properties": {
+                "spec": {
+                    "$ref": "#/definitions/rortypes.ResourceMachineSpec"
+                },
+                "status": {
+                    "$ref": "#/definitions/rortypes.ResourceMachineStatus"
+                }
+            }
+        },
+        "rortypes.ResourceMachineSpec": {
+            "type": "object",
+            "properties": {
+                "providerSpec": {
+                    "$ref": "#/definitions/v1alpha1.MachineSpec"
+                }
+            }
+        },
+        "rortypes.ResourceMachineStatus": {
+            "type": "object",
+            "properties": {
+                "providerStatus": {
+                    "$ref": "#/definitions/v1alpha1.MachineStatus"
+                }
+            }
+        },
+        "rortypes.ResourceManagedDatabase": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "provider": {
+                    "type": "string"
+                },
+                "spec": {
+                    "$ref": "#/definitions/rortypes.ResourceManagedDatabaseSpec"
+                },
+                "status": {
+                    "$ref": "#/definitions/rortypes.ResourceManagedDatabaseStatus"
+                }
+            }
+        },
+        "rortypes.ResourceManagedDatabaseSpec": {
+            "type": "object",
+            "properties": {
+                "engine": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceManagedDatabaseStatus": {
+            "type": "object",
+            "properties": {
+                "engine": {
                     "type": "string"
                 },
                 "name": {
@@ -13542,6 +15005,42 @@ const docTemplate = `{
                 },
                 "systemUUID": {
                     "type": "string"
+                }
+            }
+        },
+        "rortypes.ResourceOrganizationalUnit": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "spec": {
+                    "$ref": "#/definitions/rortypes.ResourceOrganizationalUnitSpec"
+                },
+                "status": {
+                    "$ref": "#/definitions/rortypes.ResourceOrganizationalUnitStatus"
+                }
+            }
+        },
+        "rortypes.ResourceOrganizationalUnitSpec": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/rortypes.OrganizationalUnitType"
+                }
+            }
+        },
+        "rortypes.ResourceOrganizationalUnitStatus": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/rortypes.OrganizationalUnitType"
                 }
             }
         },
@@ -14088,7 +15587,7 @@ const docTemplate = `{
         "rortypes.ResourceSbomReportsComponent": {
             "type": "object",
             "properties": {
-                "bom-ref": {
+                "bomRef": {
                     "type": "string"
                 },
                 "group": {
@@ -15252,6 +16751,52 @@ const docTemplate = `{
                 }
             }
         },
+        "rortypes.ResourceVirtualMachineVulnerabilityInfo": {
+            "type": "object",
+            "properties": {
+                "hostName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "spec": {
+                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineVulnerabilitySpec"
+                },
+                "status": {
+                    "$ref": "#/definitions/rortypes.ResourceVirtualMachineVulnerabilityStatus"
+                }
+            }
+        },
+        "rortypes.ResourceVirtualMachineVulnerabilitySpec": {
+            "type": "object"
+        },
+        "rortypes.ResourceVirtualMachineVulnerabilityStatus": {
+            "type": "object",
+            "properties": {
+                "cves": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rortypes.CVE"
+                    }
+                },
+                "hostSeverity": {
+                    "type": "string"
+                },
+                "lastCalculationTime": {
+                    "type": "integer"
+                },
+                "lastReportTime": {
+                    "type": "integer"
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "severityScore": {
+                    "type": "number"
+                }
+            }
+        },
         "rortypes.ResourceVulnerabilityEvent": {
             "type": "object",
             "properties": {
@@ -15478,6 +17023,17 @@ const docTemplate = `{
                 "DISMISSED"
             ]
         },
+        "rortypes.VulnerableVersion": {
+            "type": "object",
+            "properties": {
+                "packageName": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
         "rorversion.RorVersion": {
             "type": "object",
             "properties": {
@@ -15519,7 +17075,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "operation": {
-                    "description": "Operation is the type of operation which lead to this ManagedFieldsEntry being created.\nThe only valid values for this field are 'Apply' and 'Update'.",
+                    "description": "Operation is the type of operation which lead to this ManagedFieldsEntry being created.\nThe only valid values for this field are 'Apply' and 'Update'.\n+k8s:alpha(since: \"1.37\")=+k8s:required",
                     "allOf": [
                         {
                             "$ref": "#/definitions/v1.ManagedFieldsOperationType"
@@ -15558,15 +17114,15 @@ const docTemplate = `{
                     }
                 },
                 "creationTimestamp": {
-                    "description": "CreationTimestamp is a timestamp representing the server time when this object was\ncreated. It is not guaranteed to be set in happens-before order across separate operations.\nClients may not set this value. It is represented in RFC3339 form and is in UTC.\n\nPopulated by the system.\nRead-only.\nNull for lists.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata\n+optional",
+                    "description": "CreationTimestamp is a timestamp representing the server time when this object was\ncreated. It is not guaranteed to be set in happens-before order across separate operations.\nClients may not set this value. It is represented in RFC3339 form and is in UTC.\n\nPopulated by the system.\nRead-only.\nNull for lists.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata\n+optional\n+k8s:alpha(since: \"1.37\")=+k8s:immutable",
                     "type": "string"
                 },
                 "deletionGracePeriodSeconds": {
-                    "description": "Number of seconds allowed for this object to gracefully terminate before\nit will be removed from the system. Only set when deletionTimestamp is also set.\nMay only be shortened.\nRead-only.\n+optional",
+                    "description": "Number of seconds allowed for this object to gracefully terminate before\nit will be removed from the system. Only set when deletionTimestamp is also set.\nMay only be shortened.\nRead-only.\n+optional\n+k8s:alpha(since: \"1.37\")=+k8s:optional\n+k8s:alpha(since: \"1.37\")=+k8s:immutable",
                     "type": "integer"
                 },
                 "deletionTimestamp": {
-                    "description": "DeletionTimestamp is RFC 3339 date and time at which this resource will be deleted. This\nfield is set by the server when a graceful deletion is requested by the user, and is not\ndirectly settable by a client. The resource is expected to be deleted (no longer visible\nfrom resource lists, and not reachable by name) after the time in this field, once the\nfinalizers list is empty. As long as the finalizers list contains items, deletion is blocked.\nOnce the deletionTimestamp is set, this value may not be unset or be set further into the\nfuture, although it may be shortened or the resource may be deleted prior to this time.\nFor example, a user may request that a pod is deleted in 30 seconds. The Kubelet will react\nby sending a graceful termination signal to the containers in the pod. After that 30 seconds,\nthe Kubelet will send a hard termination signal (SIGKILL) to the container and after cleanup,\nremove the pod from the API. In the presence of network partitions, this object may still\nexist after this timestamp, until an administrator or automated process can determine the\nresource is fully terminated.\nIf not set, graceful deletion of the object has not been requested.\n\nPopulated by the system when a graceful deletion is requested.\nRead-only.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata\n+optional",
+                    "description": "DeletionTimestamp is RFC 3339 date and time at which this resource will be deleted. This\nfield is set by the server when a graceful deletion is requested by the user, and is not\ndirectly settable by a client. The resource is expected to be deleted (no longer visible\nfrom resource lists, and not reachable by name) after the time in this field, once the\nfinalizers list is empty. As long as the finalizers list contains items, deletion is blocked.\nOnce the deletionTimestamp is set, this value may not be unset or be set further into the\nfuture, although it may be shortened or the resource may be deleted prior to this time.\nFor example, a user may request that a pod is deleted in 30 seconds. The Kubelet will react\nby sending a graceful termination signal to the containers in the pod. After that 30 seconds,\nthe Kubelet will send a hard termination signal (SIGKILL) to the container and after cleanup,\nremove the pod from the API. In the presence of network partitions, this object may still\nexist after this timestamp, until an administrator or automated process can determine the\nresource is fully terminated.\nIf not set, graceful deletion of the object has not been requested.\n\nPopulated by the system when a graceful deletion is requested.\nRead-only.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata\n+optional\n+k8s:alpha(since: \"1.37\")=+k8s:optional\n+k8s:alpha(since: \"1.37\")=+k8s:immutable",
                     "type": "string"
                 },
                 "finalizers": {
@@ -15581,7 +17137,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "generation": {
-                    "description": "A sequence number representing a specific generation of the desired state.\nPopulated by the system. Read-only.\n+optional",
+                    "description": "A sequence number representing a specific generation of the desired state.\nPopulated by the system. Read-only.\n+optional\n+k8s:alpha(since: \"1.37\")=+k8s:optional\n+k8s:alpha(since: \"1.37\")=+k8s:minimum=0",
                     "type": "integer"
                 },
                 "labels": {
@@ -15592,7 +17148,7 @@ const docTemplate = `{
                     }
                 },
                 "managedFields": {
-                    "description": "ManagedFields maps workflow-id and version to the set of fields\nthat are managed by that workflow. This is mostly for internal\nhousekeeping, and users typically shouldn't need to set or\nunderstand this field. A workflow can be the user's name, a\ncontroller's name, or the name of a specific apply path like\n\"ci-cd\". The set of fields is always in the version that the\nworkflow used when modifying the object.\n\n+optional\n+listType=atomic",
+                    "description": "ManagedFields maps workflow-id and version to the set of fields\nthat are managed by that workflow. This is mostly for internal\nhousekeeping, and users typically shouldn't need to set or\nunderstand this field. A workflow can be the user's name, a\ncontroller's name, or the name of a specific apply path like\n\"ci-cd\". The set of fields is always in the version that the\nworkflow used when modifying the object.\n\n+optional\n+listType=atomic\n+k8s:alpha(since: \"1.37\")=+k8s:optional",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/v1.ManagedFieldsEntry"
@@ -15607,7 +17163,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "ownerReferences": {
-                    "description": "List of objects depended by this object. If ALL objects in the list have\nbeen deleted, this object will be garbage collected. If this object is managed by a controller,\nthen an entry in this list will point to this controller, with the controller field set to true.\nThere cannot be more than one managing controller.\n+optional\n+patchMergeKey=uid\n+patchStrategy=merge\n+listType=map\n+listMapKey=uid",
+                    "description": "List of objects depended by this object. If ALL objects in the list have\nbeen deleted, this object will be garbage collected. If this object is managed by a controller,\nthen an entry in this list will point to this controller, with the controller field set to true.\nThere cannot be more than one managing controller.\n+optional\n+patchMergeKey=uid\n+patchStrategy=merge\n+listType=map\n+listMapKey=uid\n+k8s:alpha(since:\"1.37\")=+k8s:optional",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/v1.OwnerReference"
@@ -15622,7 +17178,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "uid": {
-                    "description": "UID is the unique in time and space value for this object. It is typically generated by\nthe server on successful creation of a resource and is not allowed to change on PUT\noperations.\n\nPopulated by the system.\nRead-only.\nMore info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids\n+optional",
+                    "description": "UID is the unique in time and space value for this object. It is typically generated by\nthe server on successful creation of a resource and is not allowed to change on PUT\noperations.\n\nPopulated by the system.\nRead-only.\nMore info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids\n+optional\n+k8s:alpha(since: \"1.37\")=+k8s:optional\n+k8s:alpha(since: \"1.37\")=+k8s:immutable",
                     "type": "string"
                 }
             }
@@ -15631,7 +17187,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "apiVersion": {
-                    "description": "API version of the referent.",
+                    "description": "API version of the referent.\n+k8s:alpha(since:\"1.37\")=+k8s:required",
                     "type": "string"
                 },
                 "blockOwnerDeletion": {
@@ -15643,15 +17199,15 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "kind": {
-                    "description": "Kind of the referent.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+                    "description": "Kind of the referent.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+k8s:alpha(since:\"1.37\")=+k8s:required",
                     "type": "string"
                 },
                 "name": {
-                    "description": "Name of the referent.\nMore info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names",
+                    "description": "Name of the referent.\nMore info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names\n+k8s:alpha(since:\"1.37\")=+k8s:required",
                     "type": "string"
                 },
                 "uid": {
-                    "description": "UID of the referent.\nMore info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids",
+                    "description": "UID of the referent.\nMore info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids\n+k8s:alpha(since:\"1.37\")=+k8s:required",
                     "type": "string"
                 }
             }
@@ -15665,6 +17221,149 @@ const docTemplate = `{
                 },
                 "kind": {
                     "description": "Kind is a string value representing the REST resource this object represents.\nServers may infer this from the endpoint the client submits requests to.\nCannot be updated.\nIn CamelCase.\nMore info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds\n+optional",
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.CloudInitConfig": {
+            "type": "object",
+            "properties": {
+                "networkData": {
+                    "description": "NetworkData contains cloud-init network configuration directly\nThis follows the cloud-init network config v1 or v2 format\n+optional",
+                    "type": "string"
+                },
+                "networkDataBase64": {
+                    "description": "NetworkDataBase64 contains base64-encoded network data\n+optional",
+                    "type": "string"
+                },
+                "networkDataConfigMapRef": {
+                    "description": "NetworkDataConfigMapRef references a ConfigMap containing cloud-init network data\nThe ConfigMap should have a key named 'networkdata' or a custom key specified\n+optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.CloudInitConfigMapRef"
+                        }
+                    ]
+                },
+                "networkDataSecretRef": {
+                    "description": "NetworkDataSecretRef references a Secret containing cloud-init network data\nThe Secret should have a key named 'networkdata' or a custom key specified in NetworkDataSecretKey\n+optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.CloudInitSecretRef"
+                        }
+                    ]
+                },
+                "type": {
+                    "description": "Type specifies the cloud-init type to use\nValid values are: noCloud, configDrive\n+kubebuilder:validation:Enum=noCloud;configDrive\n+kubebuilder:default=noCloud",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.CloudInitType"
+                        }
+                    ]
+                },
+                "userData": {
+                    "description": "UserData contains cloud-init user data content directly\nThis is typically a cloud-config YAML starting with #cloud-config\n+optional",
+                    "type": "string"
+                },
+                "userDataBase64": {
+                    "description": "UserDataBase64 contains base64-encoded cloud-init user data\nUse this for binary or pre-encoded data\n+optional",
+                    "type": "string"
+                },
+                "userDataConfigMapRef": {
+                    "description": "UserDataConfigMapRef references a ConfigMap containing cloud-init user data\nThe ConfigMap should have a key named 'userdata' or a custom key specified\n+optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.CloudInitConfigMapRef"
+                        }
+                    ]
+                },
+                "userDataSecretRef": {
+                    "description": "UserDataSecretRef references a Secret containing cloud-init user data\nThe Secret should have a key named 'userdata' or a custom key specified in UserDataSecretKey\n+optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.CloudInitSecretRef"
+                        }
+                    ]
+                }
+            }
+        },
+        "v1alpha1.CloudInitConfigMapRef": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "description": "Key is the key within the ConfigMap containing the cloud-init data\nDefaults to 'userdata' for user data configs and 'networkdata' for network data configs\n+optional",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name is the name of the ConfigMap in the same namespace as the Machine\n+kubebuilder:validation:Required",
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.CloudInitSecretRef": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "description": "Key is the key within the Secret containing the cloud-init data\nDefaults to 'userdata' for user data secrets and 'networkdata' for network data secrets\n+optional",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name is the name of the Secret in the same namespace as the Machine\n+kubebuilder:validation:Required",
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.CloudInitType": {
+            "type": "string",
+            "enum": [
+                "noCloud",
+                "configDrive"
+            ],
+            "x-enum-varnames": [
+                "CloudInitTypeNoCloud",
+                "CloudInitTypeConfigDrive"
+            ]
+        },
+        "v1alpha1.CloudProviderConfig": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "description": "Provider-specific configuration",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "credentialsRef": {
+                    "description": "Credentials reference",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.CredentialsReference"
+                        }
+                    ]
+                },
+                "name": {
+                    "description": "Provider name (aws, azure, gcp, vsphere, openstack)",
+                    "type": "string"
+                },
+                "region": {
+                    "description": "Region where the machine should be created",
+                    "type": "string"
+                },
+                "zone": {
+                    "description": "Availability zone",
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.CredentialsReference": {
+            "type": "object",
+            "properties": {
+                "namespace": {
+                    "description": "Namespace of the secret (defaults to machine namespace)",
+                    "type": "string"
+                },
+                "secretName": {
+                    "description": "Name of the secret containing credentials",
                     "type": "string"
                 }
             }
@@ -15933,27 +17632,6 @@ const docTemplate = `{
                 }
             }
         },
-        "v1alpha1.KubernetesClusterSpec": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "description": "+kubebuilder:validation:Required",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1alpha1.KubernetesClusterSpecData"
-                        }
-                    ]
-                },
-                "topology": {
-                    "description": "+kubebuilder:validation:Required",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/v1alpha1.KubernetesClusterSpecTopology"
-                        }
-                    ]
-                }
-            }
-        },
         "v1alpha1.KubernetesClusterSpecControlPlane": {
             "type": "object",
             "properties": {
@@ -16007,6 +17685,10 @@ const docTemplate = `{
                 },
                 "environment": {
                     "description": "+kubebuilder:validation:Required",
+                    "type": "string"
+                },
+                "networkNamespaceName": {
+                    "description": "NetworkNamespaceName is the name of the NetworkNamespace object in the same namespace\nthat should be used for network configuration (VLAN, IP prefix, etc.).\nOperators will look up this specific NetworkNamespace by name to resolve\nVLAN, IP prefix, and other network settings.\n+kubebuilder:validation:Required\n+kubebuilder:validation:MinLength=1",
                     "type": "string"
                 },
                 "project": {
@@ -16075,24 +17757,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/v1alpha1.KubernetesClusterWorkers"
                         }
                     ]
-                }
-            }
-        },
-        "v1alpha1.KubernetesClusterStatus": {
-            "type": "object",
-            "properties": {
-                "conditions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1alpha1.KubernetesClusterCondition"
-                    }
-                },
-                "phase": {
-                    "description": "Provisioning, Running, Deleting, Failed, Updating",
-                    "type": "string"
-                },
-                "state": {
-                    "$ref": "#/definitions/v1alpha1.KubernetesClusterClusterState"
                 }
             }
         },
@@ -16234,6 +17898,564 @@ const docTemplate = `{
                 "KubernetesProviderTypeTalos",
                 "KubernetesProviderTypeAKS"
             ]
+        },
+        "v1alpha1.MachineBackup": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "description": "Whether to enable automated backups",
+                    "type": "boolean"
+                },
+                "retentionDays": {
+                    "description": "Retention period in days",
+                    "type": "integer"
+                },
+                "schedule": {
+                    "description": "Backup schedule (cron format)",
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.MachineCPU": {
+            "type": "object",
+            "properties": {
+                "cores": {
+                    "description": "Number of CPU cores\n+kubebuilder:validation:Minimum=1\n+kubebuilder:validation:Maximum=256",
+                    "type": "integer"
+                },
+                "sockets": {
+                    "description": "Number of CPU sockets\n+kubebuilder:validation:Minimum=1\n+kubebuilder:validation:Maximum=16",
+                    "type": "integer"
+                },
+                "threadsPerCore": {
+                    "description": "Number of threads per core\n+kubebuilder:validation:Minimum=1\n+kubebuilder:validation:Maximum=8",
+                    "type": "integer"
+                }
+            }
+        },
+        "v1alpha1.MachineCondition": {
+            "type": "object",
+            "properties": {
+                "lastTransitionTime": {
+                    "description": "Last time the condition transitioned from one status to another",
+                    "type": "string"
+                },
+                "message": {
+                    "description": "A human readable message indicating details about the transition",
+                    "type": "string"
+                },
+                "reason": {
+                    "description": "The reason for the condition's last transition",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status of the condition (True, False, Unknown)",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type of condition",
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.MachineNetwork": {
+            "type": "object",
+            "properties": {
+                "assignPublicIP": {
+                    "description": "Whether to assign a public IP",
+                    "type": "boolean"
+                },
+                "interfaces": {
+                    "description": "Network interfaces",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1alpha1.NetworkInterface"
+                    }
+                },
+                "networkNamespaceName": {
+                    "description": "NetworkNamespaceName is the name of the NetworkNamespace object in the same namespace\nthat provides network configuration (VLAN, IP prefix, etc.) for this machine.\nWhen set, operators will look up this specific NetworkNamespace by name instead of\nlisting all NetworkNamespaces in the namespace and picking the first one.\nThis is typically propagated from the KubernetesCluster spec.\n+kubebuilder:validation:Optional",
+                    "type": "string"
+                },
+                "privateIP": {
+                    "description": "Static private IP address",
+                    "type": "string"
+                },
+                "publicIP": {
+                    "description": "Static public IP address or Elastic IP",
+                    "type": "string"
+                },
+                "subnet": {
+                    "description": "Subnet ID",
+                    "type": "string"
+                },
+                "vpc": {
+                    "description": "VPC/Virtual Network ID",
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.MachineOS": {
+            "type": "object",
+            "properties": {
+                "architecture": {
+                    "description": "Architecture (amd64, arm64)\n+kubebuilder:validation:Enum=amd64;arm64;x86_64",
+                    "type": "string"
+                },
+                "distribution": {
+                    "description": "Distribution (ubuntu, centos, rhel, windows-server, debian, alpine)",
+                    "type": "string"
+                },
+                "family": {
+                    "description": "Operating system family (linux, windows)",
+                    "type": "string"
+                },
+                "imageFamily": {
+                    "description": "Image family or marketplace image",
+                    "type": "string"
+                },
+                "imageID": {
+                    "description": "Image ID/AMI/Template ID",
+                    "type": "string"
+                },
+                "isoUri": {
+                    "description": "ISO URI for custom installations",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "Version of the OS",
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.MachineProviderType": {
+            "type": "string",
+            "enum": [
+                "kubevirt",
+                "proxmox"
+            ],
+            "x-enum-varnames": [
+                "MachineProviderTypeKubevirt",
+                "MachineProviderTypeProxmox"
+            ]
+        },
+        "v1alpha1.MachineSpec": {
+            "type": "object",
+            "properties": {
+                "backup": {
+                    "description": "Backup configuration",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.MachineBackup"
+                        }
+                    ]
+                },
+                "cloudInit": {
+                    "description": "Cloud-init configuration for VM initialization",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.CloudInitConfig"
+                        }
+                    ]
+                },
+                "cpu": {
+                    "description": "CPU configuration",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.MachineCPU"
+                        }
+                    ]
+                },
+                "disks": {
+                    "description": "Disk configuration",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1alpha1.MachineSpecDisk"
+                    }
+                },
+                "machineClass": {
+                    "description": "The machine class of the machine (e.g., t3.medium, Standard_B2s, n1-standard-2)\n+kubebuilder:validation:MinLength=1",
+                    "type": "string"
+                },
+                "machineType": {
+                    "description": "The provider-specific machine type override",
+                    "type": "string"
+                },
+                "memory": {
+                    "description": "Memory configuration in bytes\n+kubebuilder:validation:Minimum=0",
+                    "type": "integer"
+                },
+                "monitoring": {
+                    "description": "Whether to enable monitoring",
+                    "type": "boolean"
+                },
+                "name": {
+                    "description": "The name of the machine\n+kubebuilder:validation:MinLength=1",
+                    "type": "string"
+                },
+                "network": {
+                    "description": "Network configuration",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.MachineNetwork"
+                        }
+                    ]
+                },
+                "os": {
+                    "description": "Operating system configuration",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.MachineOS"
+                        }
+                    ]
+                },
+                "provider": {
+                    "description": "Machine Provider\n+kubebuilder:validation:Required",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.MachineProviderType"
+                        }
+                    ]
+                },
+                "providerConfig": {
+                    "description": "Cloud provider configuration",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.CloudProviderConfig"
+                        }
+                    ]
+                },
+                "securityGroups": {
+                    "description": "Security groups or firewall rules",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "sshKeys": {
+                    "description": "SSH key configuration",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "tags": {
+                    "description": "Tags/labels to apply to the machine",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "userData": {
+                    "description": "User data script to run on first boot",
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.MachineSpecDisk": {
+            "type": "object",
+            "properties": {
+                "boot": {
+                    "description": "Whether this is the boot disk",
+                    "type": "boolean"
+                },
+                "device": {
+                    "description": "Device name (e.g., /dev/sda, /dev/nvme0n1)",
+                    "type": "string"
+                },
+                "encrypted": {
+                    "description": "Encryption settings",
+                    "type": "boolean"
+                },
+                "iops": {
+                    "description": "IOPS for the disk (if supported by provider)\n+kubebuilder:validation:Minimum=100\n+kubebuilder:validation:Maximum=64000",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "Name of the disk",
+                    "type": "string"
+                },
+                "sizeGB": {
+                    "description": "Size of the disk in GB\n+kubebuilder:validation:Minimum=1\n+kubebuilder:validation:Maximum=65536",
+                    "type": "integer"
+                },
+                "throughput": {
+                    "description": "Throughput in MB/s (if supported by provider)\n+kubebuilder:validation:Minimum=125\n+kubebuilder:validation:Maximum=4000",
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "Type of the disk (e.g., gp2, gp3, pd-ssd, Premium_LRS)",
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.MachineStatus": {
+            "type": "object",
+            "properties": {
+                "architecture": {
+                    "description": "The machine's CPU architecture",
+                    "type": "string"
+                },
+                "bootTime": {
+                    "description": "Boot time of the machine",
+                    "type": "string"
+                },
+                "conditions": {
+                    "description": "Conditions represent the latest available observations of the machine's state",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1alpha1.MachineCondition"
+                    }
+                },
+                "cpus": {
+                    "description": "Actual CPU count",
+                    "type": "integer"
+                },
+                "creationTime": {
+                    "description": "Creation time of the machine",
+                    "type": "string"
+                },
+                "disks": {
+                    "description": "Actual disk information",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1alpha1.MachineStatusDisk"
+                    }
+                },
+                "failureMessage": {
+                    "description": "Failure message if the machine failed to be created",
+                    "type": "string"
+                },
+                "failureReason": {
+                    "description": "Failure reason if the machine failed to be created",
+                    "type": "string"
+                },
+                "hostname": {
+                    "description": "The machine's hostname",
+                    "type": "string"
+                },
+                "ipAddresses": {
+                    "description": "The IP addresses of the machine",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "ipv6Addresses": {
+                    "description": "IPv6 addresses of the machine",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "kernelVersion": {
+                    "description": "The machine's kernel version",
+                    "type": "string"
+                },
+                "lastUpdated": {
+                    "description": "The last time the machine status was updated",
+                    "type": "string"
+                },
+                "machineID": {
+                    "description": "Internal machine identifier",
+                    "type": "string"
+                },
+                "memory": {
+                    "description": "Actual memory in bytes",
+                    "type": "integer"
+                },
+                "message": {
+                    "description": "Detailed status message",
+                    "type": "string"
+                },
+                "networkInterfaces": {
+                    "description": "Network interface information",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1alpha1.NetworkInterfaceStatus"
+                    }
+                },
+                "operatingSystem": {
+                    "description": "The machine's operating system",
+                    "type": "string"
+                },
+                "operatingSystemVersion": {
+                    "description": "The machine's operating system version",
+                    "type": "string"
+                },
+                "phase": {
+                    "description": "Current phase of the machine (Pending, Creating, Running, Stopping, Stopped, Terminating, Terminated, Failed)",
+                    "type": "string"
+                },
+                "privateIPAddresses": {
+                    "description": "Private IP addresses",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "provider": {
+                    "description": "The provider that created this machine",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/v1alpha1.MachineProviderType"
+                        }
+                    ]
+                },
+                "providerID": {
+                    "description": "The unique identifier assigned by the provider",
+                    "type": "string"
+                },
+                "publicIPAddresses": {
+                    "description": "Public IP addresses",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "region": {
+                    "description": "The region where the machine is located",
+                    "type": "string"
+                },
+                "state": {
+                    "description": "The current state of the machine",
+                    "type": "string"
+                },
+                "zone": {
+                    "description": "The zone where the machine is located",
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.MachineStatusDisk": {
+            "type": "object",
+            "properties": {
+                "accessModes": {
+                    "description": "Access modes, readwriteonce, readwritemany, readonlymany",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "availableBytes": {
+                    "description": "Available space in bytes",
+                    "type": "integer"
+                },
+                "device": {
+                    "description": "Device path (e.g., /dev/sda)",
+                    "type": "string"
+                },
+                "filesystemType": {
+                    "description": "The disk's filesystem type (e.g., ext4, xfs)",
+                    "type": "string"
+                },
+                "label": {
+                    "description": "The disk's label",
+                    "type": "string"
+                },
+                "mountPoint": {
+                    "description": "The disk's mount point",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "The disk's name",
+                    "type": "string"
+                },
+                "pvcName": {
+                    "description": "PVC name",
+                    "type": "string"
+                },
+                "serialNumber": {
+                    "description": "The disk's serial number",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "The disk's size in bytes",
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "The disk's type (e.g., SSD, HDD, gp2, gp3)",
+                    "type": "string"
+                },
+                "usagePercent": {
+                    "description": "Usage percentage as string (e.g., \"75.5%\")",
+                    "type": "string"
+                },
+                "usedBytes": {
+                    "description": "Used space in bytes",
+                    "type": "integer"
+                },
+                "uuid": {
+                    "description": "The disk's UUID",
+                    "type": "string"
+                },
+                "volumeMode": {
+                    "description": "Volume mode, filesystem or block",
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.NetworkInterface": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "Name of the network interface",
+                    "type": "string"
+                },
+                "primary": {
+                    "description": "Whether this is the primary interface",
+                    "type": "boolean"
+                },
+                "securityGroups": {
+                    "description": "Security groups for this interface",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "subnet": {
+                    "description": "Subnet for this interface",
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.NetworkInterfaceStatus": {
+            "type": "object",
+            "properties": {
+                "ipAddresses": {
+                    "description": "IP addresses assigned to this interface",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "ipv6Addresses": {
+                    "description": "IPv6 addresses assigned to this interface",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "macAddress": {
+                    "description": "MAC address",
+                    "type": "string"
+                },
+                "mtu": {
+                    "description": "MTU size",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "Name of the network interface",
+                    "type": "string"
+                },
+                "state": {
+                    "description": "Interface state (up, down)",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Interface type (ethernet, wifi, etc.)",
+                    "type": "string"
+                }
+            }
         }
     },
     "securityDefinitions": {
@@ -16257,7 +18479,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Swagger ROR-API",
-	Description:      "ROR-API, need any help? Go to channel #drift-sdi-devops in norskhelsenett.slack.com slack workspace",
+	Description:      "ROR-API",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

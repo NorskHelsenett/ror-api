@@ -15,6 +15,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -450,8 +451,8 @@ func seedAclv2Items(ctx context.Context) {
 
 	aclv2items := []aclmodels.AclV2ListItem{
 		*aclmodels.NewAclV2ListItem("A-T1-SDI-DevOps-Operators@ror.dev",
-			aclmodels.Acl2ScopeRor,
-			aclmodels.Acl2Subject(aclmodels.Acl2RorSubjectGlobal),
+			aclscope.ScopeRor,
+			aclscope.Subject(aclscope.SubjectGlobal),
 			aclmodels.NewAclV2ListItemAccessAll(),
 			true,
 			"system@ror.dev",
@@ -459,72 +460,72 @@ func seedAclv2Items(ctx context.Context) {
 
 		*aclmodels.NewAclV2ListItem(
 			"service-nhn@ror.system",
-			aclmodels.Acl2ScopeRor,
-			aclmodels.Acl2Subject(aclmodels.Acl2ScopeCluster),
+			aclscope.ScopeRor,
+			aclscope.Subject(aclscope.ScopeCluster),
 			aclmodels.NewAclV2ListItemAccessEditor(),
 			false,
 			"system@ror.dev",
 		),
 		*aclmodels.NewAclV2ListItem(
 			"service-audit@ror.system",
-			aclmodels.Acl2ScopeRor,
-			aclmodels.Acl2Subject(aclmodels.Acl2RorSubjectGlobal),
+			aclscope.ScopeRor,
+			aclscope.Subject(aclscope.SubjectGlobal),
 			aclmodels.NewAclV2ListItemAccessReadOnly(),
 			false,
 			"system@ror.dev",
 		),
 		*aclmodels.NewAclV2ListItem(
 			"service-msswitchboard@ror.system",
-			aclmodels.Acl2ScopeRor,
-			aclmodels.Acl2Subject(aclmodels.Acl2RorSubjectGlobal),
+			aclscope.ScopeRor,
+			aclscope.Subject(aclscope.SubjectGlobal),
 			aclmodels.NewAclV2ListItemAccessContributor(),
 			false,
 			"system@ror.dev",
 		),
 		*aclmodels.NewAclV2ListItem(
 			"service-mstanzu@ror.system",
-			aclmodels.Acl2ScopeRor,
-			aclmodels.Acl2Subject(aclmodels.Acl2RorSubjectGlobal),
+			aclscope.ScopeRor,
+			aclscope.Subject(aclscope.SubjectGlobal),
 			aclmodels.NewAclV2ListItemAccessOperator(),
 			false,
 			"system@ror.dev",
 		),
 		*aclmodels.NewAclV2ListItem(
 			"service-tanzu-agent@ror.system",
-			aclmodels.Acl2ScopeRor,
-			aclmodels.Acl2Subject(aclmodels.Acl2RorSubjectGlobal),
+			aclscope.ScopeRor,
+			aclscope.Subject(aclscope.SubjectGlobal),
 			aclmodels.NewAclV2ListItemAccessOperator(),
 			false,
 			"system@ror.dev",
 		),
 		*aclmodels.NewAclV2ListItem(
 			"service-mskind@ror.system",
-			aclmodels.Acl2ScopeRor,
-			aclmodels.Acl2Subject(aclmodels.Acl2RorSubjectGlobal),
+			aclscope.ScopeRor,
+			aclscope.Subject(aclscope.SubjectGlobal),
 			aclmodels.NewAclV2ListItemAccessOperator(),
 			false,
 			"system@ror.dev",
 		),
 		*aclmodels.NewAclV2ListItem(
 			"service-msvulnerability@ror.system",
-			aclmodels.Acl2ScopeRor,
-			aclmodels.Acl2Subject(aclmodels.Acl2RorSubjectGlobal),
+			aclscope.ScopeRor,
+			aclscope.Subject(aclscope.SubjectGlobal),
 			aclmodels.NewAclV2ListItemAccessContributor(),
 			false,
 			"system@ror.dev",
 		),
 		*aclmodels.NewAclV2ListItem(
 			"service-msslack@ror.system",
-			aclmodels.Acl2ScopeRor,
-			aclmodels.Acl2Subject(aclmodels.Acl2RorSubjectGlobal),
+			aclscope.ScopeRor,
+			aclscope.Subject(aclscope.SubjectGlobal),
 			aclmodels.NewAclV2ListItemAccessContributor(),
 			false,
 			"system@ror.dev",
 		),
 		*aclmodels.NewAclV2ListItem(
 			"service-mstalos@ror.system",
-			aclmodels.Acl2ScopeRor,
-			aclmodels.Acl2Subject(aclmodels.Acl2RorSubjectGlobal),
+			aclscope.ScopeRor,
+			aclscope.Subject(aclscope.SubjectGlobal),
 			aclmodels.NewAclV2ListItemAccessOperator(),
 			false,
 			"system@ror.dev",

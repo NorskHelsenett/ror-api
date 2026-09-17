@@ -12,6 +12,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
@@ -62,7 +63,7 @@ func OrderCluster() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: create
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -125,7 +126,7 @@ func DeleteCluster() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: create
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -188,7 +189,7 @@ func GetOrders() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: read
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -200,8 +201,8 @@ func GetOrders() gin.HandlerFunc {
 
 		// TODO: need to be filtered
 		orders, err := resourcesservice.GetClusterorders(ctx, apiresourcecontracts.ResourceOwnerReference{
-			Scope:   aclmodels.Acl2ScopeRor,
-			Subject: string(aclmodels.Acl2RorSubjectGlobal),
+			Scope:   aclscope.ScopeRor,
+			Subject: string(aclscope.SubjectGlobal),
 		})
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "error getting orders", err)
@@ -237,7 +238,7 @@ func GetOrder() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: read
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -262,8 +263,8 @@ func GetOrder() gin.HandlerFunc {
 		}
 
 		order, err := resourcesservice.GetClusterOrderByUid(ctx, apiresourcecontracts.ResourceOwnerReference{
-			Scope:   aclmodels.Acl2ScopeRor,
-			Subject: string(aclmodels.Acl2RorSubjectGlobal),
+			Scope:   aclscope.ScopeRor,
+			Subject: string(aclscope.SubjectGlobal),
 		}, universalId.String())
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "error getting orders", err)
@@ -313,7 +314,7 @@ func DeleteOrder() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: delete
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbDelete))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbDelete))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return

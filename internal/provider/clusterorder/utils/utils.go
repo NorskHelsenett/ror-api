@@ -15,7 +15,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/projectsservice"
 	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
 
-	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
@@ -52,8 +52,8 @@ func NewResourceUpdate(ctx context.Context, order apiresourcecontracts.ResourceC
 
 	resource := apiresourcecontracts.ResourceUpdateModel{
 		Owner: apiresourcecontracts.ResourceOwnerReference{
-			Scope:   aclmodels.Acl2ScopeRor,
-			Subject: string(aclmodels.Acl2RorSubjectGlobal),
+			Scope:   aclscope.ScopeRor,
+			Subject: string(aclscope.SubjectGlobal),
 		},
 		ApiVersion: order.ApiVersion,
 		Kind:       order.Kind,
@@ -116,8 +116,8 @@ func ValidateOrder(ctx context.Context, order apiresourcecontracts.ResourceClust
 	// TODO: Find a way to diferenciate between different owners
 	// TODO: Find a way to allow actions on two clusters with the same name simultaneously
 	owner := apiresourcecontracts.ResourceOwnerReference{
-		Scope:   aclmodels.Acl2ScopeRor,
-		Subject: string(aclmodels.Acl2RorSubjectGlobal),
+		Scope:   aclscope.ScopeRor,
+		Subject: string(aclscope.SubjectGlobal),
 	}
 	clusterOrders, err := resourcesservice.GetClusterorders(ctx, owner)
 	if err != nil {

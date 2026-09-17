@@ -1,76 +1,87 @@
 basePath: /
 definitions:
-  aclmodels.Acl2Scope:
+  aclmodels.AccessTypeV3:
     enum:
-    - UNKNOWN
-    - ror
-    - cluster
-    - project
-    - datacenter
-    - virtualmachine
-    - backup
+    - ror:read
+    - ror:write
+    - ror:owner
+    - ror:metadata:write
+    - ror:vulnerability:read
+    - ror:vulnerability:write
+    - ror:config:read
+    - ror:config:write
+    - kubernetes:logon
+    - kubernetes:admin
+    - kubernetes:readonly
+    - kubernetes:argocd:admin
+    - kubernetes:argocd:project:admin
+    - kubernetes:grafana:admin
+    - virtualmachine:delete
     type: string
-    x-enum-comments:
-      Acl2ScopeRor: ROR
-      Acl2ScopeUnknown: unknown
-    x-enum-descriptions:
-    - unknown
-    - ROR
-    - ""
-    - ""
-    - ""
-    - ""
-    - ""
     x-enum-varnames:
-    - Acl2ScopeUnknown
-    - Acl2ScopeRor
-    - Acl2ScopeCluster
-    - Acl2ScopeProject
-    - Acl2ScopeDatacenter
-    - Acl2ScopeVirtualMachine
-    - Acl2ScopeBackup
-  aclmodels.Acl2Subject:
-    enum:
-    - UNKNOWN
-    - cluster
-    - project
-    - globalscope
-    - acl
-    - apikey
-    - datacenter
-    - workspace
-    - price
-    - virtualmachine
-    - backup
-    type: string
-    x-enum-comments:
-      Acl2RorSubjectAcl: 'for subject, not scope, TODO: new const'
-      Acl2RorSubjectApiKey: api key
-      Acl2RorSubjectGlobal: 'for subject, not scope, TODO: new const'
-    x-enum-descriptions:
-    - ""
-    - ""
-    - ""
-    - 'for subject, not scope, TODO: new const'
-    - 'for subject, not scope, TODO: new const'
-    - api key
-    - ""
-    - ""
-    - ""
-    - ""
-    - ""
-    x-enum-varnames:
-    - Acl2RorSubjecUnknown
-    - Acl2RorSubjectCluster
-    - Acl2RorSubjectProject
-    - Acl2RorSubjectGlobal
-    - Acl2RorSubjectAcl
-    - Acl2RorSubjectApiKey
-    - Acl2RorSubjectDatacenter
-    - Acl2RorSubjectWorkspace
-    - Acl2RorSubjectPrice
-    - Acl2RorSubjectVirtualMachine
-    - Acl2RorSubjectBackup
+    - AccessRorRead
+    - AccessRorWrite
+    - AccessRorOwner
+    - AccessRorMetadataWrite
+    - AccessRorVulnerabilityRead
+    - AccessRorVulnerabilityWrite
+    - AccessRorConfigRead
+    - AccessRorConfigWrite
+    - AccessKubernetesLogon
+    - AccessKubernetesAdmin
+    - AccessKubernetesReadonly
+    - AccessKubernetesArgocdAdmin
+    - AccessKubernetesArgocdProjectAdmin
+    - AccessKubernetesGrafanaAdmin
+    - AccessVirtualmachineDelete
+  aclmodels.Acl3LookupByScopeSubjectAccessGroup:
+    properties:
+      access:
+        $ref: '#/definitions/aclmodels.AccessTypeV3'
+      group:
+        type: string
+      provenance:
+        description: |-
+          Provenance lists every resource in the tree (the queried resource and/or
+          its ancestors) on which this group has this access, one entry per level.
+        items:
+          $ref: '#/definitions/aclmodels.Acl3LookupProvenance'
+        type: array
+    type: object
+  aclmodels.Acl3LookupByScopeSubjectResponse:
+    properties:
+      accessGroups:
+        items:
+          $ref: '#/definitions/aclmodels.Acl3LookupByScopeSubjectAccessGroup'
+        type: array
+      scope:
+        $ref: '#/definitions/aclscope.Scope'
+      subject:
+        $ref: '#/definitions/aclscope.Subject'
+    type: object
+  aclmodels.Acl3LookupProvenance:
+    properties:
+      level:
+        type: integer
+      scope:
+        $ref: '#/definitions/aclscope.Scope'
+      subject:
+        $ref: '#/definitions/aclscope.Subject'
+    type: object
+  aclmodels.AclLookupResponse:
+    properties:
+      scopes:
+        additionalProperties:
+          $ref: '#/definitions/aclmodels.AclLookupResponseScope'
+        type: object
+    type: object
+  aclmodels.AclLookupResponseScope:
+    properties:
+      subject:
+        additionalProperties:
+          $ref: '#/definitions/aclmodels.AclV2ListItemAccess'
+        type: object
+    type: object
   aclmodels.AclV2ListItem:
     properties:
       access:
@@ -95,12 +106,12 @@ definitions:
         description: v2 access model for kubernetes
       scope:
         allOf:
-        - $ref: '#/definitions/aclmodels.Acl2Scope'
+        - $ref: '#/definitions/aclscope.Scope'
         description: Type of object ['cluster','project']
         minLength: 1
       subject:
         allOf:
-        - $ref: '#/definitions/aclmodels.Acl2Subject'
+        - $ref: '#/definitions/aclscope.Subject'
         description: The subject eg. clusterid, projectid (can be 'All')
         minLength: 1
       version:
@@ -121,6 +132,9 @@ definitions:
       delete:
         description: Delete metadata of subject
         type: boolean
+      kuberneteslogon:
+        description: Logon to cluster
+        type: boolean
       owner:
         description: Delete metadata of subject
         type: boolean
@@ -137,6 +151,114 @@ definitions:
         description: Logon to subject if 'cluster'
         type: boolean
     type: object
+  aclmodels.AclV3ListItem:
+    properties:
+      access:
+        items:
+          $ref: '#/definitions/aclmodels.AccessTypeV3'
+        type: array
+      created:
+        type: string
+      group:
+        minLength: 1
+        type: string
+      id:
+        type: string
+      issuedBy:
+        type: string
+      scope:
+        allOf:
+        - $ref: '#/definitions/aclscope.Scope'
+        minLength: 1
+      subject:
+        allOf:
+        - $ref: '#/definitions/aclscope.Subject'
+        minLength: 1
+      version:
+        default: 3
+        type: integer
+    required:
+    - access
+    - group
+    - scope
+    - subject
+    type: object
+  aclmodels.AclV3LookupOwnerref:
+    properties:
+      scope:
+        $ref: '#/definitions/aclscope.Scope'
+      subject:
+        $ref: '#/definitions/aclscope.Subject'
+    type: object
+  aclmodels.AclV3LookupResponse:
+    properties:
+      access:
+        $ref: '#/definitions/aclmodels.AccessTypeV3'
+      ownerrefs:
+        items:
+          $ref: '#/definitions/aclmodels.AclV3LookupOwnerref'
+        type: array
+      unrestricted:
+        type: boolean
+    type: object
+  aclscope.Scope:
+    enum:
+    - UNKNOWN
+    - ror
+    - KubernetesCluster
+    - Project
+    - Datacenter
+    - VirtualMachine
+    - Machine
+    - BackupJob
+    - Database
+    - all
+    - spam
+    type: string
+    x-enum-varnames:
+    - ScopeUnknown
+    - ScopeRor
+    - ScopeCluster
+    - ScopeProject
+    - ScopeDatacenter
+    - ScopeVirtualMachine
+    - ScopeMachine
+    - ScopeBackup
+    - ScopeDatabase
+    - ScopeAll
+    - ScopeSpam
+  aclscope.Subject:
+    enum:
+    - UNKNOWN
+    - cluster
+    - project
+    - globalscope
+    - acl
+    - apikey
+    - datacenter
+    - workspace
+    - price
+    - virtualmachine
+    - backup
+    - database
+    - all
+    - spamgit
+    type: string
+    x-enum-varnames:
+    - SubjectUnknown
+    - SubjectCluster
+    - SubjectProject
+    - SubjectGlobal
+    - SubjectAcl
+    - SubjectApiKey
+    - SubjectDatacenter
+    - SubjectWorkspace
+    - SubjectPrice
+    - SubjectVirtualMachine
+    - SubjectBackup
+    - SubjectDatabase
+    - SubjectAll
+    - SubjectSpamGit
   apicontracts.AccessControlList:
     properties:
       accessGroups:
@@ -177,6 +299,8 @@ definitions:
         allOf:
         - $ref: '#/definitions/apicontracts.ApiKeyType'
         minLength: 1
+      uid:
+        type: string
     required:
     - displayName
     - identifier
@@ -274,6 +398,8 @@ definitions:
         $ref: '#/definitions/apicontracts.ClusterStatus'
       topology:
         $ref: '#/definitions/apicontracts.Topology'
+      uid:
+        type: string
       updated:
         type: string
       versions:
@@ -299,12 +425,12 @@ definitions:
   apicontracts.ClusterConfig:
     properties:
       overrides:
-        additionalProperties: true
+        additionalProperties: {}
         type: object
       projectMetadata:
         $ref: '#/definitions/apicontracts.ProjectMetadata'
       versions:
-        additionalProperties: true
+        additionalProperties: {}
         type: object
     type: object
   apicontracts.ClusterControlPlaneMetadata:
@@ -840,6 +966,20 @@ definitions:
         type: integer
       cpupercentage:
         type: number
+      diskPercent:
+        type: number
+      diskTotalBytes:
+        type: integer
+      diskUsageBytes:
+        description: Node exporter fields (populated from Prometheus node_exporter,
+          omitted when zero)
+        type: integer
+      load1:
+        type: number
+      load5:
+        type: number
+      load15:
+        type: number
       memory:
         type: integer
       memoryallocated:
@@ -848,6 +988,10 @@ definitions:
         type: number
       name:
         type: string
+      networkRxBytes:
+        type: number
+      networkTxBytes:
+        type: number
       time:
         type: string
     type: object
@@ -900,6 +1044,19 @@ definitions:
       data:
         items:
           $ref: '#/definitions/aclmodels.AclV2ListItem'
+        type: array
+      dataCount:
+        type: integer
+      offset:
+        type: integer
+      totalCount:
+        type: integer
+    type: object
+  apicontracts.PaginatedResult-aclmodels_AclV3ListItem:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/aclmodels.AclV3ListItem'
         type: array
       dataCount:
         type: integer
@@ -1308,10 +1465,14 @@ definitions:
         type: array
       name:
         type: string
+      uid:
+        type: string
     type: object
   apikeystypes.RegisterClusterRequest:
     properties:
       clusterid:
+        type: string
+      uid:
         type: string
     type: object
   apikeystypes.RegisterClusterResponse:
@@ -1319,6 +1480,8 @@ definitions:
       apikey:
         type: string
       clusterid:
+        type: string
+      uid:
         type: string
     type: object
   apiresourcecontracts.CriticalityLevel:
@@ -1437,7 +1600,7 @@ definitions:
       provider:
         $ref: '#/definitions/providermodels.ProviderType'
       providerConfig:
-        additionalProperties: true
+        additionalProperties: {}
         type: object
       sensitivity:
         allOf:
@@ -1690,7 +1853,7 @@ definitions:
     properties:
       scope:
         allOf:
-        - $ref: '#/definitions/aclmodels.Acl2Scope'
+        - $ref: '#/definitions/aclscope.Scope'
         description: cluster, workspace,...
       subject:
         description: ror id eg clusterId or workspaceName
@@ -1763,9 +1926,7 @@ definitions:
         type: array
       rows:
         items:
-          items:
-            $ref: '#/definitions/apiview.ViewValue'
-          type: array
+          $ref: '#/definitions/apiview.ViewRow'
         type: array
       type:
         $ref: '#/definitions/apiview.ViewType'
@@ -1777,6 +1938,8 @@ definitions:
       description:
         type: string
       name:
+        description: name of the column, used as a key in the rows, must be unique
+          within a view
         type: string
       order:
         description: order of the column in the view, it may be holes and duplicates
@@ -1806,6 +1969,8 @@ definitions:
     - datetime
     - boolean
     - enum
+    - array
+    - object
     type: string
     x-enum-varnames:
     - ViewFieldTypeString
@@ -1814,6 +1979,8 @@ definitions:
     - ViewFieldTypeDateTime
     - ViewFieldTypeBoolean
     - ViewFieldTypeEnum
+    - ViewFieldTypeArray
+    - ViewFieldTypeObject
   apiview.ViewMetadata:
     properties:
       description:
@@ -1827,6 +1994,10 @@ definitions:
       version:
         type: integer
     type: object
+  apiview.ViewRow:
+    additionalProperties:
+      $ref: '#/definitions/apiview.ViewValue'
+    type: object
   apiview.ViewType:
     enum:
     - list
@@ -1839,18 +2010,31 @@ definitions:
     properties:
       description:
         type: string
-      fieldName:
-        description: must match the column name
+      fieldUnit:
         type: string
-      fieldValue:
-        type: string
+      fieldValue: {}
       resourceUid:
+        type: string
+    type: object
+  github_com_NorskHelsenett_ror-api_internal_apiservices_clustersservice.PurgeResult:
+    properties:
+      acl:
+        type: integer
+      clusterId:
+        type: string
+      clusters:
+        type: integer
+      resources:
+        type: integer
+      resourcesV2:
+        type: integer
+      uid:
         type: string
     type: object
   github_com_NorskHelsenett_ror-api_internal_models_responses.Cluster:
     properties:
       data:
-        additionalProperties: true
+        additionalProperties: {}
         type: object
       message:
         type: string
@@ -1894,7 +2078,7 @@ definitions:
     - HIGH
     - MEDIUM
     - LOW
-    - UNKOWN
+    - UNKNOWN
     type: string
     x-enum-varnames:
     - CRITICAL
@@ -2196,6 +2380,12 @@ definitions:
     - gke
     - talos
     - vitistack
+    - eks
+    - kubevirt
+    - openshift
+    - rancher
+    - proxmox
+    - vmware
     type: string
     x-enum-varnames:
     - ProviderTypeUnknown
@@ -2206,6 +2396,12 @@ definitions:
     - ProviderTypeGke
     - ProviderTypeTalos
     - ProviderTypeVitistack
+    - ProviderTypeEKS
+    - ProviderTypeKubevirt
+    - ProviderTypeOpenShift
+    - ProviderTypeRancher
+    - ProviderTypeProxmox
+    - ProviderTypeVmware
   resource.Quantity:
     properties:
       Format:
@@ -2242,11 +2438,11 @@ definitions:
     properties:
       scope:
         allOf:
-        - $ref: '#/definitions/aclmodels.Acl2Scope'
+        - $ref: '#/definitions/aclscope.Scope'
         description: cluster, workspace,...
       subject:
         allOf:
-        - $ref: '#/definitions/aclmodels.Acl2Subject'
+        - $ref: '#/definitions/aclscope.Subject'
         description: ror id eg clusterId or workspaceName
     type: object
   rorresources.Resource:
@@ -2275,6 +2471,8 @@ definitions:
         $ref: '#/definitions/rortypes.ResourceClusterOrder'
       clustervulnerabilityreport:
         $ref: '#/definitions/rortypes.ResourceClusterVulnerabilityReport'
+      config:
+        $ref: '#/definitions/rortypes.ResourceConfig'
       configauditreport:
         $ref: '#/definitions/rortypes.ResourceConfigAuditReport'
       configuration:
@@ -2306,6 +2504,10 @@ definitions:
         $ref: '#/definitions/rortypes.ResourceKubernetesCluster'
       kubernetesmachineclass:
         $ref: '#/definitions/rortypes.ResourceKubernetesMachineClass'
+      machine:
+        $ref: '#/definitions/rortypes.ResourceMachine'
+      manageddatabase:
+        $ref: '#/definitions/rortypes.ResourceManagedDatabase'
       metadata:
         $ref: '#/definitions/v1.ObjectMeta'
       namespace:
@@ -2314,6 +2516,8 @@ definitions:
         $ref: '#/definitions/rortypes.ResourceNetworkPolicy'
       node:
         $ref: '#/definitions/rortypes.ResourceNode'
+      organizationalunit:
+        $ref: '#/definitions/rortypes.ResourceOrganizationalUnit'
       persistentvolumeclaim:
         $ref: '#/definitions/rortypes.ResourcePersistentVolumeClaim'
       pod:
@@ -2352,6 +2556,8 @@ definitions:
         $ref: '#/definitions/rortypes.ResourceVirtualMachine'
       virtualmachineclass:
         $ref: '#/definitions/rortypes.ResourceVirtualMachineClass'
+      virtualmachinevulnerabilityinfo:
+        $ref: '#/definitions/rortypes.ResourceVirtualMachineVulnerabilityInfo'
       vulnerabilityevent:
         $ref: '#/definitions/rortypes.ResourceVulnerabilityEvent'
       vulnerabilityreport:
@@ -2401,6 +2607,25 @@ definitions:
         type: integer
       total:
         type: integer
+    type: object
+  rortypes.CVE:
+    properties:
+      cvss:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      references:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      vulnerableVersions:
+        items:
+          $ref: '#/definitions/rortypes.VulnerableVersion'
+        type: array
     type: object
   rortypes.CriticalityLevel:
     enum:
@@ -2452,6 +2677,137 @@ definitions:
     - EnvironmentTesting
     - EnvironmentQA
     - EnvironmentProduction
+  rortypes.KubernetesClusterAgentStatus:
+    properties:
+      az:
+        type: string
+      clusterId:
+        type: string
+      clusterName:
+        type: string
+      country:
+        type: string
+      createdAt:
+        type: string
+      datacenter:
+        type: string
+      endpoint:
+        $ref: '#/definitions/rortypes.KubernetesClusterAgentStatusEndpoint'
+      environment:
+        type: string
+      kubernetesProvider:
+        $ref: '#/definitions/providermodels.ProviderType'
+      lastSeen:
+        type: string
+      nodes:
+        $ref: '#/definitions/rortypes.KubernetesClusterAgentStatusNodes'
+      region:
+        type: string
+      urls:
+        additionalProperties:
+          type: string
+        type: object
+      versions:
+        additionalProperties:
+          type: string
+        type: object
+      workspaceId:
+        type: string
+    type: object
+  rortypes.KubernetesClusterAgentStatusEndpoint:
+    properties:
+      apiServer:
+        type: string
+      caCert:
+        type: string
+      egress:
+        type: string
+    type: object
+  rortypes.KubernetesClusterAgentStatusNodes:
+    properties:
+      controlPlane:
+        items:
+          $ref: '#/definitions/rortypes.KubernetesClusterAgentStatusNodesNodepoolsNodes'
+        type: array
+      nodepools:
+        items:
+          $ref: '#/definitions/rortypes.KubernetesClusterAgentStatusNodesNodepools'
+        type: array
+    type: object
+  rortypes.KubernetesClusterAgentStatusNodesNodepools:
+    properties:
+      name:
+        type: string
+      nodes:
+        items:
+          $ref: '#/definitions/rortypes.KubernetesClusterAgentStatusNodesNodepoolsNodes'
+        type: array
+    type: object
+  rortypes.KubernetesClusterAgentStatusNodesNodepoolsNodes:
+    properties:
+      architecture:
+        type: string
+      cpu:
+        $ref: '#/definitions/rortypes.KubernetesClusterAgentStatusNodesNodepoolsNodesResource'
+      kernelVersion:
+        type: string
+      kubernetesVersion:
+        type: string
+      memory:
+        $ref: '#/definitions/rortypes.KubernetesClusterAgentStatusNodesNodepoolsNodesResource'
+      name:
+        type: string
+      operatingSystem:
+        type: string
+      osImage:
+        type: string
+    type: object
+  rortypes.KubernetesClusterAgentStatusNodesNodepoolsNodesResource:
+    properties:
+      allocated:
+        $ref: '#/definitions/rortypes.Quantity'
+      capacity:
+        $ref: '#/definitions/rortypes.Quantity'
+    type: object
+  rortypes.KubernetesClusterSpec:
+    properties:
+      data:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.KubernetesClusterSpecData'
+        description: +kubebuilder:validation:Required
+      topology:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.KubernetesClusterSpecTopology'
+        description: +kubebuilder:validation:Required
+    type: object
+  rortypes.KubernetesClusterStatus:
+    properties:
+      conditions:
+        items:
+          $ref: '#/definitions/v1alpha1.KubernetesClusterCondition'
+        type: array
+      message:
+        description: Human-readable message describing current activity
+        type: string
+      phase:
+        description: Provisioning, Running, Deleting, Failed, Updating
+        type: string
+      state:
+        $ref: '#/definitions/v1alpha1.KubernetesClusterClusterState'
+      workers:
+        description: Total number of worker machines
+        type: integer
+    type: object
+  rortypes.OrganizationalUnitType:
+    enum:
+    - organization
+    - project
+    - group
+    type: string
+    x-enum-varnames:
+    - OrganizationalUnitTypeOrganization
+    - OrganizationalUnitTypeProject
+    - OrganizationalUnitTypeGroup
   rortypes.ProviderType:
     enum:
     - ""
@@ -2464,6 +2820,27 @@ definitions:
     - ProviderTypeTanzu
     - ProviderTypeAzure
     - ProviderTypeK3d
+  rortypes.Quantity:
+    properties:
+      Format:
+        enum:
+        - DecimalExponent
+        - BinarySI
+        - DecimalSI
+        type: string
+        x-enum-comments:
+          BinarySI: e.g., 12Mi (12 * 2^20)
+          DecimalExponent: e.g., 12e6
+          DecimalSI: e.g., 12M  (12 * 10^6)
+        x-enum-descriptions:
+        - e.g., 12e6
+        - e.g., 12Mi (12 * 2^20)
+        - e.g., 12M  (12 * 10^6)
+        x-enum-varnames:
+        - DecimalExponent
+        - BinarySI
+        - DecimalSI
+    type: object
   rortypes.ResourceAction:
     enum:
     - Add
@@ -2899,7 +3276,7 @@ definitions:
         - $ref: '#/definitions/rortypes.ProviderType'
         minLength: 1
       providerConfig:
-        additionalProperties: true
+        additionalProperties: {}
         type: object
       sensitivity:
         allOf:
@@ -3031,10 +3408,26 @@ definitions:
       unknown:
         type: integer
     type: object
+  rortypes.ResourceConfig:
+    properties:
+      spec:
+        $ref: '#/definitions/rortypes.ResourceConfigSpec'
+    type: object
   rortypes.ResourceConfigAuditReport:
     properties:
       report:
         $ref: '#/definitions/rortypes.ResourceVulnerabilityReportReport'
+    type: object
+  rortypes.ResourceConfigSpec:
+    properties:
+      data:
+        additionalProperties:
+          type: string
+        description: map of key value pairs, where value can be a template string
+          to be resolved by configservice
+        type: object
+      filter:
+        type: string
     type: object
   rortypes.ResourceConfiguration:
     properties:
@@ -3050,6 +3443,29 @@ definitions:
       type:
         type: string
     type: object
+  rortypes.ResourceContact:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      role:
+        $ref: '#/definitions/rortypes.ResourceContactRoleDefinition'
+    type: object
+  rortypes.ResourceContactRoleDefinition:
+    enum:
+    - ""
+    - Owner
+    - Responsible
+    - TechnicalContact
+    type: string
+    x-enum-varnames:
+    - ResourceRoleUnknown
+    - ResourceRoleOwner
+    - ResourceRoleResponsible
+    - ResourceRoleTechnicalContact
   rortypes.ResourceDaemonSet:
     properties:
       status:
@@ -3360,9 +3776,9 @@ definitions:
   rortypes.ResourceKubernetesCluster:
     properties:
       spec:
-        $ref: '#/definitions/v1alpha1.KubernetesClusterSpec'
+        $ref: '#/definitions/rortypes.ResourceKubernetesClusterSpec'
       status:
-        $ref: '#/definitions/v1alpha1.KubernetesClusterStatus'
+        $ref: '#/definitions/rortypes.ResourceKubernetesClusterStatus'
     type: object
   rortypes.ResourceKubernetesClusterOrderStatusCondition:
     properties:
@@ -3376,6 +3792,37 @@ definitions:
         type: string
       type:
         type: string
+    type: object
+  rortypes.ResourceKubernetesClusterSpec:
+    properties:
+      clusterMetadata:
+        $ref: '#/definitions/rortypes.ResourceKubernetesClusterSpecMetadataDetails'
+      vitiSpec:
+        $ref: '#/definitions/rortypes.KubernetesClusterSpec'
+    type: object
+  rortypes.ResourceKubernetesClusterSpecMetadataDetails:
+    properties:
+      contacts:
+        items:
+          $ref: '#/definitions/rortypes.ResourceContact'
+        type: array
+      criticality:
+        type: string
+      description:
+        type: string
+      sensitivity:
+        type: string
+      slackChannels:
+        items:
+          type: string
+        type: array
+    type: object
+  rortypes.ResourceKubernetesClusterStatus:
+    properties:
+      agentstatus:
+        $ref: '#/definitions/rortypes.KubernetesClusterAgentStatus'
+      providerstatus:
+        $ref: '#/definitions/rortypes.KubernetesClusterStatus'
     type: object
   rortypes.ResourceKubernetesMachineClass:
     properties:
@@ -3402,6 +3849,48 @@ definitions:
       gpu:
         type: boolean
       memory:
+        type: string
+      name:
+        type: string
+    type: object
+  rortypes.ResourceMachine:
+    properties:
+      spec:
+        $ref: '#/definitions/rortypes.ResourceMachineSpec'
+      status:
+        $ref: '#/definitions/rortypes.ResourceMachineStatus'
+    type: object
+  rortypes.ResourceMachineSpec:
+    properties:
+      providerSpec:
+        $ref: '#/definitions/v1alpha1.MachineSpec'
+    type: object
+  rortypes.ResourceMachineStatus:
+    properties:
+      providerStatus:
+        $ref: '#/definitions/v1alpha1.MachineStatus'
+    type: object
+  rortypes.ResourceManagedDatabase:
+    properties:
+      id:
+        type: string
+      provider:
+        type: string
+      spec:
+        $ref: '#/definitions/rortypes.ResourceManagedDatabaseSpec'
+      status:
+        $ref: '#/definitions/rortypes.ResourceManagedDatabaseStatus'
+    type: object
+  rortypes.ResourceManagedDatabaseSpec:
+    properties:
+      engine:
+        type: string
+      name:
+        type: string
+    type: object
+  rortypes.ResourceManagedDatabaseStatus:
+    properties:
+      engine:
         type: string
       name:
         type: string
@@ -3631,6 +4120,29 @@ definitions:
         type: string
       systemUUID:
         type: string
+    type: object
+  rortypes.ResourceOrganizationalUnit:
+    properties:
+      id:
+        type: string
+      spec:
+        $ref: '#/definitions/rortypes.ResourceOrganizationalUnitSpec'
+      status:
+        $ref: '#/definitions/rortypes.ResourceOrganizationalUnitStatus'
+    type: object
+  rortypes.ResourceOrganizationalUnitSpec:
+    properties:
+      name:
+        type: string
+      type:
+        $ref: '#/definitions/rortypes.OrganizationalUnitType'
+    type: object
+  rortypes.ResourceOrganizationalUnitStatus:
+    properties:
+      name:
+        type: string
+      type:
+        $ref: '#/definitions/rortypes.OrganizationalUnitType'
     type: object
   rortypes.ResourcePersistentVolumeClaim:
     properties:
@@ -3983,7 +4495,7 @@ definitions:
     type: object
   rortypes.ResourceSbomReportsComponent:
     properties:
-      bom-ref:
+      bomRef:
         type: string
       group:
         type: string
@@ -4744,6 +5256,36 @@ definitions:
       value:
         type: string
     type: object
+  rortypes.ResourceVirtualMachineVulnerabilityInfo:
+    properties:
+      hostName:
+        type: string
+      id:
+        type: string
+      spec:
+        $ref: '#/definitions/rortypes.ResourceVirtualMachineVulnerabilitySpec'
+      status:
+        $ref: '#/definitions/rortypes.ResourceVirtualMachineVulnerabilityStatus'
+    type: object
+  rortypes.ResourceVirtualMachineVulnerabilitySpec:
+    type: object
+  rortypes.ResourceVirtualMachineVulnerabilityStatus:
+    properties:
+      cves:
+        items:
+          $ref: '#/definitions/rortypes.CVE'
+        type: array
+      hostSeverity:
+        type: string
+      lastCalculationTime:
+        type: integer
+      lastReportTime:
+        type: integer
+      severity:
+        type: string
+      severityScore:
+        type: number
+    type: object
   rortypes.ResourceVulnerabilityEvent:
     properties:
       spec:
@@ -4897,6 +5439,13 @@ definitions:
     - NEEDS_TRIAGE
     - CONFIRMED
     - DISMISSED
+  rortypes.VulnerableVersion:
+    properties:
+      packageName:
+        type: string
+      version:
+        type: string
+    type: object
   rorversion.RorVersion:
     properties:
       commit:
@@ -4937,6 +5486,7 @@ definitions:
         description: |-
           Operation is the type of operation which lead to this ManagedFieldsEntry being created.
           The only valid values for this field are 'Apply' and 'Update'.
+          +k8s:alpha(since: "1.37")=+k8s:required
       subresource:
         description: |-
           Subresource is the name of the subresource used to update that object, or
@@ -4988,6 +5538,7 @@ definitions:
           Null for lists.
           More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
           +optional
+          +k8s:alpha(since: "1.37")=+k8s:immutable
         type: string
       deletionGracePeriodSeconds:
         description: |-
@@ -4996,6 +5547,8 @@ definitions:
           May only be shortened.
           Read-only.
           +optional
+          +k8s:alpha(since: "1.37")=+k8s:optional
+          +k8s:alpha(since: "1.37")=+k8s:immutable
         type: integer
       deletionTimestamp:
         description: |-
@@ -5018,6 +5571,8 @@ definitions:
           Read-only.
           More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
           +optional
+          +k8s:alpha(since: "1.37")=+k8s:optional
+          +k8s:alpha(since: "1.37")=+k8s:immutable
         type: string
       finalizers:
         description: |-
@@ -5061,6 +5616,8 @@ definitions:
           A sequence number representing a specific generation of the desired state.
           Populated by the system. Read-only.
           +optional
+          +k8s:alpha(since: "1.37")=+k8s:optional
+          +k8s:alpha(since: "1.37")=+k8s:minimum=0
         type: integer
       labels:
         additionalProperties:
@@ -5084,6 +5641,7 @@ definitions:
 
           +optional
           +listType=atomic
+          +k8s:alpha(since: "1.37")=+k8s:optional
         items:
           $ref: '#/definitions/v1.ManagedFieldsEntry'
         type: array
@@ -5120,6 +5678,7 @@ definitions:
           +patchStrategy=merge
           +listType=map
           +listMapKey=uid
+          +k8s:alpha(since:"1.37")=+k8s:optional
         items:
           $ref: '#/definitions/v1.OwnerReference'
         type: array
@@ -5152,12 +5711,16 @@ definitions:
           Read-only.
           More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids
           +optional
+          +k8s:alpha(since: "1.37")=+k8s:optional
+          +k8s:alpha(since: "1.37")=+k8s:immutable
         type: string
     type: object
   v1.OwnerReference:
     properties:
       apiVersion:
-        description: API version of the referent.
+        description: |-
+          API version of the referent.
+          +k8s:alpha(since:"1.37")=+k8s:required
         type: string
       blockOwnerDeletion:
         description: |-
@@ -5180,16 +5743,19 @@ definitions:
         description: |-
           Kind of the referent.
           More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+          +k8s:alpha(since:"1.37")=+k8s:required
         type: string
       name:
         description: |-
           Name of the referent.
           More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names
+          +k8s:alpha(since:"1.37")=+k8s:required
         type: string
       uid:
         description: |-
           UID of the referent.
           More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids
+          +k8s:alpha(since:"1.37")=+k8s:required
         type: string
     type: object
   v1.TypeMeta:
@@ -5210,6 +5776,134 @@ definitions:
           In CamelCase.
           More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
           +optional
+        type: string
+    type: object
+  v1alpha1.CloudInitConfig:
+    properties:
+      networkData:
+        description: |-
+          NetworkData contains cloud-init network configuration directly
+          This follows the cloud-init network config v1 or v2 format
+          +optional
+        type: string
+      networkDataBase64:
+        description: |-
+          NetworkDataBase64 contains base64-encoded network data
+          +optional
+        type: string
+      networkDataConfigMapRef:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.CloudInitConfigMapRef'
+        description: |-
+          NetworkDataConfigMapRef references a ConfigMap containing cloud-init network data
+          The ConfigMap should have a key named 'networkdata' or a custom key specified
+          +optional
+      networkDataSecretRef:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.CloudInitSecretRef'
+        description: |-
+          NetworkDataSecretRef references a Secret containing cloud-init network data
+          The Secret should have a key named 'networkdata' or a custom key specified in NetworkDataSecretKey
+          +optional
+      type:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.CloudInitType'
+        description: |-
+          Type specifies the cloud-init type to use
+          Valid values are: noCloud, configDrive
+          +kubebuilder:validation:Enum=noCloud;configDrive
+          +kubebuilder:default=noCloud
+      userData:
+        description: |-
+          UserData contains cloud-init user data content directly
+          This is typically a cloud-config YAML starting with #cloud-config
+          +optional
+        type: string
+      userDataBase64:
+        description: |-
+          UserDataBase64 contains base64-encoded cloud-init user data
+          Use this for binary or pre-encoded data
+          +optional
+        type: string
+      userDataConfigMapRef:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.CloudInitConfigMapRef'
+        description: |-
+          UserDataConfigMapRef references a ConfigMap containing cloud-init user data
+          The ConfigMap should have a key named 'userdata' or a custom key specified
+          +optional
+      userDataSecretRef:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.CloudInitSecretRef'
+        description: |-
+          UserDataSecretRef references a Secret containing cloud-init user data
+          The Secret should have a key named 'userdata' or a custom key specified in UserDataSecretKey
+          +optional
+    type: object
+  v1alpha1.CloudInitConfigMapRef:
+    properties:
+      key:
+        description: |-
+          Key is the key within the ConfigMap containing the cloud-init data
+          Defaults to 'userdata' for user data configs and 'networkdata' for network data configs
+          +optional
+        type: string
+      name:
+        description: |-
+          Name is the name of the ConfigMap in the same namespace as the Machine
+          +kubebuilder:validation:Required
+        type: string
+    type: object
+  v1alpha1.CloudInitSecretRef:
+    properties:
+      key:
+        description: |-
+          Key is the key within the Secret containing the cloud-init data
+          Defaults to 'userdata' for user data secrets and 'networkdata' for network data secrets
+          +optional
+        type: string
+      name:
+        description: |-
+          Name is the name of the Secret in the same namespace as the Machine
+          +kubebuilder:validation:Required
+        type: string
+    type: object
+  v1alpha1.CloudInitType:
+    enum:
+    - noCloud
+    - configDrive
+    type: string
+    x-enum-varnames:
+    - CloudInitTypeNoCloud
+    - CloudInitTypeConfigDrive
+  v1alpha1.CloudProviderConfig:
+    properties:
+      config:
+        additionalProperties:
+          type: string
+        description: Provider-specific configuration
+        type: object
+      credentialsRef:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.CredentialsReference'
+        description: Credentials reference
+      name:
+        description: Provider name (aws, azure, gcp, vsphere, openstack)
+        type: string
+      region:
+        description: Region where the machine should be created
+        type: string
+      zone:
+        description: Availability zone
+        type: string
+    type: object
+  v1alpha1.CredentialsReference:
+    properties:
+      namespace:
+        description: Namespace of the secret (defaults to machine namespace)
+        type: string
+      secretName:
+        description: Name of the secret containing credentials
         type: string
     type: object
   v1alpha1.KubernetesClusterAutoscalingConfig:
@@ -5403,17 +6097,6 @@ definitions:
       status:
         type: string
     type: object
-  v1alpha1.KubernetesClusterSpec:
-    properties:
-      data:
-        allOf:
-        - $ref: '#/definitions/v1alpha1.KubernetesClusterSpecData'
-        description: +kubebuilder:validation:Required
-      topology:
-        allOf:
-        - $ref: '#/definitions/v1alpha1.KubernetesClusterSpecTopology'
-        description: +kubebuilder:validation:Required
-    type: object
   v1alpha1.KubernetesClusterSpecControlPlane:
     properties:
       architecture:
@@ -5462,6 +6145,15 @@ definitions:
       environment:
         description: +kubebuilder:validation:Required
         type: string
+      networkNamespaceName:
+        description: |-
+          NetworkNamespaceName is the name of the NetworkNamespace object in the same namespace
+          that should be used for network configuration (VLAN, IP prefix, etc.).
+          Operators will look up this specific NetworkNamespace by name to resolve
+          VLAN, IP prefix, and other network settings.
+          +kubebuilder:validation:Required
+          +kubebuilder:validation:MinLength=1
+        type: string
       project:
         type: string
       provider:
@@ -5503,18 +6195,6 @@ definitions:
         allOf:
         - $ref: '#/definitions/v1alpha1.KubernetesClusterWorkers'
         description: Workers contains the worker nodes configuration.
-    type: object
-  v1alpha1.KubernetesClusterStatus:
-    properties:
-      conditions:
-        items:
-          $ref: '#/definitions/v1alpha1.KubernetesClusterCondition'
-        type: array
-      phase:
-        description: Provisioning, Running, Deleting, Failed, Updating
-        type: string
-      state:
-        $ref: '#/definitions/v1alpha1.KubernetesClusterClusterState'
     type: object
   v1alpha1.KubernetesClusterStatusClusterStatusResource:
     properties:
@@ -5606,12 +6286,437 @@ definitions:
     x-enum-varnames:
     - KubernetesProviderTypeTalos
     - KubernetesProviderTypeAKS
+  v1alpha1.MachineBackup:
+    properties:
+      enabled:
+        description: Whether to enable automated backups
+        type: boolean
+      retentionDays:
+        description: Retention period in days
+        type: integer
+      schedule:
+        description: Backup schedule (cron format)
+        type: string
+    type: object
+  v1alpha1.MachineCPU:
+    properties:
+      cores:
+        description: |-
+          Number of CPU cores
+          +kubebuilder:validation:Minimum=1
+          +kubebuilder:validation:Maximum=256
+        type: integer
+      sockets:
+        description: |-
+          Number of CPU sockets
+          +kubebuilder:validation:Minimum=1
+          +kubebuilder:validation:Maximum=16
+        type: integer
+      threadsPerCore:
+        description: |-
+          Number of threads per core
+          +kubebuilder:validation:Minimum=1
+          +kubebuilder:validation:Maximum=8
+        type: integer
+    type: object
+  v1alpha1.MachineCondition:
+    properties:
+      lastTransitionTime:
+        description: Last time the condition transitioned from one status to another
+        type: string
+      message:
+        description: A human readable message indicating details about the transition
+        type: string
+      reason:
+        description: The reason for the condition's last transition
+        type: string
+      status:
+        description: Status of the condition (True, False, Unknown)
+        type: string
+      type:
+        description: Type of condition
+        type: string
+    type: object
+  v1alpha1.MachineNetwork:
+    properties:
+      assignPublicIP:
+        description: Whether to assign a public IP
+        type: boolean
+      interfaces:
+        description: Network interfaces
+        items:
+          $ref: '#/definitions/v1alpha1.NetworkInterface'
+        type: array
+      networkNamespaceName:
+        description: |-
+          NetworkNamespaceName is the name of the NetworkNamespace object in the same namespace
+          that provides network configuration (VLAN, IP prefix, etc.) for this machine.
+          When set, operators will look up this specific NetworkNamespace by name instead of
+          listing all NetworkNamespaces in the namespace and picking the first one.
+          This is typically propagated from the KubernetesCluster spec.
+          +kubebuilder:validation:Optional
+        type: string
+      privateIP:
+        description: Static private IP address
+        type: string
+      publicIP:
+        description: Static public IP address or Elastic IP
+        type: string
+      subnet:
+        description: Subnet ID
+        type: string
+      vpc:
+        description: VPC/Virtual Network ID
+        type: string
+    type: object
+  v1alpha1.MachineOS:
+    properties:
+      architecture:
+        description: |-
+          Architecture (amd64, arm64)
+          +kubebuilder:validation:Enum=amd64;arm64;x86_64
+        type: string
+      distribution:
+        description: Distribution (ubuntu, centos, rhel, windows-server, debian, alpine)
+        type: string
+      family:
+        description: Operating system family (linux, windows)
+        type: string
+      imageFamily:
+        description: Image family or marketplace image
+        type: string
+      imageID:
+        description: Image ID/AMI/Template ID
+        type: string
+      isoUri:
+        description: ISO URI for custom installations
+        type: string
+      version:
+        description: Version of the OS
+        type: string
+    type: object
+  v1alpha1.MachineProviderType:
+    enum:
+    - kubevirt
+    - proxmox
+    type: string
+    x-enum-varnames:
+    - MachineProviderTypeKubevirt
+    - MachineProviderTypeProxmox
+  v1alpha1.MachineSpec:
+    properties:
+      backup:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.MachineBackup'
+        description: Backup configuration
+      cloudInit:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.CloudInitConfig'
+        description: Cloud-init configuration for VM initialization
+      cpu:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.MachineCPU'
+        description: CPU configuration
+      disks:
+        description: Disk configuration
+        items:
+          $ref: '#/definitions/v1alpha1.MachineSpecDisk'
+        type: array
+      machineClass:
+        description: |-
+          The machine class of the machine (e.g., t3.medium, Standard_B2s, n1-standard-2)
+          +kubebuilder:validation:MinLength=1
+        type: string
+      machineType:
+        description: The provider-specific machine type override
+        type: string
+      memory:
+        description: |-
+          Memory configuration in bytes
+          +kubebuilder:validation:Minimum=0
+        type: integer
+      monitoring:
+        description: Whether to enable monitoring
+        type: boolean
+      name:
+        description: |-
+          The name of the machine
+          +kubebuilder:validation:MinLength=1
+        type: string
+      network:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.MachineNetwork'
+        description: Network configuration
+      os:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.MachineOS'
+        description: Operating system configuration
+      provider:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.MachineProviderType'
+        description: |-
+          Machine Provider
+          +kubebuilder:validation:Required
+      providerConfig:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.CloudProviderConfig'
+        description: Cloud provider configuration
+      securityGroups:
+        description: Security groups or firewall rules
+        items:
+          type: string
+        type: array
+      sshKeys:
+        description: SSH key configuration
+        items:
+          type: string
+        type: array
+      tags:
+        additionalProperties:
+          type: string
+        description: Tags/labels to apply to the machine
+        type: object
+      userData:
+        description: User data script to run on first boot
+        type: string
+    type: object
+  v1alpha1.MachineSpecDisk:
+    properties:
+      boot:
+        description: Whether this is the boot disk
+        type: boolean
+      device:
+        description: Device name (e.g., /dev/sda, /dev/nvme0n1)
+        type: string
+      encrypted:
+        description: Encryption settings
+        type: boolean
+      iops:
+        description: |-
+          IOPS for the disk (if supported by provider)
+          +kubebuilder:validation:Minimum=100
+          +kubebuilder:validation:Maximum=64000
+        type: integer
+      name:
+        description: Name of the disk
+        type: string
+      sizeGB:
+        description: |-
+          Size of the disk in GB
+          +kubebuilder:validation:Minimum=1
+          +kubebuilder:validation:Maximum=65536
+        type: integer
+      throughput:
+        description: |-
+          Throughput in MB/s (if supported by provider)
+          +kubebuilder:validation:Minimum=125
+          +kubebuilder:validation:Maximum=4000
+        type: integer
+      type:
+        description: Type of the disk (e.g., gp2, gp3, pd-ssd, Premium_LRS)
+        type: string
+    type: object
+  v1alpha1.MachineStatus:
+    properties:
+      architecture:
+        description: The machine's CPU architecture
+        type: string
+      bootTime:
+        description: Boot time of the machine
+        type: string
+      conditions:
+        description: Conditions represent the latest available observations of the
+          machine's state
+        items:
+          $ref: '#/definitions/v1alpha1.MachineCondition'
+        type: array
+      cpus:
+        description: Actual CPU count
+        type: integer
+      creationTime:
+        description: Creation time of the machine
+        type: string
+      disks:
+        description: Actual disk information
+        items:
+          $ref: '#/definitions/v1alpha1.MachineStatusDisk'
+        type: array
+      failureMessage:
+        description: Failure message if the machine failed to be created
+        type: string
+      failureReason:
+        description: Failure reason if the machine failed to be created
+        type: string
+      hostname:
+        description: The machine's hostname
+        type: string
+      ipAddresses:
+        description: The IP addresses of the machine
+        items:
+          type: string
+        type: array
+      ipv6Addresses:
+        description: IPv6 addresses of the machine
+        items:
+          type: string
+        type: array
+      kernelVersion:
+        description: The machine's kernel version
+        type: string
+      lastUpdated:
+        description: The last time the machine status was updated
+        type: string
+      machineID:
+        description: Internal machine identifier
+        type: string
+      memory:
+        description: Actual memory in bytes
+        type: integer
+      message:
+        description: Detailed status message
+        type: string
+      networkInterfaces:
+        description: Network interface information
+        items:
+          $ref: '#/definitions/v1alpha1.NetworkInterfaceStatus'
+        type: array
+      operatingSystem:
+        description: The machine's operating system
+        type: string
+      operatingSystemVersion:
+        description: The machine's operating system version
+        type: string
+      phase:
+        description: Current phase of the machine (Pending, Creating, Running, Stopping,
+          Stopped, Terminating, Terminated, Failed)
+        type: string
+      privateIPAddresses:
+        description: Private IP addresses
+        items:
+          type: string
+        type: array
+      provider:
+        allOf:
+        - $ref: '#/definitions/v1alpha1.MachineProviderType'
+        description: The provider that created this machine
+      providerID:
+        description: The unique identifier assigned by the provider
+        type: string
+      publicIPAddresses:
+        description: Public IP addresses
+        items:
+          type: string
+        type: array
+      region:
+        description: The region where the machine is located
+        type: string
+      state:
+        description: The current state of the machine
+        type: string
+      zone:
+        description: The zone where the machine is located
+        type: string
+    type: object
+  v1alpha1.MachineStatusDisk:
+    properties:
+      accessModes:
+        description: Access modes, readwriteonce, readwritemany, readonlymany
+        items:
+          type: string
+        type: array
+      availableBytes:
+        description: Available space in bytes
+        type: integer
+      device:
+        description: Device path (e.g., /dev/sda)
+        type: string
+      filesystemType:
+        description: The disk's filesystem type (e.g., ext4, xfs)
+        type: string
+      label:
+        description: The disk's label
+        type: string
+      mountPoint:
+        description: The disk's mount point
+        type: string
+      name:
+        description: The disk's name
+        type: string
+      pvcName:
+        description: PVC name
+        type: string
+      serialNumber:
+        description: The disk's serial number
+        type: string
+      size:
+        description: The disk's size in bytes
+        type: integer
+      type:
+        description: The disk's type (e.g., SSD, HDD, gp2, gp3)
+        type: string
+      usagePercent:
+        description: Usage percentage as string (e.g., "75.5%")
+        type: string
+      usedBytes:
+        description: Used space in bytes
+        type: integer
+      uuid:
+        description: The disk's UUID
+        type: string
+      volumeMode:
+        description: Volume mode, filesystem or block
+        type: string
+    type: object
+  v1alpha1.NetworkInterface:
+    properties:
+      name:
+        description: Name of the network interface
+        type: string
+      primary:
+        description: Whether this is the primary interface
+        type: boolean
+      securityGroups:
+        description: Security groups for this interface
+        items:
+          type: string
+        type: array
+      subnet:
+        description: Subnet for this interface
+        type: string
+    type: object
+  v1alpha1.NetworkInterfaceStatus:
+    properties:
+      ipAddresses:
+        description: IP addresses assigned to this interface
+        items:
+          type: string
+        type: array
+      ipv6Addresses:
+        description: IPv6 addresses assigned to this interface
+        items:
+          type: string
+        type: array
+      macAddress:
+        description: MAC address
+        type: string
+      mtu:
+        description: MTU size
+        type: integer
+      name:
+        description: Name of the network interface
+        type: string
+      state:
+        description: Interface state (up, down)
+        type: string
+      type:
+        description: Interface type (ethernet, wifi, etc.)
+        type: string
+    type: object
 info:
   contact:
     name: ROR
     url: https://github.com/NorskHelsenett/ror
-  description: 'ROR-API, need any help? Go to channel #drift-sdi-devops in norskhelsenett.slack.com
-    slack workspace'
+  description: ROR-API
   title: Swagger ROR-API
   version: "0.1"
 paths:
@@ -5619,6 +6724,7 @@ paths:
     post:
       consumes:
       - application/json
+      deprecated: true
       description: Create acl
       parameters:
       - description: Acl
@@ -5660,6 +6766,7 @@ paths:
     delete:
       consumes:
       - application/json
+      deprecated: true
       description: Delete a acl by id
       parameters:
       - description: aclId
@@ -5699,6 +6806,7 @@ paths:
     get:
       consumes:
       - application/json
+      deprecated: true
       description: Get acl by id
       parameters:
       - description: aclId
@@ -5738,6 +6846,7 @@ paths:
     put:
       consumes:
       - application/json
+      deprecated: true
       description: Update acl
       parameters:
       - description: aclId
@@ -5782,6 +6891,7 @@ paths:
       - acl
   /v1/acl/{scope}/{subject}/{access}:
     head:
+      deprecated: true
       description: Check acl by scope, subject and access method
       parameters:
       - description: Scope
@@ -5815,6 +6925,7 @@ paths:
     post:
       consumes:
       - application/json
+      deprecated: true
       description: Get acl by filter
       parameters:
       - description: Filter
@@ -5852,41 +6963,72 @@ paths:
       summary: Get acl by filter
       tags:
       - acl
-  /v1/acl/migrate:
+  /v1/acl/lookup:
     get:
-      consumes:
-      - application/json
-      description: Migrate acl from v1 to v2
-      produces:
-      - application/json
+      deprecated: true
+      description: Check acl by scope, subject and access method
+      parameters:
+      - description: Scope
+        enum:
+        - UNKNOWN
+        - ror
+        - KubernetesCluster
+        - Project
+        - Datacenter
+        - VirtualMachine
+        - Machine
+        - BackupJob
+        - Database
+        - all
+        - spam
+        in: query
+        name: scope
+        type: string
+      - description: Subject
+        enum:
+        - UNKNOWN
+        - cluster
+        - project
+        - globalscope
+        - acl
+        - apikey
+        - datacenter
+        - workspace
+        - price
+        - virtualmachine
+        - backup
+        - database
+        - all
+        - spamgit
+        in: query
+        name: subject
+        type: string
+      - description: read,write,update or delete
+        in: query
+        name: access
+        type: string
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/aclmodels.AclLookupResponse'
+        "400":
+          description: Bad Request
         "401":
           description: Unauthorized
-          schema:
-            $ref: '#/definitions/rorerror.ErrorData'
         "403":
           description: Forbidden
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
       security:
       - AccessToken: []
         ApiKey: []
-      summary: Migrate acl
+      summary: Check acl by parameters
       tags:
       - acl
   /v1/acl/scopes:
     get:
       consumes:
       - application/json
+      deprecated: true
       description: Get acl scopes
       produces:
       - application/json
@@ -5895,7 +7037,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/aclmodels.Acl2Scope'
+              $ref: '#/definitions/aclscope.Scope'
             type: array
         "401":
           description: Unauthorized
@@ -6910,6 +8052,56 @@ paths:
       - AccessToken: []
         ApiKey: []
       summary: Get cluster self data
+      tags:
+      - clusters
+  /v1/clusters/uid/{uid}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a cluster and all of its related data (resources, resourcesv2,
+        acl) by uid
+      parameters:
+      - description: cluster uid
+        in: path
+        name: uid
+        required: true
+        type: string
+      - description: skip the recent-activity safety check; for controlled decommissioning
+          where the caller has verified the cluster's agents are stopped
+        in: query
+        name: force
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_NorskHelsenett_ror-api_internal_apiservices_clustersservice.PurgeResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Purge a cluster by uid
       tags:
       - clusters
   /v1/clusters/views/clusterlist:
@@ -9121,11 +10313,15 @@ paths:
         enum:
         - UNKNOWN
         - ror
-        - cluster
-        - project
-        - datacenter
-        - virtualmachine
-        - backup
+        - KubernetesCluster
+        - Project
+        - Datacenter
+        - VirtualMachine
+        - Machine
+        - BackupJob
+        - Database
+        - all
+        - spam
         in: query
         name: ownerScope
         required: true
@@ -9182,11 +10378,15 @@ paths:
         enum:
         - UNKNOWN
         - ror
-        - cluster
-        - project
-        - datacenter
-        - virtualmachine
-        - backup
+        - KubernetesCluster
+        - Project
+        - Datacenter
+        - VirtualMachine
+        - Machine
+        - BackupJob
+        - Database
+        - all
+        - spam
         in: query
         name: ownerScope
         required: true
@@ -9279,11 +10479,15 @@ paths:
         enum:
         - UNKNOWN
         - ror
-        - cluster
-        - project
-        - datacenter
-        - virtualmachine
-        - backup
+        - KubernetesCluster
+        - Project
+        - Datacenter
+        - VirtualMachine
+        - Machine
+        - BackupJob
+        - Database
+        - all
+        - spam
         in: query
         name: ownerScope
         required: true
@@ -9365,11 +10569,15 @@ paths:
         enum:
         - UNKNOWN
         - ror
-        - cluster
-        - project
-        - datacenter
-        - virtualmachine
-        - backup
+        - KubernetesCluster
+        - Project
+        - Datacenter
+        - VirtualMachine
+        - Machine
+        - BackupJob
+        - Database
+        - all
+        - spam
         in: query
         name: ownerScope
         required: true
@@ -10250,6 +11458,358 @@ paths:
       summary: Get a workspace by id
       tags:
       - workspaces
+  /v2/acl:
+    post:
+      consumes:
+      - application/json
+      description: Create a V3 ACL entry
+      parameters:
+      - description: Acl
+        in: body
+        name: acl
+        required: true
+        schema:
+          $ref: '#/definitions/aclmodels.AclV3ListItem'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/aclmodels.AclV3ListItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Create acl
+      tags:
+      - acl
+  /v2/acl/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a V3 ACL entry by id
+      parameters:
+      - description: acl id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: boolean
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Delete acl
+      tags:
+      - acl
+    get:
+      consumes:
+      - application/json
+      description: Get a V3 ACL entry by id
+      parameters:
+      - description: acl id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/aclmodels.AclV3ListItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Get acl by id
+      tags:
+      - acl
+    put:
+      consumes:
+      - application/json
+      description: Update a V3 ACL entry by id
+      parameters:
+      - description: acl id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Acl
+        in: body
+        name: acl
+        required: true
+        schema:
+          $ref: '#/definitions/aclmodels.AclV3ListItem'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/aclmodels.AclV3ListItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Update acl
+      tags:
+      - acl
+  /v2/acl/filter:
+    post:
+      consumes:
+      - application/json
+      description: Get a page of V3 ACL entries matching the filter
+      parameters:
+      - description: Filter
+        in: body
+        name: filter
+        required: true
+        schema:
+          $ref: '#/definitions/apicontracts.Filter'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/apicontracts.PaginatedResult-aclmodels_AclV3ListItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Get acl by filter
+      tags:
+      - acl
+  /v2/acl/lookup:
+    get:
+      consumes:
+      - application/json
+      description: Lookup the scope+subject pairs the caller has the given access
+        type for
+      parameters:
+      - description: Access type, e.g. kubernetes:logon
+        in: query
+        name: access
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: Optional scope filter; repeat or comma-separate to narrow results,
+          e.g. KubernetesCluster
+        in: query
+        items:
+          type: string
+        name: scope
+        type: array
+      - collectionFormat: csv
+        description: Optional subject (uid) filter; repeat or comma-separate to narrow
+          results
+        in: query
+        items:
+          type: string
+        name: subject
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/aclmodels.AclV3LookupResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Lookup acl access
+      tags:
+      - acl
+  /v2/acl/lookup/{scope}/{subject}:
+    get:
+      consumes:
+      - application/json
+      description: Lookup the access group pairs the caller has access for, filtered
+        by scope and subject.
+      parameters:
+      - description: scope filter
+        in: path
+        name: scope
+        required: true
+        type: string
+      - description: subject (uid) filter
+        in: path
+        name: subject
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/aclmodels.Acl3LookupByScopeSubjectResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Lookup acl access by scope and subject
+      tags:
+      - acl
+  /v2/acl/lookup/{scope}/{subject}/{accesstype}:
+    head:
+      description: CheckAccess checks if the caller has the specified access for the
+        given scope and subject and accesstype using the V3 ACL backend.
+      parameters:
+      - description: scope filter
+        in: path
+        name: scope
+        required: true
+        type: string
+      - description: subject (uid) filter
+        in: path
+        name: subject
+        required: true
+        type: string
+      - description: access type filter
+        in: path
+        name: accesstype
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Access Granted
+          headers:
+            Cache-Control:
+              description: Anti-caching directives
+              type: string
+          schema:
+            type: string
+        "401":
+          description: Unauthorized - Token missing or malformed
+          headers:
+            X-ROR-ERROR:
+              description: Authentication scheme requirements
+              type: string
+          schema:
+            type: string
+        "403":
+          description: Forbidden - Insufficient permissions
+          schema:
+            type: string
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Check acl access by scope and subject and accesstype
+      tags:
+      - acl
   /v2/apikeys/agent/register:
     post:
       consumes:
@@ -10444,11 +12004,15 @@ paths:
         enum:
         - UNKNOWN
         - ror
-        - cluster
-        - project
-        - datacenter
-        - virtualmachine
-        - backup
+        - KubernetesCluster
+        - Project
+        - Datacenter
+        - VirtualMachine
+        - Machine
+        - BackupJob
+        - Database
+        - all
+        - spam
         in: query
         name: ownerScope
         required: true
@@ -10567,11 +12131,15 @@ paths:
         enum:
         - UNKNOWN
         - ror
-        - cluster
-        - project
-        - datacenter
-        - virtualmachine
-        - backup
+        - KubernetesCluster
+        - Project
+        - Datacenter
+        - VirtualMachine
+        - Machine
+        - BackupJob
+        - Database
+        - all
+        - spam
         in: query
         name: ownerScope
         required: true
@@ -10609,6 +12177,55 @@ paths:
       summary: Check cluster resource by uid
       tags:
       - resources
+    patch:
+      consumes:
+      - application/json
+      description: Partially update a resource
+      parameters:
+      - description: UID
+        in: path
+        name: uid
+        required: true
+        type: string
+      - description: Partial resource fields to update
+        in: body
+        name: patch
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rorresources.ResourceUpdateResults'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_NorskHelsenett_ror-api_internal_models_responses.Cluster'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Patch resource by uid
+      tags:
+      - resources
     put:
       consumes:
       - application/json
@@ -10619,19 +12236,19 @@ paths:
         name: uid
         required: true
         type: string
-      - description: ResourceUpdate
+      - description: Resource
         in: body
-        name: resourcereport
+        name: rorresource
         required: true
         schema:
-          $ref: '#/definitions/apiresourcecontracts.ResourceUpdateModel'
+          $ref: '#/definitions/rorresources.Resource'
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
-            type: string
+            $ref: '#/definitions/rorresources.ResourceUpdateResults'
         "401":
           description: Unauthorized
           schema:

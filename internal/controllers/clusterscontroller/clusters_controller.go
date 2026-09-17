@@ -17,6 +17,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
@@ -67,7 +68,7 @@ func ClusterGetById() gin.HandlerFunc {
 		// Scope: cluster
 		// Subject: clusterId
 		// Access: read
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeCluster, aclmodels.Acl2Subject(clusterId), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeCluster, aclscope.Subject(clusterId), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -324,7 +325,7 @@ func UpdateMetadata() gin.HandlerFunc {
 		// Scope: cluster
 		// Subject: clusterId
 		// Access: read
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeCluster, aclmodels.Acl2Subject(clusterId), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeCluster, aclscope.Subject(clusterId), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -430,7 +431,7 @@ func RegisterHeartbeat() gin.HandlerFunc {
 		// Scope: cluster
 		// Subject: input.ClusterId
 		// Access: update
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeCluster, aclmodels.Acl2Subject(input.ClusterId), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeCluster, aclscope.Subject(input.ClusterId), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -481,7 +482,7 @@ func GetControlPlanesMetadata() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: delete
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -542,7 +543,7 @@ func GetKubeconfig() gin.HandlerFunc {
 		// Scope: cluster
 		// Subject: clusterId
 		// Access: read
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeCluster, aclmodels.Acl2Subject(clusterid), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeCluster, aclscope.Subject(clusterid), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if accessErr != nil {
 			rerr := rorginerror.NewRorGinSpanError(span, http.StatusInternalServerError, "access check failed")
 			rerr.GinLogErrorAbort(c)
@@ -554,7 +555,7 @@ func GetKubeconfig() gin.HandlerFunc {
 			return
 		}
 
-		logon, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeCluster, aclmodels.Acl2Subject(clusterid), aclmodels.CapKubernetes.WithVerb(aclmodels.VerbLogon))
+		logon, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeCluster, aclscope.Subject(clusterid), aclmodels.CapKubernetes.WithVerb(aclmodels.VerbLogon))
 		if accessErr != nil {
 			rerr := rorginerror.NewRorGinSpanError(span, http.StatusInternalServerError, "access check failed")
 			rerr.GinLogErrorAbort(c)
@@ -651,7 +652,7 @@ func CreateCluster() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: globalscope
 		// Access: create
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate)) // TODO: what is correct here?
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate)) // TODO: what is correct here?
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return

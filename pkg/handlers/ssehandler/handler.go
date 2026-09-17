@@ -93,7 +93,7 @@ func Send() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 		// TODO: no access check is enforced here. If gating is desired, use
-		// aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate)).
+		// aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate)).
 
 		var input sseservice.SseEvent
 		err := c.BindJSON(&input)
@@ -117,7 +117,7 @@ func Subscribe() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 		// TODO: no access check is enforced here. If gating is desired, use
-		// aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate)).
+		// aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.Subjectaclmodels.CapRor.WithVerb(aclmodels.VerbCreate)).
 
 		var input sseservice.SSESubscribe
 		err := c.BindJSON(&input)

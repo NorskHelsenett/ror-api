@@ -32,7 +32,7 @@ func RegisterAgent() gin.HandlerFunc {
 		defer cancel()
 
 		// TODO: no access check is enforced here. If gating is desired, use
-		// aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate)).
+		// aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectCluster, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate)).
 
 		var req apikeystypes.RegisterClusterRequest
 		if err := c.BindJSON(&req); err != nil {
