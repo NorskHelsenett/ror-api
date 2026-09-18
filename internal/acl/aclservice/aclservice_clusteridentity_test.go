@@ -67,9 +67,14 @@ func TestClusterIdentitySelfAccess(t *testing.T) {
 
 		match, ok := filter["$match"].(bson.M)
 		require.True(t, ok, "expected a $match stage: %v", filter)
-		assert.Equal(t, string(aclscope.ScopeCluster), match["rormeta.ownerref.scope"])
-		assert.Equal(t, clusterUID, match["rormeta.ownerref.subject"],
+		or, ok := match["$or"].(bson.A)
+		require.True(t, ok, "expected an $or in $match: %v", match)
+		ownerBranch := or[0].(bson.M)
+		assert.Equal(t, string(aclscope.ScopeCluster), ownerBranch["rormeta.ownerref.scope"])
+		assert.Equal(t, clusterUID, ownerBranch["rormeta.ownerref.subject"],
 			"cluster owner filter must use the uid, not the cluster id")
+		assert.Equal(t, clusterUID, or[1].(bson.M)["uid"],
+			"uid-self-match must use the cluster uid")
 	})
 
 	t.Run("resolve ownerrefs yields the uid ref", func(t *testing.T) {

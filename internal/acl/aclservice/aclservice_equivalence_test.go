@@ -97,6 +97,12 @@ func ownerFilterMatches(t *testing.T, filter bson.M, ref acl.Ownerref) bool {
 		clause, ok := clauseAny.(bson.M)
 		require.True(t, ok)
 
+		// uid-self-match clause: matches a document by its own top-level uid,
+		// which is orthogonal to the ownership refs modeled here — skip it.
+		if _, ok := clause["uid"]; ok {
+			continue
+		}
+
 		// Scope-level grant: matches any subject within the scope.
 		if scope, ok := clause["rormeta.ownerref.scope"]; ok {
 			if scope == string(ref.Scope) {
