@@ -10,6 +10,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/messages"
 
@@ -55,7 +56,7 @@ func GetByCluster() gin.HandlerFunc {
 		// Scope: cluster
 		// Subject: clusterId
 		// Access: read
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeCluster, aclmodels.Acl2Subject(clusterId), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeCluster, aclscope.Subject(clusterId), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -99,7 +100,7 @@ func GetInternal() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: read
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -154,22 +155,26 @@ func AddResource() gin.HandlerFunc {
 			rerr := rorginerror.NewRorGinError(http.StatusNotFound, "could not find ruleset", err)
 			rerr.GinLogErrorAbort(c)
 		}
-		var accessQuery aclmodels.AclV2QueryAccessScopeSubject
+		var accesScope aclscope.Scope
+		var accesSubject aclscope.Subject
+
 		if ruleset.Identity.Type == messages.RulesetIdentityTypeInternal {
 			// Access check
 			// Scope: ror
 			// Subject: acl
 			// Access: create
 			// TODO: Check if this is correct
-			accessQuery = aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectAcl)
+			accesScope = aclscope.ScopeRor
+			accesSubject = aclscope.SubjectAcl
 		} else {
 			// Access check
 			// Scope: cluster
 			// Subject: ruleset.Identity.Id
 			// Access: create
-			accessQuery = aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeCluster, ruleset.Identity.Id)
+			accesScope = aclscope.ScopeCluster
+			accesSubject = aclscope.Subject(ruleset.Identity.Id)
 		}
-		allowed, accessErr := aclservice.HasAccess(ctx, accessQuery.Scope, accessQuery.Subject, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
+		allowed, accessErr := aclservice.HasAccess(ctx, accesScope, accesSubject, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -221,22 +226,17 @@ func DeleteResource() gin.HandlerFunc {
 			rerr.GinLogErrorAbort(c)
 		}
 
-		var accessQuery aclmodels.AclV2QueryAccessScopeSubject
+		var accesScope aclscope.Scope
+		var accesSubject aclscope.Subject
+
 		if ruleset.Identity.Type == messages.RulesetIdentityTypeInternal {
-			// Access check
-			// Scope: ror
-			// Subject: acl
-			// Access: delete
-			// TODO: Check if this is correct
-			accessQuery = aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectAcl)
+			accesScope = aclscope.ScopeRor
+			accesSubject = aclscope.SubjectAcl
 		} else {
-			// Access check
-			// Scope: cluster
-			// Subject: ruleset.Identity.Id
-			// Access: delete
-			accessQuery = aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeCluster, ruleset.Identity.Id)
+			accesScope = aclscope.ScopeCluster
+			accesSubject = aclscope.Subject(ruleset.Identity.Id)
 		}
-		allowed, accessErr := aclservice.HasAccess(ctx, accessQuery.Scope, accessQuery.Subject, aclmodels.CapRor.WithVerb(aclmodels.VerbDelete))
+		allowed, accessErr := aclservice.HasAccess(ctx, accesScope, accesSubject, aclmodels.CapRor.WithVerb(aclmodels.VerbDelete))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -292,22 +292,17 @@ func AddResourceRule() gin.HandlerFunc {
 			rerr.GinLogErrorAbort(c)
 		}
 
-		var accessQuery aclmodels.AclV2QueryAccessScopeSubject
+		var accesScope aclscope.Scope
+		var accesSubject aclscope.Subject
+
 		if ruleset.Identity.Type == messages.RulesetIdentityTypeInternal {
-			// Access check
-			// Scope: ror
-			// Subject: acl
-			// Access: create
-			// TODO: Check if this is correct
-			accessQuery = aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectAcl)
+			accesScope = aclscope.ScopeRor
+			accesSubject = aclscope.SubjectAcl
 		} else {
-			// Access check
-			// Scope: cluster
-			// Subject: ruleset.Identity.Id
-			// Access: create
-			accessQuery = aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeCluster, ruleset.Identity.Id)
+			accesScope = aclscope.ScopeCluster
+			accesSubject = aclscope.Subject(ruleset.Identity.Id)
 		}
-		allowed, accessErr := aclservice.HasAccess(ctx, accessQuery.Scope, accessQuery.Subject, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
+		allowed, accessErr := aclservice.HasAccess(ctx, accesScope, accesSubject, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -359,23 +354,17 @@ func DeleteResourceRule() gin.HandlerFunc {
 			rerr.GinLogErrorAbort(c)
 		}
 
-		var accessQuery aclmodels.AclV2QueryAccessScopeSubject
+		var accesScope aclscope.Scope
+		var accesSubject aclscope.Subject
+
 		if ruleset.Identity.Type == messages.RulesetIdentityTypeInternal {
-			// Access check
-			// Scope: ror
-			// Subject: acl
-			// Access: delete
-			// TODO: Check if this is correct
-			accessQuery = aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectAcl)
+			accesScope = aclscope.ScopeRor
+			accesSubject = aclscope.SubjectAcl
 		} else {
-			// Access check
-			// Scope: cluster
-			// Subject: ruleset.Identity.Id
-			// Access: delete
-			accessQuery = aclmodels.NewAclV2QueryAccessScopeSubject(aclmodels.Acl2ScopeCluster, ruleset.Identity.Id)
+			accesScope = aclscope.ScopeCluster
+			accesSubject = aclscope.Subject(ruleset.Identity.Id)
 		}
-		// Note: legacy behavior checks create access here; preserved intentionally.
-		allowed, accessErr := aclservice.HasAccess(ctx, accessQuery.Scope, accessQuery.Subject, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
+		allowed, accessErr := aclservice.HasAccess(ctx, accesScope, accesSubject, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return

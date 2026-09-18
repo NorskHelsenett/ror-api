@@ -11,6 +11,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -53,7 +54,7 @@ func GetByFilter() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: read
-		allowed, err := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, err := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -113,7 +114,7 @@ func GetById() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: read
-		allowed, err := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, err := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -164,7 +165,7 @@ func GetMetadata() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: read
-		allowed, err := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, err := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return

@@ -11,6 +11,7 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/rorresourceowner"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
@@ -40,7 +41,7 @@ func init() {
 //	@Tags			resources
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			ownerScope		query	aclmodels.Acl2Scope	true	"The kind of the owner, currently only support 'Cluster'"
+//	@Param			ownerScope		query	aclscope.Scope	true	"The kind of the owner, currently only support 'Cluster'"
 //	@Param			ownerSubject	query	string				true	"The name og the owner"
 //	@Param			uid				path	string				true	"UID"
 //	@Success		204
@@ -129,7 +130,7 @@ func ExistsResources() gin.HandlerFunc {
 //	@Tags			resources
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			ownerScope		query		aclmodels.Acl2Scope	true	"The kind of the owner, currently only support 'Cluster'"
+//	@Param			ownerScope		query		aclscope.Scope	true	"The kind of the owner, currently only support 'Cluster'"
 //	@Param			ownerSubject	query		string				true	"The name og the owner"
 //	@Success		200				{array}		apiresourcecontracts.HashList
 //	@Failure		403				{string}	Forbidden
@@ -150,8 +151,8 @@ func GetResourceHashList() gin.HandlerFunc {
 		)
 
 		resourceOwner := rorresourceowner.RorResourceOwnerReference{
-			Scope:   aclmodels.Acl2Scope(c.Query("ownerScope")),
-			Subject: aclmodels.Acl2Subject(c.Query("ownerSubject")),
+			Scope:   aclscope.Scope(c.Query("ownerScope")),
+			Subject: aclscope.Subject(c.Query("ownerSubject")),
 		}
 
 		// Access check

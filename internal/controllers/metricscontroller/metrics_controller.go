@@ -13,6 +13,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -133,7 +134,7 @@ func RegisterResourceMetricsReport() gin.HandlerFunc {
 			Scope:   input.Owner.Scope,
 			Subject: string(input.Owner.Subject),
 		}
-		allowed, accessErr := aclservice.HasAccess(ctx, ownerref.Scope, aclmodels.Acl2Subject(ownerref.Subject), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+		allowed, accessErr := aclservice.HasAccess(ctx, ownerref.Scope, aclscope.Subject(ownerref.Subject), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return

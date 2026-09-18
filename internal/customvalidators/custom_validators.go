@@ -7,7 +7,9 @@ import (
 )
 
 var (
-	nameRegex = `^[@()\/:?\r\n.,a-zA-Z æøåÆØÅ0-9_-]+$`
+	// '*' is permitted so ACL groups can name an aggregate principal
+	// (e.g. "*@cluster.ror.system").
+	nameRegex = `^[@()\/:?\r\n.,*a-zA-Z æøåÆØÅ0-9_-]+$`
 	regTester *regexp.Regexp
 )
 

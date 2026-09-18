@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 )
 
 var (
@@ -44,7 +45,7 @@ func getClusterFromAccessListItems(items []aclmodels.AclV2ListItem) bson.A {
 	returnArray := bson.A{}
 	for _, item := range items {
 		// TODO(migration): Once ToLegacy() is removed from callers, simplify to direct comparison.
-		if item.Scope.ToKind() == aclmodels.Acl2ScopeCluster && item.Access.Read {
+		if item.Scope.ToKind() == aclscope.ScopeCluster && item.Access.Read {
 			returnArray = append(returnArray, item.Subject)
 		}
 	}

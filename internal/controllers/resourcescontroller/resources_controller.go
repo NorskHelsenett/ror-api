@@ -12,6 +12,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 
@@ -40,7 +41,7 @@ func init() {
 //	@Tags			resources
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			ownerScope		query	aclmodels.Acl2Scope	true	"The kind of the owner, currently only support 'Cluster'"
+//	@Param			ownerScope		query	aclscope.Scope	true	"The kind of the owner, currently only support 'Cluster'"
 //	@Param			ownerSubject	query	string				true	"The name og the owner"
 //	@Param			uid				path	string				true	"UID"
 //	@Success		204
@@ -55,7 +56,7 @@ func ExistsResources() gin.HandlerFunc {
 		defer cancel()
 
 		resourceOwner := apiresourcecontracts.ResourceOwnerReference{
-			Scope:   aclmodels.Acl2Scope(c.Query("ownerScope")),
+			Scope:   aclscope.Scope(c.Query("ownerScope")),
 			Subject: c.Query("ownerSubject"),
 		}
 
@@ -68,7 +69,7 @@ func ExistsResources() gin.HandlerFunc {
 		// Scope: c.Query("ownerScope")
 		// Subject: c.Query("ownerSubject")
 		// Access: update
-		allowed, accessErr := aclservice.HasAccess(ctx, resourceOwner.Scope, aclmodels.Acl2Subject(resourceOwner.Subject), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+		allowed, accessErr := aclservice.HasAccess(ctx, resourceOwner.Scope, aclscope.Subject(resourceOwner.Subject), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -97,7 +98,7 @@ func ExistsResources() gin.HandlerFunc {
 //	@Tags			resources
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			ownerScope		query		aclmodels.Acl2Scope	true	"The kind of the owner, currently only support 'Cluster'"
+//	@Param			ownerScope		query		aclscope.Scope	true	"The kind of the owner, currently only support 'Cluster'"
 //	@Param			ownerSubject	query		string				true	"The name og the owner"
 //	@Success		200				{array}		apiresourcecontracts.HashList
 //	@Failure		403				{string}	Forbidden
@@ -110,7 +111,7 @@ func GetResourceHashList() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 		resourceOwner := apiresourcecontracts.ResourceOwnerReference{
-			Scope:   aclmodels.Acl2Scope(c.Query("ownerScope")),
+			Scope:   aclscope.Scope(c.Query("ownerScope")),
 			Subject: c.Query("ownerSubject"),
 		}
 
@@ -118,7 +119,7 @@ func GetResourceHashList() gin.HandlerFunc {
 		// Scope: c.Query("ownerScope")
 		// Subject: c.Query("ownerSubject")
 		// Access: update
-		allowed, accessErr := aclservice.HasAccess(ctx, resourceOwner.Scope, aclmodels.Acl2Subject(resourceOwner.Subject), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+		allowed, accessErr := aclservice.HasAccess(ctx, resourceOwner.Scope, aclscope.Subject(resourceOwner.Subject), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return

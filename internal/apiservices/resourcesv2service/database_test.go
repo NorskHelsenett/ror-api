@@ -21,12 +21,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
+	"github.com/NorskHelsenett/ror/pkg/acl"
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclprincipal"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
 
-	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/rorresourceowner"
 
 	"github.com/joho/godotenv"
@@ -50,14 +54,41 @@ func (testCredHelper) CheckAndRenew() bool              { return false }
 
 const testClusterID = "test-cluster-43232"
 
+// testAclStore grants the test cluster access to its own resources. Cluster
+// access is ordinary ACL data, so without it every query here is denied.
+type testAclStore struct{}
+
+func (testAclStore) GetByGroups(_ context.Context, groups []string) (aclmodels.AclV3List, error) {
+	var out aclmodels.AclV3List
+	for _, g := range groups {
+		if g != aclprincipal.Cluster(testClusterID) {
+			continue
+		}
+		out = append(out, aclmodels.AclV3ListItem{
+			Version: 3,
+			Group:   g,
+			Scope:   aclscope.ScopeCluster,
+			Subject: aclscope.Subject(testClusterID),
+			Access:  aclservice.ClusterSelfAccess(),
+		})
+	}
+	return out, nil
+}
+
+// TestMain wires the ACL resolver once for the package: the database layer
+// always applies an ACL filter, so the tests need a resolver to query through.
+func TestMain(m *testing.M) {
+	aclservice.SetResolver(acl.NewResolver(testAclStore{}))
+	os.Exit(m.Run())
+}
+
 // testCtx returns a context with a cluster identity matching testClusterID.
-// The ACL layer skips MongoDB queries for cluster identities, making it safe
-// for use in database-only integration tests.
 func testCtx() context.Context {
 	identity := identitymodels.Identity{
 		Type: identitymodels.IdentityTypeCluster,
 		ClusterIdentity: &identitymodels.ServiceIdentity{
-			Id: testClusterID,
+			Id:  testClusterID,
+			Uid: testClusterID,
 		},
 		ServiceIdentity: &identitymodels.ServiceIdentity{},
 	}
@@ -141,8 +172,8 @@ func makeResource(uid string, kind string, labels map[string]string, annotations
 		Version: "v2",
 		Hash:    "testhash123",
 		Ownerref: rorresourceowner.RorResourceOwnerReference{
-			Scope:   aclmodels.Acl2ScopeCluster,
-			Subject: aclmodels.Acl2Subject(testClusterID),
+			Scope:   aclscope.ScopeCluster,
+			Subject: aclscope.Subject(testClusterID),
 		},
 	}
 	return r
@@ -624,9 +655,9 @@ func TestPatch_PreservesOwnerRef(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	got := result.Resources[0]
-	assert.Equal(t, aclmodels.Acl2ScopeCluster, got.RorMeta.Ownerref.Scope,
+	assert.Equal(t, aclscope.ScopeCluster, got.RorMeta.Ownerref.Scope,
 		"ownerref scope should be preserved after patch")
-	assert.Equal(t, aclmodels.Acl2Subject(testClusterID), got.RorMeta.Ownerref.Subject,
+	assert.Equal(t, aclscope.Subject(testClusterID), got.RorMeta.Ownerref.Subject,
 		"ownerref subject should be preserved after patch")
 }
 

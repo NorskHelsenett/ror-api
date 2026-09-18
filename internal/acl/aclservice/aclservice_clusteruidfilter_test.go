@@ -76,12 +76,22 @@ func TestClusterUIDFilter(t *testing.T) {
 	})
 
 	t.Run("cluster identity -> own uid", func(t *testing.T) {
-		setResolver(t, aclmodels.AclV3List{}, nil)
+		// Cluster access is ACL data: the self grant is what scopes the filter.
+		setResolver(t, aclmodels.AclV3List{clusterSelfGrant("cluster-uid-1")}, nil)
 		ctx := clusterContext("prod-cluster", "cluster-uid-1")
 
 		filter, err := ClusterUIDFilter(ctx, read)
 		require.NoError(t, err)
 		assert.Equal(t, bson.M{"uid": bson.M{"$in": []string{"cluster-uid-1"}}}, matchStage(t, filter))
+	})
+
+	t.Run("cluster identity without a grant -> deny all", func(t *testing.T) {
+		setResolver(t, aclmodels.AclV3List{}, nil)
+		ctx := clusterContext("prod-cluster", "cluster-uid-1")
+
+		filter, err := ClusterUIDFilter(ctx, read)
+		require.NoError(t, err)
+		assert.Equal(t, bson.M{"uid": bson.M{"$in": bson.A{"Unknown-Unauthorized"}}}, matchStage(t, filter))
 	})
 
 	t.Run("inherited clusters via parent-scope expansion", func(t *testing.T) {

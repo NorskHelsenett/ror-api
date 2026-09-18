@@ -16,9 +16,11 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 	"github.com/NorskHelsenett/ror/pkg/messagebuscontracts"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/rorresourceowner"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
+	"github.com/NorskHelsenett/ror/pkg/rorresources/rordefs"
 	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
 	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 
@@ -35,6 +37,25 @@ var (
 )
 
 type resourceDBFactory func(*mongodb.MongodbCon) ResourceDBProvider
+
+// hasProtectedKindWriteAccess enforces the per-kind protected capability for
+// write operations (create/update/delete). Kinds without a ProtectedBy
+// capability are unrestricted here; protected kinds additionally require the
+// caller to hold the capability's write verb, independent of ownerref access.
+func hasProtectedKindWriteAccess(ctx context.Context, kind string, ownerref rorresourceowner.RorResourceOwnerReference) (bool, error) {
+	capability := rordefs.Resourcedefs.ProtectedByKind(kind)
+	if capability == "" {
+		return true, nil
+	}
+	identity, err := rorcontext.GetIdentityFromRorContext(ctx)
+	if err != nil {
+		return false, err
+	}
+	if identity.IsCluster() {
+		return false, nil
+	}
+	return aclservice.HasAccess(ctx, ownerref.Scope, ownerref.Subject, capability.WithVerb(aclmodels.VerbWrite))
+}
 
 func HandleResourceUpdate(ctx context.Context, resource *rorresources.Resource) rorresources.ResourceUpdateResults {
 	ctx, span := rortracer.StartSpan(ctx, "v2.resourcesv2service.HandleResourceUpdate")
@@ -102,6 +123,20 @@ func NewOrUpdateResource(ctx context.Context, resource *rorresources.Resource) r
 	accessAllowed, accessErr := aclservice.HasAccess(ctx, ownerref.Scope, ownerref.Subject, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
 	if accessErr != nil || !accessAllowed {
 		_ = rortracer.SpanErrorf(span, "access denied")
+		return rorresources.ResourceUpdateResults{
+			Results: map[string]rorresources.ResourceUpdateResult{
+				resource.GetUID(): {
+					Status:  http.StatusForbidden,
+					Message: "403: No access",
+				},
+			},
+		}
+	}
+
+	// Protected kinds (e.g. Config) require an additional per-kind write capability.
+	protectedAllowed, protectedErr := hasProtectedKindWriteAccess(ctx, resource.GetKind(), ownerref)
+	if protectedErr != nil || !protectedAllowed {
+		_ = rortracer.SpanErrorf(span, "access denied for protected kind %s", resource.GetKind())
 		return rorresources.ResourceUpdateResults{
 			Results: map[string]rorresources.ResourceUpdateResult{
 				resource.GetUID(): {
@@ -329,6 +364,14 @@ func DeleteResource(ctx context.Context, resource *rorresources.Resource) error 
 		return err
 	}
 
+	// Protected kinds (e.g. Config) require an additional per-kind write capability.
+	protectedAllowed, protectedErr := hasProtectedKindWriteAccess(ctx, resource.GetKind(), resource.GetRorMeta().Ownerref)
+	if protectedErr != nil || !protectedAllowed {
+		err := fmt.Errorf("403: No access to delete protected kind %s uid %s", resource.GetKind(), resource.GetUID())
+		rortracer.SpanError(span, err, "access denied for protected kind")
+		return err
+	}
+
 	//cache := GetResourceCache()
 	//cache.Remove(ctx, resource.GetUID())
 	databaseHelpers := NewResourceMongoDB(mongodb.GetMongodbConnection())
@@ -384,6 +427,20 @@ func PatchResource(ctx context.Context, uid string, partial *rorresources.Resour
 	accessAllowed, accessErr := aclservice.HasAccess(ctx, resource.GetRorMeta().Ownerref.Scope, resource.GetRorMeta().Ownerref.Subject, aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
 	if accessErr != nil || !accessAllowed {
 		_ = rortracer.SpanErrorf(span, "access denied")
+		return rorresources.ResourceUpdateResults{
+			Results: map[string]rorresources.ResourceUpdateResult{
+				uid: {
+					Status:  http.StatusForbidden,
+					Message: "403: No access",
+				},
+			},
+		}
+	}
+
+	// Protected kinds (e.g. Config) require an additional per-kind write capability.
+	protectedAllowed, protectedErr := hasProtectedKindWriteAccess(ctx, resource.GetKind(), resource.GetRorMeta().Ownerref)
+	if protectedErr != nil || !protectedAllowed {
+		_ = rortracer.SpanErrorf(span, "access denied for protected kind %s", resource.GetKind())
 		return rorresources.ResourceUpdateResults{
 			Results: map[string]rorresources.ResourceUpdateResult{
 				uid: {
@@ -505,11 +562,11 @@ func ResourceGetHashlist(ctx context.Context, owner rorresourceowner.RorResource
 
 	// Normalize the ownerref: translate legacy scope and clusterid→UID
 	owner.Scope = owner.Scope.ToKind()
-	if owner.Scope == aclmodels.Acl2ScopeCluster.ToKind() {
+	if owner.Scope == aclscope.ScopeCluster.ToKind() {
 		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 		if identity.IsCluster() && identity.ClusterIdentity != nil && identity.ClusterIdentity.Uid != "" {
 			if string(owner.Subject) == identity.ClusterIdentity.Id {
-				owner.Subject = aclmodels.Acl2Subject(identity.ClusterIdentity.Uid)
+				owner.Subject = aclscope.Subject(identity.ClusterIdentity.Uid)
 			}
 		}
 	}
@@ -540,12 +597,12 @@ func normalizeOwnerref(ctx context.Context, resource *rorresources.Resource) {
 	ownerref.Scope = ownerref.Scope.ToKind()
 
 	// For cluster-scoped resources, translate clusterid subject to UID
-	if ownerref.Scope == aclmodels.Acl2ScopeCluster.ToKind() {
+	if ownerref.Scope == aclscope.ScopeCluster.ToKind() {
 		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 		if identity.IsCluster() && identity.ClusterIdentity != nil && identity.ClusterIdentity.Uid != "" {
-			clusterID := aclmodels.Acl2Subject(identity.ClusterIdentity.Id)
+			clusterID := aclscope.Subject(identity.ClusterIdentity.Id)
 			if ownerref.Subject == clusterID {
-				ownerref.Subject = aclmodels.Acl2Subject(identity.ClusterIdentity.Uid)
+				ownerref.Subject = aclscope.Subject(identity.ClusterIdentity.Uid)
 			}
 		}
 	}

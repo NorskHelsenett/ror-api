@@ -27,7 +27,7 @@ import (
 // @Tags			resources
 // @Accept			application/json
 // @Produce		application/json
-// @Param			ownerScope	query		aclmodels.Acl2Scope	true	"The kind of the owner, currently only support 'Cluster'"
+// @Param			ownerScope	query		aclscope.Scope	true	"The kind of the owner, currently only support 'Cluster'"
 // @Param			ownerSubject	query		string	true	"The name og the owner"
 // @Param			apiversion	query		string	true	"ApiVersion"
 // @Param			kind	query		string	true	"Kind"
@@ -76,7 +76,7 @@ func GetResources() gin.HandlerFunc {
 // @Accept			application/json
 // @Produce		application/json
 // @Param			uid	path		string	true	"The uid of the resource"
-// @Param			ownerScope	query		aclmodels.Acl2Scope	true	"The kind of the owner, currently only support 'Cluster'"
+// @Param			ownerScope	query		aclscope.Scope	true	"The kind of the owner, currently only support 'Cluster'"
 // @Param			ownerSubject	query		string	true	"The name og the owner"
 // @Param			apiversion	query		string	true	"ApiVersion"
 // @Param			kind	query		string	true	"Kind"
@@ -98,7 +98,7 @@ func GetResource() gin.HandlerFunc {
 
 		query := apiresourcecontracts.ResourceQuery{
 			Owner: apiresourcecontracts.ResourceOwnerReference{
-				Scope:   aclmodels.Acl2Scope(c.Query("ownerScope")),
+				Scope:   aclscope.Scope(c.Query("ownerScope")),
 				Subject: c.Query("ownerSubject"),
 			},
 			Kind:       c.Query("kind"),

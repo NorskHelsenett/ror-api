@@ -231,12 +231,12 @@ func TestMongoScopeExpander_ExpandScope_LeafSeed_ReturnsNil(t *testing.T) {
 	assert.Nil(t, refs, "a leaf resource owns nothing and must expand to nil")
 }
 
-// Edge case of the relational "parent" definition: an owner resource that owns
-// nothing (e.g. a freshly registered cluster whose resources have not synced
-// yet) is indistinguishable from a leaf — nobody references it as an
-// ownerref.subject — and is therefore NOT returned by its parent's expansion.
-// This documents the intentional behavior so it is not mistaken for a bug.
-func TestMongoScopeExpander_ExpandScope_ChildlessOwnerResource_IsExcluded(t *testing.T) {
+// A scope resource that owns nothing (e.g. a freshly registered cluster whose
+// resources have not synced yet) is indistinguishable from a leaf under the
+// purely relational "owner" definition — nobody references it as an
+// ownerref.subject. It is kept anyway, because a grant on its parent must still
+// see it; otherwise a childless cluster would be invisible to its project.
+func TestMongoScopeExpander_ExpandScope_ChildlessScopeResource_IsIncluded(t *testing.T) {
 	db, expander := newExpanderTestDB(t)
 
 	seedResource(t, db, "proj-1", "Project", aclscope.ScopeDatacenter, "dc-1")
@@ -248,8 +248,27 @@ func TestMongoScopeExpander_ExpandScope_ChildlessOwnerResource_IsExcluded(t *tes
 
 	refs, err := expander.ExpandScope(context.Background(), aclscope.ScopeProject, "proj-1")
 	require.NoError(t, err)
-	assert.Equal(t, []acl.Ownerref{clusterRef("cluster-full")}, refs,
-		"a childless owner resource is treated as a leaf and excluded; only resources that actually own something are returned")
+	assert.ElementsMatch(t, []acl.Ownerref{clusterRef("cluster-full"), clusterRef("cluster-empty")}, refs,
+		"a childless cluster must still be visible to a grant on its parent project")
+}
+
+// The scope-kind carve-out must not re-admit cluster-owned CRDs that reuse a
+// scope kind name (KubeVirt VirtualMachine, CAPI Machine). Those are in-cluster
+// leaves: there can be tens of thousands of them, and traversing them would
+// overflow the $graphLookup memory limit.
+func TestMongoScopeExpander_ExpandScope_ClusterOwnedScopeKindCRD_IsExcluded(t *testing.T) {
+	db, expander := newExpanderTestDB(t)
+
+	seedResource(t, db, "proj-1", "Project", aclscope.ScopeDatacenter, "dc-1")
+	seedResource(t, db, "cluster-1", "KubernetesCluster", aclscope.ScopeProject, "proj-1")
+	// A KubeVirt VirtualMachine inside the cluster: it reuses a scope kind name
+	// but is owned by the cluster, so it is not a scope of its own.
+	seedResource(t, db, "vm-in-cluster", "VirtualMachine", aclscope.ScopeCluster, "cluster-1")
+
+	refs, err := expander.ExpandScope(context.Background(), aclscope.ScopeProject, "proj-1")
+	require.NoError(t, err)
+	assert.Equal(t, []acl.Ownerref{clusterRef("cluster-1")}, refs,
+		"a cluster-owned resource reusing a scope kind name must stay pruned")
 }
 
 // A subject with no resources at all must expand to nil without error.
