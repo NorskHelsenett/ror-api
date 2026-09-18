@@ -57,7 +57,8 @@ func testCtx() context.Context {
 	identity := identitymodels.Identity{
 		Type: identitymodels.IdentityTypeCluster,
 		ClusterIdentity: &identitymodels.ServiceIdentity{
-			Id: testClusterID,
+			Id:  testClusterID,
+			Uid: testClusterID,
 		},
 		ServiceIdentity: &identitymodels.ServiceIdentity{},
 	}

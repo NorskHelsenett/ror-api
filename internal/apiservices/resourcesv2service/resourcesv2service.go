@@ -47,6 +47,13 @@ func hasProtectedKindWriteAccess(ctx context.Context, kind string, ownerref rorr
 	if capability == "" {
 		return true, nil
 	}
+	identity, err := rorcontext.GetIdentityFromRorContext(ctx)
+	if err != nil {
+		return false, err
+	}
+	if identity.IsCluster() {
+		return false, nil
+	}
 	return aclservice.HasAccess(ctx, ownerref.Scope, ownerref.Subject, capability.WithVerb(aclmodels.VerbWrite))
 }
 
