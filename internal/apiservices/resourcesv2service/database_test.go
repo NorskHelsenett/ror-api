@@ -21,7 +21,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
+	"github.com/NorskHelsenett/ror/pkg/acl"
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclprincipal"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
@@ -50,9 +54,35 @@ func (testCredHelper) CheckAndRenew() bool              { return false }
 
 const testClusterID = "test-cluster-43232"
 
+// testAclStore grants the test cluster access to its own resources. Cluster
+// access is ordinary ACL data, so without it every query here is denied.
+type testAclStore struct{}
+
+func (testAclStore) GetByGroups(_ context.Context, groups []string) (aclmodels.AclV3List, error) {
+	var out aclmodels.AclV3List
+	for _, g := range groups {
+		if g != aclprincipal.Cluster(testClusterID) {
+			continue
+		}
+		out = append(out, aclmodels.AclV3ListItem{
+			Version: 3,
+			Group:   g,
+			Scope:   aclscope.ScopeCluster,
+			Subject: aclscope.Subject(testClusterID),
+			Access:  aclservice.ClusterSelfAccess(),
+		})
+	}
+	return out, nil
+}
+
+// TestMain wires the ACL resolver once for the package: the database layer
+// always applies an ACL filter, so the tests need a resolver to query through.
+func TestMain(m *testing.M) {
+	aclservice.SetResolver(acl.NewResolver(testAclStore{}))
+	os.Exit(m.Run())
+}
+
 // testCtx returns a context with a cluster identity matching testClusterID.
-// The ACL layer skips MongoDB queries for cluster identities, making it safe
-// for use in database-only integration tests.
 func testCtx() context.Context {
 	identity := identitymodels.Identity{
 		Type: identitymodels.IdentityTypeCluster,

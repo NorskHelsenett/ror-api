@@ -2,6 +2,7 @@ package aclservice
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"time"
@@ -87,6 +88,29 @@ func InitResolver(rmq rabbitmqclient.RabbitMQConnection) error {
 // Store returns the ACL store to use for writes. Writes made through it are
 // broadcast (once the change bus is wired) so every instance refreshes.
 func Store() aclstorev2.Store { return aclStore }
+
+// SetResolver replaces the package-level resolver. InitResolver is the normal
+// entry point; this exists for tests and callers that supply their own ACL
+// source without the MongoDB/RabbitMQ wiring.
+func SetResolver(r *acl.Resolver) { resolver = r }
+
+// errResolverNotInitialized is returned when ACL resolution is attempted before
+// InitResolver has run. Failing closed turns a wiring mistake into a denied
+// request instead of a nil-pointer panic on the request path.
+var errResolverNotInitialized = errors.New("acl resolver is not initialized")
+
+// callerGroups returns the groups of the context identity, and fails when the
+// resolver they would be resolved against is missing.
+func callerGroups(ctx context.Context) ([]string, error) {
+	groups, err := identityGroups(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if resolver == nil {
+		return nil, errResolverNotInitialized
+	}
+	return groups, nil
+}
 
 // Refresher returns the ACL snapshot refresher, exposing reload health for
 // readiness checks and allowing callers to force a refresh.
@@ -208,7 +232,7 @@ func HasAccess(ctx context.Context, scope aclscope.Scope, subject aclscope.Subje
 	// cluster id, so resolve it before consulting the store.
 	subject = resolveClusterSubject(scope, subject)
 
-	groups, err := identityGroups(ctx)
+	groups, err := callerGroups(ctx)
 	if err != nil {
 		return false, err
 	}
@@ -240,7 +264,7 @@ func resolveAccess(ctx context.Context, scope aclscope.Scope, subject aclscope.S
 	ctx, span := rortracer.StartSpan(ctx, "aclservice.ResolveAccess")
 	defer span.End()
 
-	groups, err := identityGroups(ctx)
+	groups, err := callerGroups(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -258,7 +282,7 @@ func ResolveOwnerrefs(ctx context.Context, required aclmodels.AccessTypeV3, filt
 	ctx, span := rortracer.StartSpan(ctx, "aclservice.ResolveOwnerrefs")
 	defer span.End()
 
-	groups, err := identityGroups(ctx)
+	groups, err := callerGroups(ctx)
 	if err != nil {
 		return nil, false, err
 	}
@@ -286,7 +310,7 @@ func ResourceOwnerFilter(ctx context.Context, required aclmodels.AccessTypeV3) (
 	ctx, span := rortracer.StartSpan(ctx, "aclservice.ResourceOwnerFilter")
 	defer span.End()
 
-	groups, err := identityGroups(ctx)
+	groups, err := callerGroups(ctx)
 	if err != nil {
 		return aclstore.DenyAllFilter, err
 	}
