@@ -21,6 +21,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/clients/rabbitmqclient"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclprincipal"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
@@ -91,56 +92,59 @@ func Store() aclstorev2.Store { return aclStore }
 // readiness checks and allowing callers to force a refresh.
 func Refresher() *aclstorev2.Refresher { return refresher }
 
-// identityGroups extracts the group list from the context identity.
-// For cluster identities, returns an error — callers must handle clusters separately.
+// identityGroups extracts the group list from the context identity. Every
+// identity type (user, service, cluster) resolves through the same groups.
 func identityGroups(ctx context.Context) ([]string, error) {
 	identity, err := rorcontext.GetIdentityFromRorContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get identity from context: %w", err)
 	}
 
-	if identity.IsCluster() {
-		return nil, fmt.Errorf("cluster identities do not have groups")
+	return identity.GetGroups()
+}
+
+// ClusterSelfAccess is the access a cluster has to its own resources. It used to
+// be hardcoded as implicit access; it is now stored as an ACL grant so clusters
+// resolve through the same path as every other identity.
+func ClusterSelfAccess() []aclmodels.AccessTypeV3 {
+	return []aclmodels.AccessTypeV3{
+		aclmodels.CapRor.WithVerb(aclmodels.VerbRead),
+		aclmodels.CapRor.WithVerb(aclmodels.VerbCreate),
+		aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate),
+	}
+}
+
+// EnsureClusterSelfGrant creates the cluster's self-access ACL entry unless it
+// already exists. Without it a cluster identity has no access at all, so this
+// must run whenever a cluster uid is established.
+func EnsureClusterSelfGrant(ctx context.Context, clusterUID string) error {
+	if clusterUID == "" {
+		return fmt.Errorf("cluster uid is required to create a self grant")
 	}
 
-	if identity.IsUser() {
-		if identity.User == nil {
-			return nil, fmt.Errorf("user identity has nil user")
+	group := aclprincipal.Cluster(clusterUID)
+	existing, err := Store().GetByGroups(ctx, []string{group})
+	if err != nil {
+		return fmt.Errorf("could not look up cluster self grant: %w", err)
+	}
+	for _, entry := range existing {
+		if entry.Scope == aclscope.ScopeCluster && entry.Subject == aclscope.Subject(clusterUID) {
+			return nil
 		}
-		return identity.User.Groups, nil
 	}
 
-	if identity.IsService() {
-		groups := []string{fmt.Sprintf("service-%s@ror.system", identity.GetId())}
-		return groups, nil
+	_, err = Store().Create(ctx, aclmodels.AclV3ListItem{
+		Version: 3,
+		Group:   group,
+		Scope:   aclscope.ScopeCluster,
+		Subject: aclscope.Subject(clusterUID),
+		Access:  ClusterSelfAccess(),
+		Created: time.Now(),
+	})
+	if err != nil {
+		return fmt.Errorf("could not create cluster self grant: %w", err)
 	}
-
-	return nil, fmt.Errorf("unknown identity type")
-}
-
-// clusterSelfSubject returns the subject identifying a cluster identity's own
-// resources. Cluster resources are keyed by uid, so the uid is preferred; the
-// cluster id is used only as a fallback when no uid is set.
-func clusterSelfSubject(identity identitymodels.Identity) aclscope.Subject {
-	if identity.ClusterIdentity != nil && identity.ClusterIdentity.Uid != "" {
-		return aclscope.Subject(identity.ClusterIdentity.Uid)
-	}
-	return aclscope.Subject(identity.GetId())
-}
-
-// isClusterSelf reports whether {scope, subject} addresses the cluster
-// identity's own resources, accepting either its cluster id or its uid.
-func isClusterSelf(identity identitymodels.Identity, scope aclscope.Scope, subject aclscope.Subject) bool {
-	if scope != aclscope.ScopeCluster {
-		return false
-	}
-	if subject == aclscope.Subject(identity.GetId()) {
-		return true
-	}
-	if identity.ClusterIdentity != nil && identity.ClusterIdentity.Uid != "" {
-		return subject == aclscope.Subject(identity.ClusterIdentity.Uid)
-	}
-	return false
+	return nil
 }
 
 // resolveClusterSubject converts a human-readable cluster id to its uid for
@@ -196,25 +200,9 @@ func resolveClusterFilterSubjects(filter acl.OwnerrefFilter) acl.OwnerrefFilter 
 
 // HasAccess checks if the caller (from context) has the required access type
 // for the given scope and subject.
-//
-// Cluster identities have implicit read/create/update access to their own resources
-// (scope=cluster, subject=clusterID).
 func HasAccess(ctx context.Context, scope aclscope.Scope, subject aclscope.Subject, required aclmodels.AccessTypeV3) (bool, error) {
 	ctx, span := rortracer.StartSpan(ctx, "aclservice.HasAccess")
 	defer span.End()
-
-	identity, err := rorcontext.GetIdentityFromRorContext(ctx)
-	if err != nil {
-		return false, fmt.Errorf("failed to get identity from context: %w", err)
-	}
-
-	// Cluster identities have implicit access to their own resources
-	if identity.IsCluster() {
-		if isClusterSelf(identity, scope, subject) {
-			return isImplicitClusterAccess(required), nil
-		}
-		return false, nil
-	}
 
 	// Cluster ACL entries are keyed by cluster uid; callers commonly pass the
 	// cluster id, so resolve it before consulting the store.
@@ -252,18 +240,6 @@ func resolveAccess(ctx context.Context, scope aclscope.Scope, subject aclscope.S
 	ctx, span := rortracer.StartSpan(ctx, "aclservice.ResolveAccess")
 	defer span.End()
 
-	identity, err := rorcontext.GetIdentityFromRorContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get identity from context: %w", err)
-	}
-
-	if identity.IsCluster() {
-		if isClusterSelf(identity, scope, subject) {
-			return implicitClusterAccessTypes(), nil
-		}
-		return nil, nil
-	}
-
 	groups, err := identityGroups(ctx)
 	if err != nil {
 		return nil, err
@@ -278,27 +254,9 @@ func resolveAccess(ctx context.Context, scope aclscope.Scope, subject aclscope.S
 // is empty.
 //
 // The optional filter narrows the result to specific scopes and/or subjects.
-//
-// Cluster identities resolve to their own resource only.
 func ResolveOwnerrefs(ctx context.Context, required aclmodels.AccessTypeV3, filter acl.OwnerrefFilter) (refs []acl.Ownerref, unrestricted bool, err error) {
 	ctx, span := rortracer.StartSpan(ctx, "aclservice.ResolveOwnerrefs")
 	defer span.End()
-
-	identity, err := rorcontext.GetIdentityFromRorContext(ctx)
-	if err != nil {
-		return nil, false, fmt.Errorf("failed to get identity from context: %w", err)
-	}
-
-	if identity.IsCluster() {
-		if isImplicitClusterAccess(required) {
-			ref := acl.Ownerref{Scope: aclscope.ScopeCluster, Subject: clusterSelfSubject(identity)}
-			if !filter.Matches(ref) {
-				return []acl.Ownerref{}, false, nil
-			}
-			return []acl.Ownerref{ref}, false, nil
-		}
-		return nil, false, nil
-	}
 
 	groups, err := identityGroups(ctx)
 	if err != nil {
@@ -324,21 +282,9 @@ func ResolveOwnerrefs(ctx context.Context, required aclmodels.AccessTypeV3, filt
 
 // ResourceOwnerFilter returns a MongoDB aggregation pipeline stage that scopes
 // resource queries to resources the caller has the required access type for.
-//
-// For cluster identities, returns a filter matching only their own resources.
-// For user/service identities, resolves ownerrefs via the resolver.
 func ResourceOwnerFilter(ctx context.Context, required aclmodels.AccessTypeV3) (bson.M, error) {
 	ctx, span := rortracer.StartSpan(ctx, "aclservice.ResourceOwnerFilter")
 	defer span.End()
-
-	identity, err := rorcontext.GetIdentityFromRorContext(ctx)
-	if err != nil {
-		return aclstore.DenyAllFilter, fmt.Errorf("failed to get identity from context: %w", err)
-	}
-
-	if identity.IsCluster() {
-		return aclstore.ClusterIdentityFilter(string(clusterSelfSubject(identity))), nil
-	}
 
 	groups, err := identityGroups(ctx)
 	if err != nil {
@@ -427,37 +373,6 @@ func ResourceTypeWriteFilter(ctx context.Context, scope aclscope.Scope, subject 
 	}
 
 	return aclstore.ResourceTypeWriteFilter(access), nil
-}
-
-// isImplicitClusterAccess returns true if the given access type is one that
-// clusters implicitly have for their own resources (read, create, update).
-func isImplicitClusterAccess(access aclmodels.AccessTypeV3) bool {
-	cap, verb := access.Parse()
-	switch cap {
-	case aclmodels.CapRor:
-		return verb == aclmodels.VerbRead ||
-			verb == aclmodels.VerbCreate ||
-			verb == aclmodels.VerbUpdate
-	case aclmodels.CapKubernetes:
-		return verb == aclmodels.VerbRead ||
-			verb == aclmodels.VerbCreate ||
-			verb == aclmodels.VerbUpdate
-	default:
-		return false
-	}
-}
-
-// implicitClusterAccessTypes returns the set of access types that clusters
-// implicitly have for their own resources.
-func implicitClusterAccessTypes() []aclmodels.AccessTypeV3 {
-	return []aclmodels.AccessTypeV3{
-		aclmodels.CapRor.WithVerb(aclmodels.VerbRead),
-		aclmodels.CapRor.WithVerb(aclmodels.VerbCreate),
-		aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate),
-		aclmodels.CapKubernetes.WithVerb(aclmodels.VerbRead),
-		aclmodels.CapKubernetes.WithVerb(aclmodels.VerbCreate),
-		aclmodels.CapKubernetes.WithVerb(aclmodels.VerbUpdate),
-	}
 }
 
 func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontracts.PaginatedResult[aclmodels.AclV2ListItem], error) {

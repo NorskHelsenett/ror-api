@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/clustersservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
 	apikeyrepo "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/apikeys"
@@ -397,6 +398,12 @@ func CreateForAgentV2(ctx context.Context, req *apikeystypes.RegisterClusterRequ
 	err = apikeyrepo.Create(mongoctx, apikey)
 	if err != nil {
 		return response, err
+	}
+
+	// A cluster's access to its own resources is ACL data, so without this grant
+	// the freshly registered cluster would have no access at all.
+	if err := aclservice.EnsureClusterSelfGrant(ctx, clusterUid); err != nil {
+		return response, fmt.Errorf("could not grant cluster access to its own resources: %w", err)
 	}
 
 	return apikeystypes.RegisterClusterResponse{

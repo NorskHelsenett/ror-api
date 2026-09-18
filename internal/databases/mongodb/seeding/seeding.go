@@ -15,7 +15,9 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclprincipal"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
+	"github.com/NorskHelsenett/ror/pkg/rorresources/rordefs"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -31,6 +33,7 @@ var (
 
 func CheckAndSeed(ctx context.Context) {
 	seedPrices(ctx)
+	seedAclV3Items(ctx)
 
 	if rorconfig.GetBool(rorconfig.DEVELOPMENT) {
 		seedDatacenters(ctx)
@@ -459,7 +462,7 @@ func seedAclv2Items(ctx context.Context) {
 		),
 
 		*aclmodels.NewAclV2ListItem(
-			"service-nhn@ror.system",
+			aclprincipal.Service("nhn"),
 			aclscope.ScopeRor,
 			aclscope.Subject(aclscope.ScopeCluster),
 			aclmodels.NewAclV2ListItemAccessEditor(),
@@ -467,7 +470,7 @@ func seedAclv2Items(ctx context.Context) {
 			"system@ror.dev",
 		),
 		*aclmodels.NewAclV2ListItem(
-			"service-audit@ror.system",
+			aclprincipal.Service("audit"),
 			aclscope.ScopeRor,
 			aclscope.Subject(aclscope.SubjectGlobal),
 			aclmodels.NewAclV2ListItemAccessReadOnly(),
@@ -475,7 +478,7 @@ func seedAclv2Items(ctx context.Context) {
 			"system@ror.dev",
 		),
 		*aclmodels.NewAclV2ListItem(
-			"service-msswitchboard@ror.system",
+			aclprincipal.Service("msswitchboard"),
 			aclscope.ScopeRor,
 			aclscope.Subject(aclscope.SubjectGlobal),
 			aclmodels.NewAclV2ListItemAccessContributor(),
@@ -483,7 +486,7 @@ func seedAclv2Items(ctx context.Context) {
 			"system@ror.dev",
 		),
 		*aclmodels.NewAclV2ListItem(
-			"service-mstanzu@ror.system",
+			aclprincipal.Service("mstanzu"),
 			aclscope.ScopeRor,
 			aclscope.Subject(aclscope.SubjectGlobal),
 			aclmodels.NewAclV2ListItemAccessOperator(),
@@ -491,7 +494,7 @@ func seedAclv2Items(ctx context.Context) {
 			"system@ror.dev",
 		),
 		*aclmodels.NewAclV2ListItem(
-			"service-tanzu-agent@ror.system",
+			aclprincipal.Service("tanzu-agent"),
 			aclscope.ScopeRor,
 			aclscope.Subject(aclscope.SubjectGlobal),
 			aclmodels.NewAclV2ListItemAccessOperator(),
@@ -499,7 +502,7 @@ func seedAclv2Items(ctx context.Context) {
 			"system@ror.dev",
 		),
 		*aclmodels.NewAclV2ListItem(
-			"service-mskind@ror.system",
+			aclprincipal.Service("mskind"),
 			aclscope.ScopeRor,
 			aclscope.Subject(aclscope.SubjectGlobal),
 			aclmodels.NewAclV2ListItemAccessOperator(),
@@ -507,7 +510,7 @@ func seedAclv2Items(ctx context.Context) {
 			"system@ror.dev",
 		),
 		*aclmodels.NewAclV2ListItem(
-			"service-msvulnerability@ror.system",
+			aclprincipal.Service("msvulnerability"),
 			aclscope.ScopeRor,
 			aclscope.Subject(aclscope.SubjectGlobal),
 			aclmodels.NewAclV2ListItemAccessContributor(),
@@ -515,7 +518,7 @@ func seedAclv2Items(ctx context.Context) {
 			"system@ror.dev",
 		),
 		*aclmodels.NewAclV2ListItem(
-			"service-msslack@ror.system",
+			aclprincipal.Service("msslack"),
 			aclscope.ScopeRor,
 			aclscope.Subject(aclscope.SubjectGlobal),
 			aclmodels.NewAclV2ListItemAccessContributor(),
@@ -523,7 +526,7 @@ func seedAclv2Items(ctx context.Context) {
 			"system@ror.dev",
 		),
 		*aclmodels.NewAclV2ListItem(
-			"service-mstalos@ror.system",
+			aclprincipal.Service("mstalos"),
 			aclscope.ScopeRor,
 			aclscope.Subject(aclscope.SubjectGlobal),
 			aclmodels.NewAclV2ListItemAccessOperator(),
@@ -536,6 +539,37 @@ func seedAclv2Items(ctx context.Context) {
 		identifier := bson.M{"group": aclv2item.Group}
 		err := verifySeed(ctx, collection, &aclv2item, identifier)
 		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+// seedAclV3Items seeds the fleet-wide grants that are expressed as ACL data
+// rather than code. Unlike seedAclv2Items these apply in every environment.
+func seedAclV3Items(ctx context.Context) {
+	db := mongodb.GetMongoDb()
+	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	defer cancel()
+	collection := db.Collection("acl")
+
+	aclv3items := []aclmodels.AclV3ListItem{
+		// Every cluster may read Config. This is a type-level capability grant
+		// (scope=ror, subject=<Kind>), so it conveys the capability without
+		// widening which resources the cluster can see.
+		{
+			Version:  3,
+			Group:    aclprincipal.AllClusters(),
+			Scope:    aclscope.ScopeRor,
+			Subject:  aclscope.Subject(rordefs.ResourceConfig.Kind),
+			Access:   []aclmodels.AccessTypeV3{aclmodels.AccessRorRead, aclmodels.AccessRorConfigRead},
+			Created:  time.Now(),
+			IssuedBy: "system@ror.dev",
+		},
+	}
+
+	for _, item := range aclv3items {
+		identifier := bson.M{"group": item.Group, "scope": item.Scope, "subject": item.Subject}
+		if err := verifySeed(ctx, collection, &item, identifier); err != nil {
 			panic(err)
 		}
 	}
