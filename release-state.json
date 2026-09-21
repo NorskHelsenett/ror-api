@@ -59,7 +59,29 @@
           "number": 2,
           "candidateVersion": "v0.0.1-rc.2",
           "harnessSHA": "39314b715eb2de8b1dc8e97585a1db74cd8d09b3",
-          "status": "reserved"
+          "status": "publishing",
+          "binding": {
+            "image": {
+              "archiveSha256": "sha256:1de0145a62c5c5e94b8ebd8a3783832d10e6f55f9e42f9919c8a4f13aee8f3a5",
+              "indexDigest": "sha256:70b104d0c1e9fe94a6123c037b52173346a9ae74f080c484af40d82f855bd412",
+              "manifestDigest": "sha256:89bf5808f5f50106a2061b1eba59aa2ececc153d418decd7c5b37eae9f577ec3",
+              "configDigest": "sha256:60ded2d236dcd3c3c457f4fa11657b9e44f0d00674ac437087d7bfa50b0d8a2d",
+              "platform": "linux/amd64"
+            },
+            "testedImage": {
+              "archiveSha256": "sha256:d55dbe28611ba089e40350dfa2d89d565274c50b54b6a4888e2b9ee1d74b0b1e",
+              "indexDigest": "sha256:89bf5808f5f50106a2061b1eba59aa2ececc153d418decd7c5b37eae9f577ec3",
+              "manifestDigest": "sha256:89bf5808f5f50106a2061b1eba59aa2ececc153d418decd7c5b37eae9f577ec3",
+              "configDigest": "sha256:60ded2d236dcd3c3c457f4fa11657b9e44f0d00674ac437087d7bfa50b0d8a2d",
+              "platform": "linux/amd64"
+            },
+            "charts": {
+              "ror-api-0.0.1-rc.2.tgz": "sha256:21fb16effce8d3b6aae8962e772e85ffaa8c52e2a0ff1439ba57de10abf1b1ba",
+              "ror-api-0.0.1.tgz": "sha256:7efdbc4a0415ad9455da645a5df2db85df53f8d67076f88b88ba31992cef72fc"
+            },
+            "reportDigest": "sha256:a2e53ca631255651945b8e27e13afc725760de2d036358c607cf5c4f189f37ca",
+            "artifactID": "10634836248"
+          }
         }
       }
     }
