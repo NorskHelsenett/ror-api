@@ -1,0 +1,248 @@
+name: Candidate handoff rehearsal
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_version:
+        description: Final binary version, e.g. v1.26.0 (nothing will be published)
+        required: true
+        type: string
+      api_ref:
+        description: Source commit/branch/tag; empty uses the selected workflow revision
+        default: ''
+        type: string
+      test_fault:
+        description: Deliberately corrupt the expected checksum to verify the failure gate
+        default: none
+        type: choice
+        options: [none, checksum]
+
+permissions:
+  contents: read
+  actions: read
+  packages: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      source_sha: ${{ steps.request.outputs.source_sha }}
+      target_version: ${{ steps.request.outputs.target_version }}
+      candidate_version: ${{ steps.request.outputs.candidate_version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Test rehearsal helpers
+        run: node --test .github/scripts/candidate-handoff.test.cjs
+      - name: Resolve source and validate candidate request
+        id: request
+        uses: actions/github-script@v7
+        env:
+          TARGET_VERSION: ${{ inputs.target_version }}
+          API_REF: ${{ inputs.api_ref }}
+          TEST_FAULT: ${{ inputs.test_fault }}
+        with:
+          script: |
+            const assert = require('node:assert/strict');
+            const { prepareCandidate } = require('./.github/scripts/candidate-handoff.cjs');
+            assert(['none', 'checksum'].includes(process.env.TEST_FAULT));
+            const request = {
+              targetVersion: process.env.TARGET_VERSION,
+              sourceSHA: context.sha,
+              repository: process.env.GITHUB_REPOSITORY,
+              runID: process.env.GITHUB_RUN_ID,
+              runAttempt: process.env.GITHUB_RUN_ATTEMPT,
+            };
+            prepareCandidate(request);
+            const { data } = await github.rest.repos.getCommit({
+              ...context.repo, ref: process.env.API_REF || context.sha,
+            });
+            const candidate = prepareCandidate({ ...request, sourceSHA: data.sha });
+            core.setOutput('source_sha', candidate.sourceSHA);
+            core.setOutput('target_version', candidate.targetVersion);
+            core.setOutput('candidate_version', candidate.candidateVersion);
+            await core.summary.addHeading('Private RC rehearsal')
+              .addRaw(`Target: ${candidate.targetVersion}\n\nCandidate: ${candidate.candidateVersion}\n\nSource: ${candidate.sourceSHA}\n\nNo image push, Git tag, chart, or release will be created.\n`).write();
+
+  build:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      GOWORK: 'off'
+      GOFLAGS: -mod=readonly
+      TARGET_VERSION: ${{ needs.prepare.outputs.target_version }}
+      SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
+    outputs:
+      artifact_id: ${{ steps.archive.outputs.artifact-id }}
+      metadata_artifact_id: ${{ steps.metadata.outputs.artifact-id }}
+      archive_sha256: ${{ steps.identity.outputs.archive_sha256 }}
+      index_digest: ${{ steps.identity.outputs.index_digest }}
+      manifest_digest: ${{ steps.identity.outputs.manifest_digest }}
+    steps:
+      - name: Checkout trusted caller tooling
+        uses: actions/checkout@v4
+        with:
+          path: tooling
+          persist-credentials: false
+      - name: Checkout selected API source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.source_sha }}
+          path: source
+          persist-credentials: false
+      - name: Checkout pinned verifier
+        uses: actions/checkout@v4
+        with:
+          repository: NorskHelsenett/ror-test
+          ref: 199e73ba8875775cc1329faabb7eea6475a02d4c
+          path: harness
+          token: ${{ secrets.CROSS_REPO_READ_TOKEN || github.token }}
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: source/go.mod
+          cache-dependency-path: |
+            source/go.sum
+            harness/go.sum
+      - name: Build amd64 API with target final version
+        working-directory: source
+        run: |
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          mkdir -p dist ../candidate-bundle
+          go list -m -json github.com/NorskHelsenett/ror > ../candidate-bundle/shared-module.json
+          LIB_VER=$(node -e 'const fs=require("fs"),assert=require("assert"); const module=JSON.parse(fs.readFileSync("../candidate-bundle/shared-module.json")); assert(!module.Replace,"release rehearsal forbids a replaced shared module"); assert(module.Version); console.log(module.Version);')
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+            -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/ror/pkg/config/rorversion.Version=$TARGET_VERSION -X github.com/NorskHelsenett/ror/pkg/config/rorversion.Commit=$SOURCE_SHA -X github.com/NorskHelsenett/ror/pkg/config/rorversion.LibVer=$LIB_VER" \
+            -o dist/ror-api-linux-amd64 ./cmd/api
+          chmod 0755 dist/ror-api-linux-amd64
+          go version -m dist/ror-api-linux-amd64 > ../candidate-bundle/build.txt
+          git diff --exit-code -- go.mod go.sum
+      - uses: docker/setup-buildx-action@v3
+      - name: Export OCI archive without registry push
+        run: |
+          docker buildx build --platform linux/amd64 --provenance=false --sbom=false \
+            --file source/Dockerfile \
+            --output type=oci,dest=candidate-bundle/candidate.tar \
+            source
+      - name: Verify archive and record immutable identity
+        id: identity
+        run: |
+          go -C harness build -o "$RUNNER_TEMP/e2e-verifier" ./cmd/e2e
+          ARCHIVE_SHA256="sha256:$(sha256sum candidate-bundle/candidate.tar | cut -d' ' -f1)"
+          INDEX_DIGEST="sha256:$(tar -xOf candidate-bundle/candidate.tar index.json | sha256sum | cut -d' ' -f1)"
+          "$RUNNER_TEMP/e2e-verifier" inspect-candidate \
+            -archive candidate-bundle/candidate.tar -checksum "$ARCHIVE_SHA256" \
+            -digest "$INDEX_DIGEST" -platform linux/amd64 \
+            -out candidate-bundle/candidate-image.json
+          node <<'NODE'
+          const fs = require('node:fs');
+          const { prepareCandidate } = require('./tooling/.github/scripts/candidate-handoff.cjs');
+          const candidate = prepareCandidate({
+            targetVersion: process.env.TARGET_VERSION, sourceSHA: process.env.SOURCE_SHA,
+            repository: process.env.GITHUB_REPOSITORY, runID: process.env.GITHUB_RUN_ID,
+            runAttempt: process.env.GITHUB_RUN_ATTEMPT,
+          });
+          fs.writeFileSync('candidate-bundle/candidate-request.json', JSON.stringify(candidate, null, 2) + '\n');
+          const image = JSON.parse(fs.readFileSync('candidate-bundle/candidate-image.json'));
+          fs.appendFileSync(process.env.GITHUB_OUTPUT,
+            `archive_sha256=${image.archiveSha256}\nindex_digest=${image.indexDigest}\nmanifest_digest=${image.manifestDigest}\n`);
+          NODE
+      - name: Upload private build artifact
+        id: archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: candidate-archive-${{ github.run_id }}-${{ github.run_attempt }}
+          path: candidate-bundle/candidate.tar
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload expected candidate metadata
+        id: metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: candidate-metadata-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: error
+          retention-days: 7
+          path: |
+            candidate-bundle/candidate-request.json
+            candidate-bundle/candidate-image.json
+            candidate-bundle/shared-module.json
+            candidate-bundle/build.txt
+
+  integration:
+    needs: [prepare, build]
+    uses: NorskHelsenett/ror-test/.github/workflows/candidate-e2e.yml@199e73ba8875775cc1329faabb7eea6475a02d4c
+    with:
+      artifact_id: ${{ needs.build.outputs.artifact_id }}
+      archive_sha256: ${{ inputs.test_fault == 'checksum' && 'sha256:0000000000000000000000000000000000000000000000000000000000000000' || needs.build.outputs.archive_sha256 }}
+      index_digest: ${{ needs.build.outputs.index_digest }}
+      manifest_digest: ${{ needs.build.outputs.manifest_digest }}
+      platform: linux/amd64
+      harness_sha: 199e73ba8875775cc1329faabb7eea6475a02d4c
+      source_sha: ${{ needs.prepare.outputs.source_sha }}
+    secrets:
+      CROSS_REPO_READ_TOKEN: ${{ secrets.CROSS_REPO_READ_TOKEN }}
+
+  verify-handoff:
+    needs: [prepare, build, integration]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: tooling
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: NorskHelsenett/ror-test
+          ref: 199e73ba8875775cc1329faabb7eea6475a02d4c
+          path: harness
+          token: ${{ secrets.CROSS_REPO_READ_TOKEN || github.token }}
+          persist-credentials: false
+      - name: Require successful jobs and immutable artifact IDs
+        env:
+          PREPARE_RESULT: ${{ needs.prepare.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          TEST_RESULT: ${{ needs.integration.result }}
+          EVIDENCE_ID: ${{ needs.integration.outputs.evidence_artifact_id }}
+          METADATA_ID: ${{ needs.build.outputs.metadata_artifact_id }}
+        run: |
+          [[ "$PREPARE_RESULT" == success && "$BUILD_RESULT" == success && "$TEST_RESULT" == success ]]
+          [[ "$EVIDENCE_ID" =~ ^[1-9][0-9]*$ && "$METADATA_ID" =~ ^[1-9][0-9]*$ ]]
+      - uses: actions/download-artifact@v5
+        with:
+          artifact-ids: ${{ needs.build.outputs.metadata_artifact_id }}
+          path: expected
+          merge-multiple: true
+      - uses: actions/download-artifact@v5
+        with:
+          artifact-ids: ${{ needs.integration.outputs.evidence_artifact_id }}
+          path: evidence
+          merge-multiple: true
+      - name: Check report against trusted suite and build metadata
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: harness/go.mod
+          cache-dependency-path: harness/go.sum
+      - name: Verify returned report and candidate identity
+        env:
+          GOWORK: 'off'
+          GOFLAGS: -mod=readonly
+          BUILD_ARTIFACT_ID: ${{ needs.build.outputs.artifact_id }}
+        run: |
+          REPORT_DIRECTORY=$(node -e 'console.log(require("./tooling/.github/scripts/candidate-handoff.cjs").evidenceDirectory("evidence"))')
+          go -C harness run ./cmd/e2e verify-report \
+            -suite "$GITHUB_WORKSPACE/harness/testenv/scenarios/acl.json" \
+            -report "$GITHUB_WORKSPACE/$REPORT_DIRECTORY/candidate.json" \
+            -out "$RUNNER_TEMP/rechecked-report.json"
+          node tooling/.github/scripts/candidate-handoff.cjs expected evidence harness "$BUILD_ARTIFACT_ID"
+      - name: Retain successful unpublished rehearsal result
+        uses: actions/upload-artifact@v4
+        with:
+          name: verified-rc-rehearsal-${{ github.run_id }}-${{ github.run_attempt }}
+          path: handoff-result.json
+          if-no-files-found: error
+          retention-days: 30

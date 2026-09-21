@@ -16,6 +16,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 
 	"strings"
 
@@ -46,7 +47,7 @@ func GetOperatorConfiguration() gin.HandlerFunc {
 		// Scope: cluster
 		// Subject: clusterId
 		// Access: read
-		allowed, err := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeCluster, aclmodels.Acl2Subject(clusterId), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, err := aclservice.HasAccess(ctx, aclscope.ScopeCluster, aclscope.Subject(clusterId), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -115,7 +116,7 @@ func GetTaskConfiguration() gin.HandlerFunc {
 		// Scope: cluster
 		// Subject: clusterId
 		// Access: read
-		allowed, err := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeCluster, aclmodels.Acl2Subject(clusterId), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, err := aclservice.HasAccess(ctx, aclscope.ScopeCluster, aclscope.Subject(clusterId), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return

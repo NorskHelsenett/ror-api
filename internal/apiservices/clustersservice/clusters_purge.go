@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
-	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 
@@ -116,7 +116,7 @@ func PurgeClusterByUid(ctx context.Context, uid string, force bool) (PurgeResult
 		)
 	}
 
-	kind := string(aclmodels.Acl2ScopeCluster.ToKind())
+	kind := string(aclscope.ScopeCluster.ToKind())
 
 	// Delete v1 resources owned by the cluster (keyed by clusterid).
 	if result.ClusterId != "" {

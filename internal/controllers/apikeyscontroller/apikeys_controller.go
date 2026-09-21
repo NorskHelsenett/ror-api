@@ -15,6 +15,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -154,7 +155,7 @@ func Delete() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: apikey
 		// Access: delete
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbDelete))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbDelete))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -199,7 +200,7 @@ func CreateApikey() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: apikey
 		// Access: create
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return

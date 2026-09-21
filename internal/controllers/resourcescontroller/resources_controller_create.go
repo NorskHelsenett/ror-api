@@ -10,6 +10,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
@@ -60,7 +61,7 @@ func NewResource() gin.HandlerFunc {
 		span1.End()
 		_, span2 := rortracer.StartSpan(ctx, "Check access")
 		defer span2.End()
-		scope := aclmodels.Acl2Scope(input.Owner.Scope)
+		scope := aclscope.Scope(input.Owner.Scope)
 		subject := input.Owner.Subject
 
 		if subject == "" || scope == "" {
@@ -72,7 +73,7 @@ func NewResource() gin.HandlerFunc {
 		// Scope: input.Owner.Scope
 		// Subject: input.Owner.Subject
 		// Access: update
-		allowed, accessErr := aclservice.HasAccess(ctx, scope, aclmodels.Acl2Subject(subject), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+		allowed, accessErr := aclservice.HasAccess(ctx, scope, aclscope.Subject(subject), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return

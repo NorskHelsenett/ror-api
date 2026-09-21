@@ -8,6 +8,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror-api/pkg/services/tokenservice"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
@@ -53,7 +54,7 @@ func ExchangeToken() gin.HandlerFunc {
 		// Scope: cluster
 		// Subject: clusterId
 		// Access: kubernetes.logon
-		hasAccess, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeCluster, aclmodels.Acl2Subject(input.ClusterID), aclmodels.CapKubernetes.WithVerb(aclmodels.VerbLogon))
+		hasAccess, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeCluster, aclscope.Subject(input.ClusterID), aclmodels.CapKubernetes.WithVerb(aclmodels.VerbLogon))
 		if accessErr != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "access check failed", accessErr)
 			rerr.GinLogErrorAbort(c)

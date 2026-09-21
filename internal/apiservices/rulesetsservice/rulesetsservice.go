@@ -8,7 +8,7 @@ import (
 	resourcesservice "github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesService"
 	mongorulesets "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/rulesets"
 
-	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/messages"
@@ -109,7 +109,7 @@ func AddResource(ctx context.Context, setId string, input *messages.RulesetResou
 			if input.Uid != "*" {
 				resource, err := resourcesservice.GetResource[apiresourcecontracts.ResourceIngress](ctx, apiresourcecontracts.ResourceQuery{
 					Owner: apiresourcecontracts.ResourceOwnerReference{
-						Scope:   aclmodels.Acl2ScopeCluster,
+						Scope:   aclscope.ScopeCluster,
 						Subject: set.Identity.Id,
 					},
 					Uid:        input.Uid,

@@ -10,6 +10,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 
@@ -62,7 +63,7 @@ func DeleteResource() gin.HandlerFunc {
 				return
 			}
 
-			scope := aclmodels.Acl2Scope(input.Owner.Scope)
+			scope := aclscope.Scope(input.Owner.Scope)
 			subject := input.Owner.Subject
 
 			if subject == "" || scope == "" {
@@ -74,7 +75,7 @@ func DeleteResource() gin.HandlerFunc {
 			// Scope: input.Owner.Scope
 			// Subject: input.Owner.Subject
 			// Access: update
-			allowed, accessErr := aclservice.HasAccess(ctx, scope, aclmodels.Acl2Subject(subject), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+			allowed, accessErr := aclservice.HasAccess(ctx, scope, aclscope.Subject(subject), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
 			if accessErr != nil {
 				c.JSON(http.StatusInternalServerError, "")
 				return
@@ -121,7 +122,7 @@ func DeleteResource() gin.HandlerFunc {
 			// Scope: input.Owner.Scope
 			// Subject: input.Owner.Subject
 			// Access: update
-			allowed, accessErr := aclservice.HasAccess(ctx, scope, aclmodels.Acl2Subject(subject), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+			allowed, accessErr := aclservice.HasAccess(ctx, scope, aclscope.Subject(subject), aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
 			if accessErr != nil {
 				c.JSON(http.StatusInternalServerError, "")
 				return

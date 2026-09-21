@@ -15,6 +15,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/messagebuscontracts"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
@@ -33,7 +34,7 @@ func init() {
 	customvalidators.Setup(validate)
 }
 
-// GetScopes provides a array of aclmodels.Acl2Scope
+// GetScopes provides a array of aclscope.Scope
 //
 //	@Summary	Get acl scopes
 //	@Schemes
@@ -41,13 +42,14 @@ func init() {
 //	@Tags			acl
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Success		200				{array}		aclmodels.Acl2Scope
+//	@Success		200				{array}		aclscope.Scope
 //	@Failure		401				{object}	rorerror.ErrorData
+//	@Deprecated
 //	@Router			/v1/acl/scopes	[get]
 //	@Security		ApiKey || AccessToken
 func GetScopes() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		results := aclmodels.GetScopes()
+		results := aclscope.GetScopes()
 		c.JSON(http.StatusOK, results)
 	}
 }
@@ -65,6 +67,7 @@ func GetScopes() gin.HandlerFunc {
 //	@Param			scope								path		string	false	"Scope"
 //	@Param			subject								path		string	false	"Subject"
 //	@Param			access								path		string	false	"read,write,update or delete"
+//	@Deprecated
 //	@Router			/v1/acl/{scope}/{subject}/{access}	[head]
 //	@Security		ApiKey || AccessToken
 func CheckAcl() gin.HandlerFunc {
@@ -107,7 +110,7 @@ func CheckAcl() gin.HandlerFunc {
 			return
 		}
 
-		allowed, err := aclservice.HasAccess(ctx, aclmodels.Acl2Scope(scope), aclmodels.Acl2Subject(subject), accessV3)
+		allowed, err := aclservice.HasAccess(ctx, aclscope.Scope(scope), aclscope.Subject(subject), accessV3)
 		if err != nil {
 			c.Status(http.StatusInternalServerError)
 			return
@@ -129,9 +132,10 @@ func CheckAcl() gin.HandlerFunc {
 // @Failure		403
 // @Failure		400
 // @Failure		401
-// @Param			scope								query		aclmodels.Acl2Scope	false	"Scope"
-// @Param			subject								query		aclmodels.Acl2Subject	false	"Subject"
+// @Param			scope								query		aclscope.Scope	false	"Scope"
+// @Param			subject								query		aclscope.Subject	false	"Subject"
 // @Param			access								query		string	false	"read,write,update or delete"
+// @Deprecated
 // @Router			/v1/acl/lookup	[get]
 // @Security		ApiKey || AccessToken
 func LookupAcl() gin.HandlerFunc {
@@ -143,9 +147,9 @@ func LookupAcl() gin.HandlerFunc {
 		subjectParam := c.Query("subject")
 		accessParam := c.Query("access")
 
-		scope := aclmodels.Acl2ScopeAll
+		scope := aclscope.ScopeAll
 		if scopeParam != "" {
-			scope = aclmodels.Acl2Scope(scopeParam)
+			scope = aclscope.Scope(scopeParam)
 			if !scope.IsValid() {
 				rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "invalid scope")
 				rerr.GinLogErrorAbort(c)
@@ -153,9 +157,9 @@ func LookupAcl() gin.HandlerFunc {
 			}
 		}
 
-		subject := aclmodels.Acl2RorSubjectAll
+		subject := aclscope.SubjectAll
 		if subjectParam != "" {
-			subject = aclmodels.Acl2Subject(subjectParam)
+			subject = aclscope.Subject(subjectParam)
 		}
 
 		acls, err := aclservice.GetAccessByScopeSubject(ctx, scope, subject)
@@ -177,11 +181,11 @@ func LookupAcl() gin.HandlerFunc {
 				for subject, access := range scopeData.Subject {
 					if access.HasAccessType(accessType) {
 						if filtered.Scopes == nil {
-							filtered.Scopes = make(map[aclmodels.Acl2Scope]aclmodels.AclLookupResponseScope)
+							filtered.Scopes = make(map[aclscope.Scope]aclmodels.AclLookupResponseScope)
 						}
 						if _, ok := filtered.Scopes[scope]; !ok {
 							filtered.Scopes[scope] = aclmodels.AclLookupResponseScope{
-								Subject: make(map[aclmodels.Acl2Subject]aclmodels.AclV2ListItemAccess),
+								Subject: make(map[aclscope.Subject]aclmodels.AclV2ListItemAccess),
 							}
 						}
 						filtered.Scopes[scope].Subject[subject] = access
@@ -209,6 +213,7 @@ func LookupAcl() gin.HandlerFunc {
 //	@Failure		400				{object}	rorerror.ErrorData
 //	@Failure		401				{object}	rorerror.ErrorData
 //	@Failure		500				{object}	rorerror.ErrorData
+//	@Deprecated
 //	@Router			/v1/acl/{aclId}	[get]
 //	@Param			aclId				path	string	true	"aclId"
 //	@Security		ApiKey || AccessToken
@@ -221,7 +226,7 @@ func GetById() gin.HandlerFunc {
 		// Scope: Ror
 		// Subject: Acl
 		// Access: Read
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -263,6 +268,7 @@ func GetById() gin.HandlerFunc {
 //	@Failure		400				{object}	rorerror.ErrorData
 //	@Failure		401				{object}	rorerror.ErrorData
 //	@Failure		500				{object}	rorerror.ErrorData
+//	@Deprecated
 //	@Router			/v1/acl/filter	[post]
 //	@Param			filter			body	apicontracts.Filter	true	"Filter"
 //	@Security		ApiKey || AccessToken
@@ -277,7 +283,7 @@ func GetByFilter() gin.HandlerFunc {
 		// Scope: Ror
 		// Subject: Acl
 		// Access: Read
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -333,6 +339,7 @@ func GetByFilter() gin.HandlerFunc {
 //	@Failure		400		{object}	rorerror.ErrorData
 //	@Failure		401		{object}	rorerror.ErrorData
 //	@Failure		500		{object}	rorerror.ErrorData
+//	@Deprecated
 //	@Router			/v1/acl	[post]
 //	@Param			acl		body	aclmodels.AclV2ListItem	true	"Acl"
 //	@Security		ApiKey || AccessToken
@@ -347,7 +354,7 @@ func Create() gin.HandlerFunc {
 		// Scope: Ror
 		// Subject: Acl
 		// Access: Create
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -395,6 +402,7 @@ func Create() gin.HandlerFunc {
 //	@Failure		400				{object}	rorerror.ErrorData
 //	@Failure		401				{object}	rorerror.ErrorData
 //	@Failure		500				{object}	rorerror.ErrorData
+//	@Deprecated
 //	@Router			/v1/acl/{aclId}	[put]
 //	@Param			aclId			path	string					true	"aclId"
 //	@Param			acl				body	aclmodels.AclV2ListItem	true	"Acl"
@@ -410,7 +418,7 @@ func Update() gin.HandlerFunc {
 		// Scope: Ror
 		// Subject: Acl
 		// Access: Update
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -467,6 +475,7 @@ func Update() gin.HandlerFunc {
 //	@Failure		400				{object}	rorerror.ErrorData
 //	@Failure		401				{object}	rorerror.ErrorData
 //	@Failure		500				{object}	rorerror.ErrorData
+//	@Deprecated
 //	@Router			/v1/acl/{aclId}	[delete]
 //	@Param			aclId			path	string	true	"aclId"
 //	@Security		ApiKey || AccessToken
@@ -487,7 +496,7 @@ func Delete() gin.HandlerFunc {
 		// Scope: Ror
 		// Subject: Acl
 		// Access: Delete
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbDelete))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectAcl, aclmodels.CapRor.WithVerb(aclmodels.VerbDelete))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return

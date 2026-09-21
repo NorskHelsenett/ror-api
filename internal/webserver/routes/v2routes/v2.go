@@ -74,6 +74,14 @@ func SetupRoutes(router *gin.Engine) error {
 	{
 		aclroute.GET("/lookup", aclcontroller.LookupAcl())
 		aclroute.GET("/lookup/:scope/:subject", aclcontroller.LookupAclByScopeSubject())
+		aclroute.HEAD("/lookup/:scope/:subject/:accesstype", aclcontroller.CheckAccess())
+
+		// V3-native ACL management (no V2 conversion).
+		aclroute.POST("", aclcontroller.CreateAcl())
+		aclroute.POST("/filter", aclcontroller.GetAclByFilter())
+		aclroute.GET("/:id", aclcontroller.GetAclById())
+		aclroute.PUT("/:id", aclcontroller.UpdateAcl())
+		aclroute.DELETE("/:id", aclcontroller.DeleteAcl())
 	}
 	return nil
 }

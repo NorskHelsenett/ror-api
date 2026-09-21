@@ -20,6 +20,7 @@ import (
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -217,7 +218,7 @@ func (sse *SSE) Send() gin.HandlerFunc {
 		// Subject: global
 		// Access: create
 		// TODO: check if this is the right way to do it
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return

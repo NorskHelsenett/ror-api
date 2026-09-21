@@ -27,7 +27,7 @@ func GetAllACL2(ctx context.Context) ([]aclmodels.AclV2ListItem, error) {
 // GetAccessByScopeSubject returns the caller's own ACL grants grouped by
 // scope+subject, sourced from the V3 snapshot. Identity-less/cluster callers get
 // an empty response.
-func GetAccessByScopeSubject(ctx context.Context, scope aclmodels.Acl2Scope, subject aclmodels.Acl2Subject) (aclmodels.AclLookupResponse, error) {
+func GetAccessByScopeSubject(ctx context.Context, scope aclscope.Scope, subject aclscope.Subject) (aclmodels.AclLookupResponse, error) {
 	groups, err := identityGroups(ctx)
 	if err != nil {
 		return aclmodels.AclLookupResponse{}, nil // no groups -> no grants
@@ -172,6 +172,16 @@ const defaultFilterLimit = 25
 // deterministic (entry id tiebreaker) so pagination is stable across snapshot
 // reloads.
 func getByFilter(ctx context.Context, filter *apicontracts.Filter) ([]aclmodels.AclV2ListItem, int, error) {
+	page, totalCount, err := getByFilterV3(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+	return aclmodels.V3ListToV2List(page), totalCount, nil
+}
+
+// getByFilterV3 applies the filter/sort/pagination in the V3 domain and returns
+// the page plus the total match count (before pagination).
+func getByFilterV3(ctx context.Context, filter *apicontracts.Filter) (aclmodels.AclV3List, int, error) {
 	entries, err := aclStore.GetAll(ctx)
 	if err != nil {
 		return nil, 0, err
@@ -194,7 +204,7 @@ func getByFilter(ctx context.Context, filter *apicontracts.Filter) ([]aclmodels.
 
 	totalCount := len(entries)
 	page := entries.Sorted(sortField, asc).Page(skip, limit)
-	return aclmodels.V3ListToV2List(page), totalCount, nil
+	return page, totalCount, nil
 }
 
 func matchesAllFilters(e aclmodels.AclV3ListItem, filters []apicontracts.FilterMetadata) bool {

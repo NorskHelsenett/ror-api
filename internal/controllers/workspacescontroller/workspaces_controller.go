@@ -15,6 +15,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
@@ -136,7 +137,7 @@ func Update() gin.HandlerFunc {
 		// Subject: global
 		// Access: update
 		// TODO: check if this is the right way to do it
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbUpdate))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -257,7 +258,7 @@ func GetKubeconfig() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: global
 		// Access: owner
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbOwner))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectGlobal, aclmodels.CapRor.WithVerb(aclmodels.VerbOwner))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return

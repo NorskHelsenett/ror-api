@@ -12,6 +12,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
@@ -80,11 +81,11 @@ func PolicyreportsView() gin.HandlerFunc {
 		}
 
 		ownerref := apiresourcecontracts.ResourceOwnerReference{
-			Scope:   aclmodels.Acl2ScopeCluster,
+			Scope:   aclscope.ScopeCluster,
 			Subject: clusterid,
 		}
 
-		allowed, accessErr := aclservice.HasAccess(ctx, ownerref.Scope, aclmodels.Acl2Subject(ownerref.Subject), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, accessErr := aclservice.HasAccess(ctx, ownerref.Scope, aclscope.Subject(ownerref.Subject), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -137,7 +138,7 @@ func PolicyreportSummaryView() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: cluster
 		// Access: read
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectCluster, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -194,7 +195,7 @@ func VulnerabilityreportSummaryView() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: cluster
 		// Access: read
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectCluster, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -245,11 +246,11 @@ func VulnerabilityReportsView() gin.HandlerFunc {
 		}
 
 		ownerref := apiresourcecontracts.ResourceOwnerReference{
-			Scope:   aclmodels.Acl2ScopeCluster,
+			Scope:   aclscope.ScopeCluster,
 			Subject: clusterid,
 		}
 
-		allowed, accessErr := aclservice.HasAccess(ctx, ownerref.Scope, aclmodels.Acl2Subject(ownerref.Subject), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, accessErr := aclservice.HasAccess(ctx, ownerref.Scope, aclscope.Subject(ownerref.Subject), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -301,7 +302,7 @@ func VulnerabilityReportsViewById() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: cluster
 		// Access: read
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectCluster, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -344,7 +345,7 @@ func VulnerabilityReportsGlobal() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: cluster
 		// Access: read
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectCluster, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -396,7 +397,7 @@ func GlobalVulnerabilityReportsViewById() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: cluster
 		// Access: read
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectCluster, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -446,11 +447,11 @@ func ComplianceReports() gin.HandlerFunc {
 		}
 
 		ownerref := apiresourcecontracts.ResourceOwnerReference{
-			Scope:   aclmodels.Acl2ScopeCluster,
+			Scope:   aclscope.ScopeCluster,
 			Subject: clusterId,
 		}
 
-		allowed, accessErr := aclservice.HasAccess(ctx, ownerref.Scope, aclmodels.Acl2Subject(ownerref.Subject), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, accessErr := aclservice.HasAccess(ctx, ownerref.Scope, aclscope.Subject(ownerref.Subject), aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
@@ -493,7 +494,7 @@ func ComplianceReportsGlobal() gin.HandlerFunc {
 		// Scope: ror
 		// Subject: cluster
 		// Access: read
-		allowed, accessErr := aclservice.HasAccess(ctx, aclmodels.Acl2ScopeRor, aclmodels.Acl2RorSubjectCluster, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
+		allowed, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectCluster, aclmodels.CapRor.WithVerb(aclmodels.VerbRead))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return

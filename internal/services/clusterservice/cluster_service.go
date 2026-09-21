@@ -15,7 +15,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 	"github.com/NorskHelsenett/ror/pkg/helpers/idhelper"
-	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 )
 
@@ -125,8 +125,8 @@ func postSetupCluster(ctx context.Context, clusterId string) error {
 
 	// TODO: need to be filtered
 	clusterOrderOwner := apiresourcecontracts.ResourceOwnerReference{
-		Scope:   aclmodels.Acl2ScopeRor,
-		Subject: string(aclmodels.Acl2RorSubjectGlobal),
+		Scope:   aclscope.ScopeRor,
+		Subject: string(aclscope.SubjectGlobal),
 	}
 	clusterOrders, err := resourcesservice.GetClusterorders(ctx, clusterOrderOwner)
 	if err != nil {
