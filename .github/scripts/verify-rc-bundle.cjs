@@ -39,7 +39,12 @@ function verifyBundle(bundle, result, verifier) {
     `github.com/NorskHelsenett/ror/pkg/config/rorversion.Version=${result.targetVersion}`,
     `github.com/NorskHelsenett/ror/pkg/config/rorversion.Commit=${result.sourceSHA}`,
   ]) assert(armBuild.includes(`-X ${setting} `) || armBuild.includes(`-X ${setting}"`));
-  return verifyCharts(path.join(bundle, 'charts'));
+  const charts = verifyCharts(path.join(bundle, 'charts'));
+  assert.deepEqual(Object.keys(charts).sort(), [
+    `ror-api-${result.targetVersion.slice(1)}.tgz`,
+    `ror-api-${result.reservedVersion.slice(1)}.tgz`,
+  ].sort(), 'charts do not match the reserved candidate');
+  return charts;
 }
 
 module.exports = { verifyBundle, verifyCharts };

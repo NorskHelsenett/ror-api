@@ -29,11 +29,15 @@ function prepareCandidate({ targetVersion, sourceSHA, runID, runAttempt, reposit
   };
 }
 
-function verifyHandoff({ expected, image, evidence, reportBytes, verified, suiteBytes, fixtureBytes, issuerBytes, exitCode, harnessCommit, harnessWorktree, artifactID, buildInfo, sharedModule }) {
+function verifyHandoff({ expected, image, evidence, reportBytes, verified, suiteBytes, fixtureBytes, issuerBytes, exitCode, harnessCommit, harnessWorktree, artifactID, buildInfo, sharedModule, reservedVersion }) {
   assert.equal(expected.schema, 1);
   assert.equal(expected.rehearsal, true);
   assert.equal(expected.harnessSHA, HARNESS_SHA);
   assert.deepEqual(expected, prepareCandidate(expected), 'candidate request metadata is inconsistent');
+  if (reservedVersion) {
+    assert.match(reservedVersion, /^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)-rc\.[1-9][0-9]*$/, 'invalid reserved RC');
+    assert.equal(reservedVersion.replace(/-rc\.[0-9]+$/, ''), expected.targetVersion, 'reserved RC does not belong to the target version');
+  }
   assert.equal(sharedModule.Path, 'github.com/NorskHelsenett/ror');
   assert.equal(sharedModule.Replace, undefined, 'shared dependency was replaced');
   assert.match(sharedModule.Version, /^v[0-9][0-9A-Za-z.+-]*$/);
@@ -83,7 +87,7 @@ function verifyHandoff({ expected, image, evidence, reportBytes, verified, suite
     assert.equal((result.failures || []).length, 0);
     assert.match(result.digest, /^[0-9a-f]{64}$/);
   });
-  return { ...expected, result: 'passed', published: false, candidate: image, artifactID, reportDigest: evidence.reportDigest, passed: suite.steps.length };
+  return { ...expected, result: 'passed', published: false, reservedVersion: reservedVersion || null, candidate: image, artifactID, reportDigest: evidence.reportDigest, passed: suite.steps.length };
 }
 
 function evidenceDirectory(root) {
@@ -122,14 +126,18 @@ if (require.main === module) {
     artifactID,
     buildInfo: fs.readFileSync(path.join(buildDirectory, 'build.txt'), 'utf8'),
     sharedModule: JSON.parse(fs.readFileSync(path.join(buildDirectory, 'shared-module.json'))),
+    reservedVersion: process.env.RC_VERSION || '',
   });
   assert.equal(summary.repository, process.env.GITHUB_REPOSITORY);
   assert.equal(summary.runID, process.env.GITHUB_RUN_ID);
   assert.equal(summary.runAttempt, process.env.GITHUB_RUN_ATTEMPT);
   fs.writeFileSync('handoff-result.json', JSON.stringify(summary, null, 2) + '\n', { mode: 0o600 });
+  const identity = summary.reservedVersion
+    ? `- Reserved RC: ${summary.reservedVersion}\n- Build attempt: ${summary.candidateVersion}\n`
+    : `- Rehearsal RC: ${summary.candidateVersion}\n`;
   if (process.env.GITHUB_STEP_SUMMARY) {
     fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,
-      `## Candidate handoff verified\n\n- Target/binary version: ${summary.targetVersion}\n- Rehearsal RC: ${summary.candidateVersion}\n- Source: ${summary.sourceSHA}\n- Harness: ${summary.harnessSHA}\n- amd64 manifest: ${summary.candidate.manifestDigest}\n- Scenarios passed: ${summary.passed}\n\n**Test only: nothing was published.**\n`);
+      `## Candidate handoff verified\n\n- Target/binary version: ${summary.targetVersion}\n${identity}- Source: ${summary.sourceSHA}\n- Harness: ${summary.harnessSHA}\n- amd64 manifest: ${summary.candidate.manifestDigest}\n- Scenarios passed: ${summary.passed}\n\n**Test only: nothing was published.**\n`);
   }
-  console.log(`Verified ${summary.passed} scenarios for ${summary.candidateVersion}; nothing published.`);
+  console.log(`Verified ${summary.passed} scenarios for ${summary.reservedVersion || summary.candidateVersion}; nothing published.`);
 }

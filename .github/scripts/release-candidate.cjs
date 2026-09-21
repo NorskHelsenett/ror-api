@@ -48,6 +48,7 @@ function verifyBuild(candidate, result) {
     assert.equal(result[field], candidate[field], `verified build ${field} mismatch`);
   }
   assert.equal(result.binaryVersion, candidate.targetVersion);
+  assert.equal(result.reservedVersion, candidate.candidateVersion, 'verified build belongs to another reservation');
   assert.equal(result.platform, 'linux/amd64');
   assert.equal(result.candidate.platform, 'linux/amd64');
   assert(Number.isSafeInteger(result.passed) && result.passed > 0);

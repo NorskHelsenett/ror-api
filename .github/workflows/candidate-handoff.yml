@@ -301,6 +301,7 @@ jobs:
           GOWORK: 'off'
           GOFLAGS: -mod=readonly
           BUILD_ARTIFACT_ID: ${{ needs.build.outputs.artifact_id }}
+          RC_VERSION: ${{ inputs.rc_version }}
         run: |
           REPORT_DIRECTORY=$(node -e 'console.log(require("./tooling/.github/scripts/candidate-handoff.cjs").evidenceDirectory("evidence"))')
           go -C harness run ./cmd/e2e verify-report \

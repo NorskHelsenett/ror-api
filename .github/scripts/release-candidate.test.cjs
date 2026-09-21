@@ -22,9 +22,9 @@ test('sequential per-version reservations are immutable and rerun-idempotent', (
 test('publication requires verified metadata for the reserved candidate', () => {
   const { candidate } = reserve({ schema: 1, versions: {} }, request);
   const digest = 'sha256:' + 'a'.repeat(64);
-  const result = { ...candidate, schema: 1, rehearsal: true, published: false, result: 'passed', binaryVersion: candidate.targetVersion, platform: 'linux/amd64', passed: 34, reportDigest: digest, candidate: { platform: 'linux/amd64', archiveSha256: digest, indexDigest: digest, manifestDigest: digest, configDigest: digest } };
+  const result = { ...candidate, schema: 1, rehearsal: true, published: false, result: 'passed', binaryVersion: candidate.targetVersion, reservedVersion: candidate.candidateVersion, platform: 'linux/amd64', passed: 34, reportDigest: digest, candidate: { platform: 'linux/amd64', archiveSha256: digest, indexDigest: digest, manifestDigest: digest, configDigest: digest } };
   assert.equal(verifyBuild(candidate, result), result.candidate);
-  for (const patch of [{ result: 'failed' }, { published: true }, { sourceSHA: 'c'.repeat(40) }, { harnessSHA: 'c'.repeat(40) }, { runID: '999' }, { passed: 0 }, { binaryVersion: candidate.candidateVersion }]) {
+  for (const patch of [{ result: 'failed' }, { published: true }, { sourceSHA: 'c'.repeat(40) }, { harnessSHA: 'c'.repeat(40) }, { runID: '999' }, { passed: 0 }, { binaryVersion: candidate.candidateVersion }, { reservedVersion: null }, { reservedVersion: 'v1.26.0-rc.2' }]) {
     assert.throws(() => verifyBuild(candidate, { ...result, ...patch }));
   }
 });

@@ -64,7 +64,7 @@ test('publication binds tested digests once and rejects changed rerun content', 
   const allocation = reserve({ schema: 1, versions: {} }, { targetVersion: 'v1.2.3', sourceSHA: 'a'.repeat(40), workflowSHA: context.sha, runID: '100' });
   let state = allocation.state;
   const digest = 'sha256:' + 'a'.repeat(64);
-  const result = { ...allocation.candidate, schema: 1, rehearsal: true, published: false, result: 'passed', runAttempt: '1', repository: 'NorskHelsenett/ror-api', binaryVersion: 'v1.2.3', platform: 'linux/amd64', passed: 34, reportDigest: digest, artifactID: '123', candidate: { platform: 'linux/amd64', archiveSha256: digest, indexDigest: digest, manifestDigest: digest, configDigest: digest } };
+  const result = { ...allocation.candidate, schema: 1, rehearsal: true, published: false, result: 'passed', runAttempt: '1', repository: 'NorskHelsenett/ror-api', binaryVersion: 'v1.2.3', reservedVersion: allocation.candidate.candidateVersion, platform: 'linux/amd64', passed: 34, reportDigest: digest, artifactID: '123', candidate: { platform: 'linux/amd64', archiveSha256: digest, indexDigest: digest, manifestDigest: digest, configDigest: digest } };
   const charts = { 'ror-api-1.2.3.tgz': digest, 'ror-api-1.2.3-rc.1.tgz': digest };
   const github = { rest: {
     git: { getRef: async () => { throw { status: 404 }; } },

@@ -35,6 +35,14 @@ test('passing evidence produces an unpublished rehearsal record', () => {
   assert.equal(result.published, false);
   assert.equal(result.result, 'passed');
   assert.equal(result.passed, 1);
+  assert.equal(result.reservedVersion, null);
+});
+
+test('a reserved RC is recorded only when it belongs to the target version', () => {
+  assert.equal(verifyHandoff({ ...fixture(), reservedVersion: 'v1.25.0-rc.7' }).reservedVersion, 'v1.25.0-rc.7');
+  for (const reservedVersion of ['v1.26.0-rc.1', 'v1.25.0', 'v1.25.0-rc.0', 'v1.25.0-rc.1\n', '1.25.0-rc.1']) {
+    assert.throws(() => verifyHandoff({ ...fixture(), reservedVersion }), reservedVersion);
+  }
 });
 
 test('mismatched, incomplete and failed evidence never passes', () => {
