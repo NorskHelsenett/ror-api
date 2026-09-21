@@ -97,7 +97,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: NorskHelsenett/ror-test
-          ref: 199e73ba8875775cc1329faabb7eea6475a02d4c
+          ref: 39314b715eb2de8b1dc8e97585a1db74cd8d09b3
           path: harness
           token: ${{ secrets.CROSS_REPO_READ_TOKEN || github.token }}
           persist-credentials: false
@@ -174,14 +174,14 @@ jobs:
 
   integration:
     needs: [prepare, build]
-    uses: NorskHelsenett/ror-test/.github/workflows/candidate-e2e.yml@199e73ba8875775cc1329faabb7eea6475a02d4c
+    uses: NorskHelsenett/ror-test/.github/workflows/candidate-e2e.yml@39314b715eb2de8b1dc8e97585a1db74cd8d09b3
     with:
       artifact_id: ${{ needs.build.outputs.artifact_id }}
       archive_sha256: ${{ inputs.test_fault == 'checksum' && 'sha256:0000000000000000000000000000000000000000000000000000000000000000' || needs.build.outputs.archive_sha256 }}
       index_digest: ${{ needs.build.outputs.index_digest }}
       manifest_digest: ${{ needs.build.outputs.manifest_digest }}
       platform: linux/amd64
-      harness_sha: 199e73ba8875775cc1329faabb7eea6475a02d4c
+      harness_sha: 39314b715eb2de8b1dc8e97585a1db74cd8d09b3
       source_sha: ${{ needs.prepare.outputs.source_sha }}
     secrets:
       CROSS_REPO_READ_TOKEN: ${{ secrets.CROSS_REPO_READ_TOKEN }}
@@ -198,7 +198,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: NorskHelsenett/ror-test
-          ref: 199e73ba8875775cc1329faabb7eea6475a02d4c
+          ref: 39314b715eb2de8b1dc8e97585a1db74cd8d09b3
           path: harness
           token: ${{ secrets.CROSS_REPO_READ_TOKEN || github.token }}
           persist-credentials: false
