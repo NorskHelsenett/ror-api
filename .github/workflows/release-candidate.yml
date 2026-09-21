@@ -163,6 +163,8 @@ jobs:
         run: |
           printf '%s' "$GH_TOKEN" | skopeo login --username "$GITHUB_ACTOR" --password-stdin ghcr.io
           printf '%s' "$GH_TOKEN" | helm registry login --username "$GITHUB_ACTOR" --password-stdin ghcr.io
+          # cosign reads ~/.docker/config.json, not the containers auth file skopeo writes.
+          printf '%s' "$GH_TOKEN" | docker login --username "$GITHUB_ACTOR" --password-stdin ghcr.io
       - name: Publish only the tested RC image and chart
         env:
           INDEX_DIGEST: ${{ steps.binding.outputs.index_digest }}
