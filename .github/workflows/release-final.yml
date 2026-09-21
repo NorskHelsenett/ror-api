@@ -1,0 +1,119 @@
+name: Promote Release Candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_version:
+        description: Published candidate to promote (vMAJOR.MINOR.PATCH-rc.N)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  promote:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    concurrency:
+      group: ror-api-release-state
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: node --test .github/scripts/*.test.cjs
+      - name: Authorize admin and select the tested candidate
+        id: candidate
+        uses: actions/github-script@v7
+        env:
+          CANDIDATE_VERSION: ${{ inputs.candidate_version }}
+        with:
+          script: |
+            const fs = require('node:fs');
+            const { authorizePromotion, markFinal } = require('./.github/scripts/release-promotion.cjs');
+            const { candidate, updateLatest } = await authorizePromotion({ github, context, candidateVersion: process.env.CANDIDATE_VERSION });
+            await markFinal({ github, context, candidate, phase: 'promoting' });
+            fs.writeFileSync('promotion.json', JSON.stringify(candidate, null, 2) + '\n');
+            core.setOutput('final_version', candidate.targetVersion);
+            core.setOutput('index_digest', candidate.binding.image.indexDigest);
+            core.setOutput('chart_digest', candidate.binding.charts[`ror-api-${candidate.targetVersion.slice(1)}.tgz`]);
+            core.setOutput('update_latest', String(updateLatest));
+            core.setOutput('chart_file', `ror-api-${candidate.targetVersion.slice(1)}.tgz`);
+      - name: Fetch the chart built with the tested candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_VERSION: ${{ inputs.candidate_version }}
+          CHART_FILE: ${{ steps.candidate.outputs.chart_file }}
+        run: gh release download "$CANDIDATE_VERSION" --repo "$GITHUB_REPOSITORY" --pattern "$CHART_FILE" --dir chart
+      - name: Install registry copy tool
+        run: sudo -n apt-get update && sudo -n apt-get install -y skopeo
+      - uses: azure/setup-helm@v4.3.0
+        with:
+          version: v3.17.0
+      - name: Authenticate publication tools
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          printf '%s' "$GH_TOKEN" | skopeo login --username "$GITHUB_ACTOR" --password-stdin ghcr.io
+          printf '%s' "$GH_TOKEN" | helm registry login --username "$GITHUB_ACTOR" --password-stdin ghcr.io
+          printf '%s' "$GH_TOKEN" | docker login --username "$GITHUB_ACTOR" --password-stdin ghcr.io
+      - name: Retag the tested image and publish the final chart
+        env:
+          FINAL_VERSION: ${{ steps.candidate.outputs.final_version }}
+          INDEX_DIGEST: ${{ steps.candidate.outputs.index_digest }}
+          CHART_DIGEST: ${{ steps.candidate.outputs.chart_digest }}
+          UPDATE_LATEST: ${{ steps.candidate.outputs.update_latest }}
+          CHART_FILE: ${{ steps.candidate.outputs.chart_file }}
+        run: bash .github/scripts/publish-final.sh "chart/$CHART_FILE"
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6
+        with:
+          cosign-release: v2.2.4
+      - name: Sign the promoted references
+        env:
+          FINAL_VERSION: ${{ steps.candidate.outputs.final_version }}
+          INDEX_DIGEST: ${{ steps.candidate.outputs.index_digest }}
+          UPDATE_LATEST: ${{ steps.candidate.outputs.update_latest }}
+        run: |
+          image=ghcr.io/norskhelsenett/ror-api
+          cosign sign --yes "$image:$FINAL_VERSION@$INDEX_DIGEST"
+          if [[ "$UPDATE_LATEST" == "true" ]]; then
+            cosign sign --yes "$image:latest@$INDEX_DIGEST"
+          fi
+      - name: Create the final tag and release
+        id: release
+        uses: actions/github-script@v7
+        env:
+          UPDATE_LATEST: ${{ steps.candidate.outputs.update_latest }}
+        with:
+          script: |
+            const fs = require('node:fs');
+            const { publishFinalRecord } = require('./.github/scripts/release-promotion.cjs');
+            const candidate = JSON.parse(fs.readFileSync('promotion.json'));
+            const release = await publishFinalRecord({ github, context, candidate, updateLatest: process.env.UPDATE_LATEST === 'true' });
+            core.setOutput('tag', release.tag_name);
+      - name: Attach the released chart
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FINAL_VERSION: ${{ steps.candidate.outputs.final_version }}
+          CHART_FILE: ${{ steps.candidate.outputs.chart_file }}
+        run: gh release upload "$FINAL_VERSION" "chart/$CHART_FILE" --repo "$GITHUB_REPOSITORY" --clobber
+      - name: Record the completed promotion
+        uses: actions/github-script@v7
+        env:
+          UPDATE_LATEST: ${{ steps.candidate.outputs.update_latest }}
+        with:
+          script: |
+            const fs = require('node:fs');
+            const { markFinal } = require('./.github/scripts/release-promotion.cjs');
+            const candidate = JSON.parse(fs.readFileSync('promotion.json'));
+            const promotion = await markFinal({ github, context, candidate, phase: 'promoted' });
+            const latest = process.env.UPDATE_LATEST === 'true' ? 'latest now points at this release' : 'latest was left on a newer release';
+            await core.summary.addHeading('Release promoted')
+              .addRaw(`${candidate.targetVersion} from ${promotion.candidateVersion}\n\nImage: ${promotion.indexDigest}\n\nPromoted by ${promotion.promotedBy}; ${latest}.\n\nNo image was rebuilt.\n`).write();

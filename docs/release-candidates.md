@@ -120,7 +120,36 @@ Rebuilding a bound attempt can change archive bytes, artifact IDs or report hash
 Such reruns fail closed rather than resuming with different content. Do not force
 an overwrite or reset the ledger. Prefer a **new run and next RC number** after
 reviewing any partially published passing RC. A dedicated publish-only recovery
-workflow is not implemented. Final-version promotion is also not implemented yet.
+workflow is not implemented.
+
+## Promoting a candidate to the final release
+
+`Promote Release Candidate` (`release-final.yml`) turns an already published
+candidate into the final version. It takes one input, `candidate_version`, and
+**never rebuilds**: it retags the exact image index that passed the tests and
+publishes the final chart that was built alongside that candidate.
+
+Authorization is the actor's repository role. `authorizePromotion` reads the
+collaborator permission level and requires `admin`, so an admin promotes without
+a separate approval gate while anyone with mere write access is rejected.
+
+Every precondition is checked before the first external write:
+
+- the run is on `main` and targets this repository;
+- the ledger holds exactly one attempt for that candidate, with status
+  `published` and a recorded binding;
+- the version is not already promoted, and a resumed attempt may only continue
+  the same candidate and image;
+- an existing final tag must point at the candidate's own source commit.
+
+The promotion then, in order, retags the tested digest as `vX.Y.Z`, pushes and
+re-pulls the final chart to confirm the bytes, signs the promoted references,
+creates the final tag and release, attaches the chart, and records completion.
+
+`latest` moves only when the promoted version is newer than the current stable
+release, so patching an older line never drags the stable pointer backwards. The
+check fails closed: if the newest release cannot be parsed or is a prerelease,
+`latest` is left alone. It is the last and only mutable write.
 
 ## Validation and rollout
 
@@ -142,8 +171,17 @@ module replacement is used. Builds use committed generated code, not regeneratio
 Verified locally: sequential allocation/supersession and conflict mocks, publication
 permission/dependency checks, registry failure/no-overwrite tests, asset retry
 tests, archive selection, chart lint/render/equivalence, and the private dual-platform
-bundle rehearsal (34/34 amd64 scenarios). Actual GHCR writes, cosign signing,
-GitHub state-branch permissions and prerelease creation remain unverified remotely.
+bundle rehearsal (34/34 amd64 scenarios).
+
+Verified remotely against `v0.0.1`: GHCR image and chart writes, cosign signing,
+ledger branch commits, prerelease creation and the generated changelog. Three
+defects were found only by running it — an unbound reserved version in the
+handoff summary, cosign missing GHCR credentials because `skopeo login` does not
+write `~/.docker/config.json`, and candidate changelogs based on the preceding
+candidate instead of the last stable release.
+
+Promotion to a final version has unit coverage but has not yet been executed
+remotely.
 
 Before the first `publish=true`:
 

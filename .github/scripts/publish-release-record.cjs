@@ -52,4 +52,4 @@ async function publishReleaseRecord({ github, context, record }) {
   return release;
 }
 
-module.exports = { publishReleaseRecord };
+module.exports = { publishReleaseRecord, changelogSinceStable };
