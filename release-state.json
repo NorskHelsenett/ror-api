@@ -15,6 +15,21 @@
           "status": "reserved"
         }
       }
+    },
+    "v0.0.1": {
+      "next": 2,
+      "attempts": {
+        "35589685763": {
+          "targetVersion": "v0.0.1",
+          "sourceSHA": "22fbed8b69bc9651515a117022e4cd2c2ce85a8c",
+          "workflowSHA": "22fbed8b69bc9651515a117022e4cd2c2ce85a8c",
+          "runID": "35589685763",
+          "number": 1,
+          "candidateVersion": "v0.0.1-rc.1",
+          "harnessSHA": "39314b715eb2de8b1dc8e97585a1db74cd8d09b3",
+          "status": "reserved"
+        }
+      }
     }
   }
 }
