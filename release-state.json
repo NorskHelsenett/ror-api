@@ -22,7 +22,7 @@
           "number": 2,
           "candidateVersion": "v1.16.0-rc.2",
           "harnessSHA": "39314b715eb2de8b1dc8e97585a1db74cd8d09b3",
-          "status": "publishing",
+          "status": "published",
           "binding": {
             "image": {
               "archiveSha256": "sha256:3dbf1e29ad43fcb44ab0d9fab68fd6cb8378377f1bf26b784b8ce41a8ead5abb",
