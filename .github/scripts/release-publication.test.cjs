@@ -61,6 +61,52 @@ test('RC record is a prerelease only; conflicting tags are never overwritten', a
   assert.equal(writes.length, 2);
 });
 
+function publicationFixture(repos) {
+  const context = { ref: 'refs/heads/main', sha: 'b'.repeat(40), runId: 100, repo: { owner: 'NorskHelsenett', repo: 'ror-api' } };
+  const record = { candidateVersion: 'v1.2.3-rc.2', sourceSHA: 'a'.repeat(40), workflowSHA: context.sha, runID: '100', targetVersion: 'v1.2.3', status: 'publishing', binding: { image: { indexDigest: 'sha256:' + 'c'.repeat(64) } } };
+  const calls = [];
+  const github = { rest: {
+    git: { getRef: async () => { throw { status: 404 }; }, createRef: async () => {} },
+    repos: {
+      getReleaseByTag: async () => { throw { status: 404 }; },
+      generateReleaseNotes: async args => { calls.push(args); return { data: { body: "## What's Changed\n* a change" } }; },
+      createRelease: async args => { calls.push(args); return { data: { id: 1 } }; },
+      ...repos,
+    },
+  } };
+  return { github, context, record, calls };
+}
+
+test('RC notes cover every change since the latest stable release', async () => {
+  const { github, context, record, calls } = publicationFixture({
+    getLatestRelease: async () => ({ data: { tag_name: 'v1.1.0', draft: false, prerelease: false } }),
+  });
+  await publishReleaseRecord({ github, context, record });
+  assert.equal(calls[0].previous_tag_name, 'v1.1.0');
+  assert.equal(calls[0].tag_name, 'v1.2.3-rc.2');
+  assert.equal(calls[0].target_commitish, record.sourceSHA);
+  assert.equal(calls[1].generate_release_notes, undefined, 'explicit notes must not be regenerated');
+  assert.match(calls[1].body, /Passed amd64 integration tests/);
+  assert.match(calls[1].body, /## What's Changed/);
+});
+
+test('an unusable stable lookup still publishes with generated notes', async () => {
+  const cases = {
+    prerelease: async () => ({ data: { tag_name: 'v1.2.3-rc.1', draft: false, prerelease: true } }),
+    draft: async () => ({ data: { tag_name: 'v1.1.0', draft: true, prerelease: false } }),
+    missing: async () => { throw { status: 404 }; },
+    broken: async () => { throw { status: 500 }; },
+  };
+  for (const [name, getLatestRelease] of Object.entries(cases)) {
+    const { github, context, record, calls } = publicationFixture({ getLatestRelease });
+    await publishReleaseRecord({ github, context, record });
+    const created = calls.at(-1);
+    assert.equal(created.generate_release_notes, true, name);
+    assert.match(created.body, /Passed amd64 integration tests/, name);
+    assert.doesNotMatch(created.body, /## What's Changed/, name);
+  }
+});
+
 test('publication binds tested digests once and rejects changed rerun content', async () => {
   const context = { ref: 'refs/heads/main', sha: 'b'.repeat(40), runId: 100, repo: { owner: 'NorskHelsenett', repo: 'ror-api' } };
   const allocation = reserve({ schema: 1, versions: {} }, { targetVersion: 'v1.2.3', sourceSHA: 'a'.repeat(40), workflowSHA: context.sha, runID: '100' });
