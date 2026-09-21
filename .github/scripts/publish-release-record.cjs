@@ -27,6 +27,8 @@ async function publishReleaseRecord({ github, context, record }) {
     ({ data: release } = await github.rest.repos.createRelease({
       ...context.repo, tag_name: record.candidateVersion, target_commitish: record.sourceSHA,
       name: record.candidateVersion, prerelease: true, draft: false, make_latest: 'false',
+      // GitHub appends the generated "What's Changed" list after this body.
+      generate_release_notes: true,
       body: `Passed amd64 integration tests before publication.\n\nTarget final/binary version: ${record.targetVersion}\nSource: ${record.sourceSHA}\nImage index: ${record.binding.image.indexDigest}\nHarness: ${record.harnessSHA}\nEvidence: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${record.runID}\n\nBoth architectures built; only amd64 integration-tested. No stable latest or final release was updated.`,
     }));
   }

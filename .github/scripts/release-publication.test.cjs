@@ -54,6 +54,8 @@ test('RC record is a prerelease only; conflicting tags are never overwritten', a
   assert.equal(writes[0].ref, 'refs/tags/v1.2.3-rc.1');
   assert.equal(writes[1].prerelease, true);
   assert.equal(writes[1].make_latest, 'false');
+  assert.equal(writes[1].generate_release_notes, true);
+  assert.match(writes[1].body, /Passed amd64 integration tests/);
   github.rest.git.getRef = async () => ({ data: { object: { type: 'commit', sha: 'd'.repeat(40) } } });
   await assert.rejects(() => publishReleaseRecord({ github, context, record }));
   assert.equal(writes.length, 2);
