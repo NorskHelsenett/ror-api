@@ -1,6 +1,35 @@
 name: Candidate handoff rehearsal
 
 on:
+  workflow_call:
+    inputs:
+      target_version:
+        required: true
+        type: string
+      api_ref:
+        required: true
+        type: string
+      rc_version:
+        required: true
+        type: string
+      build_all_platforms:
+        default: true
+        type: boolean
+      test_fault:
+        default: none
+        type: string
+    secrets:
+      CROSS_REPO_READ_TOKEN:
+        required: false
+    outputs:
+      archive_id:
+        value: ${{ jobs.build.outputs.artifact_id }}
+      metadata_id:
+        value: ${{ jobs.build.outputs.metadata_artifact_id }}
+      verified_id:
+        value: ${{ jobs.verify-handoff.outputs.artifact_id }}
+      evidence_id:
+        value: ${{ jobs.integration.outputs.evidence_artifact_id }}
   workflow_dispatch:
     inputs:
       target_version:
@@ -75,6 +104,8 @@ jobs:
       GOFLAGS: -mod=readonly
       TARGET_VERSION: ${{ needs.prepare.outputs.target_version }}
       SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
+      BUILD_ALL_PLATFORMS: ${{ inputs.build_all_platforms || false }}
+      RC_VERSION: ${{ inputs.rc_version }}
     outputs:
       artifact_id: ${{ steps.archive.outputs.artifact-id }}
       metadata_artifact_id: ${{ steps.metadata.outputs.artifact-id }}
@@ -119,11 +150,20 @@ jobs:
             -o dist/ror-api-linux-amd64 ./cmd/api
           chmod 0755 dist/ror-api-linux-amd64
           go version -m dist/ror-api-linux-amd64 > ../candidate-bundle/build.txt
+          if [[ "$BUILD_ALL_PLATFORMS" == true ]]; then
+            CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build \
+              -ldflags "-w -extldflags '-static' -X github.com/NorskHelsenett/ror/pkg/config/rorversion.Version=$TARGET_VERSION -X github.com/NorskHelsenett/ror/pkg/config/rorversion.Commit=$SOURCE_SHA -X github.com/NorskHelsenett/ror/pkg/config/rorversion.LibVer=$LIB_VER" \
+              -o dist/ror-api-linux-arm64 ./cmd/api
+            chmod 0755 dist/ror-api-linux-arm64
+            go version -m dist/ror-api-linux-arm64 > ../candidate-bundle/build-arm64.txt
+          fi
           git diff --exit-code -- go.mod go.sum
       - uses: docker/setup-buildx-action@v3
       - name: Export OCI archive without registry push
         run: |
-          docker buildx build --platform linux/amd64 --provenance=false --sbom=false \
+          platforms=linux/amd64
+          if [[ "$BUILD_ALL_PLATFORMS" == true ]]; then platforms=linux/amd64,linux/arm64; fi
+          docker buildx build --platform "$platforms" --provenance=false --sbom=false \
             --file source/Dockerfile \
             --output type=oci,dest=candidate-bundle/candidate.tar \
             source
@@ -132,11 +172,21 @@ jobs:
         run: |
           go -C harness build -o "$RUNNER_TEMP/e2e-verifier" ./cmd/e2e
           ARCHIVE_SHA256="sha256:$(sha256sum candidate-bundle/candidate.tar | cut -d' ' -f1)"
-          INDEX_DIGEST="sha256:$(tar -xOf candidate-bundle/candidate.tar index.json | sha256sum | cut -d' ' -f1)"
+          INDEX_DIGEST=$(tar -xOf candidate-bundle/candidate.tar index.json | node -e 'const fs=require("fs"),assert=require("assert"); const index=JSON.parse(fs.readFileSync(0)); assert.equal(index.manifests.length,1); console.log(index.manifests[0].digest);')
           "$RUNNER_TEMP/e2e-verifier" inspect-candidate \
             -archive candidate-bundle/candidate.tar -checksum "$ARCHIVE_SHA256" \
             -digest "$INDEX_DIGEST" -platform linux/amd64 \
             -out candidate-bundle/candidate-image.json
+          if [[ "$BUILD_ALL_PLATFORMS" == true ]]; then
+            mv candidate-bundle/candidate.tar candidate-bundle/release.tar
+            mv candidate-bundle/candidate-image.json candidate-bundle/release-image.json
+            MANIFEST=$(node -e 'console.log(require("./candidate-bundle/release-image.json").manifestDigest)')
+            python3 tooling/.github/scripts/split-oci.py candidate-bundle/release.tar candidate-bundle/candidate.tar "$MANIFEST"
+            ARCHIVE_SHA256="sha256:$(sha256sum candidate-bundle/candidate.tar | cut -d' ' -f1)"
+            "$RUNNER_TEMP/e2e-verifier" inspect-candidate \
+              -archive candidate-bundle/candidate.tar -checksum "$ARCHIVE_SHA256" \
+              -digest "$MANIFEST" -platform linux/amd64 -out candidate-bundle/candidate-image.json
+          fi
           node <<'NODE'
           const fs = require('node:fs');
           const { prepareCandidate } = require('./tooling/.github/scripts/candidate-handoff.cjs');
@@ -150,12 +200,26 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT,
             `archive_sha256=${image.archiveSha256}\nindex_digest=${image.indexDigest}\nmanifest_digest=${image.manifestDigest}\n`);
           NODE
+      - uses: azure/setup-helm@v4.3.0
+        if: inputs.rc_version != ''
+        with:
+          version: v3.17.0
+      - name: Prepare and validate both chart packages
+        if: inputs.rc_version != ''
+        run: |
+          mkdir -p "$RUNNER_TEMP/release-tools"
+          curl --fail --silent --show-error --location https://github.com/mikefarah/yq/releases/download/v4.44.5/yq_linux_amd64 -o "$RUNNER_TEMP/release-tools/yq"
+          chmod 0755 "$RUNNER_TEMP/release-tools/yq"
+          export PATH="$RUNNER_TEMP/release-tools:$PATH"
+          bash tooling/.github/scripts/package-candidate-charts.sh source candidate-bundle
       - name: Upload private build artifact
         id: archive
         uses: actions/upload-artifact@v4
         with:
           name: candidate-archive-${{ github.run_id }}-${{ github.run_attempt }}
-          path: candidate-bundle/candidate.tar
+          path: |
+            candidate-bundle/candidate.tar
+            candidate-bundle/release.tar
           compression-level: 0
           if-no-files-found: error
           retention-days: 7
@@ -169,8 +233,11 @@ jobs:
           path: |
             candidate-bundle/candidate-request.json
             candidate-bundle/candidate-image.json
+            candidate-bundle/release-image.json
             candidate-bundle/shared-module.json
             candidate-bundle/build.txt
+            candidate-bundle/build-arm64.txt
+            candidate-bundle/charts/**
 
   integration:
     needs: [prepare, build]
@@ -190,6 +257,8 @@ jobs:
     needs: [prepare, build, integration]
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    outputs:
+      artifact_id: ${{ steps.verified.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -240,6 +309,7 @@ jobs:
             -out "$RUNNER_TEMP/rechecked-report.json"
           node tooling/.github/scripts/candidate-handoff.cjs expected evidence harness "$BUILD_ARTIFACT_ID"
       - name: Retain successful unpublished rehearsal result
+        id: verified
         uses: actions/upload-artifact@v4
         with:
           name: verified-rc-rehearsal-${{ github.run_id }}-${{ github.run_attempt }}

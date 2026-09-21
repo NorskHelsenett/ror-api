@@ -110,8 +110,9 @@ TARGET_VERSION=v0.0.0 bash .github/scripts/rehearse-candidate.sh
 ```
 
 The local script requires Docker Buildx, OCI/containerd image loading, Go, Node,
-and a clean sibling ror-test checkout at the pinned SHA (`ROR_TEST_PATH` overrides
-its location). On an arm64 workstation, amd64 emulation must already work. It
+and a sibling ror-test repository containing the pinned SHA (`ROR_TEST_PATH` overrides
+its location). It creates a temporary detached worktree at that SHA, preserving
+local edits in the original checkout. On an arm64 workstation, amd64 emulation must already work. It
 builds the API's local working tree using published module dependencies, so source
 files must match HEAD for accurate source provenance. Local rehearsal uses
 synthetic run/artifact IDs and does not verify GitHub's transport or permissions.
@@ -128,8 +129,17 @@ Locally verified on 2026-09-21: helper tests, workflow lint, published harness p
 and a complete linux/amd64 OCI rehearsal under Docker emulation on arm64. All 34
 scenarios and both evidence verifiers passed, including exact final-version flags.
 
-Still pending: publish the API caller and run both normal and checksum-failure
-cases in GitHub on native amd64. No remote Actions run was triggered by this
-implementation. The current tag-triggered production release workflow remains
-unchanged; disable that bypass before implementing real RC tags/publication.
-Successful rehearsal alone does not enable RC publication or final promotion.
+GitHub verification on 2026-09-21 used API commit
+`0cd0aeefc210e87c04289c73e1524d93fd0266c3` and harness commit
+`39314b715eb2de8b1dc8e97585a1db74cd8d09b3`:
+
+- [Normal run 35575949435](https://github.com/NorskHelsenett/ror-api/actions/runs/35575949435): all jobs succeeded, including 34/34 scenarios on native amd64 and final returned-evidence verification.
+- [Checksum-failure run 35576593341](https://github.com/NorskHelsenett/ror-api/actions/runs/35576593341): build succeeded, integration failed with `candidate archive checksum mismatch`, success-evidence validation/upload were skipped, and `verify-handoff` was skipped. Only build archive/metadata and diagnostics were retained, with no success-evidence or verified-rehearsal artifact.
+
+Both used target version `v0.0.0` and published nothing. The failure run is expected
+to remain red. Cancellation/timeout cases and actual publication gates have not
+been verified by these two runs. The new [RC workflow](release-candidates.md) reuses
+this handoff through `workflow_call`, adding dual-platform builds and digest-pinned
+chart packaging when `rc_version` is supplied. The legacy tag publisher is removed
+locally; final promotion is deliberately disabled. Standalone handoff dispatches
+remain amd64-only and publication-free.

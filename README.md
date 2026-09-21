@@ -1,6 +1,6 @@
 [![Dependabot Updates](https://github.com/NorskHelsenett/ror-api/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/NorskHelsenett/ror-api/actions/workflows/dependabot/dependabot-updates)
 [![Test and build API](https://github.com/NorskHelsenett/ror-api/actions/workflows/testandbuild.yml/badge.svg?event=pull_request)](https://github.com/NorskHelsenett/ror-api/actions/workflows/testandbuild.yml)
-[![Release workflow](https://github.com/NorskHelsenett/ror-api/actions/workflows/release.yml/badge.svg)](https://github.com/NorskHelsenett/ror-api/actions/workflows/release.yml)
+[![RC workflow](https://github.com/NorskHelsenett/ror-api/actions/workflows/release-candidate.yml/badge.svg?branch=main&event=workflow_dispatch)](https://github.com/NorskHelsenett/ror-api/actions/workflows/release-candidate.yml)
 
 # ROR-API
 
@@ -13,6 +13,11 @@ candidate with the desired final version, calls the pinned `ror-test` workflow,
 and verifies the returned integration evidence. It publishes no RC or release.
 See [the handoff runbook](docs/candidate-handoff.md) for inputs, expected results,
 the deliberate failure check, and local verification commands.
+
+The **Release Candidate** workflow reserves sequential RC numbers and publishes
+only after successful build, chart checks, and amd64 integration tests. Publication
+defaults to off; see [the RC runbook](docs/release-candidates.md). The old tag-triggered
+publisher is removed. Final approval-gated promotion is not enabled yet.
 
 # Prerequisites
 

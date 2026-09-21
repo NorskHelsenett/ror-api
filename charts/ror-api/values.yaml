@@ -46,6 +46,7 @@ replicaCount: 3
 image:
   repository: ghcr.io/norskhelsenett/ror-api
   pullPolicy: IfNotPresent
+  digest: ""
   # Overrides the image tag whose default is the chart appVersion.
   tag: "1.0.1"
 imagePullSecrets: []

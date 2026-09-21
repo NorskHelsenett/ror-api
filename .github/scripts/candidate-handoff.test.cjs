@@ -68,9 +68,10 @@ test('mismatched, incomplete and failed evidence never passes', () => {
   }
 });
 
-test('caller remains manual, read-only, pinned, and publication-free', () => {
+test('caller remains explicit, read-only, pinned, and publication-free', () => {
   const workflow = fs.readFileSync(path.join(__dirname, '../workflows/candidate-handoff.yml'), 'utf8');
-  assert.match(workflow, /on:\n  workflow_dispatch:/);
+  assert.match(workflow, /^  workflow_dispatch:/m);
+  assert.match(workflow, /^  workflow_call:/m);
   assert(!/^\s+(push|pull_request|schedule):/m.test(workflow));
   assert(!/:\s*write\s*$/m.test(workflow), 'rehearsal must not grant write permissions');
   assert(!/docker\s+(?:buildx\s+imagetools\s+create|push)|helm\s+push|git\s+push|gh\s+release|--push/.test(workflow));

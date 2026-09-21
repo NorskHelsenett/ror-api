@@ -1,0 +1,200 @@
+name: Release Candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_version:
+        description: Desired final version (vMAJOR.MINOR.PATCH)
+        required: true
+        type: string
+      api_ref:
+        description: Source on main history; blank selects this workflow commit
+        default: ''
+        type: string
+      publish:
+        description: Publish passing RC artifacts (CD may deploy them); false rehearses only
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  actions: read
+  packages: read
+
+jobs:
+  reserve:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    concurrency:
+      group: ror-api-release-state
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    outputs:
+      source_sha: ${{ steps.reserve.outputs.source_sha }}
+      candidate_version: ${{ steps.reserve.outputs.candidate_version }}
+      reservation_id: ${{ steps.artifact.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: |
+          node --test .github/scripts/*.test.cjs
+          PYTHONDONTWRITEBYTECODE=1 python3 .github/scripts/test_split_oci.py
+      - name: Reserve internal RC attempt
+        id: reserve
+        uses: actions/github-script@v7
+        env:
+          TARGET_VERSION: ${{ inputs.target_version }}
+          API_REF: ${{ inputs.api_ref }}
+        with:
+          script: |
+            const fs = require('node:fs');
+            const { allocate } = require('./.github/scripts/release-candidate.cjs');
+            const candidate = await allocate({ github, context, targetVersion: process.env.TARGET_VERSION, apiRef: process.env.API_REF });
+            fs.writeFileSync('rc-reservation.json', JSON.stringify(candidate, null, 2) + '\n');
+            core.setOutput('source_sha', candidate.sourceSHA);
+            core.setOutput('candidate_version', candidate.candidateVersion);
+            await core.summary.addHeading('Reserved private candidate')
+              .addRaw(`${candidate.candidateVersion}\n\nSource: ${candidate.sourceSHA}\n\nBinary version: ${candidate.targetVersion}\n\nNo RC artifacts have been published.\n`).write();
+      - uses: actions/upload-artifact@v4
+        id: artifact
+        with:
+          name: rc-reservation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: rc-reservation.json
+          if-no-files-found: error
+          retention-days: 30
+
+  test:
+    needs: reserve
+    uses: ./.github/workflows/candidate-handoff.yml
+    with:
+      target_version: ${{ inputs.target_version }}
+      api_ref: ${{ needs.reserve.outputs.source_sha }}
+      rc_version: ${{ needs.reserve.outputs.candidate_version }}
+      build_all_platforms: true
+    secrets:
+      CROSS_REPO_READ_TOKEN: ${{ secrets.CROSS_REPO_READ_TOKEN }}
+
+  publish-rc:
+    needs: [reserve, test]
+    if: inputs.publish && needs.reserve.result == 'success' && needs.test.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    concurrency:
+      group: ror-api-release-state
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      packages: write
+      actions: read
+      id-token: write
+    env:
+      RC_VERSION: ${{ needs.reserve.outputs.candidate_version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Require complete artifact handoff
+        env:
+          ARCHIVE: ${{ needs.test.outputs.archive_id }}
+          METADATA: ${{ needs.test.outputs.metadata_id }}
+          VERIFIED: ${{ needs.test.outputs.verified_id }}
+          EVIDENCE: ${{ needs.test.outputs.evidence_id }}
+        run: |
+          for artifact in "$ARCHIVE" "$METADATA" "$VERIFIED" "$EVIDENCE"; do
+            [[ "$artifact" =~ ^[1-9][0-9]*$ ]]
+          done
+      - uses: actions/download-artifact@v5
+        with:
+          artifact-ids: ${{ needs.reserve.outputs.reservation_id }}
+          path: reservation
+          merge-multiple: true
+      - uses: actions/download-artifact@v5
+        with:
+          artifact-ids: ${{ needs.test.outputs.archive_id }},${{ needs.test.outputs.metadata_id }}
+          path: bundle
+          merge-multiple: true
+      - uses: actions/download-artifact@v5
+        with:
+          artifact-ids: ${{ needs.test.outputs.verified_id }}
+          path: verified
+          merge-multiple: true
+      - uses: actions/checkout@v4
+        with:
+          repository: NorskHelsenett/ror-test
+          ref: 39314b715eb2de8b1dc8e97585a1db74cd8d09b3
+          path: harness
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: harness/go.mod
+          cache-dependency-path: harness/go.sum
+      - name: Recheck archive and chart bytes before any external write
+        env:
+          GOWORK: 'off'
+          GOFLAGS: -mod=readonly
+        run: |
+          go -C harness build -o "$RUNNER_TEMP/verifier" ./cmd/e2e
+          node .github/scripts/verify-rc-bundle.cjs bundle verified/handoff-result.json "$RUNNER_TEMP/verifier"
+      - name: Bind publication to current reservation and tested digests
+        id: binding
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('node:fs');
+            const { bindPublication } = require('./.github/scripts/release-candidate.cjs');
+            const candidate = JSON.parse(fs.readFileSync('reservation/rc-reservation.json'));
+            const result = JSON.parse(fs.readFileSync('verified/handoff-result.json'));
+            const releaseImage = JSON.parse(fs.readFileSync('bundle/release-image.json'));
+            const charts = JSON.parse(fs.readFileSync('bundle/charts/checksums.json'));
+            const record = await bindPublication({ github, context, candidate, result, releaseImage, charts, phase: 'publishing' });
+            fs.writeFileSync('release-candidate.json', JSON.stringify({ ...record, status: 'publishing' }, null, 2) + '\n');
+            core.setOutput('index_digest', releaseImage.indexDigest);
+      - name: Install registry copy tool
+        run: sudo -n apt-get update && sudo -n apt-get install -y skopeo
+      - uses: azure/setup-helm@v4.3.0
+        with:
+          version: v3.17.0
+      - name: Authenticate publication tools
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          printf '%s' "$GH_TOKEN" | skopeo login --username "$GITHUB_ACTOR" --password-stdin ghcr.io
+          printf '%s' "$GH_TOKEN" | helm registry login --username "$GITHUB_ACTOR" --password-stdin ghcr.io
+      - name: Publish only the tested RC image and chart
+        env:
+          INDEX_DIGEST: ${{ steps.binding.outputs.index_digest }}
+        run: bash .github/scripts/publish-rc.sh bundle
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6
+        with:
+          cosign-release: v2.2.4
+      - name: Sign tested image digest
+        env:
+          INDEX_DIGEST: ${{ steps.binding.outputs.index_digest }}
+        run: cosign sign --yes "ghcr.io/norskhelsenett/ror-api@$INDEX_DIGEST"
+      - name: Create immutable RC tag and prerelease
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('node:fs');
+            const { publishReleaseRecord } = require('./.github/scripts/publish-release-record.cjs');
+            await publishReleaseRecord({ github, context, record: JSON.parse(fs.readFileSync('release-candidate.json')) });
+      - name: Attach candidate provenance and both chart packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node .github/scripts/upload-rc-assets.cjs "$RC_VERSION" release-candidate.json bundle/charts
+      - name: Mark RC publication complete
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('node:fs');
+            const { bindPublication } = require('./.github/scripts/release-candidate.cjs');
+            await bindPublication({ github, context,
+              candidate: JSON.parse(fs.readFileSync('reservation/rc-reservation.json')),
+              result: JSON.parse(fs.readFileSync('verified/handoff-result.json')),
+              releaseImage: JSON.parse(fs.readFileSync('bundle/release-image.json')),
+              charts: JSON.parse(fs.readFileSync('bundle/charts/checksums.json')), phase: 'published' });
+            await core.summary.addHeading('RC published after passing tests').addRaw(`${process.env.RC_VERSION}\n\nStable latest and final release are unchanged.\n`).write();
