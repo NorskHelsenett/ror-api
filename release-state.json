@@ -1,4 +1,20 @@
 {
   "schema": 1,
-  "versions": {}
+  "versions": {
+    "v1.16.0": {
+      "next": 2,
+      "attempts": {
+        "35588720898": {
+          "targetVersion": "v1.16.0",
+          "sourceSHA": "22fbed8b69bc9651515a117022e4cd2c2ce85a8c",
+          "workflowSHA": "22fbed8b69bc9651515a117022e4cd2c2ce85a8c",
+          "runID": "35588720898",
+          "number": 1,
+          "candidateVersion": "v1.16.0-rc.1",
+          "harnessSHA": "39314b715eb2de8b1dc8e97585a1db74cd8d09b3",
+          "status": "reserved"
+        }
+      }
+    }
+  }
 }
