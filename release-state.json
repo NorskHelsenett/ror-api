@@ -147,6 +147,13 @@
             "artifactID": "10636135614"
           }
         }
+      },
+      "final": {
+        "candidateVersion": "v0.0.1-rc.4",
+        "indexDigest": "sha256:65582d3d165e93a9f40f2cc622380309663a5cce4821678921da2266470d682b",
+        "promotedBy": "havardelnan",
+        "runID": "35594372009",
+        "status": "promoting"
       }
     }
   }
