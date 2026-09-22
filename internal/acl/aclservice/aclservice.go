@@ -501,10 +501,6 @@ func Update(ctx context.Context, aclId string, aclModel *aclmodels.AclV2ListItem
 }
 
 func Delete(ctx context.Context, aclId string, identity *identitymodels.Identity) (bool, *aclmodels.AclV2ListItem, error) {
-	if !identity.IsUser() {
-		return false, nil, fmt.Errorf("could not delete object, must be delete by a user")
-	}
-
 	deleted, err := Store().Delete(ctx, aclId)
 	if err != nil {
 		return false, nil, fmt.Errorf("could not delete object: %v", err)
@@ -516,7 +512,7 @@ func Delete(ctx context.Context, aclId string, identity *identitymodels.Identity
 		deletedObject = &o
 	}
 
-	_, err = auditlog.Create(ctx, "Acl deleted", models.AuditCategoryAcl, models.AuditActionDelete, identity.User, deletedObject, nil)
+	_, err = auditCreate(ctx, "Acl deleted", models.AuditCategoryAcl, models.AuditActionDelete, auditUser(identity), deletedObject, nil)
 	if err != nil {
 		return false, nil, fmt.Errorf("could not audit log delete action: %v", err)
 	}
