@@ -390,19 +390,35 @@ func ClusterUIDFilter(ctx context.Context, required aclmodels.AccessTypeV3) (bso
 }
 
 // ResourceTypeReadFilter returns a MongoDB aggregation pipeline stage that excludes
-// resource kinds the caller is not authorized to read at the given scope and subject.
+// protected resource kinds the caller is not authorized to read.
 //
-// Cluster identities get no type restriction (empty filter).
-func ResourceTypeReadFilter(ctx context.Context, scope aclscope.Scope, subject aclscope.Subject) (bson.M, error) {
+// Each protected kind's capability is resolved at its type-level subject
+// (scope ror, subject = the kind name). matchesScopeSubject makes that resolution
+// honor both a type-level grant ({ror, <Kind>}) and a global grant
+// ({ror, globalscope} or subject "all"), so no identity is special-cased.
+func ResourceTypeReadFilter(ctx context.Context) (bson.M, error) {
 	ctx, span := rortracer.StartSpan(ctx, "aclservice.ResourceTypeReadFilter")
 	defer span.End()
 
-	access, err := resolveAccess(ctx, scope, subject)
-	if err != nil {
-		return bson.M{}, err
+	var excluded []string
+	for capability, kinds := range aclstore.ProtectedResourceTypes {
+		required := capability.WithVerb(aclmodels.VerbRead)
+		for _, kind := range kinds {
+			access, err := resolveAccess(ctx, aclscope.ScopeRor, aclscope.Subject(kind))
+			if err != nil {
+				return bson.M{}, err
+			}
+			if !slices.Contains(access, required) {
+				excluded = append(excluded, kind)
+			}
+		}
 	}
 
-	return aclstore.ResourceTypeFilter(access), nil
+	if len(excluded) == 0 {
+		return bson.M{}, nil
+	}
+	slices.Sort(excluded)
+	return bson.M{"$match": bson.M{"typemeta.kind": bson.M{"$nin": excluded}}}, nil
 }
 
 // ResourceTypeWriteFilter returns a MongoDB aggregation pipeline stage that excludes

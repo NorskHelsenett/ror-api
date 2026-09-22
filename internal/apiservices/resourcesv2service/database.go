@@ -327,6 +327,18 @@ func GenerateAggregateQuery(ctx context.Context, rorResourceQuery *rorresources.
 		query = append(query, authorizedOwnerRefsQuery)
 	}
 
+	// Protected-kind read enforcement (roadmap 2d): exclude resource kinds the
+	// caller lacks the read capability for (e.g. Config needs ror:config:read).
+	// Applies uniformly to every identity, including clusters, which are covered
+	// by their ACL grant rather than a code branch.
+	typeFilter, err := aclservice.ResourceTypeReadFilter(ctx)
+	if err != nil {
+		return query, fmt.Errorf("could not generate protected-kind read filter: %w", err)
+	}
+	if len(typeFilter) > 0 {
+		query = append(query, typeFilter)
+	}
+
 	if rorResourceQuery == nil {
 		return query, fmt.Errorf("could not generate mongodb query: empty resource query")
 	}
