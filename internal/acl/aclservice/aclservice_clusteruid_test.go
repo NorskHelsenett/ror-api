@@ -11,13 +11,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// stubClusterResolver installs a ClusterIdToUidResolver backed by the given
+// stubClusterResolver installs a cluster id->uid resolver backed by the given
 // name->uid map and restores the previous resolver on cleanup.
 func stubClusterResolver(t *testing.T, mapping map[string]string) {
 	t.Helper()
-	prev := aclmodels.ClusterIdToUidResolver
-	aclmodels.ClusterIdToUidResolver = func(clusterID string) string { return mapping[clusterID] }
-	t.Cleanup(func() { aclmodels.ClusterIdToUidResolver = prev })
+	prev := clusterIDResolver
+	SetClusterIDResolver(func(clusterID string) string { return mapping[clusterID] })
+	t.Cleanup(func() { SetClusterIDResolver(prev) })
 }
 
 // TestHasAccessResolvesClusterIdToUid verifies that cluster-scoped checks
@@ -69,9 +69,9 @@ func TestHasAccessResolvesClusterIdToUid(t *testing.T) {
 
 	t.Run("no resolver wired leaves subject unchanged", func(t *testing.T) {
 		setResolver(t, entries, nil)
-		prev := aclmodels.ClusterIdToUidResolver
-		aclmodels.ClusterIdToUidResolver = nil
-		t.Cleanup(func() { aclmodels.ClusterIdToUidResolver = prev })
+		prev := clusterIDResolver
+		SetClusterIDResolver(nil)
+		t.Cleanup(func() { SetClusterIDResolver(prev) })
 		ctx := userContext("dev-team")
 
 		allowed, err := HasAccess(ctx, aclscope.ScopeCluster, clusterName, read)

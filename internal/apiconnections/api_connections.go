@@ -24,7 +24,6 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/clients/vaultclient/databasecredhelper"
 	"github.com/NorskHelsenett/ror/pkg/clients/vaultclient/rabbitmqcredhelper"
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
-	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -71,7 +70,7 @@ func InitConnections(ctx context.Context) {
 	if err := aclservice.InitResolver(RabbitMQConnection); err != nil {
 		rlog.Fatalc(ctx, "failed to initialize ACL resolver", err)
 	}
-	aclmodels.ClusterIdToUidResolver = resolveClusterIdToUid
+	aclservice.SetClusterIDResolver(resolveClusterIdToUid)
 
 	// Domain resolvers are initialized up front as an empty, ready-to-use
 	// registry so consumers never see a nil resolver, then populated
@@ -94,9 +93,9 @@ func InitConnections(ctx context.Context) {
 }
 
 // resolveClusterIdToUid resolves a cluster ID (human-readable name) to its UID
-// (UUID) using the database. It is injected into aclmodels.ClusterIdToUidResolver
-// so the db-agnostic acl model layer can perform the lookup without depending on
-// the mongodb client. Results are cached in clusterIdToUidCache; only non-empty
+// (UUID) using the database. It is wired into aclservice via SetClusterIDResolver
+// so the db-agnostic acl layer can perform the lookup without depending on the
+// mongodb client. Results are cached in clusterIdToUidCache; only non-empty
 // resolutions are cached so a transient miss is not sticky.
 func resolveClusterIdToUid(clusterID string) string {
 	if uid, ok := clusterIdToUidCache.Load(clusterID); ok {
