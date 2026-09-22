@@ -20,16 +20,38 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
 	"github.com/NorskHelsenett/ror/pkg/clients/rabbitmqclient"
+	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclprincipal"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
+	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
 )
 
 // aclCacheTTL is the time-to-live for cached scope expansions.
 const aclCacheTTL = 5 * time.Minute
+
+// defaultOwnerScopeCacheTTL is the fallback owner-uid cache TTL for the Mongo
+// scope expander when ACL_SCOPE_OWNER_CACHE_TTL is unset or invalid.
+const defaultOwnerScopeCacheTTL = 30 * time.Second
+
+// ownerScopeCacheTTL reads the scope-expander owner-uid cache TTL from
+// ACL_SCOPE_OWNER_CACHE_TTL (a Go duration, e.g. "30s"), falling back to the
+// default when unset or unparseable.
+func ownerScopeCacheTTL() time.Duration {
+	raw := rorconfig.GetString("ACL_SCOPE_OWNER_CACHE_TTL")
+	if raw == "" {
+		return defaultOwnerScopeCacheTTL
+	}
+	ttl, err := time.ParseDuration(raw)
+	if err != nil || ttl <= 0 {
+		rlog.Warn("invalid ACL_SCOPE_OWNER_CACHE_TTL, using default", rlog.String("value", raw))
+		return defaultOwnerScopeCacheTTL
+	}
+	return ttl
+}
 
 // Package-level ACL state. Must be initialized by calling InitResolver.
 var (
@@ -76,7 +98,7 @@ func InitResolver(rmq rabbitmqclient.RabbitMQConnection) error {
 	}
 	aclStore = aclstorev2.NewNotifyingStore(snapshot, publisher)
 
-	expander := acl.ScopeExpander(aclstore.NewMongoScopeExpander(mongodb.GetMongoDb))
+	expander := acl.ScopeExpander(aclstore.NewMongoScopeExpander(mongodb.GetMongoDb, aclstore.WithOwnerUidsTTL(ownerScopeCacheTTL())))
 	expander = acl.NewCachedScopeExpander(expander, aclCacheTTL)
 
 	resolver = acl.NewResolver(snapshot, acl.WithScopeExpander(expander))

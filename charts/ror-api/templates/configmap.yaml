@@ -22,6 +22,7 @@ data:
   OIDC_SIGNER_ISSUER: {{ .Values.api.config.oidc.signerIssuer | quote }}
   OPENTELEMETRY_COLLECTOR_ENDPOINT: {{.Values.api.config.tracing.endpoint | quote}}
   ENABLE_TRACING: {{.Values.api.config.tracing.enabled | quote}}
+  ACL_SCOPE_OWNER_CACHE_TTL: {{ .Values.api.config.acl.ownerCacheTtl | default "30s" | quote }}
   TANZU_AUTH_BASE_URL: {{ default "http://ror-ms-tanzu-auth.nhn-ror.svc:8080" .Values.api.config.tanzu.tanzuAuthBaseUrl | quote }}
   CONTAINER_REG_PREFIX: "docker.io/"
   CONTAINER_REG_IMAGE_PATH: "github.com/NorskHelsenett/ror/"

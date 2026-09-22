@@ -19,6 +19,11 @@ api:
     allowOrigins: "https://ror.sky.test.nhn.no;https://ror.nhn.no"
     rorUrl: "https://api.ror.nhn.no"
     logLevel: "info"
+    acl:
+      # TTL for the scope-expander owner-uid cache: memoizes the resourcesv2
+      # owner-subject distinct so it is not re-run on every authorized read.
+      # Go duration, e.g. "30s", "1m".
+      ownerCacheTtl: "30s"
     oidc:
       signerIssuer: "https://auth.ror.nhn.no"
       issuers:

@@ -53,6 +53,10 @@ func InitConfig() {
 
 	rorconfig.SetDefault("TOKEN_STORE_VAULT_PATH", "secret/data/v1.0/ror/config/token")
 
+	// TTL for the ACL scope-expander owner-uid cache (memoizes the resourcesv2
+	// owner-subject distinct). Go duration string, e.g. "30s".
+	rorconfig.SetDefault("ACL_SCOPE_OWNER_CACHE_TTL", "30s")
+
 	if rorconfig.GetBool(rorconfig.OIDC_SKIP_ISSUER_VERIFY) {
 		rlog.Error("skipping OIDC issuer verification. THIS IS UNSAFE IN PRODUCTION!!!", nil)
 	}
