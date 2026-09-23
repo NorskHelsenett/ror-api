@@ -42,17 +42,12 @@ type resourceDBFactory func(*mongodb.MongodbCon) ResourceDBProvider
 // write operations (create/update/delete). Kinds without a ProtectedBy
 // capability are unrestricted here; protected kinds additionally require the
 // caller to hold the capability's write verb, independent of ownerref access.
+// Every identity resolves through the same grant check — a cluster is denied
+// because its ACL grant lacks the write capability, not because of its type.
 func hasProtectedKindWriteAccess(ctx context.Context, kind string, ownerref rorresourceowner.RorResourceOwnerReference) (bool, error) {
 	capability := rordefs.Resourcedefs.ProtectedByKind(kind)
 	if capability == "" {
 		return true, nil
-	}
-	identity, err := rorcontext.GetIdentityFromRorContext(ctx)
-	if err != nil {
-		return false, err
-	}
-	if identity.IsCluster() {
-		return false, nil
 	}
 	return aclservice.HasAccess(ctx, ownerref.Scope, ownerref.Subject, capability.WithVerb(aclmodels.VerbWrite))
 }

@@ -20,7 +20,10 @@ func Create(ctx context.Context, msg string, category models.AuditCategory, acti
 	auditLogMetadata.Timestamp = time.Now()
 	auditLogMetadata.Category = category
 	auditLogMetadata.Action = action
-	auditLogMetadata.User = *user
+	// user is nil for non-user principals (service/cluster); leave it zero-valued.
+	if user != nil {
+		auditLogMetadata.User = *user
+	}
 	auditLog.Metadata = auditLogMetadata
 	data := make(map[string]any)
 	data["new_object"] = newObject

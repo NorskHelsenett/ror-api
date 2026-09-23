@@ -59,6 +59,10 @@ var (
 	aclStore         aclstorev2.Store
 	refresher        *aclstorev2.Refresher
 	ancestorResolver acl.AncestorResolver
+
+	// clusterIDResolver translates a human cluster id to its uid (ACL entries are
+	// uid-keyed). Wired by ror-api via SetClusterIDResolver; nil disables the lookup.
+	clusterIDResolver func(clusterID string) string
 )
 
 // InitResolver initializes the ACL resolver backed by an in-memory snapshot of
@@ -115,6 +119,12 @@ func Store() aclstorev2.Store { return aclStore }
 // entry point; this exists for tests and callers that supply their own ACL
 // source without the MongoDB/RabbitMQ wiring.
 func SetResolver(r *acl.Resolver) { resolver = r }
+
+// SetClusterIDResolver wires the cluster id -> uid lookup used to normalize
+// cluster-scoped subjects before consulting the uid-keyed store. Injected by the
+// application that has database access (ror-api); nil disables the lookup (uid
+// subjects and non-cluster scopes still resolve).
+func SetClusterIDResolver(fn func(clusterID string) string) { clusterIDResolver = fn }
 
 // errResolverNotInitialized is returned when ACL resolution is attempted before
 // InitResolver has run. Failing closed turns a wiring mistake into a denied
@@ -206,10 +216,10 @@ func resolveClusterSubject(scope aclscope.Scope, subject aclscope.Subject) aclsc
 	if _, err := uuid.Parse(string(subject)); err == nil {
 		return subject
 	}
-	if aclmodels.ClusterIdToUidResolver == nil {
+	if clusterIDResolver == nil {
 		return subject
 	}
-	if uid := aclmodels.ClusterIdToUidResolver(string(subject)); uid != "" {
+	if uid := clusterIDResolver(string(subject)); uid != "" {
 		return aclscope.Subject(uid)
 	}
 	return subject
@@ -221,7 +231,7 @@ func resolveClusterSubject(scope aclscope.Scope, subject aclscope.Subject) aclsc
 // same filter are unaffected. It is a no-op when the filter has no subject
 // restriction, cannot match cluster scope, or no resolver is wired.
 func resolveClusterFilterSubjects(filter acl.OwnerrefFilter) acl.OwnerrefFilter {
-	if len(filter.Subjects) == 0 || aclmodels.ClusterIdToUidResolver == nil {
+	if len(filter.Subjects) == 0 || clusterIDResolver == nil {
 		return filter
 	}
 	if len(filter.Scopes) > 0 && !slices.Contains(filter.Scopes, aclscope.ScopeCluster) {
@@ -234,7 +244,7 @@ func resolveClusterFilterSubjects(filter acl.OwnerrefFilter) acl.OwnerrefFilter 
 		if _, err := uuid.Parse(string(s)); err == nil {
 			continue
 		}
-		uid := aclmodels.ClusterIdToUidResolver(string(s))
+		uid := clusterIDResolver(string(s))
 		if uid == "" || slices.Contains(subjects, aclscope.Subject(uid)) {
 			continue
 		}
@@ -455,7 +465,11 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 
 func Create(ctx context.Context, aclModel *aclmodels.AclV2ListItem, identity *identitymodels.Identity) (*aclmodels.AclV2ListItem, error) {
 	aclModel.Created = time.Now()
-	created, err := Store().Create(ctx, aclmodels.V2ToV3(*aclModel))
+	v3 := aclmodels.V2ToV3(*aclModel)
+	if err := aclmodels.ValidateACLEntry(v3); err != nil {
+		return nil, err
+	}
+	created, err := Store().Create(ctx, v3)
 	if err != nil {
 		return nil, fmt.Errorf("could not create acl: %v", err)
 	}
@@ -470,7 +484,11 @@ func Create(ctx context.Context, aclModel *aclmodels.AclV2ListItem, identity *id
 }
 
 func Update(ctx context.Context, aclId string, aclModel *aclmodels.AclV2ListItem, identity *identitymodels.Identity) (*aclmodels.AclV2ListItem, error) {
-	updated, previous, err := Store().Update(ctx, aclId, aclmodels.V2ToV3(*aclModel))
+	v3 := aclmodels.V2ToV3(*aclModel)
+	if err := aclmodels.ValidateACLEntry(v3); err != nil {
+		return nil, err
+	}
+	updated, previous, err := Store().Update(ctx, aclId, v3)
 	if err != nil {
 		return nil, fmt.Errorf("could not update acl: %v", err)
 	}
@@ -491,10 +509,6 @@ func Update(ctx context.Context, aclId string, aclModel *aclmodels.AclV2ListItem
 }
 
 func Delete(ctx context.Context, aclId string, identity *identitymodels.Identity) (bool, *aclmodels.AclV2ListItem, error) {
-	if !identity.IsUser() {
-		return false, nil, fmt.Errorf("could not delete object, must be delete by a user")
-	}
-
 	deleted, err := Store().Delete(ctx, aclId)
 	if err != nil {
 		return false, nil, fmt.Errorf("could not delete object: %v", err)
@@ -506,7 +520,7 @@ func Delete(ctx context.Context, aclId string, identity *identitymodels.Identity
 		deletedObject = &o
 	}
 
-	_, err = auditlog.Create(ctx, "Acl deleted", models.AuditCategoryAcl, models.AuditActionDelete, identity.User, deletedObject, nil)
+	_, err = auditCreate(ctx, "Acl deleted", models.AuditCategoryAcl, models.AuditActionDelete, auditUser(identity), deletedObject, nil)
 	if err != nil {
 		return false, nil, fmt.Errorf("could not audit log delete action: %v", err)
 	}

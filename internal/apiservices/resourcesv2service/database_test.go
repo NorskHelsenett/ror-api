@@ -54,6 +54,11 @@ func (testCredHelper) CheckAndRenew() bool              { return false }
 
 const testClusterID = "test-cluster-43232"
 
+// testConfigWriterGroup holds a V3 grant with the protected Config write
+// capability, so protected-kind write enforcement can be exercised for a grant
+// holder (any identity type), not only the denied cluster.
+const testConfigWriterGroup = "config-writers@e2e.invalid"
+
 // testAclStore grants the test cluster access to its own resources. Cluster
 // access is ordinary ACL data, so without it every query here is denied.
 type testAclStore struct{}
@@ -61,16 +66,27 @@ type testAclStore struct{}
 func (testAclStore) GetByGroups(_ context.Context, groups []string) (aclmodels.AclV3List, error) {
 	var out aclmodels.AclV3List
 	for _, g := range groups {
-		if g != aclprincipal.Cluster(testClusterID) {
-			continue
+		switch g {
+		case aclprincipal.Cluster(testClusterID):
+			out = append(out, aclmodels.AclV3ListItem{
+				Version: 3,
+				Group:   g,
+				Scope:   aclscope.ScopeCluster,
+				Subject: aclscope.Subject(testClusterID),
+				Access:  aclservice.ClusterSelfAccess(),
+			})
+		case testConfigWriterGroup:
+			out = append(out, aclmodels.AclV3ListItem{
+				Version: 3,
+				Group:   g,
+				Scope:   aclscope.ScopeRor,
+				Subject: aclscope.Subject("Config"),
+				Access: []aclmodels.AccessTypeV3{
+					aclmodels.CapRorConfig.WithVerb(aclmodels.VerbRead),
+					aclmodels.CapRorConfig.WithVerb(aclmodels.VerbWrite),
+				},
+			})
 		}
-		out = append(out, aclmodels.AclV3ListItem{
-			Version: 3,
-			Group:   g,
-			Scope:   aclscope.ScopeCluster,
-			Subject: aclscope.Subject(testClusterID),
-			Access:  aclservice.ClusterSelfAccess(),
-		})
 	}
 	return out, nil
 }

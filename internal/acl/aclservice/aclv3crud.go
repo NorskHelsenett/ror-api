@@ -1,6 +1,6 @@
 // V3-native ACL CRUD, used by the /v2/acl endpoints. Unlike the V1 path in
 // aclservice.go these functions operate directly on aclmodels.AclV3ListItem with
-// no V2 conversion, so V3-only capabilities (resource:*, ror:config:*, ...) are
+// no V2 conversion, so V3-only capabilities (ror:config:*, kubernetes:admin, ...) are
 // preserved end to end.
 package aclservice
 
@@ -16,6 +16,10 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 )
+
+// auditCreate is the audit-log sink for ACL mutations, indirected so tests can
+// substitute it (the real one reaches MongoDB).
+var auditCreate = auditlog.Create
 
 // validateV3Entry enforces the required fields plus scope/access validity.
 func validateV3Entry(item *aclmodels.AclV3ListItem) error {
@@ -75,19 +79,16 @@ func UpdateV3(ctx context.Context, aclId string, item *aclmodels.AclV3ListItem, 
 	return updated, nil
 }
 
-// DeleteV3 deletes a V3 ACL entry by id.
+// DeleteV3 deletes a V3 ACL entry by id. Authorization is the ror:<verb> capability
+// on {ror, acl}, enforced by the controller (aclManageAllowed) like create/update;
+// no identity-type guard, so any principal holding the grant may delete.
 func DeleteV3(ctx context.Context, aclId string, identity *identitymodels.Identity) (bool, *aclmodels.AclV3ListItem, error) {
-	// NOTE: mirrors the V1 delete guard; revisit under uniform-identity (roadmap 2e).
-	if identity == nil || !identity.IsUser() {
-		return false, nil, fmt.Errorf("could not delete object, must be deleted by a user")
-	}
-
 	deleted, err := Store().Delete(ctx, aclId)
 	if err != nil {
 		return false, nil, fmt.Errorf("could not delete acl: %w", err)
 	}
 
-	if _, err := auditlog.Create(ctx, "Acl deleted", models.AuditCategoryAcl, models.AuditActionDelete, identity.User, deleted, nil); err != nil {
+	if _, err := auditCreate(ctx, "Acl deleted", models.AuditCategoryAcl, models.AuditActionDelete, auditUser(identity), deleted, nil); err != nil {
 		return false, nil, fmt.Errorf("could not audit log delete action: %w", err)
 	}
 	return true, deleted, nil
