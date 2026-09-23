@@ -3,6 +3,7 @@ package oauthmiddleware
 import (
 	"context"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
@@ -95,23 +96,24 @@ func (d *OauthMiddleware) getIdentityFromToken(ctx context.Context, token string
 		return nil, rorginerror.NewRorGinError(http.StatusUnauthorized, "Not authorized, missing groups")
 	}
 
-	user := &identitymodels.User{
-		Email:           claims.Email,
-		IsEmailVerified: claims.EmailVerified,
-		Name:            claims.Name,
-		Groups:          groups,
-		Audience:        claims.Audience,
-		Issuer:          claims.Issuer,
-		ExpirationTime:  int(claims.ExpirationTime.Unix()),
-	}
-
-	return &identitymodels.Identity{
-		Auth: identitymodels.AuthInfo{
+	identity, err := identitymodels.NewUserIdentity(
+		identitymodels.AuthInfo{
 			AuthProvider:   identitymodels.IdentityProviderOidc,
 			AuthProviderID: claims.Email,
 			ExpirationTime: claims.ExpirationTime,
 		},
-		Type: identitymodels.IdentityTypeUser,
-		User: user,
-	}, nil
+		claims.Email,
+		claims.Name,
+		groups,
+		map[string]string{
+			"iss":            claims.Issuer,
+			"aud":            claims.Audience,
+			"email_verified": strconv.FormatBool(claims.EmailVerified),
+		},
+	)
+	if err != nil {
+		return nil, rorginerror.NewRorGinError(http.StatusUnauthorized, "Not authorized, incomplete identity")
+	}
+
+	return &identity, nil
 }

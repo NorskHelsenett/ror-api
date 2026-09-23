@@ -43,8 +43,8 @@ func CreateV3(ctx context.Context, item *aclmodels.AclV3ListItem, identity *iden
 	}
 	item.Version = 3
 	item.Created = time.Now()
-	if identity != nil && identity.User != nil {
-		item.IssuedBy = identity.User.Email
+	if email := issuedBy(identity); email != "" {
+		item.IssuedBy = email
 	}
 
 	created, err := Store().Create(ctx, *item)
@@ -64,8 +64,8 @@ func UpdateV3(ctx context.Context, aclId string, item *aclmodels.AclV3ListItem, 
 		return nil, fmt.Errorf("invalid acl entry: %w", err)
 	}
 	item.Version = 3
-	if identity != nil && identity.User != nil {
-		item.IssuedBy = identity.User.Email
+	if email := issuedBy(identity); email != "" {
+		item.IssuedBy = email
 	}
 
 	updated, previous, err := Store().Update(ctx, aclId, *item)
@@ -131,4 +131,17 @@ func auditUser(identity *identitymodels.Identity) *identitymodels.User {
 		return nil
 	}
 	return identity.User
+}
+
+// issuedBy returns the email to stamp an entry with, empty for identities that
+// are not a resolvable user.
+func issuedBy(identity *identitymodels.Identity) string {
+	if identity == nil {
+		return ""
+	}
+	email, err := identity.GetEmail()
+	if err != nil {
+		return ""
+	}
+	return email
 }

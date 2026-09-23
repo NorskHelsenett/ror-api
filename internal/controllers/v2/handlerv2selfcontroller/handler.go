@@ -41,39 +41,57 @@ func GetSelf() gin.HandlerFunc {
 
 		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
 
+		fail := func(err error) {
+			rlog.Errorc(ctx, "could not resolve identity", err)
+			c.JSON(http.StatusInternalServerError, "could not resolve identity")
+		}
+
+		// Every identity type exposes the same human readable name: a user's
+		// display name, a cluster's cluster id or a service's id.
+		name, err := identity.GetName()
+		if err != nil {
+			fail(err)
+			return
+		}
+
 		result := apicontractsv2self.SelfData{
 			Auth: identity.GetAuthInfo(),
 			Type: identity.Type,
-		}
-		if identity.IsUser() {
-			result.User = apicontractsv2self.SelfUser{
-				Name:  identity.User.Name,
-				Email: identity.User.Email,
-			}
-			if c.Query("filteredgroups") == "true" {
-				groupsInUse, err := aclservice.GetGroupsInUse(ctx, identity.User.Groups)
-				if err != nil {
-					rlog.Errorc(ctx, "could not filter groups in use, falling back to unfiltered groups", err)
-					result.User.Groups = identity.User.Groups
-				} else {
-					result.User.Groups = groupsInUse
-				}
-			} else {
-				result.User.Groups = identity.User.Groups
-			}
+			User: apicontractsv2self.SelfUser{Name: name},
 		}
 
-		if identity.IsCluster() {
-			result.User = apicontractsv2self.SelfUser{
-				Name: identity.ClusterIdentity.Id,
-				Uid:  identity.ClusterIdentity.Uid,
+		switch {
+		case identity.IsUser():
+			email, err := identity.GetEmail()
+			if err != nil {
+				fail(err)
+				return
 			}
-		}
-		if identity.IsService() {
-			result.User = apicontractsv2self.SelfUser{
-				Name: identity.ServiceIdentity.Id,
+			result.User.Email = email
+
+			groups, err := identity.GetGroups()
+			if err != nil {
+				fail(err)
+				return
 			}
+			if c.Query("filteredgroups") == "true" {
+				groupsInUse, err := aclservice.GetGroupsInUse(ctx, groups)
+				if err != nil {
+					rlog.Errorc(ctx, "could not filter groups in use, falling back to unfiltered groups", err)
+				} else {
+					groups = groupsInUse
+				}
+			}
+			result.User.Groups = groups
+		case identity.IsCluster():
+			uid, err := identity.GetSubject()
+			if err != nil {
+				fail(err)
+				return
+			}
+			result.User.Uid = uid
 		}
+
 		c.JSON(http.StatusOK, result)
 	}
 }

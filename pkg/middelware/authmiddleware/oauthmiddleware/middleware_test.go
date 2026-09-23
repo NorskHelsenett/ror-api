@@ -1,7 +1,6 @@
 package oauthmiddleware
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -40,20 +39,32 @@ func signToken(t *testing.T, issuer *oidctest.TestIssuer, claims oidchelper.Toke
 	return oidctest.MustSignToken(t, issuer, claims)
 }
 
-func doRequest(mw OauthMiddlewareInterface, authHeader string) *httptest.ResponseRecorder {
+// doRequest runs a request through the middleware and returns the recorder plus
+// the identity the middleware placed in the context. The identity is read from
+// the context rather than the response body: it is internal state, not a
+// serialised contract.
+func doRequest(mw OauthMiddlewareInterface, authHeader string) (*httptest.ResponseRecorder, *identitymodels.Identity) {
 	w := httptest.NewRecorder()
 	c, engine := gin.CreateTestContext(w)
+
+	var captured *identitymodels.Identity
 
 	engine.Use(func(ctx *gin.Context) {
 		mw.Authenticate(ctx, ctx.Request.Context())
 	})
 	engine.GET("/test", func(ctx *gin.Context) {
-		identity, exists := ctx.Get("identity")
+		value, exists := ctx.Get("identity")
 		if !exists {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "no identity"})
 			return
 		}
-		ctx.JSON(http.StatusOK, identity)
+		identity, ok := value.(identitymodels.Identity)
+		if !ok {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "unexpected identity type"})
+			return
+		}
+		captured = &identity
+		ctx.Status(http.StatusOK)
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
@@ -63,7 +74,7 @@ func doRequest(mw OauthMiddlewareInterface, authHeader string) *httptest.Respons
 	c.Request = req
 
 	engine.ServeHTTP(w, req)
-	return w
+	return w, captured
 }
 
 func TestIsOfType_BearerToken(t *testing.T) {
@@ -114,19 +125,21 @@ func TestAuthenticate_ValidToken(t *testing.T) {
 	claims := oidctest.DefaultUserClaims("alice@example.com", "admins", "devs")
 	token := signToken(t, issuer, claims)
 
-	w := doRequest(mw, "Bearer "+token)
+	w, identity := doRequest(mw, "Bearer "+token)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
 	}
-
-	var identity identitymodels.Identity
-	if err := json.Unmarshal(w.Body.Bytes(), &identity); err != nil {
-		t.Fatalf("could not unmarshal identity: %v", err)
+	if identity == nil {
+		t.Fatal("middleware did not set an identity")
 	}
 
-	if identity.User.Email != "alice@example.com" {
-		t.Errorf("expected email alice@example.com, got %s", identity.User.Email)
+	email, err := identity.GetEmail()
+	if err != nil {
+		t.Fatalf("could not resolve email: %v", err)
+	}
+	if email != "alice@example.com" {
+		t.Errorf("expected email alice@example.com, got %s", email)
 	}
 	if identity.Type != identitymodels.IdentityTypeUser {
 		t.Errorf("expected identity type user, got %s", identity.Type)
@@ -137,12 +150,16 @@ func TestAuthenticate_ValidToken(t *testing.T) {
 
 	// Groups should have domain appended
 	expectedGroups := []string{"admins@example.com", "devs@example.com"}
-	if len(identity.User.Groups) != len(expectedGroups) {
-		t.Fatalf("expected %d groups, got %d: %v", len(expectedGroups), len(identity.User.Groups), identity.User.Groups)
+	groups, err := identity.GetGroups()
+	if err != nil {
+		t.Fatalf("could not resolve groups: %v", err)
+	}
+	if len(groups) != len(expectedGroups) {
+		t.Fatalf("expected %d groups, got %d: %v", len(expectedGroups), len(groups), groups)
 	}
 	for i, g := range expectedGroups {
-		if identity.User.Groups[i] != g {
-			t.Errorf("expected group %s, got %s", g, identity.User.Groups[i])
+		if groups[i] != g {
+			t.Errorf("expected group %s, got %s", g, groups[i])
 		}
 	}
 }
@@ -151,7 +168,7 @@ func TestAuthenticate_NoAuthHeader(t *testing.T) {
 	mw, _, cleanup := setupMiddleware(t)
 	defer cleanup()
 
-	w := doRequest(mw, "")
+	w, _ := doRequest(mw, "")
 
 	if w.Code != http.StatusUnauthorized {
 		t.Errorf("expected 401, got %d", w.Code)
@@ -162,7 +179,7 @@ func TestAuthenticate_NonBearerAuth(t *testing.T) {
 	mw, _, cleanup := setupMiddleware(t)
 	defer cleanup()
 
-	w := doRequest(mw, "Basic dXNlcjpwYXNz")
+	w, _ := doRequest(mw, "Basic dXNlcjpwYXNz")
 
 	if w.Code != http.StatusUnauthorized {
 		t.Errorf("expected 401, got %d", w.Code)
@@ -173,7 +190,7 @@ func TestAuthenticate_InvalidToken(t *testing.T) {
 	mw, _, cleanup := setupMiddleware(t)
 	defer cleanup()
 
-	w := doRequest(mw, "Bearer not-a-valid-jwt")
+	w, _ := doRequest(mw, "Bearer not-a-valid-jwt")
 
 	if w.Code != http.StatusUnauthorized {
 		t.Errorf("expected 401, got %d", w.Code)
@@ -188,7 +205,7 @@ func TestAuthenticate_ExpiredToken(t *testing.T) {
 	claims.ExpirationTime = time.Now().Add(-1 * time.Hour)
 	token := signToken(t, issuer, claims)
 
-	w := doRequest(mw, "Bearer "+token)
+	w, _ := doRequest(mw, "Bearer "+token)
 
 	if w.Code != http.StatusUnauthorized {
 		t.Errorf("expected 401 for expired token, got %d", w.Code)
@@ -202,7 +219,7 @@ func TestAuthenticate_NoGroups(t *testing.T) {
 	claims := oidctest.DefaultUserClaims("alice@example.com")
 	token := signToken(t, issuer, claims)
 
-	w := doRequest(mw, "Bearer "+token)
+	w, _ := doRequest(mw, "Bearer "+token)
 
 	if w.Code != http.StatusUnauthorized {
 		t.Errorf("expected 401 for token without groups, got %d: %s", w.Code, w.Body.String())
@@ -217,7 +234,7 @@ func TestAuthenticate_WrongAudience(t *testing.T) {
 	claims.Audience = "wrong-client-id"
 	token := signToken(t, issuer, claims)
 
-	w := doRequest(mw, "Bearer "+token)
+	w, _ := doRequest(mw, "Bearer "+token)
 
 	if w.Code != http.StatusUnauthorized {
 		t.Errorf("expected 401 for wrong audience, got %d", w.Code)
@@ -233,28 +250,31 @@ func TestAuthenticate_IdentityFieldsPopulated(t *testing.T) {
 	claims.EmailVerified = true
 	token := signToken(t, issuer, claims)
 
-	w := doRequest(mw, "Bearer "+token)
+	w, identity := doRequest(mw, "Bearer "+token)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
 	}
-
-	var identity identitymodels.Identity
-	if err := json.Unmarshal(w.Body.Bytes(), &identity); err != nil {
-		t.Fatalf("could not unmarshal identity: %v", err)
+	if identity == nil {
+		t.Fatal("middleware did not set an identity")
 	}
 
-	if identity.User.Name != "Bob Builder" {
-		t.Errorf("expected name 'Bob Builder', got %q", identity.User.Name)
+	name, err := identity.GetName()
+	if err != nil {
+		t.Fatalf("could not resolve name: %v", err)
 	}
-	if !identity.User.IsEmailVerified {
-		t.Error("expected email_verified to be true")
+	if name != "Bob Builder" {
+		t.Errorf("expected name 'Bob Builder', got %q", name)
 	}
-	if identity.User.Issuer != issuer.IssuerURL {
-		t.Errorf("expected issuer %q, got %q", issuer.IssuerURL, identity.User.Issuer)
+	// Claims without a dedicated field are captured verbatim.
+	if verified, ok := identity.GetClaim("email_verified"); !ok || verified != "true" {
+		t.Errorf("expected email_verified claim true, got %q (present: %t)", verified, ok)
 	}
-	if identity.User.Audience != oidctest.DefaultTestClientID {
-		t.Errorf("expected audience %q, got %q", oidctest.DefaultTestClientID, identity.User.Audience)
+	if iss, ok := identity.GetClaim("iss"); !ok || iss != issuer.IssuerURL {
+		t.Errorf("expected issuer %q, got %q", issuer.IssuerURL, iss)
+	}
+	if aud, ok := identity.GetClaim("aud"); !ok || aud != oidctest.DefaultTestClientID {
+		t.Errorf("expected audience %q, got %q", oidctest.DefaultTestClientID, aud)
 	}
 	if identity.Auth.AuthProviderID != "bob@corp.io" {
 		t.Errorf("expected auth provider ID bob@corp.io, got %s", identity.Auth.AuthProviderID)

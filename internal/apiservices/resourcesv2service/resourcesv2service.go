@@ -18,6 +18,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/rorresourceowner"
+	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 	"github.com/NorskHelsenett/ror/pkg/rorresources/rordefs"
@@ -558,12 +559,7 @@ func ResourceGetHashlist(ctx context.Context, owner rorresourceowner.RorResource
 	// Normalize the ownerref: translate legacy scope and clusterid→UID
 	owner.Scope = owner.Scope.ToKind()
 	if owner.Scope == aclscope.ScopeCluster.ToKind() {
-		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
-		if identity.IsCluster() && identity.ClusterIdentity != nil && identity.ClusterIdentity.Uid != "" {
-			if string(owner.Subject) == identity.ClusterIdentity.Id {
-				owner.Subject = aclscope.Subject(identity.ClusterIdentity.Uid)
-			}
-		}
+		owner.Subject = clusterSubjectToUID(rorcontext.MustGetIdentityFromRorContext(ctx), owner.Subject)
 	}
 
 	query := rorresources.ResourceQuery{
@@ -593,12 +589,23 @@ func normalizeOwnerref(ctx context.Context, resource *rorresources.Resource) {
 
 	// For cluster-scoped resources, translate clusterid subject to UID
 	if ownerref.Scope == aclscope.ScopeCluster.ToKind() {
-		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
-		if identity.IsCluster() && identity.ClusterIdentity != nil && identity.ClusterIdentity.Uid != "" {
-			clusterID := aclscope.Subject(identity.ClusterIdentity.Id)
-			if ownerref.Subject == clusterID {
-				ownerref.Subject = aclscope.Subject(identity.ClusterIdentity.Uid)
-			}
-		}
+		ownerref.Subject = clusterSubjectToUID(rorcontext.MustGetIdentityFromRorContext(ctx), ownerref.Subject)
 	}
+}
+
+// clusterSubjectToUID rewrites a caller's own cluster id to its uid, the form
+// ownerrefs are stored in. Any other subject is returned unchanged.
+func clusterSubjectToUID(identity identitymodels.Identity, subject aclscope.Subject) aclscope.Subject {
+	if !identity.IsCluster() {
+		return subject
+	}
+	clusterID, err := identity.GetName()
+	if err != nil {
+		return subject
+	}
+	uid, err := identity.GetSubject()
+	if err != nil || string(subject) != clusterID {
+		return subject
+	}
+	return aclscope.Subject(uid)
 }

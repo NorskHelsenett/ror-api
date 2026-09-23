@@ -54,15 +54,26 @@ func GetUser() gin.HandlerFunc {
 			return
 		}
 
-		if identity.User == nil {
+		name, err := identity.GetName()
+		if err != nil {
+			c.JSON(http.StatusForbidden, nil)
+			return
+		}
+		email, err := identity.GetEmail()
+		if err != nil {
+			c.JSON(http.StatusForbidden, nil)
+			return
+		}
+		groups, err := identity.GetGroups()
+		if err != nil {
 			c.JSON(http.StatusForbidden, nil)
 			return
 		}
 
 		result := apicontracts.User{
-			Name:   identity.User.Name,
-			Email:  identity.User.Email,
-			Groups: identity.User.Groups,
+			Name:   name,
+			Email:  email,
+			Groups: groups,
 		}
 
 		c.JSON(http.StatusOK, result)
@@ -112,12 +123,19 @@ func GetApiKeysByFilter() gin.HandlerFunc {
 			return
 		}
 
+		email, err := identity.GetEmail()
+		if err != nil {
+			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid identity")
+			rerr.GinLogErrorAbort(c)
+			return
+		}
+
 		// importing apicontracts for swagger
 		var _ apicontracts.PaginatedResult[apicontracts.Cluster]
 		filter.Filters = append(filter.Filters, apicontracts.FilterMetadata{
 			Field:     "identifier",
 			MatchMode: apicontracts.MatchModeEquals,
-			Value:     identity.User.Email,
+			Value:     email,
 		})
 		paginatedResult, err := apikeysservice.GetByFilter(ctx, &filter)
 		if err != nil {
