@@ -6,6 +6,8 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/internal/models"
 
+	"github.com/NorskHelsenett/ror-api/internal/mocks/identitymocks"
+
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
 	"github.com/stretchr/testify/assert"
@@ -17,17 +19,15 @@ import (
 // on {ror, acl} (enforced by the controllers), so the service functions are not
 // identity-type gated.
 func clusterIdentity() *identitymodels.Identity {
-	return &identitymodels.Identity{
-		Type:            identitymodels.IdentityTypeCluster,
-		ClusterIdentity: &identitymodels.ServiceIdentity{Id: "c1", Uid: "c1"},
-	}
+	identity := identitymocks.Cluster("c1", "c1")
+	return &identity
 }
 
 // stubAudit swaps the audit sink (which otherwise reaches MongoDB) for a no-op.
 func stubAudit(t *testing.T) {
 	t.Helper()
 	prev := auditCreate
-	auditCreate = func(_ context.Context, _ string, _ models.AuditCategory, _ models.AuditAction, _ *identitymodels.User, _ any, _ any) (string, error) {
+	auditCreate = func(_ context.Context, _ string, _ models.AuditCategory, _ models.AuditAction, _ models.AuditActor, _ any, _ any) (string, error) {
 		return "", nil
 	}
 	t.Cleanup(func() { auditCreate = prev })

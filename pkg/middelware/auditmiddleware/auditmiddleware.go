@@ -13,10 +13,10 @@ import (
 
 func AuditLogMiddleware(msg string, category models.AuditCategory, action models.AuditAction) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		user, err := gincontext.GetUserFromGinContext(c)
+		actor, err := gincontext.GetActorFromGinContext(c)
 		ctx := c.Request.Context()
 		if err != nil {
-			rlog.Errorc(ctx, "unable to get user from auditlog middleware", err)
+			rlog.Errorc(ctx, "unable to get actor from auditlog middleware", err)
 		}
 		c.Next()
 		if c.Writer.Status() != 200 {
@@ -24,7 +24,7 @@ func AuditLogMiddleware(msg string, category models.AuditCategory, action models
 		}
 		newObject, _ := c.Get("newObject")
 		oldObject, _ := c.Get("oldObject")
-		_, err = auditlog.Create(ctx, msg, category, action, user, newObject, oldObject)
+		_, err = auditlog.Create(ctx, msg, category, action, actor, newObject, oldObject)
 		if err != nil {
 			rlog.Errorc(ctx, "could not create auditlog", err)
 		}

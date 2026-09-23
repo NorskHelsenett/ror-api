@@ -5,9 +5,11 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/NorskHelsenett/ror-api/internal/mocks/identitymocks"
 	"github.com/NorskHelsenett/ror/pkg/acl"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
+
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
 	"github.com/stretchr/testify/assert"
@@ -63,10 +65,7 @@ func setResolver(t *testing.T, entries aclmodels.AclV3List, expander acl.ScopeEx
 }
 
 func userContext(groups ...string) context.Context {
-	id := identitymodels.Identity{
-		Type: identitymodels.IdentityTypeUser,
-		User: &identitymodels.User{Email: "user@example.com", Groups: groups},
-	}
+	id := identitymocks.User("user@example.com", "User Example", groups...)
 	return context.WithValue(context.Background(), identitymodels.ContexIdentity, id)
 }
 

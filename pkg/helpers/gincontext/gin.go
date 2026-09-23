@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/NorskHelsenett/ror-api/internal/models"
+
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror"
@@ -43,29 +45,33 @@ func GetRorContextFromGinContext(c *gin.Context) (context.Context, context.Cance
 	return ctx, cancel
 }
 
-// GetUserFromGinContext Function extracts the user from the gin context
+// GetActorFromGinContext extracts the audit actor for the current request.
+// Unlike the ror context, the gin context holds the identity for every
+// principal type, so service and cluster actions are attributed too.
 //
 // !!! Should only be used in audit middleware !!!
-func GetUserFromGinContext(c *gin.Context) (*identitymodels.User, error) {
-	identityObj, ok := c.Get("identity")
-	if !ok {
-		return nil, errors.New("identity not set in gin context")
+func GetActorFromGinContext(c *gin.Context) (models.AuditActor, error) {
+	identity, err := getIdentityFromGinContext(c)
+	if err != nil {
+		return models.AuditActor{}, err
 	}
 
-	if identityObj == nil {
-		return nil, errors.New("identity object is nil")
-	}
+	return models.ActorFromIdentity(*identity), nil
+}
 
-	identity, ok := identityObj.(identitymodels.Identity)
-	if !ok {
-		return nil, errors.New("could not assert identity object to identity type")
+// RequireUserIdentity returns an error unless the request was made by a user
+// principal.
+func RequireUserIdentity(c *gin.Context) error {
+	identity, err := getIdentityFromGinContext(c)
+	if err != nil {
+		return err
 	}
 
 	if identity.Type != identitymodels.IdentityTypeUser {
-		return nil, errors.New("identity is not of type user")
+		return errors.New("identity is not of type user")
 	}
 
-	return identity.User, nil
+	return nil
 }
 
 // Function extracts the identity from gin context

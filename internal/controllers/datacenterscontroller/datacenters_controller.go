@@ -6,6 +6,7 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/datacentersservice"
+	"github.com/NorskHelsenett/ror-api/internal/models"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
@@ -46,8 +47,7 @@ func GetAll() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		_, err := gincontext.GetUserFromGinContext(c)
-		if err != nil {
+		if err := gincontext.RequireUserIdentity(c); err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusForbidden, "Could not get user", err)
 			rerr.GinLogErrorAbort(c)
 			return
@@ -200,7 +200,7 @@ func Create() gin.HandlerFunc {
 			return
 		}
 
-		datacenter, err := datacentersservice.Create(ctx, &datacenterInput, identity.User)
+		datacenter, err := datacentersservice.Create(ctx, &datacenterInput, models.ActorFromIdentity(identity))
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not create datacenter", err)
 			rerr.GinLogErrorAbort(c)
@@ -272,7 +272,7 @@ func Update() gin.HandlerFunc {
 			return
 		}
 
-		datacenter, err := datacentersservice.Update(ctx, datacenterId, &datacenterInput, identity.User)
+		datacenter, err := datacentersservice.Update(ctx, datacenterId, &datacenterInput, models.ActorFromIdentity(identity))
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not update datacenter", err)
 			rerr.GinLogErrorAbort(c)

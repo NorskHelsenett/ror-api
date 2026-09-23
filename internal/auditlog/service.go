@@ -8,22 +8,18 @@ import (
 	mongoauditlog "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/auditlog"
 	"github.com/NorskHelsenett/ror-api/internal/models"
 
-	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 )
 
 // Create creates a new auditlog entry in the database
-func Create(ctx context.Context, msg string, category models.AuditCategory, action models.AuditAction, user *identitymodels.User, newObject any, oldObject any) (string, error) {
+func Create(ctx context.Context, msg string, category models.AuditCategory, action models.AuditAction, actor models.AuditActor, newObject any, oldObject any) (string, error) {
 	auditLog := mongoTypes.MongoAuditLog{}
 	auditLogMetadata := mongoTypes.MongoAuditLogMetadata{}
 	auditLogMetadata.Msg = msg
 	auditLogMetadata.Timestamp = time.Now()
 	auditLogMetadata.Category = category
 	auditLogMetadata.Action = action
-	// user is nil for non-user principals (service/cluster); leave it zero-valued.
-	if user != nil {
-		auditLogMetadata.User = *user
-	}
+	auditLogMetadata.User = actor
 	auditLog.Metadata = auditLogMetadata
 	data := make(map[string]any)
 	data["new_object"] = newObject

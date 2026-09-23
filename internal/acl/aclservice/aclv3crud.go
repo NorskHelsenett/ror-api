@@ -43,8 +43,8 @@ func CreateV3(ctx context.Context, item *aclmodels.AclV3ListItem, identity *iden
 	}
 	item.Version = 3
 	item.Created = time.Now()
-	if identity != nil && identity.User != nil {
-		item.IssuedBy = identity.User.Email
+	if email := issuedBy(identity); email != "" {
+		item.IssuedBy = email
 	}
 
 	created, err := Store().Create(ctx, *item)
@@ -52,7 +52,7 @@ func CreateV3(ctx context.Context, item *aclmodels.AclV3ListItem, identity *iden
 		return nil, fmt.Errorf("could not create acl: %w", err)
 	}
 
-	if _, err := auditlog.Create(ctx, "ACL created", models.AuditCategoryAcl, models.AuditActionCreate, auditUser(identity), created, nil); err != nil {
+	if _, err := auditlog.Create(ctx, "ACL created", models.AuditCategoryAcl, models.AuditActionCreate, models.ActorFor(identity), created, nil); err != nil {
 		return nil, fmt.Errorf("could not audit log create action: %w", err)
 	}
 	return created, nil
@@ -64,8 +64,8 @@ func UpdateV3(ctx context.Context, aclId string, item *aclmodels.AclV3ListItem, 
 		return nil, fmt.Errorf("invalid acl entry: %w", err)
 	}
 	item.Version = 3
-	if identity != nil && identity.User != nil {
-		item.IssuedBy = identity.User.Email
+	if email := issuedBy(identity); email != "" {
+		item.IssuedBy = email
 	}
 
 	updated, previous, err := Store().Update(ctx, aclId, *item)
@@ -73,7 +73,7 @@ func UpdateV3(ctx context.Context, aclId string, item *aclmodels.AclV3ListItem, 
 		return nil, fmt.Errorf("could not update acl: %w", err)
 	}
 
-	if _, err := auditlog.Create(ctx, "ACL updated", models.AuditCategoryAcl, models.AuditActionUpdate, auditUser(identity), updated, previous); err != nil {
+	if _, err := auditlog.Create(ctx, "ACL updated", models.AuditCategoryAcl, models.AuditActionUpdate, models.ActorFor(identity), updated, previous); err != nil {
 		return nil, fmt.Errorf("could not audit log update action: %w", err)
 	}
 	return updated, nil
@@ -88,7 +88,7 @@ func DeleteV3(ctx context.Context, aclId string, identity *identitymodels.Identi
 		return false, nil, fmt.Errorf("could not delete acl: %w", err)
 	}
 
-	if _, err := auditCreate(ctx, "Acl deleted", models.AuditCategoryAcl, models.AuditActionDelete, auditUser(identity), deleted, nil); err != nil {
+	if _, err := auditCreate(ctx, "Acl deleted", models.AuditCategoryAcl, models.AuditActionDelete, models.ActorFor(identity), deleted, nil); err != nil {
 		return false, nil, fmt.Errorf("could not audit log delete action: %w", err)
 	}
 	return true, deleted, nil
@@ -124,11 +124,15 @@ func GetByFilterV3(ctx context.Context, filter *apicontracts.Filter) (*apicontra
 	}, nil
 }
 
-// auditUser returns the user to attribute an audit entry to, or nil for
-// non-user identities.
-func auditUser(identity *identitymodels.Identity) *identitymodels.User {
+// issuedBy returns the email to stamp an entry with, empty for identities that
+// are not a resolvable user.
+func issuedBy(identity *identitymodels.Identity) string {
 	if identity == nil {
-		return nil
+		return ""
 	}
-	return identity.User
+	email, err := identity.GetEmail()
+	if err != nil {
+		return ""
+	}
+	return email
 }

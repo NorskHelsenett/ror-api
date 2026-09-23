@@ -92,7 +92,7 @@ func Update(ctx context.Context, input *apicontracts.Workspace, id string) (*api
 		return nil, nil, fmt.Errorf("could not update object: %w", err)
 	}
 
-	_, err = auditlog.Create(ctx, "New task created", models.AuditCategoryWorkspace, models.AuditActionUpdate, identity.User, updatedObject, originalObject)
+	_, err = auditlog.Create(ctx, "New task created", models.AuditCategoryWorkspace, models.AuditActionUpdate, models.ActorFromIdentity(identity), updatedObject, originalObject)
 	if err != nil {
 		rlog.Error("failed to create auditlog", err)
 	}
@@ -148,7 +148,7 @@ func GetKubeconfig(ctx context.Context, workspaceName string, credentials apicon
 	_, err = auditlog.Create(ctx, "Identity fetching kubeconfig for workspace",
 		models.AuditCategoryKubeconfig,
 		models.AuditActionRead,
-		identity.User,
+		models.ActorFromIdentity(identity),
 		fmt.Sprintf("identity type: '%s', id: '%s' fetching kubeconfig for workspace name: %s", identity.Type, identity.GetId(), workspaceName),
 		nil)
 	if err != nil {

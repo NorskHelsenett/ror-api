@@ -4,8 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/NorskHelsenett/ror-api/internal/mocks/identitymocks"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/rorresourceowner"
+
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,10 +23,7 @@ func clusterSelfOwnerref() rorresourceowner.RorResourceOwnerReference {
 // configWriterCtx returns a user identity in testConfigWriterGroup, whose ACL
 // grant holds ror:config:write.
 func configWriterCtx() context.Context {
-	identity := identitymodels.Identity{
-		Type: identitymodels.IdentityTypeUser,
-		User: &identitymodels.User{Email: "writer@e2e.invalid", Groups: []string{testConfigWriterGroup}},
-	}
+	identity := identitymocks.User("writer@e2e.invalid", "Config Writer", testConfigWriterGroup)
 	return context.WithValue(context.Background(), identitymodels.ContexIdentity, identity)
 }
 

@@ -7,7 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
+	"github.com/NorskHelsenett/ror-api/internal/mocks/identitymocks"
+
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -17,13 +18,7 @@ func setupRouter(handler gin.HandlerFunc, method string) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
 	router.Use(func(c *gin.Context) {
-		c.Set("identity", identitymodels.Identity{
-			Type: identitymodels.IdentityTypeCluster,
-			ClusterIdentity: &identitymodels.ServiceIdentity{
-				Id: "test-cluster",
-			},
-			ServiceIdentity: &identitymodels.ServiceIdentity{},
-		})
+		c.Set("identity", identitymocks.Cluster("test-cluster", "test-cluster"))
 		c.Next()
 	})
 	router.Handle(method, "/v2/resources/uid/:uid", handler)

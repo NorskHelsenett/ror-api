@@ -542,12 +542,18 @@ func GetSelf() gin.HandlerFunc {
 
 		// TODO: Should this use aclservice.CheckAccessByAccessQuery?
 
+		clusterID, err := identity.GetName()
+		if err != nil {
+			c.JSON(http.StatusForbidden, "could not resolve cluster identity")
+			return
+		}
+
 		clusters, err := clustersservice.GetByFilter(ctx, &apicontracts.Filter{
 			Filters: []apicontracts.FilterMetadata{
 				{
 					Field:     "clusterid",
 					MatchMode: apicontracts.MatchModeEquals,
-					Value:     identity.ClusterIdentity.Id,
+					Value:     clusterID,
 				},
 			},
 		})
@@ -563,7 +569,7 @@ func GetSelf() gin.HandlerFunc {
 					{
 						Field:     "clusteridold",
 						MatchMode: apicontracts.MatchModeEquals,
-						Value:     identity.ClusterIdentity.Id,
+						Value:     clusterID,
 					},
 				},
 			})

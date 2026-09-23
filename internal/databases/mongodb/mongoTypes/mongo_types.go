@@ -6,7 +6,6 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/models"
 
 	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
-	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -275,7 +274,8 @@ type MongoAuditLogMetadata struct {
 	Timestamp time.Time            `json:"timestamp"`
 	Category  models.AuditCategory `json:"category"`
 	Action    models.AuditAction   `json:"action"`
-	User      identitymodels.User  `json:"user"`
+	// User keeps its stored field name; the type is the audit record's own actor.
+	User models.AuditActor `json:"user"`
 }
 type MongoAuditLog struct {
 	ID       string                `json:"id" bson:"_id,omitempty"`

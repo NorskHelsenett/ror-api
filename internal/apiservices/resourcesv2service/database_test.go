@@ -22,10 +22,12 @@ import (
 	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
+	"github.com/NorskHelsenett/ror-api/internal/mocks/identitymocks"
 	"github.com/NorskHelsenett/ror/pkg/acl"
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclprincipal"
+
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
@@ -100,14 +102,7 @@ func TestMain(m *testing.M) {
 
 // testCtx returns a context with a cluster identity matching testClusterID.
 func testCtx() context.Context {
-	identity := identitymodels.Identity{
-		Type: identitymodels.IdentityTypeCluster,
-		ClusterIdentity: &identitymodels.ServiceIdentity{
-			Id:  testClusterID,
-			Uid: testClusterID,
-		},
-		ServiceIdentity: &identitymodels.ServiceIdentity{},
-	}
+	identity := identitymocks.Cluster(testClusterID, testClusterID)
 	return context.WithValue(context.Background(), identitymodels.ContexIdentity, identity)
 }
 

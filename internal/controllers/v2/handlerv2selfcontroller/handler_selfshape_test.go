@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/NorskHelsenett/ror-api/internal/mocks/identitymocks"
+
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
 	"github.com/gin-gonic/gin"
@@ -44,15 +46,10 @@ func callSelf(t *testing.T, identity identitymodels.Identity) (int, string) {
 }
 
 func TestGetSelf_UserResponseShape(t *testing.T) {
-	identity := identitymodels.Identity{
-		Auth: selfAuthInfo(identitymodels.IdentityProviderOidc, "alice@example.com"),
-		Type: identitymodels.IdentityTypeUser,
-		User: &identitymodels.User{
-			Name:   "Alice Example",
-			Email:  "alice@example.com",
-			Groups: []string{"team-blue@example.com", "admins@example.com"},
-		},
-	}
+	identity := identitymocks.Must(identitymodels.NewUserIdentity(
+		selfAuthInfo(identitymodels.IdentityProviderOidc, "alice@example.com"),
+		"alice@example.com", "Alice Example",
+		[]string{"team-blue@example.com", "admins@example.com"}, nil))
 
 	code, body := callSelf(t, identity)
 	require.Equal(t, http.StatusOK, code)
@@ -72,14 +69,9 @@ func TestGetSelf_UserResponseShape(t *testing.T) {
 }
 
 func TestGetSelf_ClusterResponseShape(t *testing.T) {
-	identity := identitymodels.Identity{
-		Auth: selfAuthInfo(identitymodels.IdentityProviderApiKey, "apikey-1"),
-		Type: identitymodels.IdentityTypeCluster,
-		ClusterIdentity: &identitymodels.ServiceIdentity{
-			Id:  "prod-cluster-1",
-			Uid: "6f1c2b7e-0000-4000-8000-000000000001",
-		},
-	}
+	identity := identitymocks.Must(identitymodels.NewClusterIdentity(
+		selfAuthInfo(identitymodels.IdentityProviderApiKey, "apikey-1"),
+		"prod-cluster-1", "6f1c2b7e-0000-4000-8000-000000000001"))
 
 	code, body := callSelf(t, identity)
 	require.Equal(t, http.StatusOK, code)
@@ -98,13 +90,9 @@ func TestGetSelf_ClusterResponseShape(t *testing.T) {
 }
 
 func TestGetSelf_ServiceResponseShape(t *testing.T) {
-	identity := identitymodels.Identity{
-		Auth: selfAuthInfo(identitymodels.IdentityProviderApiKey, "apikey-2"),
-		Type: identitymodels.IdentityTypeService,
-		ServiceIdentity: &identitymodels.ServiceIdentity{
-			Id: "service-vulnerability-scanner",
-		},
-	}
+	identity := identitymocks.Must(identitymodels.NewServiceIdentity(
+		selfAuthInfo(identitymodels.IdentityProviderApiKey, "apikey-2"),
+		"service-vulnerability-scanner"))
 
 	code, body := callSelf(t, identity)
 	require.Equal(t, http.StatusOK, code)
@@ -124,13 +112,9 @@ func TestGetSelf_ServiceResponseShape(t *testing.T) {
 // The omitempty tags on SelfUser must keep absent fields out of the payload:
 // a cluster response carries no email/groups, a service response no uid.
 func TestGetSelf_OmitsEmptyFields(t *testing.T) {
-	identity := identitymodels.Identity{
-		Auth: selfAuthInfo(identitymodels.IdentityProviderApiKey, "apikey-2"),
-		Type: identitymodels.IdentityTypeService,
-		ServiceIdentity: &identitymodels.ServiceIdentity{
-			Id: "service-vulnerability-scanner",
-		},
-	}
+	identity := identitymocks.Must(identitymodels.NewServiceIdentity(
+		selfAuthInfo(identitymodels.IdentityProviderApiKey, "apikey-2"),
+		"service-vulnerability-scanner"))
 
 	_, body := callSelf(t, identity)
 

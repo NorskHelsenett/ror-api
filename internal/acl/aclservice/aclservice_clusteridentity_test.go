@@ -4,11 +4,13 @@ import (
 	"context"
 	"testing"
 
+	"github.com/NorskHelsenett/ror-api/internal/mocks/identitymocks"
 	"github.com/NorskHelsenett/ror/pkg/acl"
 	"github.com/NorskHelsenett/ror/pkg/acl/aclstore"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclprincipal"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
+
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
 	"github.com/stretchr/testify/assert"
@@ -17,11 +19,7 @@ import (
 )
 
 func clusterContext(id, uid string) context.Context {
-	identity := identitymodels.Identity{
-		Type:            identitymodels.IdentityTypeCluster,
-		ClusterIdentity: &identitymodels.ServiceIdentity{Id: id, Uid: uid},
-	}
-	return context.WithValue(context.Background(), identitymodels.ContexIdentity, identity)
+	return context.WithValue(context.Background(), identitymodels.ContexIdentity, identitymocks.Cluster(id, uid))
 }
 
 // clusterSelfGrant is the ACL data that replaces the old hardcoded implicit
@@ -118,13 +116,16 @@ func TestClusterWithoutGrantHasNoAccess(t *testing.T) {
 
 // TestClusterWithoutUidIsRejected asserts a cluster identity must carry a uid:
 // grants are keyed by uid, so a uid-less identity fails closed rather than
-// silently falling back to the cluster id.
+// silently falling back to the cluster id. The constructors reject such an
+// identity outright, so the struct literal here is the only way one can still
+// reach the ACL layer.
 func TestClusterWithoutUidIsRejected(t *testing.T) {
 	read := aclmodels.CapRor.WithVerb(aclmodels.VerbRead)
 	const clusterUID = "44444444-4444-4444-4444-444444444444"
 
 	setResolver(t, aclmodels.AclV3List{clusterSelfGrant(clusterUID)}, nil)
-	ctx := clusterContext("uidless-cluster", "")
+	ctx := context.WithValue(context.Background(), identitymodels.ContexIdentity,
+		identitymodels.Identity{Type: identitymodels.IdentityTypeCluster})
 
 	_, err := HasAccess(ctx, aclscope.ScopeCluster, aclscope.Subject(clusterUID), read)
 	require.Error(t, err)

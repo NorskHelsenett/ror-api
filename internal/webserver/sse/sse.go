@@ -82,20 +82,35 @@ func (sse *SSE) BroadcastMessage(payload ssemodels.SseMessage) {
 	sse.lock.RUnlock()
 }
 
+// clientsInGroups returns the connected user clients that belong to any of the
+// given groups. Clients whose identity cannot be resolved are skipped.
+func (sse *SSE) clientsInGroups(groups ...string) []apicontracts.SSEClient {
+	var clients []apicontracts.SSEClient
+	for _, client := range sse.SSEClients {
+		if !client.Identity.IsUser() {
+			continue
+		}
+		clientGroups, err := client.Identity.GetGroups()
+		if err != nil {
+			continue
+		}
+		for _, group := range groups {
+			if slices.Contains(clientGroups, group) {
+				clients = append(clients, client)
+				break
+			}
+		}
+	}
+	return clients
+}
+
 func (sse *SSE) SendToUsersWithGroup(payload ssemodels.SseMessage, group string) {
 	message, shouldReturn := prepMessage(payload)
 	if shouldReturn {
 		return
 	}
 
-	var clients []apicontracts.SSEClient
-	for _, client := range sse.SSEClients {
-		if client.Identity.IsUser() && slices.Contains(client.Identity.User.Groups, group) {
-			clients = append(clients, client)
-		}
-	}
-
-	sendMessage(sse, clients, message)
+	sendMessage(sse, sse.clientsInGroups(group), message)
 }
 
 func (sse *SSE) SendToUsersWithGroups(payload ssemodels.SseMessage, groups []string) {
@@ -104,19 +119,7 @@ func (sse *SSE) SendToUsersWithGroups(payload ssemodels.SseMessage, groups []str
 		return
 	}
 
-	var clients []apicontracts.SSEClient
-	for _, client := range sse.SSEClients {
-		if client.Identity.IsUser() {
-			for _, group := range groups {
-				if slices.Contains(client.Identity.User.Groups, group) {
-					clients = append(clients, client)
-					break
-				}
-			}
-		}
-	}
-
-	sendMessage(sse, clients, message)
+	sendMessage(sse, sse.clientsInGroups(groups...), message)
 }
 
 func prepMessage(payload ssemodels.SseMessage) (string, bool) {

@@ -8,7 +8,6 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/helpers/mapping"
 
 	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
-	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -222,7 +221,7 @@ func GetById(ctx context.Context, id string) (*apicontracts.Datacenter, error) {
 	return &mapped, nil
 }
 
-func Create(ctx context.Context, datacenterInput *apicontracts.DatacenterModel, user *identitymodels.User) (*apicontracts.Datacenter, error) {
+func Create(ctx context.Context, datacenterInput *apicontracts.DatacenterModel) (*apicontracts.Datacenter, error) {
 	db := mongodb.GetMongoDb()
 	var mongoInput mongoTypes.MongoDatacenter
 	err := mapping.Map(datacenterInput, &mongoInput)
@@ -255,7 +254,7 @@ func Create(ctx context.Context, datacenterInput *apicontracts.DatacenterModel, 
 	return &mapped, nil
 }
 
-func Update(ctx context.Context, datacenterInput *apicontracts.DatacenterModel, user *identitymodels.User) (*apicontracts.Datacenter, error) {
+func Update(ctx context.Context, datacenterInput *apicontracts.DatacenterModel) (*apicontracts.Datacenter, error) {
 	db := mongodb.GetMongoDb()
 	var mongoInput mongoTypes.MongoDatacenter
 	err := mapping.Map(datacenterInput, &mongoInput)

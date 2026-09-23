@@ -2,50 +2,42 @@ package identitymocks
 
 import identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
-func ValiduserWithGroups(groups []string) identitymodels.Identity {
-	return identitymodels.Identity{
-		Type: identitymodels.IdentityTypeUser,
-		User: &identitymodels.User{
-			Email:           "valid.user@ror.dev",
-			IsEmailVerified: true,
-			Name:            "Valid User",
-			Groups:          groups,
-			Audience:        "",
-			Issuer:          "",
-			ExpirationTime:  0,
-		},
+// Must panics on an invalid fixture: a mock that cannot resolve would silently
+// deny every authorization check in the tests using it. Use it directly when a
+// fixture needs an AuthInfo the builders below do not take.
+func Must(identity identitymodels.Identity, err error) identitymodels.Identity {
+	if err != nil {
+		panic(err)
 	}
+	return identity
 }
 
-var IdentityUserValid identitymodels.Identity = identitymodels.Identity{
-	Type: identitymodels.IdentityTypeUser,
-	User: &identitymodels.User{
-		Email:           "valid.user@ror.dev",
-		IsEmailVerified: true,
-		Name:            "Valid User",
-		Groups: []string{
-			"test1@ror.dev",
-			"test1-admin@ror.dev",
-		},
-		Audience:       "",
-		Issuer:         "",
-		ExpirationTime: 0,
-	},
+// User, Cluster and Service build ad-hoc fixtures for tests that need their own
+// subject, so no test has to reach for the constructors and a panic helper.
+func User(email, name string, groups ...string) identitymodels.Identity {
+	return Must(identitymodels.NewUserIdentity(identitymodels.AuthInfo{}, email, name, groups, nil))
 }
 
-var IdentityClusterValid identitymodels.Identity = identitymodels.Identity{
-	Type: identitymodels.IdentityTypeCluster,
-	// Uid is required: cluster groups are keyed by uid, so an entry without it
-	// resolves to no groups at all.
-	ClusterIdentity: &identitymodels.ServiceIdentity{
-		Id:  "test-cluster-43232",
-		Uid: "test-cluster-43232",
-	},
+func Cluster(clusterID, uid string) identitymodels.Identity {
+	return Must(identitymodels.NewClusterIdentity(identitymodels.AuthInfo{}, clusterID, uid))
 }
 
-var IdentityServiceValid identitymodels.Identity = identitymodels.Identity{
-	Type: identitymodels.IdentityTypeService,
-	ServiceIdentity: &identitymodels.ServiceIdentity{
-		Id: "serivce-test@ror.system",
-	},
+func Service(id string) identitymodels.Identity {
+	return Must(identitymodels.NewServiceIdentity(identitymodels.AuthInfo{}, id))
 }
+
+func ValiduserWithGroups(groups []string) identitymodels.Identity {
+	return User("valid.user@ror.dev", "Valid User", groups...)
+}
+
+var IdentityUserValid = ValiduserWithGroups([]string{
+	"test1@ror.dev",
+	"test1-admin@ror.dev",
+})
+
+// Uid is required: cluster groups are keyed by uid.
+var IdentityClusterValid = Must(identitymodels.NewClusterIdentity(
+	identitymodels.AuthInfo{}, "test-cluster-43232", "test-cluster-43232"))
+
+var IdentityServiceValid = Must(identitymodels.NewServiceIdentity(
+	identitymodels.AuthInfo{}, "serivce-test@ror.system"))

@@ -58,52 +58,53 @@ func NewApiKeyAuthProvider() *ApiKeyAuthProvider {
 	return &ApiKeyAuthProvider{}
 }
 
+// apikeyAuthInfo describes how a caller authenticated with an api key.
+func apikeyAuthInfo(apikey apicontracts.ApiKey) identitymodels.AuthInfo {
+	return identitymodels.AuthInfo{
+		AuthProvider:   identitymodels.IdentityProviderApiKey,
+		AuthProviderID: apikey.Id,
+		ExpirationTime: apikey.Expires,
+	}
+}
+
 func clusterAuth(c *gin.Context, ctx context.Context, apikey apicontracts.ApiKey) {
 	ctx, span := rortracer.StartSpan(ctx, "apikeyauth.clusterauth")
 	defer span.End()
 	identifier := apikey.Identifier
-	c.Set("clusterId", identifier)
-	c.Set("identity", identitymodels.Identity{
-		Auth: identitymodels.AuthInfo{
-			AuthProvider:   identitymodels.IdentityProviderApiKey,
-			AuthProviderID: apikey.Id,
-			ExpirationTime: apikey.Expires,
-		},
-		Type: identitymodels.IdentityTypeCluster,
-		ClusterIdentity: &identitymodels.ServiceIdentity{
-			Id:  identifier,
-			Uid: apikeysservice.ResolveClusterUid(ctx, apikey),
-		},
-	})
 
-	err := apikeysservice.UpdateLastUsed(ctx, apikey.Id, identifier)
+	identity, err := identitymodels.NewClusterIdentity(apikeyAuthInfo(apikey), identifier, apikeysservice.ResolveClusterUid(ctx, apikey))
 	if err != nil {
-		rlog.Errorc(ctx, "could not update lastUsed", err, rlog.String("id", apikey.Id), rlog.String("identifier", identifier))
+		rerr := rorginerror.NewRorGinSpanError(span, 401, "could not resolve cluster identity")
+		rerr.GinLogErrorAbort(c)
+		return
 	}
 
+	c.Set("clusterId", identifier)
+	c.Set("identity", identity)
+
+	if err := apikeysservice.UpdateLastUsed(ctx, apikey.Id, identifier); err != nil {
+		rlog.Errorc(ctx, "could not update lastUsed", err, rlog.String("id", apikey.Id), rlog.String("identifier", identifier))
+	}
 }
 
 func serviceAuth(c *gin.Context, ctx context.Context, apikey apicontracts.ApiKey) {
 	ctx, span := rortracer.StartSpan(ctx, "apikeyauth.serviceauth")
 	defer span.End()
 	identifier := apikey.Identifier
-	c.Set("clusterId", identifier)
-	c.Set("identity", identitymodels.Identity{
-		Auth: identitymodels.AuthInfo{
-			AuthProvider:   identitymodels.IdentityProviderApiKey,
-			AuthProviderID: apikey.Id,
-			ExpirationTime: apikey.Expires,
-		},
-		Type: identitymodels.IdentityTypeService,
-		ServiceIdentity: &identitymodels.ServiceIdentity{
-			Id: identifier,
-		},
-	})
-	err := apikeysservice.UpdateLastUsed(ctx, apikey.Id, identifier)
+
+	identity, err := identitymodels.NewServiceIdentity(apikeyAuthInfo(apikey), identifier)
 	if err != nil {
-		rlog.Errorc(ctx, "could not update lastUsed", err, rlog.String("id", apikey.Id), rlog.String("identifier", identifier))
+		rerr := rorginerror.NewRorGinSpanError(span, 401, "could not resolve service identity")
+		rerr.GinLogErrorAbort(c)
+		return
 	}
 
+	c.Set("clusterId", identifier)
+	c.Set("identity", identity)
+
+	if err := apikeysservice.UpdateLastUsed(ctx, apikey.Id, identifier); err != nil {
+		rlog.Errorc(ctx, "could not update lastUsed", err, rlog.String("id", apikey.Id), rlog.String("identifier", identifier))
+	}
 }
 
 func userAuth(c *gin.Context, ctx context.Context, apikey apicontracts.ApiKey) {
@@ -120,14 +121,13 @@ func userAuth(c *gin.Context, ctx context.Context, apikey apicontracts.ApiKey) {
 		return
 	}
 
-	identity := identitymodels.Identity{
-		Auth: identitymodels.AuthInfo{
-			AuthProvider:   identitymodels.IdentityProviderApiKey,
-			AuthProviderID: apikey.Id,
-			ExpirationTime: apikey.Expires,
-		},
-		Type: identitymodels.IdentityTypeUser,
-		User: user,
+	identity, err := identitymodels.NewUserIdentity(apikeyAuthInfo(apikey), user.Email, user.Name, user.Groups, nil)
+	if err != nil {
+		rorginerror.GinHandleErrorAndAbort(c, 401, rorerror.ErrorData{
+			Status:  401,
+			Message: "error getting user",
+		}, rlog.String("user", apikey.Identifier))
+		return
 	}
 	c.Set("identity", identity)
 

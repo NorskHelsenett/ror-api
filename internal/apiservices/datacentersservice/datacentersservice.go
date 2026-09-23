@@ -8,8 +8,6 @@ import (
 	datacentersRepo "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/repositories/datacenters"
 	"github.com/NorskHelsenett/ror-api/internal/models"
 
-	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
-
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
@@ -42,7 +40,7 @@ func GetByName(ctx context.Context, datacenterName string) (*apicontracts.Datace
 	return datacenter, nil
 }
 
-func Create(ctx context.Context, datacenterInput *apicontracts.DatacenterModel, user *identitymodels.User) (*apicontracts.Datacenter, error) {
+func Create(ctx context.Context, datacenterInput *apicontracts.DatacenterModel, actor models.AuditActor) (*apicontracts.Datacenter, error) {
 	exists, err := datacentersRepo.FindByName(ctx, datacenterInput.Name)
 	if err != nil {
 		rlog.Error("could not create datacenter", err)
@@ -53,13 +51,13 @@ func Create(ctx context.Context, datacenterInput *apicontracts.DatacenterModel, 
 		return nil, nil
 	}
 
-	datacenterResult, err := datacentersRepo.Create(ctx, datacenterInput, user)
+	datacenterResult, err := datacentersRepo.Create(ctx, datacenterInput)
 	if err != nil {
 		rlog.Error("could not create datacenter", err)
 		return nil, errors.New("Could not get datacenters")
 	}
 
-	_, err = auditlog.Create(ctx, "New datacenter created", models.AuditCategoryDatacenter, models.AuditActionCreate, user, datacenterResult, nil)
+	_, err = auditlog.Create(ctx, "New datacenter created", models.AuditCategoryDatacenter, models.AuditActionCreate, actor, datacenterResult, nil)
 	if err != nil {
 		rlog.Error("failed to create auditlog", err)
 	}
@@ -67,7 +65,7 @@ func Create(ctx context.Context, datacenterInput *apicontracts.DatacenterModel, 
 	return datacenterResult, nil
 }
 
-func Update(ctx context.Context, datacenterId string, datacenterInput *apicontracts.DatacenterModel, user *identitymodels.User) (*apicontracts.Datacenter, error) {
+func Update(ctx context.Context, datacenterId string, datacenterInput *apicontracts.DatacenterModel, actor models.AuditActor) (*apicontracts.Datacenter, error) {
 	datacenter, err := datacentersRepo.GetById(ctx, datacenterId)
 	if err != nil {
 		rlog.Error("could not update datacenter", err)
@@ -78,13 +76,13 @@ func Update(ctx context.Context, datacenterId string, datacenterInput *apicontra
 		return nil, errors.New("could not find datacenter")
 	}
 
-	updated, err := datacentersRepo.Update(ctx, datacenterInput, user)
+	updated, err := datacentersRepo.Update(ctx, datacenterInput)
 	if err != nil {
 		rlog.Error("could not update datacenter", err)
 		return nil, errors.New("could not update datacenter")
 	}
 
-	_, err = auditlog.Create(ctx, "Datacenter updated", models.AuditCategoryDatacenter, models.AuditActionUpdate, user, updated, datacenter)
+	_, err = auditlog.Create(ctx, "Datacenter updated", models.AuditCategoryDatacenter, models.AuditActionUpdate, actor, updated, datacenter)
 	if err != nil {
 		rlog.Error("failed to create auditlog", err)
 	}
