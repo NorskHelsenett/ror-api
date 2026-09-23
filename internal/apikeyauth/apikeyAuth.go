@@ -127,7 +127,14 @@ func userAuth(c *gin.Context, ctx context.Context, apikey apicontracts.ApiKey) {
 			ExpirationTime: apikey.Expires,
 		},
 		Type: identitymodels.IdentityTypeUser,
-		User: user,
+		// The directory DTO is mapped here until this call site is migrated to
+		// identitymodels.NewUserIdentity.
+		User: &identitymodels.User{
+			Email:           user.Email,
+			Name:            user.Name,
+			Groups:          user.Groups,
+			IsEmailVerified: true,
+		},
 	}
 	c.Set("identity", identity)
 
