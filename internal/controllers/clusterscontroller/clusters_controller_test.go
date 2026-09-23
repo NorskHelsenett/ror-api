@@ -7,6 +7,8 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 
+	"github.com/NorskHelsenett/ror-api/internal/mocks/identitymocks"
+
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 
 	"github.com/gin-gonic/gin"
@@ -66,15 +68,7 @@ func Test_ClustersController_WithoutUser(t *testing.T) {
 }
 
 func Test_ClustersController_WithMockUserWithoutGroups(t *testing.T) {
-	user := identitymodels.User{
-		Name:            "Test",
-		IsEmailVerified: true,
-		Email:           "test@ror",
-	}
-	identity := identitymodels.Identity{
-		Type: identitymodels.IdentityTypeUser,
-		User: &user,
-	}
+	identity := identitymocks.User("test@ror", "Test")
 	context, ginEngine, recorder := setupWithIdentity(identity)
 	t.Run("UserInContextSetButMissingFilterBody_ReturnsBadRequest", func(t *testing.T) {
 		context.Request, _ = http.NewRequest(http.MethodPost, "/v1/clusters/filter", nil)
@@ -84,18 +78,7 @@ func Test_ClustersController_WithMockUserWithoutGroups(t *testing.T) {
 }
 
 func Test_ClustersController_WithMockUserWithGroups(t *testing.T) {
-	user := identitymodels.User{
-		Name:            "Test",
-		IsEmailVerified: true,
-		Email:           "test@ror",
-		Groups: []string{
-			"Developers@ror",
-		},
-	}
-	identity := identitymodels.Identity{
-		Type: identitymodels.IdentityTypeUser,
-		User: &user,
-	}
+	identity := identitymocks.User("test@ror", "Test", "Developers@ror")
 	context, ginEngine, recorder := setupWithIdentity(identity)
 	t.Run("UserInContextSetButMissingFilterBody_ReturnsBadRequest", func(t *testing.T) {
 		context.Request, _ = http.NewRequest(http.MethodPost, "/v1/clusters/filter", nil)
