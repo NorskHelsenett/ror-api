@@ -50,8 +50,7 @@ func GetById() gin.HandlerFunc {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 
-		_, err := gincontext.GetUserFromGinContext(c)
-		if err != nil {
+		if err := gincontext.RequireUserIdentity(c); err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusForbidden, "Could not get user", err)
 			rerr.GinLogErrorAbort(c)
 			return

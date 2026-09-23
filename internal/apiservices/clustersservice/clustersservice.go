@@ -315,7 +315,7 @@ func UpdateMetadata(ctx context.Context, input *apicontracts.ClusterMetadataMode
 		return fmt.Errorf("could not update cluster with id: %s", existing.ClusterId)
 	}
 
-	_, err = auditlog.Create(ctx, "New taskcollection deleted", models.AuditCategoryClusterMetadata, models.AuditActionUpdate, identity.User, input, existing.Metadata)
+	_, err = auditlog.Create(ctx, "New taskcollection deleted", models.AuditCategoryClusterMetadata, models.AuditActionUpdate, models.ActorFromIdentity(identity), input, existing.Metadata)
 	if err != nil {
 		return fmt.Errorf("could not audit log delete action: %v", err)
 	}
@@ -374,7 +374,7 @@ func GetKubeconfig(ctx context.Context, clusterId string, credentials apicontrac
 	_, err = auditlog.Create(ctx, "Identity fetching kubeconfig for workspace",
 		models.AuditCategoryKubeconfig,
 		models.AuditActionRead,
-		identity.User,
+		models.ActorFromIdentity(identity),
 		fmt.Sprintf("identity type: '%s', id: '%s' fetching kubeconfig for clusterId: %s", identity.Type, identity.GetId(), clusterId),
 		nil)
 	if err != nil {
@@ -410,7 +410,7 @@ func PopulateDatacenter(ctx context.Context, input *apicontracts.Cluster) {
 					Country: input.Workspace.Datacenter.Location.Country,
 				},
 			}
-			dc, err = mongodatacenters.Create(ctx, &newdc, nil)
+			dc, err = mongodatacenters.Create(ctx, &newdc)
 			if err != nil {
 				rlog.Errorc(ctx, "could not create datacenter for cluster", err, rlog.Any("datacenterName", input.Workspace.Datacenter.Name), rlog.Any("provider", input.Workspace.Datacenter.Provider))
 				return

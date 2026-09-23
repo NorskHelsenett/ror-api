@@ -52,7 +52,7 @@ func CreateV3(ctx context.Context, item *aclmodels.AclV3ListItem, identity *iden
 		return nil, fmt.Errorf("could not create acl: %w", err)
 	}
 
-	if _, err := auditlog.Create(ctx, "ACL created", models.AuditCategoryAcl, models.AuditActionCreate, auditUser(identity), created, nil); err != nil {
+	if _, err := auditlog.Create(ctx, "ACL created", models.AuditCategoryAcl, models.AuditActionCreate, models.ActorFor(identity), created, nil); err != nil {
 		return nil, fmt.Errorf("could not audit log create action: %w", err)
 	}
 	return created, nil
@@ -73,7 +73,7 @@ func UpdateV3(ctx context.Context, aclId string, item *aclmodels.AclV3ListItem, 
 		return nil, fmt.Errorf("could not update acl: %w", err)
 	}
 
-	if _, err := auditlog.Create(ctx, "ACL updated", models.AuditCategoryAcl, models.AuditActionUpdate, auditUser(identity), updated, previous); err != nil {
+	if _, err := auditlog.Create(ctx, "ACL updated", models.AuditCategoryAcl, models.AuditActionUpdate, models.ActorFor(identity), updated, previous); err != nil {
 		return nil, fmt.Errorf("could not audit log update action: %w", err)
 	}
 	return updated, nil
@@ -88,7 +88,7 @@ func DeleteV3(ctx context.Context, aclId string, identity *identitymodels.Identi
 		return false, nil, fmt.Errorf("could not delete acl: %w", err)
 	}
 
-	if _, err := auditCreate(ctx, "Acl deleted", models.AuditCategoryAcl, models.AuditActionDelete, auditUser(identity), deleted, nil); err != nil {
+	if _, err := auditCreate(ctx, "Acl deleted", models.AuditCategoryAcl, models.AuditActionDelete, models.ActorFor(identity), deleted, nil); err != nil {
 		return false, nil, fmt.Errorf("could not audit log delete action: %w", err)
 	}
 	return true, deleted, nil
@@ -122,15 +122,6 @@ func GetByFilterV3(ctx context.Context, filter *apicontracts.Filter) (*apicontra
 		Offset:     int64(offset),
 		TotalCount: int64(totalCount),
 	}, nil
-}
-
-// auditUser returns the user to attribute an audit entry to, or nil for
-// non-user identities.
-func auditUser(identity *identitymodels.Identity) *identitymodels.User {
-	if identity == nil {
-		return nil
-	}
-	return identity.User
 }
 
 // issuedBy returns the email to stamp an entry with, empty for identities that

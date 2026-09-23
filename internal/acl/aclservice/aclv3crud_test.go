@@ -27,7 +27,7 @@ func clusterIdentity() *identitymodels.Identity {
 func stubAudit(t *testing.T) {
 	t.Helper()
 	prev := auditCreate
-	auditCreate = func(_ context.Context, _ string, _ models.AuditCategory, _ models.AuditAction, _ *identitymodels.User, _ any, _ any) (string, error) {
+	auditCreate = func(_ context.Context, _ string, _ models.AuditCategory, _ models.AuditAction, _ models.AuditActor, _ any, _ any) (string, error) {
 		return "", nil
 	}
 	t.Cleanup(func() { auditCreate = prev })
