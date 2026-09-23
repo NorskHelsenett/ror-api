@@ -1,6 +1,6 @@
 // V3-native ACL CRUD, used by the /v2/acl endpoints. Unlike the V1 path in
 // aclservice.go these functions operate directly on aclmodels.AclV3ListItem with
-// no V2 conversion, so V3-only capabilities (resource:*, ror:config:*, ...) are
+// no V2 conversion, so V3-only capabilities (ror:config:*, kubernetes:admin, ...) are
 // preserved end to end.
 package aclservice
 
