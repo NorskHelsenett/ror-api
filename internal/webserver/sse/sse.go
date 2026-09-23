@@ -175,7 +175,9 @@ func (sse *SSE) HandleSSE() gin.HandlerFunc {
 			sse.lock.RLock()
 			for i := 0; i < len(sse.SSEClients); i++ {
 				cl := sse.SSEClients[i]
-				if cl.Identity == client.Identity {
+				// Match on the connection channel: it is unique per client, while
+				// one identity may hold several concurrent connections.
+				if cl.Connection == client.Connection {
 					sse.SSEClients = append(sse.SSEClients[:i], sse.SSEClients[i+1:]...)
 					close(cl.Connection)
 					break
