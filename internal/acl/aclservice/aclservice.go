@@ -465,7 +465,11 @@ func GetByFilter(ctx context.Context, filter *apicontracts.Filter) (*apicontract
 
 func Create(ctx context.Context, aclModel *aclmodels.AclV2ListItem, identity *identitymodels.Identity) (*aclmodels.AclV2ListItem, error) {
 	aclModel.Created = time.Now()
-	created, err := Store().Create(ctx, aclmodels.V2ToV3(*aclModel))
+	v3 := aclmodels.V2ToV3(*aclModel)
+	if err := aclmodels.ValidateACLEntry(v3); err != nil {
+		return nil, err
+	}
+	created, err := Store().Create(ctx, v3)
 	if err != nil {
 		return nil, fmt.Errorf("could not create acl: %v", err)
 	}
@@ -480,7 +484,11 @@ func Create(ctx context.Context, aclModel *aclmodels.AclV2ListItem, identity *id
 }
 
 func Update(ctx context.Context, aclId string, aclModel *aclmodels.AclV2ListItem, identity *identitymodels.Identity) (*aclmodels.AclV2ListItem, error) {
-	updated, previous, err := Store().Update(ctx, aclId, aclmodels.V2ToV3(*aclModel))
+	v3 := aclmodels.V2ToV3(*aclModel)
+	if err := aclmodels.ValidateACLEntry(v3); err != nil {
+		return nil, err
+	}
+	updated, previous, err := Store().Update(ctx, aclId, v3)
 	if err != nil {
 		return nil, fmt.Errorf("could not update acl: %v", err)
 	}
