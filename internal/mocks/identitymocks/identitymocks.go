@@ -35,16 +35,16 @@ var IdentityUserValid identitymodels.Identity = identitymodels.Identity{
 
 var IdentityClusterValid identitymodels.Identity = identitymodels.Identity{
 	Type: identitymodels.IdentityTypeCluster,
+	// Uid is required: cluster groups are keyed by uid, so an entry without it
+	// resolves to no groups at all.
 	ClusterIdentity: &identitymodels.ServiceIdentity{
-		Id: "test-cluster-43232",
-	},
-	ServiceIdentity: &identitymodels.ServiceIdentity{
-		Id: "",
+		Id:  "test-cluster-43232",
+		Uid: "test-cluster-43232",
 	},
 }
 
 var IdentityServiceValid identitymodels.Identity = identitymodels.Identity{
-	Type: identitymodels.IdentityTypeCluster,
+	Type: identitymodels.IdentityTypeService,
 	ServiceIdentity: &identitymodels.ServiceIdentity{
 		Id: "serivce-test@ror.system",
 	},
