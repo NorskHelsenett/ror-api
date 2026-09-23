@@ -24,9 +24,9 @@ prepare -> build -> integration (reusable ror-test workflow) -> verify-handoff
    `candidate.tar` as OCI with no external push. Upload that archive and expected
    metadata as separate immutable Actions artifacts.
 5. Call `NorskHelsenett/ror-test/.github/workflows/candidate-e2e.yml` at
-   `39314b715eb2de8b1dc8e97585a1db74cd8d09b3`, with the same harness checkout SHA.
+   `e818ad7c655eafcd488f5ee2ca0f32580d824d0c`, with the same harness checkout SHA.
    The reusable job downloads the build artifact from this Actions run, checks
-   archive/index/platform digests, runs all 34 scenarios on native amd64, and
+   archive/index/platform digests, runs all 42 scenarios on native amd64, and
    uploads success evidence only after complete verification.
 6. Download the expected build metadata and returned evidence by artifact ID.
    Recheck the report against the pinned suite using the Go verifier and the

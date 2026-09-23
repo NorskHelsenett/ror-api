@@ -33,7 +33,7 @@ is external metadata. A passing `v1.26.0-rc.2` contains binary version `v1.26.0`
 reserve (internal ledger only)
   -> test: reusable candidate-handoff
        prepare -> build both architectures + package both charts
-               -> ror-test: 34 scenarios on amd64
+               -> ror-test: 42 scenarios on amd64
                -> verify-handoff
   -> publish-rc (only when publish=true and all required jobs succeeded)
        verify bytes -> bind digests -> push immutable RC -> sign -> prerelease
@@ -161,7 +161,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 .github/scripts/test_split_oci.py
 TARGET_VERSION=v0.0.0 RC_VERSION=v0.0.0-rc.1 bash .github/scripts/rehearse-candidate.sh
 ```
 
-The rehearsal builds both platforms, validates RC/final charts, runs 34 amd64
+The rehearsal builds both platforms, validates RC/final charts, runs 42 amd64
 scenarios using the exact pinned harness in a disposable checkout, and rechecks
 the release bundle. It changes no remote state and publishes nothing. On arm64
 machines, running the amd64 API requires configured Docker emulation. Dependencies
