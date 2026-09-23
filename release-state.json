@@ -383,7 +383,7 @@
           "number": 3,
           "candidateVersion": "v1.16.3-rc.3",
           "harnessSHA": "39314b715eb2de8b1dc8e97585a1db74cd8d09b3",
-          "status": "publishing",
+          "status": "published",
           "binding": {
             "image": {
               "archiveSha256": "sha256:37f62dbec4e4c5b43070fbff626d54bd3896053955b85c302778b27858b370c3",
