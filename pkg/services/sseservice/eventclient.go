@@ -71,8 +71,9 @@ func (e *EventClients) Remove(id EventClientId) {
 
 func (e *EventClients) Add(client *EventClient) {
 	e.lock.Lock()
-	defer e.lock.Unlock()
 	e.clients = append(e.clients, client)
+	e.lock.Unlock()
+
 	Server.Message <- EventMessage{
 		Clients: []EventClientId{client.Id},
 		SseEvent: SseEvent{
