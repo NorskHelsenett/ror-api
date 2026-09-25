@@ -40,6 +40,7 @@ func GetView() gin.HandlerFunc {
 		if errors.Is(err, viewservice.ErrViewNotRegistered) {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Invalid or unsupported view", err)
 			rerr.GinLogErrorAbort(c)
+			return
 		}
 		options := viewservice.ParseOptionsFromGinContext(c)
 
@@ -47,6 +48,7 @@ func GetView() gin.HandlerFunc {
 		if err != nil {
 			rerr := rorginerror.NewRorGinErrorFromError(http.StatusInternalServerError, err)
 			rerr.GinLogErrorAbort(c)
+			return
 		}
 
 		c.JSON(http.StatusOK, apiview)
