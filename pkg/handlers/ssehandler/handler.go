@@ -31,41 +31,50 @@ import (
 // @Security		ApiKey || AccessToken
 func HandleSSE() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		stopChan := make(chan bool)
 		var writeLock sync.Mutex
 
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
 		identity := rorcontext.MustGetIdentityFromRorContext(ctx)
+
 		client := &sseservice.EventClient{
 			Id:         sseservice.NewEventClientId(),
 			Identity:   identity,
-			Connection: make(sseservice.EventClientChan),
+			Connection: make(sseservice.EventClientChan, 16),
 		}
-		sseservice.Server.NewClients <- client
-		// Send new connection to event server
 
-		defer func() {
-			stopChan <- true
-		}()
+		select {
+		case sseservice.Server.NewClients <- client:
+		case <-c.Request.Context().Done():
+			return
+		}
+
+		cleanup := func() {
+			select {
+			case sseservice.Server.ClosedClients <- client.Id:
+			case <-c.Request.Context().Done():
+			}
+		}
+		defer cleanup()
+
+		keepAliveDone := make(chan struct{})
+		defer close(keepAliveDone)
+
 		go func() {
+			ticker := time.NewTicker(time.Second)
+			defer ticker.Stop()
+
 			for {
 				select {
-				case <-stopChan:
-					go func() {
-						for range client.Connection {
-						}
-					}()
-					// Send closed connection to event server
-					sseservice.Server.ClosedClients <- client.Id
-					cancel()
-					return
-				default:
-					time.Sleep(time.Second * 1)
+				case <-ticker.C:
 					writeLock.Lock()
 					_, _ = c.Writer.Write([]byte(":keepalive\n"))
 					c.Writer.Flush()
 					writeLock.Unlock()
+				case <-keepAliveDone:
+					return
+				case <-c.Request.Context().Done():
+					return
 				}
 			}
 		}()
@@ -73,21 +82,19 @@ func HandleSSE() gin.HandlerFunc {
 		c.Stream(func(w io.Writer) bool {
 			select {
 			case msg, ok := <-client.Connection:
-				if ok {
-					writeLock.Lock()
-					c.SSEvent(msg.Event, msg.Data)
-					writeLock.Unlock()
-					return true
+				if !ok {
+					return false
 				}
-				return false
+				writeLock.Lock()
+				c.SSEvent(msg.Event, msg.Data)
+				writeLock.Unlock()
+				return true
 			case <-c.Request.Context().Done():
-				stopChan <- true
 				return false
 			}
 		})
 	}
 }
-
 func Send() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
