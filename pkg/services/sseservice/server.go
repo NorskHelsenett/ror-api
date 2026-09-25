@@ -29,7 +29,6 @@ type EventMessage struct {
 }
 
 func StartEventServer(rabbitMQConnection rabbitmqclient.RabbitMQConnection) {
-	StartListeningRabbitMQ(rabbitMQConnection)
 	Server = &EventServer{
 		Message:       make(chan EventMessage, 10),
 		NewClients:    make(chan *EventClient),
@@ -38,7 +37,7 @@ func StartEventServer(rabbitMQConnection rabbitmqclient.RabbitMQConnection) {
 	}
 
 	go Server.listen()
-
+	StartListeningRabbitMQ(rabbitMQConnection)
 }
 
 // It Listens all incoming requests from clients.
@@ -52,8 +51,13 @@ func (es *EventServer) listen() {
 			rlog.Infof("Added sse client. %d registered clients", es.Clients.Len())
 		// Remove closed client
 		case client := <-es.ClosedClients:
+			eventClient := es.Clients.Get(client)
+			if eventClient == nil {
+				rlog.Warnf("Ignoring close request for unknown sse client %s", client)
+				continue
+			}
 
-			close(es.Clients.Get(client).Connection)
+			close(eventClient.Connection)
 			es.Clients.Remove(client)
 			rlog.Infof("Removed sse client. %d registered clients", es.Clients.Len())
 
@@ -61,7 +65,12 @@ func (es *EventServer) listen() {
 		case eventMsg := <-es.Message:
 			if len(eventMsg.Clients) > 0 {
 				for _, clientid := range eventMsg.Clients {
-					es.Clients.Get(clientid).Connection <- SseEvent{Event: eventMsg.Event, Data: eventMsg.Data}
+					eventClient := es.Clients.Get(clientid)
+					if eventClient == nil {
+						rlog.Warnf("Ignoring SSE event for unknown client %s", clientid)
+						continue
+					}
+					eventClient.Connection <- SseEvent{Event: eventMsg.Event, Data: eventMsg.Data}
 				}
 			}
 		}
