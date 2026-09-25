@@ -147,14 +147,14 @@ func GetByProvider() gin.HandlerFunc {
 //	@Tags			prices
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			id		path		string				true	"id"
+//	@Param			priceId	path		string				true	"priceId"
 //	@Param			price	body		apicontracts.Price	true	"Update price"
 //	@Success		200		{object}	apicontracts.Price
 //	@Failure		403		{string}	Forbidden
 //	@Failure		400		{object}	rorerror.ErrorData
 //	@Failure		401		{object}	rorerror.ErrorData
 //	@Failure		500		{string}	Failure	message
-//	@Router			/v1/prices/{id} [put]
+//	@Router			/v1/prices/{priceId} [put]
 //	@Security		ApiKey || AccessToken
 func Update() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -227,13 +227,13 @@ func Update() gin.HandlerFunc {
 //	@Tags			prices
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			id	path		string	true	"id"
+//	@Param			priceId	path		string	true	"priceId"
 //	@Success		200	{boolean}	true
 //	@Failure		403	{string}	Forbidden
 //	@Failure		400	{object}	rorerror.ErrorData
 //	@Failure		401	{object}	rorerror.ErrorData
 //	@Failure		500	{string}	Failure	message
-//	@Router			/v1/prices/{id} [delete]
+//	@Router			/v1/prices/{priceId} [delete]
 //	@Security		ApiKey || AccessToken
 func Delete() gin.HandlerFunc {
 	return func(c *gin.Context) {
