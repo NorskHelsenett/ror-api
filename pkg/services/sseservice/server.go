@@ -57,7 +57,7 @@ func (es *EventServer) listen() {
 				continue
 			}
 
-			close(eventClient.Connection)
+			eventClient.Connection = nil
 			es.Clients.Remove(client)
 			rlog.Infof("Removed sse client. %d registered clients", es.Clients.Len())
 
@@ -66,12 +66,16 @@ func (es *EventServer) listen() {
 			if len(eventMsg.Clients) > 0 {
 				for _, clientid := range eventMsg.Clients {
 					eventClient := es.Clients.Get(clientid)
-					if eventClient == nil {
+					if eventClient == nil || eventClient.Connection == nil {
 						rlog.Warnf("Ignoring SSE event for unknown client %s", clientid)
 						continue
 					}
-					eventClient.Connection <- SseEvent{Event: eventMsg.Event, Data: eventMsg.Data}
+				select {
+				case eventClient.Connection <- SseEvent{Event: eventMsg.Event, Data: eventMsg.Data}:
+				default:
+					rlog.Warnf("Dropping SSE event for slow client %s", clientid)
 				}
+			}
 			}
 		}
 	}
