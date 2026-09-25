@@ -183,7 +183,7 @@ func SetupRoutes(router *gin.Engine) error {
 		pricesRoute.GET("/:priceId", pricescontroller.GetById())
 		pricesRoute.POST("", pricescontroller.Create(), auditmiddleware.AuditLogMiddleware("Price created", models.AuditCategoryPrice, models.AuditActionCreate))
 		pricesRoute.PUT("/:priceId", pricescontroller.Update(), auditmiddleware.AuditLogMiddleware("Price updated", models.AuditCategoryPrice, models.AuditActionUpdate))
-		// pricesRoute.DELETE(":id", ctrlPrices.Delete(), middlewares.AuditLogMiddleware("Price deleted", models.Price.String(), models.DELETE.String()))
+		pricesRoute.DELETE("/:priceId", pricescontroller.Delete(), auditmiddleware.AuditLogMiddleware("Price deleted", models.AuditCategoryPrice, models.AuditActionDelete))
 
 		pricesRoute.GET("/provider/:providerName", pricescontroller.GetByProvider())
 	}
@@ -197,7 +197,7 @@ func SetupRoutes(router *gin.Engine) error {
 
 		projectsRoute.POST("", projectscontroller.Create())
 		projectsRoute.PUT("/:id", projectscontroller.Update())
-		projectsRoute.DELETE(":id", projectscontroller.Delete())
+		projectsRoute.DELETE("/:id", projectscontroller.Delete())
 	}
 
 	resourceRoute := v1.Group("resources")
@@ -228,7 +228,7 @@ func SetupRoutes(router *gin.Engine) error {
 		tasksRoute.GET("/:id", taskscontroller.GetById())
 		tasksRoute.POST("", taskscontroller.Create())
 		tasksRoute.PUT("/:id", taskscontroller.Update())
-		tasksRoute.DELETE("", taskscontroller.Delete())
+		tasksRoute.DELETE("/:id", taskscontroller.Delete())
 	}
 
 	workspacesRoute := v1.Group("workspaces")
@@ -240,7 +240,7 @@ func SetupRoutes(router *gin.Engine) error {
 		workspacesRoute.POST("/:workspaceName/login", workspacescontroller.GetKubeconfig())
 	}
 
-	rulesetsRoute := v1.Group("rulesetsController")
+	rulesetsRoute := v1.Group("rulesets")
 	{
 		if rorconfig.GetBool(rorconfig.DEVELOPMENT) {
 			rulesetsRoute.GET("", rulesetscontroller.GetAll())
