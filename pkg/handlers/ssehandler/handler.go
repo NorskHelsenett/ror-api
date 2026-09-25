@@ -107,6 +107,7 @@ func Send() gin.HandlerFunc {
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not send sse broadcast event", err)
 			rerr.GinLogErrorAbort(c)
+			return
 		}
 		c.JSON(http.StatusOK, nil)
 	}
