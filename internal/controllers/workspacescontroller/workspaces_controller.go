@@ -77,7 +77,7 @@ func GetAll() gin.HandlerFunc {
 // @Tags			workspaces
 // @Accept			application/json
 // @Produce		application/json
-// @Param			name	path		string	true	"name"
+// @Param			workspaceName	path		string	true	"workspaceName"
 // @Success		200		{object}	apicontracts.Workspace
 // @Failure		403		{string}	Forbidden
 // @Failure		400		{object}	rorerror.ErrorData
