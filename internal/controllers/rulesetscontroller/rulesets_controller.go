@@ -226,6 +226,7 @@ func DeleteResource() gin.HandlerFunc {
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusNotFound, "could not find ruleset", err)
 			rerr.GinLogErrorAbort(c)
+			return
 		}
 
 		var accesScope aclscope.Scope
@@ -292,6 +293,7 @@ func AddResourceRule() gin.HandlerFunc {
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusNotFound, "could not find ruleset", err)
 			rerr.GinLogErrorAbort(c)
+			return
 		}
 
 		var accesScope aclscope.Scope
