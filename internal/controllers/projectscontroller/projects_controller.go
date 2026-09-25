@@ -147,8 +147,8 @@ func GetByFilter() gin.HandlerFunc {
 // @Failure		400									{object}	rorerror.ErrorData
 // @Failure		401									{object}	rorerror.ErrorData
 // @Failure		500									{object}	rorerror.ErrorData
-// @Router			/v1/projects/{projectId}/clusters	[get]
-// @Param			projectId							path	string	true	"projectId"
+// @Router			/v1/projects/{id}/clusters	[get]
+// @Param			id							path	string	true	"id"
 // @Security		ApiKey || AccessToken
 func GetClustersByProjectId() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -184,7 +184,7 @@ func GetClustersByProjectId() gin.HandlerFunc {
 // @Failure		400							{object}	rorerror.ErrorData
 // @Failure		401							{object}	rorerror.ErrorData
 // @Failure		500							{object}	rorerror.ErrorData
-// @Router			/v1/projects/{projectId}	[get]
+// @Router			/v1/projects/{id}	[get]
 // @Param			id							path	string	true	"id"
 // @Security		ApiKey || AccessToken
 func GetById() gin.HandlerFunc {
@@ -221,8 +221,8 @@ func GetById() gin.HandlerFunc {
 // @Failure		400							{object}	rorerror.ErrorData
 // @Failure		401							{object}	rorerror.ErrorData
 // @Failure		500							{object}	rorerror.ErrorData
-// @Router			/v1/projects/{projectId}	[put]
-// @Param			projectId					path	string					true	"projectId"
+// @Router			/v1/projects/{id}	[put]
+// @Param			id					path	string					true	"id"
 // @Param			project						body	apicontracts.Project	true	"Project"
 // @Security		ApiKey || AccessToken
 func Update() gin.HandlerFunc {
@@ -299,8 +299,8 @@ func Update() gin.HandlerFunc {
 // @Failure		400							{object}	rorerror.ErrorData
 // @Failure		401							{object}	rorerror.ErrorData
 // @Failure		500							{object}	rorerror.ErrorData
-// @Router			/v1/projects/{projectId}	[delete]
-// @Param			projectId					path	string	true	"projectId"
+// @Router			/v1/projects/{id}	[delete]
+// @Param			id					path	string	true	"id"
 // @Security		ApiKey || AccessToken
 func Delete() gin.HandlerFunc {
 	return func(c *gin.Context) {
