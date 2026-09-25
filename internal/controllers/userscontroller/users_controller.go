@@ -224,8 +224,8 @@ func CreateApikey() gin.HandlerFunc {
 // @Failure		400									{object}	rorerror.ErrorData
 // @Failure		401									{object}	rorerror.ErrorData
 // @Failure		500									{object}	rorerror.ErrorData
-// @Router			/v1/users/self/apikeys/{apikeyId}	[delete]
-// @Param			apikeyId							path	string	true	"apikeyId"
+// @Router			/v1/users/self/apikeys/{id}	[delete]
+// @Param			id							path	string	true	"id"
 // @Security		ApiKey || AccessToken
 func DeleteApiKey() gin.HandlerFunc {
 	return func(c *gin.Context) {
