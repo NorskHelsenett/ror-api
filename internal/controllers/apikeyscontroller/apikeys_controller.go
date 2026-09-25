@@ -134,8 +134,8 @@ func CreateForAgent() gin.HandlerFunc {
 //	@Failure		403						{object}	rorerror.ErrorData
 //	@Failure		401						{object}	rorerror.ErrorData
 //	@Failure		500						{object}	rorerror.ErrorData
-//	@Router			/v1/apikeys/{apikeyId}	[delete]
-//	@Param			apikeyId				path	string	true	"apikeyId"
+//	@Router			/v1/apikeys/{id}	[delete]
+//	@Param			id				path	string	true	"id"
 //	@Security		ApiKey || AccessToken
 func Delete() gin.HandlerFunc {
 	return func(c *gin.Context) {
