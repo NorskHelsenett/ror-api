@@ -512,7 +512,7 @@ func GetControlPlanesMetadata() gin.HandlerFunc {
 //	@Tags			clusters
 //	@Accept			application/json
 //	@Produce		application/json
-//	@Param			id			path		string								true	"id"
+// @Param			clusterid	path		string	true	"clusterid"
 //	@Param			credentials	body		apicontracts.KubeconfigCredentials	true	"Credentials"
 //	@Success		200			{object}	apicontracts.ClusterKubeconfig
 //	@Failure		403			{string}	Forbidden
