@@ -297,6 +297,7 @@ func GetAll() gin.HandlerFunc {
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not find prices ...", err)
 			rerr.GinLogErrorAbort(c)
+			return
 		}
 
 		c.JSON(http.StatusOK, prices)
