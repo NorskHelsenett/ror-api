@@ -352,6 +352,7 @@ func DeleteResourceRule() gin.HandlerFunc {
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusNotFound, "could not find ruleset", err)
 			rerr.GinLogErrorAbort(c)
+			return
 		}
 
 		var accesScope aclscope.Scope
@@ -364,7 +365,7 @@ func DeleteResourceRule() gin.HandlerFunc {
 			accesScope = aclscope.ScopeCluster
 			accesSubject = aclscope.Subject(ruleset.Identity.Id)
 		}
-		allowed, accessErr := aclservice.HasAccess(ctx, accesScope, accesSubject, aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
+		allowed, accessErr := aclservice.HasAccess(ctx, accesScope, accesSubject, aclmodels.CapRor.WithVerb(aclmodels.VerbDelete))
 		if accessErr != nil {
 			c.JSON(http.StatusInternalServerError, "")
 			return
