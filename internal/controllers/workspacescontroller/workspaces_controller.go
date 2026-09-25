@@ -58,6 +58,7 @@ func GetAll() gin.HandlerFunc {
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusForbidden, "Could not get workspaces", err)
 			rerr.GinLogErrorAbort(c)
+			return
 		}
 
 		if workspaces == nil {
