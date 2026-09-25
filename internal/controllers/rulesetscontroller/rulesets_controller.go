@@ -114,6 +114,7 @@ func GetInternal() gin.HandlerFunc {
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "could not get ruleset", err)
 			rerr.GinLogErrorAbort(c)
+			return
 		}
 
 		c.JSON(http.StatusOK, ruleset)
@@ -154,6 +155,7 @@ func AddResource() gin.HandlerFunc {
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusNotFound, "could not find ruleset", err)
 			rerr.GinLogErrorAbort(c)
+			return
 		}
 		var accesScope aclscope.Scope
 		var accesSubject aclscope.Subject
