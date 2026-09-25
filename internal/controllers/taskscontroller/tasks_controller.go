@@ -111,6 +111,7 @@ func GetAll() gin.HandlerFunc {
 		if err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Could not find tasks ...", err)
 			rerr.GinLogErrorAbort(c)
+			return
 		}
 
 		c.JSON(http.StatusOK, tasks)
