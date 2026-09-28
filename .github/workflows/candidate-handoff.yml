@@ -214,7 +214,7 @@ jobs:
           bash tooling/.github/scripts/package-candidate-charts.sh source candidate-bundle
       - name: Upload private build artifact
         id: archive
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: candidate-archive-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
@@ -225,7 +225,7 @@ jobs:
           retention-days: 7
       - name: Upload expected candidate metadata
         id: metadata
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: candidate-metadata-${{ github.run_id }}-${{ github.run_attempt }}
           if-no-files-found: error
@@ -311,7 +311,7 @@ jobs:
           node tooling/.github/scripts/candidate-handoff.cjs expected evidence harness "$BUILD_ARTIFACT_ID"
       - name: Retain successful unpublished rehearsal result
         id: verified
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: verified-rc-rehearsal-${{ github.run_id }}-${{ github.run_attempt }}
           path: handoff-result.json
