@@ -281,12 +281,12 @@ jobs:
         run: |
           [[ "$PREPARE_RESULT" == success && "$BUILD_RESULT" == success && "$TEST_RESULT" == success ]]
           [[ "$EVIDENCE_ID" =~ ^[1-9][0-9]*$ && "$METADATA_ID" =~ ^[1-9][0-9]*$ ]]
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           artifact-ids: ${{ needs.build.outputs.metadata_artifact_id }}
           path: expected
           merge-multiple: true
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           artifact-ids: ${{ needs.integration.outputs.evidence_artifact_id }}
           path: evidence
