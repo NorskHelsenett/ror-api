@@ -60,7 +60,7 @@ jobs:
       target_version: ${{ steps.request.outputs.target_version }}
       candidate_version: ${{ steps.request.outputs.candidate_version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Test rehearsal helpers
@@ -114,18 +114,18 @@ jobs:
       manifest_digest: ${{ steps.identity.outputs.manifest_digest }}
     steps:
       - name: Checkout trusted caller tooling
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: tooling
           persist-credentials: false
       - name: Checkout selected API source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.source_sha }}
           path: source
           persist-credentials: false
       - name: Checkout pinned verifier
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: NorskHelsenett/ror-test
           ref: e818ad7c655eafcd488f5ee2ca0f32580d824d0c
@@ -260,11 +260,11 @@ jobs:
     outputs:
       artifact_id: ${{ steps.verified.outputs.artifact-id }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: tooling
           persist-credentials: false
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           repository: NorskHelsenett/ror-test
           ref: e818ad7c655eafcd488f5ee2ca0f32580d824d0c

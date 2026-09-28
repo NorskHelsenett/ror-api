@@ -36,7 +36,7 @@ jobs:
       candidate_version: ${{ steps.reserve.outputs.candidate_version }}
       reservation_id: ${{ steps.artifact.outputs.artifact-id }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - run: |
@@ -93,7 +93,7 @@ jobs:
     env:
       RC_VERSION: ${{ needs.reserve.outputs.candidate_version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Require complete artifact handoff
@@ -121,7 +121,7 @@ jobs:
           artifact-ids: ${{ needs.test.outputs.verified_id }}
           path: verified
           merge-multiple: true
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           repository: NorskHelsenett/ror-test
           ref: e818ad7c655eafcd488f5ee2ca0f32580d824d0c
