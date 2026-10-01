@@ -531,7 +531,7 @@
         "indexDigest": "sha256:80985b34ccf36bf74e2292a4a266e831f6e93492d46794773491aff641018af4",
         "promotedBy": "havardelnan",
         "runID": "36866663175",
-        "status": "promoting"
+        "status": "promoted"
       }
     }
   }
