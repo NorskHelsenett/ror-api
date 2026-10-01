@@ -106,17 +106,17 @@ jobs:
           for artifact in "$ARCHIVE" "$METADATA" "$VERIFIED" "$EVIDENCE"; do
             [[ "$artifact" =~ ^[1-9][0-9]*$ ]]
           done
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           artifact-ids: ${{ needs.reserve.outputs.reservation_id }}
           path: reservation
           merge-multiple: true
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           artifact-ids: ${{ needs.test.outputs.archive_id }},${{ needs.test.outputs.metadata_id }}
           path: bundle
           merge-multiple: true
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           artifact-ids: ${{ needs.test.outputs.verified_id }}
           path: verified
