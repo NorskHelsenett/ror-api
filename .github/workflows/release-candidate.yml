@@ -58,7 +58,7 @@ jobs:
             core.setOutput('candidate_version', candidate.candidateVersion);
             await core.summary.addHeading('Reserved private candidate')
               .addRaw(`${candidate.candidateVersion}\n\nSource: ${candidate.sourceSHA}\n\nBinary version: ${candidate.targetVersion}\n\nNo RC artifacts have been published.\n`).write();
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         id: artifact
         with:
           name: rc-reservation-${{ github.run_id }}-${{ github.run_attempt }}
