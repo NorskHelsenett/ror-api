@@ -31,7 +31,7 @@ jobs:
       - run: node --test .github/scripts/*.test.cjs
       - name: Authorize admin and select the tested candidate
         id: candidate
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           CANDIDATE_VERSION: ${{ inputs.candidate_version }}
         with:
@@ -88,7 +88,7 @@ jobs:
           fi
       - name: Create the final tag and release
         id: release
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           UPDATE_LATEST: ${{ steps.candidate.outputs.update_latest }}
         with:
@@ -105,7 +105,7 @@ jobs:
           CHART_FILE: ${{ steps.candidate.outputs.chart_file }}
         run: gh release upload "$FINAL_VERSION" "chart/$CHART_FILE" --repo "$GITHUB_REPOSITORY" --clobber
       - name: Record the completed promotion
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           UPDATE_LATEST: ${{ steps.candidate.outputs.update_latest }}
         with:

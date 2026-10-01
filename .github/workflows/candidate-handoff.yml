@@ -67,7 +67,7 @@ jobs:
         run: node --test .github/scripts/candidate-handoff.test.cjs
       - name: Resolve source and validate candidate request
         id: request
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           TARGET_VERSION: ${{ inputs.target_version }}
           API_REF: ${{ inputs.api_ref }}

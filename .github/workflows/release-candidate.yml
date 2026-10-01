@@ -44,7 +44,7 @@ jobs:
           PYTHONDONTWRITEBYTECODE=1 python3 .github/scripts/test_split_oci.py
       - name: Reserve internal RC attempt
         id: reserve
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           TARGET_VERSION: ${{ inputs.target_version }}
           API_REF: ${{ inputs.api_ref }}
@@ -140,7 +140,7 @@ jobs:
           node .github/scripts/verify-rc-bundle.cjs bundle verified/handoff-result.json "$RUNNER_TEMP/verifier"
       - name: Bind publication to current reservation and tested digests
         id: binding
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('node:fs');
@@ -177,7 +177,7 @@ jobs:
           INDEX_DIGEST: ${{ steps.binding.outputs.index_digest }}
         run: cosign sign --yes "ghcr.io/norskhelsenett/ror-api@$INDEX_DIGEST"
       - name: Create immutable RC tag and prerelease
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('node:fs');
@@ -189,7 +189,7 @@ jobs:
         run: |
           node .github/scripts/upload-rc-assets.cjs "$RC_VERSION" release-candidate.json bundle/charts
       - name: Mark RC publication complete
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('node:fs');
