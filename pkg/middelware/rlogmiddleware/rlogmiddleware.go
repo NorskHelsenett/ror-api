@@ -37,7 +37,7 @@ func LogMiddleware() gin.HandlerFunc {
 			if len(forwardedHdr) > 0 {
 				forwardedFor = forwardedHdr[0]
 			}
-			userAgent := c.Request.Header["User-Agent"]
+			userAgent := c.Request.UserAgent()
 			method := c.Request.Method
 			var errors []error
 			for _, v := range c.Errors {
@@ -56,7 +56,7 @@ func LogMiddleware() gin.HandlerFunc {
 				zap.Int("status_code", statusCode),
 				zap.String("path", path),
 				zap.Duration("latency", latency),
-				zap.String("userAgent", userAgent[0]),
+				zap.String("userAgent", userAgent),
 				zap.String("client_ip", clientIP),
 				zap.String("forwarded_for", forwardedFor),
 				zap.Int("body_size", bodySize),
