@@ -127,7 +127,7 @@ jobs:
           ref: e818ad7c655eafcd488f5ee2ca0f32580d824d0c
           path: harness
           persist-credentials: false
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version-file: harness/go.mod
           cache-dependency-path: harness/go.sum
