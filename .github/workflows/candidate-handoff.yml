@@ -132,7 +132,7 @@ jobs:
           path: harness
           token: ${{ secrets.CROSS_REPO_READ_TOKEN || github.token }}
           persist-credentials: false
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version-file: source/go.mod
           cache-dependency-path: |
@@ -292,7 +292,7 @@ jobs:
           path: evidence
           merge-multiple: true
       - name: Check report against trusted suite and build metadata
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: harness/go.mod
           cache-dependency-path: harness/go.sum
