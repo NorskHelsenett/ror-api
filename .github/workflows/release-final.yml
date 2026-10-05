@@ -54,7 +54,7 @@ jobs:
         run: gh release download "$CANDIDATE_VERSION" --repo "$GITHUB_REPOSITORY" --pattern "$CHART_FILE" --dir chart
       - name: Install registry copy tool
         run: sudo -n apt-get update && sudo -n apt-get install -y skopeo
-      - uses: azure/setup-helm@v4.3.0
+      - uses: azure/setup-helm@v5.0.1
         with:
           version: v3.17.0
       - name: Authenticate publication tools

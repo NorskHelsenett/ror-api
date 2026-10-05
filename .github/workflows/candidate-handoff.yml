@@ -200,7 +200,7 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT,
             `archive_sha256=${image.archiveSha256}\nindex_digest=${image.indexDigest}\nmanifest_digest=${image.manifestDigest}\n`);
           NODE
-      - uses: azure/setup-helm@v4.3.0
+      - uses: azure/setup-helm@v5.0.1
         if: inputs.rc_version != ''
         with:
           version: v3.17.0
