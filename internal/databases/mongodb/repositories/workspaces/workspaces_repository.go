@@ -8,6 +8,7 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/internal/databases/mongodb/mongoTypes"
 	"github.com/NorskHelsenett/ror-api/internal/helpers/mapping"
+	"github.com/NorskHelsenett/ror-api/internal/helpers/mongosafe"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -116,7 +117,7 @@ func GetByName(ctx context.Context, workspaceName string) (*apicontracts.Workspa
 	workspacesQuery := []bson.M{
 		{
 			"$match": bson.M{
-				"name": workspaceName,
+				"name": mongosafe.Eq(workspaceName),
 			},
 		},
 		{
@@ -176,7 +177,7 @@ func GetByName(ctx context.Context, workspaceName string) (*apicontracts.Workspa
 		},
 		{
 			"$match": bson.M{
-				"workspace.name": workspaceName,
+				"workspace.name": mongosafe.Eq(workspaceName),
 			},
 		},
 	}
@@ -231,7 +232,7 @@ func GetByName(ctx context.Context, workspaceName string) (*apicontracts.Workspa
 func FindByName(ctx context.Context, name string) (*apicontracts.Workspace, error) {
 	db := mongodb.GetMongoDb()
 	var wsResult mongoTypes.MongoWorkspace
-	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{"name": name}).Decode(&wsResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{"name": mongosafe.Eq(name)}).Decode(&wsResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		msg := "could not find workspace"
 		rlog.Error(msg, err)
 		return nil, errors.New(msg)
@@ -254,7 +255,7 @@ func FindByNameAndDatacenterId(ctx context.Context, name string, datacenterId st
 	db := mongodb.GetMongoDb()
 	var wsResult mongoTypes.MongoWorkspace
 	mongoid, err := bson.ObjectIDFromHex(datacenterId)
-	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{"name": name, "datacenterid": mongoid}).Decode(&wsResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{"name": mongosafe.Eq(name), "datacenterid": mongosafe.Eq(mongoid)}).Decode(&wsResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		msg := "could not find workspace"
 		rlog.Error(msg, err)
 		return nil, errors.New(msg)

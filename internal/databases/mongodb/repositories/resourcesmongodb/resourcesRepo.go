@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/NorskHelsenett/ror-api/internal/helpers/mongosafe"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
@@ -24,7 +25,7 @@ const (
 // Checks if resource exists by uid, return bool, error
 func ResourceExistbyUid(uid string, ctx context.Context) bool {
 	db := mongodb.GetMongoDb()
-	filter := bson.M{"uid": uid}
+	filter := bson.M{"uid": mongosafe.Eq(uid)}
 
 	resourceCount, err := db.Collection(ResourceCollectionName).CountDocuments(ctx, filter)
 	if err != nil {
@@ -54,16 +55,16 @@ func GetResourcesByQuery[T apiresourcecontracts.Resourcetypes](ctx context.Conte
 	var returnvalue []T
 	match := bson.M{}
 	if !query.Global {
-		match["owner.scope"] = query.Owner.Scope
-		match["owner.subject"] = query.Owner.Subject
+		match["owner.scope"] = mongosafe.Eq(query.Owner.Scope)
+		match["owner.subject"] = mongosafe.Eq(query.Owner.Subject)
 	}
-	match["kind"] = query.Kind
-	match["apiversion"] = query.ApiVersion
+	match["kind"] = mongosafe.Eq(query.Kind)
+	match["apiversion"] = mongosafe.Eq(query.ApiVersion)
 	if !query.Internal {
 		match["internal"] = false
 	}
 	if query.Uid != "" {
-		match["uid"] = query.Uid
+		match["uid"] = mongosafe.Eq(query.Uid)
 	}
 	var aggregationPipeline []bson.M
 	aggregationPipeline = append(aggregationPipeline, bson.M{"$match": match})
@@ -98,7 +99,7 @@ func GetResourceByQuery[T apiresourcecontracts.Resourcetypes](ctx context.Contex
 	db := mongodb.GetMongoDb()
 	var returnvalue T
 	var aggregationPipeline []bson.M
-	aggregationPipeline = append(aggregationPipeline, bson.M{"$match": bson.M{"owner.scope": query.Owner.Scope, "owner.subject": query.Owner.Subject, "kind": query.Kind, "apiversion": query.ApiVersion, "uid": query.Uid}})
+	aggregationPipeline = append(aggregationPipeline, bson.M{"$match": bson.M{"owner.scope": mongosafe.Eq(query.Owner.Scope), "owner.subject": mongosafe.Eq(query.Owner.Subject), "kind": mongosafe.Eq(query.Kind), "apiversion": mongosafe.Eq(query.ApiVersion), "uid": mongosafe.Eq(query.Uid)}})
 	aggregationPipeline = append(aggregationPipeline, bson.M{"$sort": bson.M{"resource.metadata.namespace": 1, "resource.metadata.name": 1}})
 	aggregationPipeline = append(aggregationPipeline, bson.M{"$replaceRoot": bson.M{"newRoot": "$resource"}})
 
@@ -145,8 +146,8 @@ func GetHashList(ctx context.Context, owner apiresourcecontracts.ResourceOwnerRe
 	query := []bson.M{
 		{
 			"$match": bson.M{
-				"owner.scope":   string(owner.Scope),
-				"owner.subject": owner.Subject,
+				"owner.scope":   mongosafe.Eq(string(owner.Scope)),
+				"owner.subject": mongosafe.Eq(owner.Subject),
 			},
 		},
 		{

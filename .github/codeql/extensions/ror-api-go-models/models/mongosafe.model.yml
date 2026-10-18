@@ -1,0 +1,7 @@
+extensions:
+  - addsTo:
+      pack: codeql/go-all
+      extensible: barrierModel
+    data:
+      - ["github.com/NorskHelsenett/ror-api/internal/helpers/mongosafe", "", False, "Eq", "", "", "ReturnValue", "nosql-injection", "manual"]
+      - ["github.com/NorskHelsenett/ror-api/internal/helpers/mongosafe", "", False, "FieldPath", "", "", "ReturnValue[0]", "nosql-injection", "manual"]

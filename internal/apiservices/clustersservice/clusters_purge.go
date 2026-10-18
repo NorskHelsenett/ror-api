@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/NorskHelsenett/ror-api/internal/helpers/mongosafe"
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
@@ -76,7 +77,7 @@ func PurgeClusterByUid(ctx context.Context, uid string, force bool) (PurgeResult
 		ClusterId    string    `bson:"clusterid"`
 		LastObserved time.Time `bson:"lastobserved"`
 	}
-	err := db.Collection(purgeClustersCollection).FindOne(ctx, bson.M{"uid": uid}).Decode(&clusterDoc)
+	err := db.Collection(purgeClustersCollection).FindOne(ctx, bson.M{"uid": mongosafe.Eq(uid)}).Decode(&clusterDoc)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return result, ErrClusterNotFound
@@ -120,7 +121,7 @@ func PurgeClusterByUid(ctx context.Context, uid string, force bool) (PurgeResult
 
 	// Delete v1 resources owned by the cluster (keyed by clusterid).
 	if result.ClusterId != "" {
-		resV1Filter := bson.M{"owner.scope": kind, "owner.subject": result.ClusterId}
+		resV1Filter := bson.M{"owner.scope": kind, "owner.subject": mongosafe.Eq(result.ClusterId)}
 		res, delErr := db.Collection(purgeResourcesV1Collection).DeleteMany(ctx, resV1Filter)
 		if delErr != nil {
 			rortracer.SpanError(span, delErr, "failed to delete v1 resources")
@@ -131,8 +132,8 @@ func PurgeClusterByUid(ctx context.Context, uid string, force bool) (PurgeResult
 
 	// Delete resourcesv2: the cluster's own doc and all child resources.
 	resV2Filter := bson.M{"$or": bson.A{
-		bson.M{"uid": uid},
-		bson.M{"rormeta.ownerref.subject": uid},
+		bson.M{"uid": mongosafe.Eq(uid)},
+		bson.M{"rormeta.ownerref.subject": mongosafe.Eq(uid)},
 	}}
 	resV2, delErr := db.Collection(purgeResourcesV2Collection).DeleteMany(ctx, resV2Filter)
 	if delErr != nil {
@@ -142,7 +143,7 @@ func PurgeClusterByUid(ctx context.Context, uid string, force bool) (PurgeResult
 	result.ResourcesV2 = resV2.DeletedCount
 
 	// Delete acl entries for the cluster (by uid).
-	aclFilter := bson.M{"scope": kind, "subject": uid}
+	aclFilter := bson.M{"scope": kind, "subject": mongosafe.Eq(uid)}
 	aclRes, delErr := db.Collection(purgeAclCollection).DeleteMany(ctx, aclFilter)
 	if delErr != nil {
 		rortracer.SpanError(span, delErr, "failed to delete acl entries")
@@ -151,7 +152,7 @@ func PurgeClusterByUid(ctx context.Context, uid string, force bool) (PurgeResult
 	result.Acl = aclRes.DeletedCount
 
 	// Delete the cluster document itself.
-	clusterRes, delErr := db.Collection(purgeClustersCollection).DeleteMany(ctx, bson.M{"uid": uid})
+	clusterRes, delErr := db.Collection(purgeClustersCollection).DeleteMany(ctx, bson.M{"uid": mongosafe.Eq(uid)})
 	if delErr != nil {
 		rortracer.SpanError(span, delErr, "failed to delete cluster document")
 		return result, fmt.Errorf("could not delete cluster document: %w", delErr)
@@ -185,7 +186,7 @@ func getV2ClusterLastSeen(ctx context.Context, db *mongo.Database, uid string) (
 		} `bson:"kubernetescluster"`
 	}
 	err := db.Collection(purgeResourcesV2Collection).
-		FindOne(ctx, bson.M{"uid": uid, "typemeta.kind": "KubernetesCluster"}).
+		FindOne(ctx, bson.M{"uid": mongosafe.Eq(uid), "typemeta.kind": "KubernetesCluster"}).
 		Decode(&v2Doc)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {

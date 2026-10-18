@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/NorskHelsenett/ror-api/internal/helpers/mongosafe"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
 	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
@@ -37,7 +38,7 @@ func GetAll(ctx context.Context) ([]apicontracts.DesiredVersion, error) {
 
 func GetByKey(ctx context.Context, key string) (*apicontracts.DesiredVersion, error) {
 	db := mongodb.GetMongoDb()
-	query := bson.M{"key": key}
+	query := bson.M{"key": mongosafe.Eq(key)}
 	var result apicontracts.DesiredVersion
 
 	if err := db.Collection(CollectionName).
@@ -77,7 +78,7 @@ func Create(ctx context.Context, desiredversion apicontracts.DesiredVersion) (*m
 
 func UpdateByKey(ctx context.Context, key string, desiredversion apicontracts.DesiredVersion) (*mongo.UpdateResult, error) {
 	db := mongodb.GetMongoDb()
-	query := bson.M{"key": key}
+	query := bson.M{"key": mongosafe.Eq(key)}
 	update := bson.M{"key": desiredversion.Key, "value": desiredversion.Value}
 
 	updateResult, err := db.Collection(CollectionName).ReplaceOne(ctx, query, update)
@@ -90,7 +91,7 @@ func UpdateByKey(ctx context.Context, key string, desiredversion apicontracts.De
 
 func DeleteByKey(ctx context.Context, key string) (*mongo.DeleteResult, error) {
 	db := mongodb.GetMongoDb()
-	query := bson.M{"key": key}
+	query := bson.M{"key": mongosafe.Eq(key)}
 
 	deleteResult, err := db.Collection(CollectionName).DeleteOne(ctx, query)
 	if err != nil {

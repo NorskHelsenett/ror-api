@@ -8,6 +8,7 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/internal/databases/mongodb/mongoTypes"
 	"github.com/NorskHelsenett/ror-api/internal/helpers/mapping"
+	"github.com/NorskHelsenett/ror-api/internal/helpers/mongosafe"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -63,7 +64,7 @@ func GetAll(ctx context.Context) (*[]apicontracts.Price, error) {
 func FindOne(ctx context.Context, property string, propertyValue string) (*apicontracts.Price, error) {
 	db := mongodb.GetMongoDb()
 	var priceResult mongoTypes.MongoPrice
-	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{property: propertyValue}).Decode(&priceResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{property: mongosafe.Eq(propertyValue)}).Decode(&priceResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		msg := "could not find price"
 		rlog.Error(msg, err)
 		return nil, errors.New(msg)
@@ -106,7 +107,7 @@ func GetById(ctx context.Context, priceId string) (*apicontracts.Price, error) {
 func GetByProperty(ctx context.Context, property string, propertyValue string) (*[]apicontracts.Price, error) {
 	db := mongodb.GetMongoDb()
 	query := []bson.M{
-		{"$match": bson.M{property: propertyValue}},
+		{"$match": bson.M{property: mongosafe.Eq(propertyValue)}},
 	}
 	cursor, err := db.Collection(CollectionName).Aggregate(ctx, query)
 	if err != nil {
