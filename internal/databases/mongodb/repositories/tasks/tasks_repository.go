@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	mongoHelper "github.com/NorskHelsenett/ror-api/internal/helpers/mongoHelper"
+	"github.com/NorskHelsenett/ror-api/internal/helpers/mongosafe"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -25,7 +26,7 @@ const (
 func FindOne(ctx context.Context, property string, propertyValue string) (*apicontracts.Task, error) {
 	db := mongodb.GetMongoDb()
 	var taskResult apicontracts.Task
-	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{property: propertyValue}).Decode(&taskResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{property: mongosafe.Eq(propertyValue)}).Decode(&taskResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		msg := "could not find task"
 		rlog.Error(msg, err)
 		return nil, errors.New(msg)
