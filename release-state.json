@@ -570,6 +570,21 @@
           }
         }
       }
+    },
+    "v1.16.7": {
+      "next": 2,
+      "attempts": {
+        "40509511782": {
+          "targetVersion": "v1.16.7",
+          "sourceSHA": "3c73d04bcddc3a5213c0f2c418f746282e23675c",
+          "workflowSHA": "3c73d04bcddc3a5213c0f2c418f746282e23675c",
+          "runID": "40509511782",
+          "number": 1,
+          "candidateVersion": "v1.16.7-rc.1",
+          "harnessSHA": "e818ad7c655eafcd488f5ee2ca0f32580d824d0c",
+          "status": "reserved"
+        }
+      }
     }
   }
 }
