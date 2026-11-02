@@ -118,7 +118,7 @@ func aggregateClusterHealthData(ctx context.Context, rows []apiview.ViewRow, ran
 			status := cluster.Status.AgentStatus.GetStatus()
 
 			switch strings.ToLower(status) {
-			case "ok":
+			case "ok": // changed from healthy
 				healthy++
 			case "error":
 				errCount++
