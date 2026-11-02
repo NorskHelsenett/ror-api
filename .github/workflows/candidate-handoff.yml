@@ -53,7 +53,7 @@ permissions:
 
 jobs:
   prepare:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 5
     outputs:
       source_sha: ${{ steps.request.outputs.source_sha }}
@@ -97,7 +97,7 @@ jobs:
 
   build:
     needs: prepare
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 30
     env:
       GOWORK: 'off'
@@ -255,7 +255,7 @@ jobs:
 
   verify-handoff:
     needs: [prepare, build, integration]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 10
     outputs:
       artifact_id: ${{ steps.verified.outputs.artifact-id }}
