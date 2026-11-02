@@ -124,7 +124,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: NorskHelsenett/ror-test
-          ref: e818ad7c655eafcd488f5ee2ca0f32580d824d0c
+          ref: 2138b08ea467d3c64e41477ff22509e934a7c923
           path: harness
           persist-credentials: false
       - uses: actions/setup-go@v7
