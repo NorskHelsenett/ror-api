@@ -12,6 +12,7 @@ import (
 	clusterhelper "github.com/NorskHelsenett/ror-api/internal/helpers/clusterHelper"
 	"github.com/NorskHelsenett/ror-api/internal/helpers/mapping"
 	mongoHelper "github.com/NorskHelsenett/ror-api/internal/helpers/mongoHelper"
+	"github.com/NorskHelsenett/ror-api/internal/helpers/mongosafe"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 	"github.com/NorskHelsenett/ror/pkg/telemetry/rortracer"
@@ -43,7 +44,7 @@ func GetByClusterId(ctx context.Context, clusterId string) (*apicontracts.Cluste
 		accessQuery,
 		{
 			"$match": bson.M{
-				"clusterid": clusterId,
+				"clusterid": mongosafe.Eq(clusterId),
 			},
 		},
 		{
@@ -469,7 +470,7 @@ func GetByWorkspaceId(ctx context.Context,
 func FindByClusterId(ctx context.Context, clusterId string) (*apicontracts.Cluster, error) {
 	var clusterResult mongoTypes.MongoCluster
 	db := mongodb.GetMongoDb()
-	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{"clusterid": clusterId}).Decode(&clusterResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{"clusterid": mongosafe.Eq(clusterId)}).Decode(&clusterResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		msg := "could not find cluster"
 		rlog.Error(msg, err)
 		return nil, errors.New(msg)
@@ -491,7 +492,7 @@ func FindByClusterId(ctx context.Context, clusterId string) (*apicontracts.Clust
 func FindByName(ctx context.Context, clusterName string) (*apicontracts.Cluster, error) {
 	var clusterResult mongoTypes.MongoCluster
 	db := mongodb.GetMongoDb()
-	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{"clustername": clusterName}).Decode(&clusterResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{"clustername": mongosafe.Eq(clusterName)}).Decode(&clusterResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		msg := "could not find cluster"
 		rlog.Error(msg, err)
 		return nil, errors.New(msg)
@@ -612,7 +613,7 @@ func Update(ctx context.Context, clusterInput *apicontracts.Cluster) error {
 
 	_, span3 := rortracer.StartSpan(ctx, "Update data in mongo")
 	defer span3.End()
-	result, err := db.Collection(CollectionName).UpdateOne(ctx, bson.M{"clusterid": clusterInput.ClusterId}, bson.M{"$set": mongoInput})
+	result, err := db.Collection(CollectionName).UpdateOne(ctx, bson.M{"clusterid": mongosafe.Eq(clusterInput.ClusterId)}, bson.M{"$set": mongoInput})
 	if err != nil {
 		return fmt.Errorf("could not update cluster with id: %s", clusterInput.ClusterId)
 	}

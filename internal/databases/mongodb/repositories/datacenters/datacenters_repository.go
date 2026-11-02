@@ -6,6 +6,7 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/internal/databases/mongodb/mongoTypes"
 	"github.com/NorskHelsenett/ror-api/internal/helpers/mapping"
+	"github.com/NorskHelsenett/ror-api/internal/helpers/mongosafe"
 
 	"github.com/NorskHelsenett/ror/pkg/kubernetes/providers/providermodels"
 
@@ -148,7 +149,7 @@ func GetTotalCount(ctx context.Context) (int64, error) {
 func FindByName(ctx context.Context, name string) (*apicontracts.Datacenter, error) {
 	db := mongodb.GetMongoDb()
 	var datacenterResult mongoTypes.MongoDatacenter
-	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{"name": name}).Decode(&datacenterResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{"name": mongosafe.Eq(name)}).Decode(&datacenterResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		msg := "could not find datacenter"
 		rlog.Error(msg, err)
 		return nil, errors.New(msg)
@@ -171,7 +172,7 @@ func FindByName(ctx context.Context, name string) (*apicontracts.Datacenter, err
 func FindByNameProvider(ctx context.Context, name string, provider providermodels.ProviderType) (*apicontracts.Datacenter, error) {
 	db := mongodb.GetMongoDb()
 	var datacenterResult mongoTypes.MongoDatacenter
-	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{"name": name, "provider": provider.String()}).Decode(&datacenterResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{"name": mongosafe.Eq(name), "provider": mongosafe.Eq(provider.String())}).Decode(&datacenterResult); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		msg := "could not find datacenter " + name + " for provider " + provider.String()
 		rlog.Error(msg, err)
 		return nil, errors.New(msg)

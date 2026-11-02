@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
+	"github.com/NorskHelsenett/ror-api/internal/helpers/mongosafe"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
@@ -85,7 +86,7 @@ func (r *ResourceMongoDB) Patch(ctx context.Context, uid string, partial *rorres
 		return err
 	}
 
-	filter := bson.M{"uid": uid}
+	filter := bson.M{"uid": mongosafe.Eq(uid)}
 	flatDoc := bson.M{}
 	flattenBsonM("", doc, flatDoc)
 	if len(flatDoc) == 0 {

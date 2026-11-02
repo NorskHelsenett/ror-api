@@ -9,6 +9,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/databases/mongodb/mongoTypes"
 	"github.com/NorskHelsenett/ror-api/internal/helpers/mapping"
 	mongoHelper "github.com/NorskHelsenett/ror-api/internal/helpers/mongoHelper"
+	"github.com/NorskHelsenett/ror-api/internal/helpers/mongosafe"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -27,7 +28,7 @@ const (
 func FindOne(ctx context.Context, property string, propertyValue string) (*apicontracts.OperatorConfig, error) {
 	db := mongodb.GetMongoDb()
 	var result mongoTypes.MongoOperatorConfig
-	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{property: propertyValue}).Decode(&result); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
+	if err := db.Collection(CollectionName).FindOne(ctx, bson.M{property: mongosafe.Eq(propertyValue)}).Decode(&result); err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		msg := "could not find operator config"
 		rlog.Error(msg, err)
 		return nil, errors.New(msg)

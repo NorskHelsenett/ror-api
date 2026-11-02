@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/NorskHelsenett/ror-api/internal/helpers/mapping"
+	"github.com/NorskHelsenett/ror-api/internal/helpers/mongosafe"
 
 	"github.com/NorskHelsenett/ror/pkg/apicontracts"
 
@@ -158,7 +159,7 @@ func GetForClusterid(ctx context.Context, clusterId string) (*apicontracts.Metri
 
 	queryCount := []bson.M{
 		accessQuery,
-		{"$match": bson.M{"clusterid": clusterId}},
+		{"$match": bson.M{"clusterid": mongosafe.Eq(clusterId)}},
 		{"$group": groupQuery},
 		{"$sort": bson.M{"id": 1}},
 	}
@@ -196,10 +197,14 @@ func GetForClusterid(ctx context.Context, clusterId string) (*apicontracts.Metri
 }
 
 func ForClustersByProperty(ctx context.Context, property string) (*apicontracts.MetricsCustom, error) {
+	field, err := mongosafe.FieldPath(property)
+	if err != nil {
+		return nil, err
+	}
 	db := mongodb.GetMongoDb()
 	groupQuery := bson.M{
 		"$group": bson.M{
-			"_id":   "$" + property,
+			"_id":   "$" + field,
 			"count": bson.M{"$sum": 1},
 		},
 	}

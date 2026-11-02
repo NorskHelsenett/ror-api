@@ -60,14 +60,14 @@ jobs:
       target_version: ${{ steps.request.outputs.target_version }}
       candidate_version: ${{ steps.request.outputs.candidate_version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Test rehearsal helpers
         run: node --test .github/scripts/candidate-handoff.test.cjs
       - name: Resolve source and validate candidate request
         id: request
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           TARGET_VERSION: ${{ inputs.target_version }}
           API_REF: ${{ inputs.api_ref }}
@@ -114,25 +114,25 @@ jobs:
       manifest_digest: ${{ steps.identity.outputs.manifest_digest }}
     steps:
       - name: Checkout trusted caller tooling
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: tooling
           persist-credentials: false
       - name: Checkout selected API source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.source_sha }}
           path: source
           persist-credentials: false
       - name: Checkout pinned verifier
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: NorskHelsenett/ror-test
           ref: e818ad7c655eafcd488f5ee2ca0f32580d824d0c
           path: harness
           token: ${{ secrets.CROSS_REPO_READ_TOKEN || github.token }}
           persist-credentials: false
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version-file: source/go.mod
           cache-dependency-path: |
@@ -158,7 +158,7 @@ jobs:
             go version -m dist/ror-api-linux-arm64 > ../candidate-bundle/build-arm64.txt
           fi
           git diff --exit-code -- go.mod go.sum
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
       - name: Export OCI archive without registry push
         run: |
           platforms=linux/amd64
@@ -200,7 +200,7 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT,
             `archive_sha256=${image.archiveSha256}\nindex_digest=${image.indexDigest}\nmanifest_digest=${image.manifestDigest}\n`);
           NODE
-      - uses: azure/setup-helm@v4.3.0
+      - uses: azure/setup-helm@v5.0.1
         if: inputs.rc_version != ''
         with:
           version: v3.17.0
@@ -214,7 +214,7 @@ jobs:
           bash tooling/.github/scripts/package-candidate-charts.sh source candidate-bundle
       - name: Upload private build artifact
         id: archive
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: candidate-archive-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
@@ -225,7 +225,7 @@ jobs:
           retention-days: 7
       - name: Upload expected candidate metadata
         id: metadata
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: candidate-metadata-${{ github.run_id }}-${{ github.run_attempt }}
           if-no-files-found: error
@@ -260,11 +260,11 @@ jobs:
     outputs:
       artifact_id: ${{ steps.verified.outputs.artifact-id }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           path: tooling
           persist-credentials: false
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           repository: NorskHelsenett/ror-test
           ref: e818ad7c655eafcd488f5ee2ca0f32580d824d0c
@@ -281,18 +281,18 @@ jobs:
         run: |
           [[ "$PREPARE_RESULT" == success && "$BUILD_RESULT" == success && "$TEST_RESULT" == success ]]
           [[ "$EVIDENCE_ID" =~ ^[1-9][0-9]*$ && "$METADATA_ID" =~ ^[1-9][0-9]*$ ]]
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           artifact-ids: ${{ needs.build.outputs.metadata_artifact_id }}
           path: expected
           merge-multiple: true
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           artifact-ids: ${{ needs.integration.outputs.evidence_artifact_id }}
           path: evidence
           merge-multiple: true
       - name: Check report against trusted suite and build metadata
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: harness/go.mod
           cache-dependency-path: harness/go.sum
@@ -311,7 +311,7 @@ jobs:
           node tooling/.github/scripts/candidate-handoff.cjs expected evidence harness "$BUILD_ARTIFACT_ID"
       - name: Retain successful unpublished rehearsal result
         id: verified
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: verified-rc-rehearsal-${{ github.run_id }}-${{ github.run_attempt }}
           path: handoff-result.json

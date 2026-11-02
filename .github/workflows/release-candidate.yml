@@ -36,7 +36,7 @@ jobs:
       candidate_version: ${{ steps.reserve.outputs.candidate_version }}
       reservation_id: ${{ steps.artifact.outputs.artifact-id }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - run: |
@@ -44,7 +44,7 @@ jobs:
           PYTHONDONTWRITEBYTECODE=1 python3 .github/scripts/test_split_oci.py
       - name: Reserve internal RC attempt
         id: reserve
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           TARGET_VERSION: ${{ inputs.target_version }}
           API_REF: ${{ inputs.api_ref }}
@@ -58,7 +58,7 @@ jobs:
             core.setOutput('candidate_version', candidate.candidateVersion);
             await core.summary.addHeading('Reserved private candidate')
               .addRaw(`${candidate.candidateVersion}\n\nSource: ${candidate.sourceSHA}\n\nBinary version: ${candidate.targetVersion}\n\nNo RC artifacts have been published.\n`).write();
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         id: artifact
         with:
           name: rc-reservation-${{ github.run_id }}-${{ github.run_attempt }}
@@ -93,7 +93,7 @@ jobs:
     env:
       RC_VERSION: ${{ needs.reserve.outputs.candidate_version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Require complete artifact handoff
@@ -106,28 +106,28 @@ jobs:
           for artifact in "$ARCHIVE" "$METADATA" "$VERIFIED" "$EVIDENCE"; do
             [[ "$artifact" =~ ^[1-9][0-9]*$ ]]
           done
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           artifact-ids: ${{ needs.reserve.outputs.reservation_id }}
           path: reservation
           merge-multiple: true
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           artifact-ids: ${{ needs.test.outputs.archive_id }},${{ needs.test.outputs.metadata_id }}
           path: bundle
           merge-multiple: true
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           artifact-ids: ${{ needs.test.outputs.verified_id }}
           path: verified
           merge-multiple: true
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           repository: NorskHelsenett/ror-test
           ref: e818ad7c655eafcd488f5ee2ca0f32580d824d0c
           path: harness
           persist-credentials: false
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version-file: harness/go.mod
           cache-dependency-path: harness/go.sum
@@ -140,7 +140,7 @@ jobs:
           node .github/scripts/verify-rc-bundle.cjs bundle verified/handoff-result.json "$RUNNER_TEMP/verifier"
       - name: Bind publication to current reservation and tested digests
         id: binding
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('node:fs');
@@ -154,7 +154,7 @@ jobs:
             core.setOutput('index_digest', releaseImage.indexDigest);
       - name: Install registry copy tool
         run: sudo -n apt-get update && sudo -n apt-get install -y skopeo
-      - uses: azure/setup-helm@v4.3.0
+      - uses: azure/setup-helm@v5.0.1
         with:
           version: v3.17.0
       - name: Authenticate publication tools
@@ -177,7 +177,7 @@ jobs:
           INDEX_DIGEST: ${{ steps.binding.outputs.index_digest }}
         run: cosign sign --yes "ghcr.io/norskhelsenett/ror-api@$INDEX_DIGEST"
       - name: Create immutable RC tag and prerelease
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('node:fs');
@@ -189,7 +189,7 @@ jobs:
         run: |
           node .github/scripts/upload-rc-assets.cjs "$RC_VERSION" release-candidate.json bundle/charts
       - name: Mark RC publication complete
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('node:fs');

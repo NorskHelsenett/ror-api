@@ -25,13 +25,13 @@ jobs:
       packages: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - run: node --test .github/scripts/*.test.cjs
       - name: Authorize admin and select the tested candidate
         id: candidate
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           CANDIDATE_VERSION: ${{ inputs.candidate_version }}
         with:
@@ -54,7 +54,7 @@ jobs:
         run: gh release download "$CANDIDATE_VERSION" --repo "$GITHUB_REPOSITORY" --pattern "$CHART_FILE" --dir chart
       - name: Install registry copy tool
         run: sudo -n apt-get update && sudo -n apt-get install -y skopeo
-      - uses: azure/setup-helm@v4.3.0
+      - uses: azure/setup-helm@v5.0.1
         with:
           version: v3.17.0
       - name: Authenticate publication tools
@@ -88,7 +88,7 @@ jobs:
           fi
       - name: Create the final tag and release
         id: release
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           UPDATE_LATEST: ${{ steps.candidate.outputs.update_latest }}
         with:
@@ -105,7 +105,7 @@ jobs:
           CHART_FILE: ${{ steps.candidate.outputs.chart_file }}
         run: gh release upload "$FINAL_VERSION" "chart/$CHART_FILE" --repo "$GITHUB_REPOSITORY" --clobber
       - name: Record the completed promotion
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           UPDATE_LATEST: ${{ steps.candidate.outputs.update_latest }}
         with:
