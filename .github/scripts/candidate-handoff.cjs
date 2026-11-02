@@ -3,7 +3,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const HARNESS_SHA = 'e818ad7c655eafcd488f5ee2ca0f32580d824d0c';
+const HARNESS_SHA = '2138b08ea467d3c64e41477ff22509e934a7c923';
 const digestPattern = /^sha256:[0-9a-f]{64}$/;
 const shaPattern = /^[0-9a-f]{40}$/;
 const hash = data => 'sha256:' + crypto.createHash('sha256').update(data).digest('hex');
