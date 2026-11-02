@@ -241,17 +241,113 @@ jobs:
 
   integration:
     needs: [prepare, build]
-    uses: NorskHelsenett/ror-test/.github/workflows/candidate-e2e.yml@e818ad7c655eafcd488f5ee2ca0f32580d824d0c
-    with:
-      artifact_id: ${{ needs.build.outputs.artifact_id }}
-      archive_sha256: ${{ inputs.test_fault == 'checksum' && 'sha256:0000000000000000000000000000000000000000000000000000000000000000' || needs.build.outputs.archive_sha256 }}
-      index_digest: ${{ needs.build.outputs.index_digest }}
-      manifest_digest: ${{ needs.build.outputs.manifest_digest }}
-      platform: linux/amd64
-      harness_sha: e818ad7c655eafcd488f5ee2ca0f32580d824d0c
-      source_sha: ${{ needs.prepare.outputs.source_sha }}
-    secrets:
-      CROSS_REPO_READ_TOKEN: ${{ secrets.CROSS_REPO_READ_TOKEN }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    env:
+      CI: 'true'
+      GOWORK: 'off'
+      COMPOSE_PROGRESS: plain
+    outputs:
+      evidence_artifact_id: ${{ steps.evidence.outputs.artifact-id }}
+    steps:
+      - name: Validate immutable inputs
+        env:
+          ARTIFACT_ID: ${{ needs.build.outputs.artifact_id }}
+          ARCHIVE_SHA256: ${{ inputs.test_fault == 'checksum' && 'sha256:0000000000000000000000000000000000000000000000000000000000000000' || needs.build.outputs.archive_sha256 }}
+          INDEX_DIGEST: ${{ needs.build.outputs.index_digest }}
+          MANIFEST_DIGEST: ${{ needs.build.outputs.manifest_digest }}
+          PLATFORM: linux/amd64
+          HARNESS_SHA: e818ad7c655eafcd488f5ee2ca0f32580d824d0c
+          SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
+        run: |
+          [[ "$ARTIFACT_ID" =~ ^[0-9]+$ ]]
+          [[ "$HARNESS_SHA" =~ ^[0-9a-f]{40}$ && "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          for digest in "$ARCHIVE_SHA256" "$INDEX_DIGEST" "$MANIFEST_DIGEST"; do
+            [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]
+          done
+          [[ "$PLATFORM" == linux/amd64 ]]
+      - uses: actions/checkout@v7
+        with:
+          repository: NorskHelsenett/ror-test
+          ref: e818ad7c655eafcd488f5ee2ca0f32580d824d0c
+          path: ror-test
+          token: ${{ secrets.CROSS_REPO_READ_TOKEN || github.token }}
+          persist-credentials: false
+      - name: Confirm native architecture and harness identity
+        env:
+          PLATFORM: linux/amd64
+          HARNESS_SHA: e818ad7c655eafcd488f5ee2ca0f32580d824d0c
+        run: |
+          [[ "$(git -C ror-test rev-parse HEAD)" == "$HARNESS_SHA" ]]
+          [[ "$(uname -m)" == x86_64 && "$PLATFORM" == linux/amd64 ]]
+      - uses: actions/download-artifact@v8
+        with:
+          artifact-ids: ${{ needs.build.outputs.artifact_id }}
+          path: candidate-input
+          merge-multiple: true
+      - name: Require regular archive
+        run: test -f candidate-input/candidate.tar && test ! -L candidate-input/candidate.tar
+      - uses: docker/setup-docker-action@v4
+        with:
+          daemon-config: |
+            { "features": { "containerd-snapshotter": true } }
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: ror-test/go.mod
+          cache-dependency-path: ror-test/go.sum
+      - name: Run verifier tests
+        working-directory: ror-test
+        env:
+          GOWORK: 'off'
+        run: |
+          go test -mod=readonly -race ./internal/e2e ./cmd/e2e
+          node --test .github/scripts/*.test.cjs
+      - name: Test candidate without API source checkout or rebuild
+        env:
+          E2E_CANDIDATE_SHA256: ${{ inputs.test_fault == 'checksum' && 'sha256:0000000000000000000000000000000000000000000000000000000000000000' || needs.build.outputs.archive_sha256 }}
+          E2E_CANDIDATE_DIGEST: ${{ needs.build.outputs.index_digest }}
+          E2E_CANDIDATE_PLATFORM: linux/amd64
+        run: |
+          export E2E_CANDIDATE_ARCHIVE="$GITHUB_WORKSPACE/candidate-input/candidate.tar"
+          bash ror-test/testenv/run.sh run
+      - name: Validate and bind success evidence
+        env:
+          EXPECTED_ARCHIVE: ${{ needs.build.outputs.archive_sha256 }}
+          EXPECTED_INDEX: ${{ needs.build.outputs.index_digest }}
+          EXPECTED_MANIFEST: ${{ needs.build.outputs.manifest_digest }}
+          EXPECTED_PLATFORM: linux/amd64
+          EXPECTED_HARNESS: e818ad7c655eafcd488f5ee2ca0f32580d824d0c
+          SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
+          INPUT_ARTIFACT_ID: ${{ needs.build.outputs.artifact_id }}
+        run: node ror-test/.github/scripts/verify-candidate-evidence.cjs ror-test
+      - name: Upload verified evidence
+        id: evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: candidate-evidence-amd64-${{ needs.build.outputs.artifact_id }}-${{ github.run_attempt }}
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            ror-test/artifacts/*/candidate*.json
+            ror-test/artifacts/*/candidate.xml
+            ror-test/artifacts/*/baseline*.json
+            ror-test/artifacts/*/baseline.xml
+            ror-test/artifacts/*/diff.json
+            ror-test/artifacts/*/release-evidence.json
+            ror-test/artifacts/*/exit-code.txt
+            ror-test/artifacts/*/harness-*.txt
+            ror-test/artifacts/*/fixtures.sha256
+      - name: Upload diagnostic reports on failure
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@v7
+        with:
+          name: candidate-diagnostics-amd64-${{ needs.build.outputs.artifact_id }}-${{ github.run_attempt }}
+          retention-days: 7
+          path: |
+            ror-test/artifacts/*/candidate.json
+            ror-test/artifacts/*/candidate.xml
+            ror-test/artifacts/*/exit-code.txt
+            ror-test/artifacts/*/seed.log
 
   verify-handoff:
     needs: [prepare, build, integration]

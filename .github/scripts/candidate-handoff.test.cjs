@@ -83,8 +83,10 @@ test('caller remains explicit, read-only, pinned, and publication-free', () => {
   assert(!/^\s+(push|pull_request|schedule):/m.test(workflow));
   assert(!/:\s*write\s*$/m.test(workflow), 'rehearsal must not grant write permissions');
   assert(!/docker\s+(?:buildx\s+imagetools\s+create|push)|helm\s+push|git\s+push|gh\s+release|--push/.test(workflow));
-  assert(workflow.includes(`uses: NorskHelsenett/ror-test/.github/workflows/candidate-e2e.yml@${HARNESS_SHA}`));
-  assert(workflow.includes(`harness_sha: ${HARNESS_SHA}`));
+  assert.match(workflow, /integration:\n    needs: \[prepare, build\]\n    runs-on: ubuntu-22\.04/);
+  assert(workflow.includes('repository: NorskHelsenett/ror-test'));
+  assert(workflow.includes(`ref: ${HARNESS_SHA}`));
+  assert(!workflow.includes('uses: NorskHelsenett/ror-test/.github/workflows/candidate-e2e.yml@'));
   assert.match(workflow, /verify-handoff:\n    needs: \[prepare, build, integration\]/);
   assert(!workflow.includes('always()'), 'success gate must not run after failed tests');
 });
