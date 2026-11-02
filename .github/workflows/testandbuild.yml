@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-24.04
     services:
       mongodb:
-        image: mongo:8
+        image: mongo:9.0.4
         ports:
           - 27017:27017
         options: >-
