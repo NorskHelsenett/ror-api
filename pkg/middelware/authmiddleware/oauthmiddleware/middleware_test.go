@@ -8,8 +8,12 @@ import (
 
 	"github.com/NorskHelsenett/ror/pkg/helpers/oidchelper"
 	"github.com/NorskHelsenett/ror/pkg/helpers/oidchelper/oidctest"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclcaps"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclgrants"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func init() {
@@ -161,6 +165,83 @@ func TestAuthenticate_ValidToken(t *testing.T) {
 		if groups[i] != g {
 			t.Errorf("expected group %s, got %s", g, groups[i])
 		}
+	}
+}
+
+func TestAuthenticate_PreservesVerifiedACLGrants(t *testing.T) {
+	mw, issuer, cleanup := setupMiddleware(t)
+	defer cleanup()
+
+	claims := oidctest.DefaultUserClaims("alice@example.com", "admins")
+	claims.ACLGrantsPresent = true
+	claims.ACLGrants = aclgrants.Grants{{
+		Scope:   aclscope.ScopeProject,
+		Subject: "project-1",
+		Access:  []aclcaps.AccessTypeV3{"ror:read"},
+	}}
+
+	w, identity := doRequest(mw, "Bearer "+signToken(t, issuer, claims))
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
+	}
+	if identity == nil {
+		t.Fatal("middleware did not set an identity")
+	}
+	grants, present := identity.GetACLGrants()
+	if !present {
+		t.Fatal("verified ror_grants claim was not preserved")
+	}
+	if len(grants) != 1 || grants[0].Scope != aclscope.ScopeProject ||
+		grants[0].Subject != "project-1" || len(grants[0].Access) != 1 ||
+		grants[0].Access[0] != "ror:read" {
+		t.Fatalf("unexpected verified grants: %#v", grants)
+	}
+}
+
+func TestAuthenticate_EmptyACLGrantsClaimIsPresent(t *testing.T) {
+	mw, issuer, cleanup := setupMiddleware(t)
+	defer cleanup()
+
+	claims := oidctest.DefaultUserClaims("alice@example.com", "admins")
+	claims.ACLGrantsPresent = true
+	claims.ACLGrants = make(aclgrants.Grants, 0)
+
+	w, identity := doRequest(mw, "Bearer "+signToken(t, issuer, claims))
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
+	}
+	grants, present := identity.GetACLGrants()
+	if !present || len(grants) != 0 {
+		t.Fatalf("expected a present empty grant claim, got grants=%v present=%t", grants, present)
+	}
+}
+
+func TestAuthenticate_InvalidACLGrantsClaimRejected(t *testing.T) {
+	mw, issuer, cleanup := setupMiddleware(t)
+	defer cleanup()
+
+	now := time.Now()
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+		"sub":            "alice@example.com",
+		"iss":            issuer.IssuerURL,
+		"email":          "alice@example.com",
+		"email_verified": true,
+		"aud":            oidctest.DefaultTestClientID,
+		"groups":         []string{"admins"},
+		"iat":            now.Unix(),
+		"nbf":            now.Add(-time.Minute).Unix(),
+		"exp":            now.Add(time.Hour).Unix(),
+		"ror_grants":     nil,
+	})
+	token.Header["kid"] = issuer.KeyID
+	signed, err := token.SignedString(issuer.PrivateKey)
+	if err != nil {
+		t.Fatalf("could not sign invalid-grants token: %v", err)
+	}
+
+	w, _ := doRequest(mw, "Bearer "+signed)
+	if w.Code != http.StatusUnauthorized {
+		t.Fatalf("expected invalid ror_grants claim to be rejected, got %d: %s", w.Code, w.Body.String())
 	}
 }
 

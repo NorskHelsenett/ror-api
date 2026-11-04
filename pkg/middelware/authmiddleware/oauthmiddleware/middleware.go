@@ -114,6 +114,9 @@ func (d *OauthMiddleware) getIdentityFromToken(ctx context.Context, token string
 	if err != nil {
 		return nil, rorginerror.NewRorGinError(http.StatusUnauthorized, "Not authorized, incomplete identity")
 	}
+	if claims.ACLGrantsPresent {
+		identity.SetACLGrants(claims.ACLGrants)
+	}
 
 	return &identity, nil
 }

@@ -16,8 +16,8 @@ github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
 github.com/Masterminds/semver/v3 v3.5.0 h1:kQceYJfbupGfZOKZQg0kou0DgAKhzDg2NZPAwZ/2OOE=
 github.com/Masterminds/semver/v3 v3.5.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
-github.com/NorskHelsenett/ror v1.26.0 h1:Z02Y5saNiU3yXJ8SVjfFM7z5e+7IELxbymu7oFInUh4=
-github.com/NorskHelsenett/ror v1.26.0/go.mod h1:QoSzPEFzU4/qECqL1c4Kdk1N/7Apad292PA9Aee66EY=
+github.com/NorskHelsenett/ror v1.26.1 h1:18UFlGhGLCLmaYS/2t9tiU3koVNBBZskkQSo90J5miQ=
+github.com/NorskHelsenett/ror v1.26.1/go.mod h1:ysLg8FsxAzSvX/1rsAx20U2xo+Y07glTOb2YeMl9YRo=
 github.com/alexbrainman/sspi v0.0.0-20250919150558-7d374ff0d59e h1:4dAU9FXIyQktpoUAgOJK3OTFc/xug0PCXYCqU0FgDKI=
 github.com/alexbrainman/sspi v0.0.0-20250919150558-7d374ff0d59e/go.mod h1:cEWa1LVoE5KvSD9ONXsZrj0z6KqySlCCNKHlLzbqAt4=
 github.com/alicebob/miniredis/v2 v2.40.0 h1:6IgTQbvm2JiMYZ8yur/acNJzVjtSOWCelxXbk/LUBXc=

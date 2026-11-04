@@ -8,6 +8,7 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/mocks/identitymocks"
 	"github.com/NorskHelsenett/ror/pkg/acl"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclgrants"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
@@ -64,9 +65,32 @@ func setResolver(t *testing.T, entries aclmodels.AclV3List, expander acl.ScopeEx
 	t.Cleanup(func() { resolver = prev })
 }
 
+func setTokenOrStoreResolver(t *testing.T, entries aclmodels.AclV3List) {
+	t.Helper()
+	prev := resolver
+	resolver = acl.NewResolverWithGrantSource(tokenOrStoreGrantSource{
+		fallback: acl.NewStoreGrantSource(fakeStore{entries: entries}),
+	})
+	t.Cleanup(func() { resolver = prev })
+}
+
 func userContext(groups ...string) context.Context {
 	id := identitymocks.User("user@example.com", "User Example", groups...)
 	return context.WithValue(context.Background(), identitymodels.ContexIdentity, id)
+}
+
+func userContextWithACLGrants(grants aclgrants.Grants, present bool, groups ...string) context.Context {
+	return userContextWithACLGrantsAndIssuer(grants, present, "", groups...)
+}
+
+func userContextWithACLGrantsAndIssuer(grants aclgrants.Grants, present bool, issuer string, groups ...string) context.Context {
+	identity := identitymocks.Must(identitymodels.NewUserIdentity(identitymodels.AuthInfo{}, "user@example.com", "User Example", groups, map[string]string{
+		"iss": issuer,
+	}))
+	if present {
+		identity.SetACLGrants(grants)
+	}
+	return context.WithValue(context.Background(), identitymodels.ContexIdentity, identity)
 }
 
 // ownerFilterMatches evaluates the $match stage produced by ResourceOwnerFilter

@@ -23,6 +23,7 @@ import (
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 	aclmodels "github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclgrants"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclprincipal"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
@@ -105,7 +106,10 @@ func InitResolver(rmq rabbitmqclient.RabbitMQConnection) error {
 	expander := acl.ScopeExpander(aclstore.NewMongoScopeExpander(mongodb.GetMongoDb, aclstore.WithOwnerUidsTTL(ownerScopeCacheTTL())))
 	expander = acl.NewCachedScopeExpander(expander, aclCacheTTL)
 
-	resolver = acl.NewResolver(snapshot, acl.WithScopeExpander(expander))
+	resolver = acl.NewResolverWithGrantSource(
+		tokenOrStoreGrantSource{fallback: acl.NewStoreGrantSource(snapshot)},
+		acl.WithScopeExpander(expander),
+	)
 
 	ancestorResolver = aclstore.NewMongoAncestorResolver(mongodb.GetMongoDb)
 	return nil
@@ -157,6 +161,24 @@ func identityGroups(ctx context.Context) ([]string, error) {
 	}
 
 	return identity.GetGroups()
+}
+
+type tokenOrStoreGrantSource struct {
+	fallback acl.GrantSource
+}
+
+func (s tokenOrStoreGrantSource) GetGrants(ctx context.Context, groups []string) (aclgrants.Grants, error) {
+	identity, err := rorcontext.GetIdentityFromRorContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get identity for ACL grants: %w", err)
+	}
+	if grants, present := identity.GetACLGrants(); present {
+		issuer, ok := identity.GetClaim("iss")
+		if ok && issuer != "" && issuer == rorconfig.GetString(rorconfig.OIDC_SIGNER_ISSUER) {
+			return grants, nil
+		}
+	}
+	return s.fallback.GetGrants(ctx, groups)
 }
 
 // ClusterSelfAccess is the access a cluster has to its own resources. It used to
