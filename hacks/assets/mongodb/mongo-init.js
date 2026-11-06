@@ -13,6 +13,7 @@ let res = [
         { resource: { db: "nhn-ror", collection: "resources" }, actions: [ "find", "update", "insert", "remove" ] },
         { resource: { db: "nhn-ror", collection: "resourcesv2" }, actions: [ "find", "update", "insert", "remove" ] },
         { resource: { db: "nhn-ror", collection: "acl" }, actions: [ "find", "update", "insert", "remove" ] },
+        { resource: { db: "nhn-ror", collection: "acl_snapshot_publication" }, actions: [ "find", "update", "insert", "remove" ] },
         { resource: { db: "nhn-ror", collection: "tasks" }, actions: [ "find", "update", "insert", "remove" ] },
         { resource: { db: "nhn-ror", collection: "messagerulesets" }, actions: [ "find", "update", "insert", "remove" ] },
         { resource: { db: "nhn-ror", collection: "metrics" }, actions: [ "find", "update", "insert", "remove" ] },

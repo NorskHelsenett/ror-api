@@ -21,6 +21,7 @@ services:
     volumes:
       - ${DOCKER_VOLUME_PATH:-../ror/hacks/data}/mongodb:/data/db:rw
       - ${ROR_ASSETS_PATH:-./hacks/assets}/mongodb:/docker-entrypoint-initdb.d
+      - ${ROR_ASSETS_PATH:-./hacks/assets}/mongodb:/local-mongo:ro
     environment:
       - MONGO_INITDB_DATABASE=nhn-ror
       - MONGO_INITDB_ROOT_USERNAME=someone
@@ -30,11 +31,11 @@ services:
     ports:
       - '28017:27017'
     healthcheck:
-      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+      test: ['CMD', 'mongosh', '--quiet', '--host', 'localhost', '--username', 'someone', '--password', 'S3cret!', '--authenticationDatabase', 'admin', '/local-mongo/local/ready.js']
       interval: 10s
       timeout: 10s
-      retries: 3
-      start_period: 15s
+      retries: 12
+      start_period: 30s
 
   mongo-express:
     image: ${DOCKER_MIRROR}mongo-express:latest
@@ -97,6 +98,7 @@ services:
       - ${DOCKER_VOLUME_PATH:-../ror/hacks/data}/vault/secrets:/tmp/secrets
       - ${DOCKER_VOLUME_PATH:-../ror/hacks/data}/vault/data:/vault/data:rw
       - ${ROR_ASSETS_PATH:-./hacks/assets}/vault/entrypoint.sh:/vault/entrypoint.sh:rw
+      - ${ROR_ASSETS_PATH:-./hacks/assets}/vault/local-snapshot-env.sh:/vault/local-snapshot-env.sh:ro
       - ${ROR_ASSETS_PATH:-./hacks/assets}/vault/policies:/policies
       - ${ROR_ASSETS_PATH:-./hacks/assets}/vault/ldapconfig.json:/vault/config/ldapconfig.json
       - .env:/vault/config/envfile:rw
@@ -115,10 +117,10 @@ services:
     ports:
       - '9200:8200'
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http:/vault:8200/v1/sys/health']
+      test: ['CMD-SHELL', 'test -f /tmp/healthy && curl -fsS http://localhost:8200/v1/sys/health > /dev/null']
       interval: 5s
       retries: 5
-      start_period: 8s
+      start_period: 60s
       timeout: 2s
 
   openldap:

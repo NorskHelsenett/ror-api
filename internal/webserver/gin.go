@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclsnapshot"
 	"github.com/NorskHelsenett/ror-api/internal/webserver/routes/utilityroutes"
 	"github.com/NorskHelsenett/ror-api/internal/webserver/routes/v1routes"
 	"github.com/NorskHelsenett/ror-api/internal/webserver/routes/v2routes"
@@ -18,7 +19,6 @@ import (
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/pqcmiddleware"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/rlogmiddleware"
 
-	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/pprof"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 
@@ -57,7 +57,7 @@ func startHttpServer(ctx context.Context) error {
 		pprof.Register(router)
 	}
 
-	router.Use(gzip.Gzip(gzip.DefaultCompression, gzip.WithExcludedPaths([]string{"/metrics"})))
+	router.Use(aclsnapshot.Compression())
 	router.Use(gin.Recovery())
 	router.Use(pqcmiddleware.PostQuantumMetricsMiddleware())
 	if rorconfig.GetBool(rorconfig.ENABLE_TRACING) {

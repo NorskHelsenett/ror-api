@@ -53,6 +53,7 @@ func InitConnections(ctx context.Context) {
 	mongocredshelper := databasecredhelper.NewVaultDBCredentials(VaultClient, rorconfig.GetString(rorconfig.ROLE), "mongodb")
 	mongodb.MustInitWithContext(ctx, mongocredshelper, rorconfig.GetString(rorconfig.MONGODB_HOST), rorconfig.GetString(rorconfig.MONGODB_PORT), rorconfig.GetString(rorconfig.MONGO_DATABASE))
 
+	rorconfig.SetWithProvider(rorconfig.ROR_API_KEY_SALT, VaultClient.GetSecretProvider("secret/data/v1.0/ror/config/common", "apikeySalt"))
 	mongodbseeding.CheckAndSeed(ctx)
 
 	// RabbitMQ
@@ -85,8 +86,6 @@ func InitConnections(ctx context.Context) {
 	// rabbitmq health is registered by MustNewRabbitMQConnectionWithContext during connect
 	// redis health is registered by MustNewWithContext during connect
 	// domainresolver health is registered per resolver as they connect
-
-	rorconfig.SetWithProvider(rorconfig.ROR_API_KEY_SALT, VaultClient.GetSecretProvider("secret/data/v1.0/ror/config/common", "apikeySalt"))
 
 	sse.Init(RabbitMQConnection)
 

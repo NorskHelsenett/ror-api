@@ -1,8 +1,11 @@
 package v2routes
 
 import (
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"time"
 
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclsnapshot"
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclstore"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/apikeyscontroller/v2"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/v2/aclcontroller"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/v2/resourcescontroller"
@@ -18,7 +21,9 @@ import (
 
 	"github.com/NorskHelsenett/ror-api/internal/controllers/v2/handlerv2selfcontroller"
 
+	"github.com/NorskHelsenett/ror/pkg/clients/mongodb"
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
+	"github.com/NorskHelsenett/ror/pkg/helpers/tokenstoragehelper"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
 
 	"github.com/gin-gonic/gin"
@@ -31,7 +36,10 @@ var (
 )
 
 func SetupRoutes(router *gin.Engine) error {
-	var err error
+	snapshotConfig, err := aclsnapshot.LoadConfig()
+	if err != nil {
+		return err
+	}
 	timeoutduration, err = time.ParseDuration(rorconfig.GetString(rorconfig.HTTP_TIMEOUT))
 	if err != nil {
 		rlog.Warn("Could not parse timeout, defaulting to defaultTimeout", rlog.String("error", err.Error()))
@@ -72,6 +80,8 @@ func SetupRoutes(router *gin.Engine) error {
 
 	aclroute := v2.Group("/acl")
 	{
+		aclroute.GET("/snapshot", aclsnapshot.Handler(snapshotConfig,
+			aclstore.NewMongoStore(mongodb.GetMongoDb), tokenstoragehelper.SignPayload, aclservice.HasAccess))
 		aclroute.GET("/lookup", aclcontroller.LookupAcl())
 		aclroute.GET("/lookup/:scope/:subject", aclcontroller.LookupAclByScopeSubject())
 		aclroute.HEAD("/lookup/:scope/:subject/:accesstype", aclcontroller.CheckAccess())

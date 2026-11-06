@@ -11810,6 +11810,47 @@ paths:
       summary: Check acl access by scope and subject and accesstype
       tags:
       - acl
+  /v2/acl/snapshot:
+    get:
+      description: Requires the ror:acl:snapshot:read ACL capability on scope ror,
+        subject acl. Limits have defaults and optional overrides.
+      parameters:
+      - description: Previously verified strong snapshot ETag; weak tags and wildcard
+          are rejected
+        in: header
+        name: If-None-Match
+        type: string
+      produces:
+      - application/jose
+      responses:
+        "200":
+          description: Compact RS512 JWS
+          schema:
+            type: string
+        "304":
+          description: No change
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rorerror.ErrorData'
+      security:
+      - AccessToken: []
+        ApiKey: []
+      summary: Fetch signed ACL snapshot
+      tags:
+      - acl
   /v2/apikeys/agent/register:
     post:
       consumes:
@@ -12423,7 +12464,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get JWKS for token verification
+      description: Get public ror-api signing keys for token and ACL snapshot verification
       produces:
       - application/json
       responses:

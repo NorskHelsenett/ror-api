@@ -37,6 +37,42 @@ cp .env.example .env
 docker compose up -d
 ```
 
+The API still runs on the host. Compose keeps the existing standalone
+MongoDB setup, grants the API access
+to snapshot publication state, and writes a generated development snapshot key
+into the ignored `.env`. Snapshot limits have defaults; no limit environment
+variables are required. Wait for bootstrap
+before starting the API:
+
+```bash
+docker compose up -d --wait --wait-timeout 180
+go run cmd/api/main.go
+```
+
+In another terminal, use the generated key:
+
+```bash
+SNAPSHOT_API_KEY=$(sed -n 's/^DEV_ACL_SNAPSHOT_API_KEY="\([^"]*\)"$/\1/p' .env)
+curl --fail-with-body -D - \
+  -H "X-API-KEY: ${SNAPSHOT_API_KEY}" \
+  http://localhost:10000/v2/acl/snapshot
+```
+
+The credential represents the read-only `acl-snapshot` service and receives only
+the `ror:acl:snapshot:read` grant on scope `ror`, subject `acl`, not ACL management
+rights. Any authenticated identity with that capability may read snapshots;
+access is not controlled by an environment-based reader allowlist.
+The development credential and grant are seeded when the host API starts with
+`DEVELOPMENT=true`, using the actual Vault-backed API key salt. Existing local
+configuration and the generated key survive Compose restarts. To rotate the
+development credential, clear `DEV_ACL_SNAPSHOT_API_KEY` in `.env`, restart
+Vault, wait for bootstrap, and restart the API. Never use this development
+bootstrap or credential in production.
+
+Snapshot publication supports standalone MongoDB without transactions, topology
+changes, or special connection settings. Do not remove the MongoDB data
+directory or snapshot publication state when updating the local stack.
+
 To stop the environment:
 
 ```bash
@@ -178,6 +214,26 @@ make test
 # Run the application locally
 make run
 ```
+
+### MongoDB integration tests
+
+CI uses standalone MongoDB. For isolated local integration tests, leaving
+development data untouched:
+
+```bash
+docker compose -f docker-compose.test.yml up -d --wait --wait-timeout 90
+MONGODB_TEST_URI='mongodb://localhost:27018' \
+  go test -race ./internal/acl/...
+docker compose -f docker-compose.test.yml down --volumes
+```
+
+Without `MONGODB_TEST_URI`, snapshot MongoDB tests skip. With an explicit URI,
+database connection failures fail the tests. See
+[ACL snapshot documentation](docs/acl.md) for the endpoint contract.
+The ACL store tests probe each configured database once per package run, so an
+unavailable default database incurs one connection timeout, not one per test.
+Offline ACL store unit tests still exercise CRUD and publication command/error
+paths using mocked driver responses; only the real-database tests skip.
 
 ### Common Development Tasks
 

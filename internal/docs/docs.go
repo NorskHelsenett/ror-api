@@ -7640,6 +7640,67 @@ const docTemplate = `{
                 }
             }
         },
+        "/v2/acl/snapshot": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [],
+                        "ApiKey": []
+                    }
+                ],
+                "description": "Requires the ror:acl:snapshot:read ACL capability on scope ror, subject acl. Limits have defaults and optional overrides.",
+                "produces": [
+                    "application/jose"
+                ],
+                "tags": [
+                    "acl"
+                ],
+                "summary": "Fetch signed ACL snapshot",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Previously verified strong snapshot ETag; weak tags and wildcard are rejected",
+                        "name": "If-None-Match",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Compact RS512 JWS",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "304": {
+                        "description": "No change"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rorerror.ErrorData"
+                        }
+                    }
+                }
+            }
+        },
         "/v2/acl/{id}": {
             "get": {
                 "security": [
@@ -8766,7 +8827,7 @@ const docTemplate = `{
         },
         "/v2/token/jwks": {
             "get": {
-                "description": "Get JWKS for token verification",
+                "description": "Get public ror-api signing keys for token and ACL snapshot verification",
                 "consumes": [
                     "application/json"
                 ],

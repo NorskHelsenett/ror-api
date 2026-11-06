@@ -1,0 +1,19 @@
+services:
+  mongodb-test:
+    image: mongo:9.0.4
+    command: ["mongod", "--port", "27018", "--bind_ip_all"]
+    ports:
+      - "127.0.0.1:27018:27018"
+    healthcheck:
+      test:
+        - CMD
+        - mongosh
+        - --port
+        - "27018"
+        - --quiet
+        - --eval
+        - >-
+          db.adminCommand({ping: 1});
+      interval: 2s
+      timeout: 5s
+      retries: 30

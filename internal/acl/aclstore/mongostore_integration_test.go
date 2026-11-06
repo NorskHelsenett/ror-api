@@ -5,7 +5,8 @@
 // These tests require a running MongoDB instance. Connection details are loaded
 // from the .env file at the repository root (MONGODB_HOST, MONGODB_PORT) with
 // docker-compose default credentials. The MONGODB_TEST_URI env var overrides
-// the constructed URI if set. Tests are skipped when no MongoDB is reachable.
+// the constructed URI if set. Unavailable default databases skip tests; an
+// explicitly configured MONGODB_TEST_URI must connect successfully.
 //
 // To run:
 //
@@ -21,6 +22,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -35,6 +37,19 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
+// Probe each configured database once per package run, not once per test.
+// Otherwise an unavailable local database exhausts the package test timeout.
+var storeAvailability availabilityChecks
+
+type availabilityChecks struct {
+	probes sync.Map
+}
+
+func (a *availabilityChecks) check(uri string, probe func() error) error {
+	cached, _ := a.probes.LoadOrStore(uri, sync.OnceValue(probe))
+	return cached.(func() error)()
+}
+
 // newStoreTestDB connects to a MongoDB instance and returns a MongoStore plus
 // the underlying database for seeding. The database is unique per test and
 // dropped on cleanup.
@@ -47,6 +62,7 @@ func newStoreTestDB(t *testing.T) (*mongo.Database, *MongoStore) {
 	t.Helper()
 
 	uri := os.Getenv("MONGODB_TEST_URI")
+	explicit := uri != ""
 	if uri == "" {
 		// Load .env from repo root (3 dirs up from this file's directory).
 		_, thisFile, _, _ := runtime.Caller(0)
@@ -67,20 +83,39 @@ func newStoreTestDB(t *testing.T) (*mongo.Database, *MongoStore) {
 		ApplyURI(uri).
 		SetBSONOptions(&options.BSONOptions{ObjectIDAsHexString: true}))
 	if err != nil {
-		t.Skipf("MongoDB not available at %s: %v", uri, err)
+		if explicit {
+			t.Fatalf("invalid MONGODB_TEST_URI: %v", err)
+		}
+		t.Skipf("default MongoDB configuration unavailable: %v", err)
 	}
+	t.Cleanup(func() {
+		cleanup, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := client.Disconnect(cleanup); err != nil {
+			t.Errorf("disconnect test MongoDB: %v", err)
+		}
+	})
 
-	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
-	if err := client.Ping(pingCtx, nil); err != nil {
-		t.Skipf("MongoDB not reachable at %s: %v", uri, err)
+	err = storeAvailability.check(uri, func() error {
+		pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+		return client.Ping(pingCtx, nil)
+	})
+	if err != nil {
+		if explicit {
+			t.Fatalf("configured test MongoDB is unreachable: %v", err)
+		}
+		t.Skipf("default MongoDB is unreachable: %v", err)
 	}
 
 	db := client.Database(storeTestDBName(t))
 
 	t.Cleanup(func() {
-		_ = db.Drop(ctx)
-		_ = client.Disconnect(ctx)
+		cleanup, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := db.Drop(cleanup); err != nil {
+			t.Errorf("drop test database: %v", err)
+		}
 	})
 
 	return db, NewMongoStore(func() *mongo.Database { return db })

@@ -2,6 +2,7 @@ package tokenservice
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -81,7 +82,22 @@ func ExchangeToken(ctx context.Context, clusterID string, token string, admin bo
 	return signer.SignMapClaims(mapClaims)
 }
 
-// GetJwks returns the JSON Web Key Set (JWKS) containing the public keys.
+// GetJwks publishes the API signing keys for token and ACL snapshot verification.
+// All retained keys are included so verification survives signing-key rotation.
 func GetJwks() (jwk.Set, error) {
-	return signer.GetJWKS()
+	if signer == nil {
+		return nil, fmt.Errorf("token signer is not initialized")
+	}
+	keys, err := signer.GetJWKS()
+	if err != nil {
+		return nil, fmt.Errorf("get API signing keys: %w", err)
+	}
+	if keys == nil || keys.Len() == 0 {
+		return nil, fmt.Errorf("no API signing keys available")
+	}
+	publicKeys, err := jwk.PublicSetOf(keys)
+	if err != nil {
+		return nil, fmt.Errorf("extract public API signing keys: %w", err)
+	}
+	return publicKeys, nil
 }
