@@ -272,6 +272,7 @@ sed "s|^VAULT_TOKEN=.*|VAULT_TOKEN=\"${VAULT_ROOT_TOKEN}\"|" /vault/config/envfi
 cat /tmp/envfile.tmp > /vault/config/envfile
 rm /tmp/envfile.tmp
 
+sh /vault/local-snapshot-env.sh /vault/config/envfile || exit 1
 
 # This container is now healthy
 touch /tmp/healthy

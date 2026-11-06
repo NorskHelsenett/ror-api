@@ -12,6 +12,200 @@ aimed at developers changing endpoints, services, or the ACL layer itself.
 
 ---
 
+## ACL snapshot verification keys
+
+The existing unauthenticated `GET /v2/token/jwks` endpoint publishes ror-api's
+public signing keyset for token verification and the planned signed ACL
+snapshots. No separate snapshot-key endpoint is introduced. Private key
+parameters are excluded, and all keys retained by the signing store are
+published so consumers can verify signatures across rotation. Missing keys or
+key retrieval failures return the standard HTTP 500 API error, not an empty
+successful keyset.
+
+Snapshot consumers must obtain these keys from an explicitly configured,
+TLS-validated ror-api endpoint. Neither a snapshot-provided URL nor a peer's
+token keyset establishes snapshot-signing authority. Consumers must enforce
+their approved algorithm allowlist as well as key identity.
+
+The endpoint reads the initialized in-process signing store; it does not fetch
+OpenBao on each HTTP request. Consumer trust persistence and the operational
+rotation/revocation protocol are separate work.
+
+### Signed snapshot endpoint
+
+`GET /v2/acl/snapshot` returns a compact RS512 JWS with content type
+`application/jose`. Its protected header contains `alg`, `kid`, and
+`typ: application/ror-acl-snapshot+jws`. The existing API signing keyset signs
+the exact deterministic JSON payload; consumers verify against the trusted
+JWKS before decoding. This is a policy document, not a bearer JWT.
+
+The shared contract lives in `ror/pkg/models/aclmodels/aclsnapshot`:
+
+```json
+{
+  "schema": "ror.acl.snapshot/1",
+  "revision": "42",
+  "generatedAt": "2026-11-04T14:00:00Z",
+  "rows": [
+    {
+      "group": "example-team",
+      "grant": {
+        "scope": "Project",
+        "subject": "example-project",
+        "access": ["ror:read"]
+      }
+    }
+  ]
+}
+```
+
+Rows retain group associations and raw, unexpanded grants. Database IDs and
+audit metadata are excluded. Rows are sorted by group/scope/subject and access
+entries are sorted, without mutating source data. Duplicate row identities or
+access entries are rejected rather than merged. `rows: []` is a valid complete
+empty policy; empty access arrays are inert but valid.
+Legacy V2 entries are converted through the existing V2-to-V3 mapping, including
+Kubernetes capabilities. An internal nil access slice is emitted as an explicit
+empty array, preserving an inert grant rather than dropping its row.
+
+#### Configuration and authentication
+
+No production bounds are assumed. Configure all of:
+
+| Setting | Meaning |
+|---|---|
+| `ACL_SNAPSHOT_READER_SERVICE_ID` | Dedicated API-key service identifier, not the secret key or its database ID |
+| `ACL_SNAPSHOT_MAX_PAYLOAD_BYTES` | Maximum decoded JSON payload bytes; hard storage ceiling 15 MiB |
+| `ACL_SNAPSHOT_MAX_ENVELOPE_BYTES` | Maximum complete compact JWS bytes |
+| `ACL_SNAPSHOT_MAX_ROWS` | Maximum policy rows |
+| `ACL_SNAPSHOT_MAX_ACCESS_ENTRIES` | Maximum access entries per row |
+| `ACL_SNAPSHOT_MAX_FIELD_BYTES` | Maximum UTF-8 bytes per group, scope, subject, access entry, and signing key ID |
+| `ACL_SNAPSHOT_MAX_HEADER_BYTES` | Maximum decoded protected header bytes and incoming conditional-header bytes |
+
+With no reader configured, the snapshot handler returns HTTP 503 after normal
+API authentication. Configuring a reader with missing/invalid bounds fails
+route setup instead of enabling a partially configured endpoint. Requests are
+bounded by the existing `/v2` request timeout.
+
+Authenticate with the existing `X-API-KEY` mechanism. Only a **service** identity
+authenticated by API key whose identifier exactly matches the configured
+reader can fetch snapshots. Ordinary users (including administrators), OIDC
+tokens, cluster identities, and other service identities are not accepted.
+Provision dedicated service keys with no unrelated ACL-administration grants;
+the snapshot allowlist itself grants no write permission. Separate site
+credentials may represent the same reader service, so credential rotation does
+not require changing the allowlisted service identifier.
+
+For local development, the default Compose dependency stack writes explicit
+development bounds and a generated `DEV_ACL_SNAPSHOT_API_KEY` into ignored
+`.env` without overwriting local overrides. After Compose bootstrap completes,
+the host API seeds a read-only service credential for the configured reader
+using the Vault-backed API key salt, only when `DEVELOPMENT=true`. No ACL grants
+are added. Repeated startup preserves the record's creation time and updates
+its hash if the local credential changes. Conflicting credential identities
+fail startup. The local publication-role migration supports both fresh and
+existing data directories without changing MongoDB topology.
+See [local startup and curl instructions](../README.md#start-requirements).
+
+#### Revisions, persistence, and conditional requests
+
+Standalone MongoDB is supported; transactions and replica sets are not required.
+Each publication reads the authoritative ACL collection, not the
+per-process resolver cache or Valkey, and updates the singleton
+`acl_snapshot_publication` document (`_id: authoritative`). The database role
+needs read access to `acl` and read/insert/update access to that publication
+collection.
+
+Repeated group/scope/subject tuples are valid additive ACL grants, including
+different access lists and identical repetitions. Publication preserves every
+row without merging or changing stored data. Deterministic ordering uses group,
+scope, subject, then the lexicographically compared sorted access lists.
+
+The publication stores the payload, content hash, and decimal-string revision.
+The first publication is revision 1. Every subsequently **observed** policy
+content change advances the revision; unchanged content preserves the payload,
+revision, and generation timestamp across process restarts. A policy that
+changes and reverts entirely between publications need not get an intermediate
+revision. Publication uses a single-document atomic compare-and-swap with a new
+observation token on every successful write, including unchanged content.
+A losing publisher discards its scan, rereads the publication and rescans the
+ACLs before retrying. This prevents a stale concurrent publisher from assigning
+a later revision to its old scan or publishing different bytes at the same
+revision. Contention is bounded to 32 attempts and then fails explicitly.
+Existing publication records acquire their first observation token atomically;
+their revision history is not reset. Existing MongoDB write-concern settings
+are unchanged.
+
+The ACL scan is ordered by immutable `_id`, but is not a point-in-time
+multi-document snapshot. During concurrent ACL edits, a publication can contain
+rows observed at different times during that scan. Revisions identify complete
+observed scans, not atomic database states or individual edits. Once writes
+settle, the next publication reflects the current authoritative policy.
+Direct/internal writes require no cache invalidation hooks. This is the
+consistency trade-off for retaining the existing standalone MongoDB prerequisite.
+
+Do not delete/reset the publication document or restore it independently of
+the authoritative ACL database: doing so loses revision history. Disaster
+recovery that rolls this state back requires an explicit consumer recovery
+procedure. Corrupt stored publications fail explicitly rather than resetting
+their revision.
+
+The strong `ETag` is the quoted lowercase SHA-256 of the selected HTTP
+representation bytes: gzip-compressed JWS when compression is negotiated,
+otherwise the original JWS. Compressed and uncompressed variants have different
+tags; consumers retain the server-provided ETag alongside their verified payload.
+An exact strong `If-None-Match` match returns HTTP 304 with no body; otherwise
+the endpoint returns the complete signed policy. The snapshot protocol requires
+strong representation tags: weak tags, `*`, malformed, and oversized conditional
+headers return HTTP 400 rather than implying an exact verified cache match. Signing
+key rotation can change the ETag without changing the policy revision.
+Gzip is supported through the normal response middleware. Decompress before
+hashing the signed content or verifying its signature; decompression restores
+the exact original JWS bytes. Responses include `Vary: Accept-Encoding`,
+including bodyless 304 responses. Changing content encoding causes a full
+response rather than reusing the other variant's strong tag.
+Responses use `Cache-Control: private, no-cache`.
+
+Reads scan bounded authoritative data and sign locally on each request; they
+do not fetch OpenBao per request. Row and payload bounds stop oversized scans,
+and the final payload, protected header, and JWS are checked against configured
+bounds. Publication/signing/limit failures return the standard HTTP 500 API
+error, never HTTP 304 or a partial snapshot. Successful and denied reads emit
+structured logs without credentials or policy rows.
+
+#### Tests
+
+Shared contract/signing tests cover deterministic bytes, strict decoding,
+ownership, boundaries, malformed input, tampering, and rotation concurrency.
+API tests cover authorization, disabled/invalid configuration, conditional
+requests, empty policy, publication corruption, restart stability, and concurrent
+publication. Integration tests connect the HTTP snapshot response to real
+MongoDB publication and verify it with keys fetched from the existing JWKS
+handler.
+
+ACL store unit tests also run without MongoDB, using the existing MongoDB
+driver's mock deployment at the command boundary. They assert query filters,
+V2/V3 decoding, immutable fields, CRUD failures, cursor failures, publication
+compare-and-swap fencing, full rescans after conflicts, bounded contention, and
+bounds. These mocks do not prove server durability or concurrency; the standalone
+tests below remain required for those properties.
+
+To run MongoDB-backed tests, use the isolated standalone MongoDB (localhost port
+27018, separate from the development database):
+
+```sh
+docker compose -f docker-compose.test.yml up -d --wait --wait-timeout 90
+MONGODB_TEST_URI='mongodb://localhost:27018' \
+  go test -race ./internal/acl/aclsnapshot ./internal/acl/aclstore
+docker compose -f docker-compose.test.yml down --volumes
+```
+
+CI also uses standalone MongoDB. Publication and HTTP integration tests skip
+when `MONGODB_TEST_URI` is unset; an explicitly configured unavailable MongoDB
+fails rather than silently skipping. Consumer-side
+verification/caching, peer distribution, and ror-auth v2 runtime integration are
+not implemented by this endpoint.
+
 ## 1. The mental model
 
 An **ACL grant** answers: *"which group may do what, where."*

@@ -88,7 +88,7 @@ func ExchangeToken() gin.HandlerFunc {
 
 // @Summary	Get JWKS
 // @Schemes
-// @Description	Get JWKS for token verification
+// @Description	Get public ror-api signing keys for token and ACL snapshot verification
 // @Tags			token
 // @Accept			application/json
 // @Produce		application/json

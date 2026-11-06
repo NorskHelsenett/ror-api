@@ -40,6 +40,9 @@ func CheckAndSeed(ctx context.Context) {
 		seedAclv2Items(ctx)
 		seedDevelopmentRulesets(ctx)
 		seedApiKeys(ctx)
+		if err := seedSnapshotAPIKey(ctx, mongodb.GetMongoDb().Collection("apikeys")); err != nil {
+			panic(err)
+		}
 		seedProjects(ctx)
 	}
 
