@@ -7644,10 +7644,11 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
+                        "AccessToken": [],
                         "ApiKey": []
                     }
                 ],
-                "description": "Requires the configured dedicated service API-key identity. Disabled until reader and explicit limits are configured.",
+                "description": "Requires the ror:acl:snapshot:read ACL capability on scope ror, subject acl. Limits have defaults and optional overrides.",
                 "produces": [
                     "application/jose"
                 ],
@@ -7693,12 +7694,6 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/rorerror.ErrorData"
-                        }
-                    },
-                    "503": {
-                        "description": "Service Unavailable",
                         "schema": {
                             "$ref": "#/definitions/rorerror.ErrorData"
                         }

@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 	snapshot "github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclsnapshot"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/NorskHelsenett/ror/pkg/rlog"
@@ -23,11 +25,12 @@ type Publisher interface {
 }
 
 type SignPayload func(payload []byte, mediaType string) (string, error)
+type AccessCheck func(context.Context, aclscope.Scope, aclscope.Subject, aclmodels.AccessTypeV3) (bool, error)
 
 // Handler returns a complete authoritative ACL policy signed by ror-api.
 //
 //	@Summary	Fetch signed ACL snapshot
-//	@Description	Requires the configured dedicated service API-key identity. Disabled until reader and explicit limits are configured.
+//	@Description	Requires the ror:acl:snapshot:read ACL capability on scope ror, subject acl. Limits have defaults and optional overrides.
 //	@Tags	acl
 //	@Produce	application/jose
 //	@Param	If-None-Match	header	string	false	"Previously verified strong snapshot ETag; weak tags and wildcard are rejected"
@@ -37,30 +40,20 @@ type SignPayload func(payload []byte, mediaType string) (string, error)
 //	@Failure	401	{object}	rorerror.ErrorData
 //	@Failure	403	{object}	rorerror.ErrorData
 //	@Failure	500	{object}	rorerror.ErrorData
-//	@Failure	503	{object}	rorerror.ErrorData
 //	@Router	/v2/acl/snapshot	[get]
-//	@Security	ApiKey
-func Handler(cfg Config, publisher Publisher, sign SignPayload) gin.HandlerFunc {
+//	@Security	ApiKey || AccessToken
+func Handler(cfg Config, publisher Publisher, sign SignPayload, hasAccess AccessCheck) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Header("Cache-Control", "private, no-cache")
 		varyEncoding(c.Writer.Header())
-		if cfg.ReaderServiceID == "" {
-			abort(c, http.StatusServiceUnavailable, "ACL snapshot endpoint is disabled", nil)
-			return
-		}
 		value, exists := c.Get("identity")
 		identity, ok := value.(identitymodels.Identity)
 		if !exists || !ok {
 			abort(c, http.StatusUnauthorized, "authenticated identity required", nil)
 			return
 		}
-		if identity.Validate() != nil ||
-			identity.Type != identitymodels.IdentityTypeService ||
-			identity.Auth.AuthProvider != identitymodels.IdentityProviderApiKey ||
-			identity.GetId() != cfg.ReaderServiceID {
-			rlog.Infoc(c.Request.Context(), "ACL snapshot read denied",
-				rlog.String("service", identity.GetId()))
-			abort(c, http.StatusForbidden, "dedicated snapshot service API key required", nil)
+		if err := identity.Validate(); err != nil {
+			abort(c, http.StatusUnauthorized, "valid authenticated identity required", err)
 			return
 		}
 		conditional := strings.Join(c.Request.Header.Values("If-None-Match"), ",")
@@ -79,6 +72,17 @@ func Handler(cfg Config, publisher Publisher, sign SignPayload) gin.HandlerFunc 
 			var cancel context.CancelFunc
 			ctx, cancel = context.WithTimeout(ctx, duration)
 			defer cancel()
+		}
+		allowed, err := hasAccess(ctx, aclscope.ScopeRor, aclscope.SubjectAcl,
+			aclmodels.CapRorAclSnapshot.WithVerb(aclmodels.VerbRead))
+		if err != nil {
+			abort(c, http.StatusInternalServerError, "unable to resolve snapshot access", err)
+			return
+		}
+		if !allowed {
+			rlog.Infoc(ctx, "ACL snapshot read denied", rlog.String("identity", identity.GetId()))
+			abort(c, http.StatusForbidden, "ror:acl:snapshot:read ACL capability required", nil)
+			return
 		}
 		payload, err := publisher.PublishSnapshot(ctx, cfg.Limits)
 		if err != nil {
@@ -114,12 +118,12 @@ func Handler(cfg Config, publisher Publisher, sign SignPayload) gin.HandlerFunc 
 		c.Header("ETag", etag)
 		for _, tag := range tags {
 			if tag == etag {
-				rlog.Infoc(ctx, "ACL snapshot read", rlog.String("service", identity.GetId()), rlog.Int("status", http.StatusNotModified))
+				rlog.Infoc(ctx, "ACL snapshot read", rlog.String("identity", identity.GetId()), rlog.Int("status", http.StatusNotModified))
 				c.Status(http.StatusNotModified)
 				return
 			}
 		}
-		rlog.Infoc(ctx, "ACL snapshot read", rlog.String("service", identity.GetId()), rlog.Int("status", http.StatusOK))
+		rlog.Infoc(ctx, "ACL snapshot read", rlog.String("identity", identity.GetId()), rlog.Int("status", http.StatusOK))
 		c.Data(http.StatusOK, "application/jose", []byte(envelope))
 	}
 }

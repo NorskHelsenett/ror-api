@@ -20,14 +20,6 @@ configure_local_snapshot() (
     tmpfile=$(mktemp)
     trap 'rm -f "$tmpfile"' EXIT
 
-    set_local_default ACL_SNAPSHOT_READER_SERVICE_ID acl-snapshot
-    set_local_default ACL_SNAPSHOT_MAX_PAYLOAD_BYTES 8388608
-    set_local_default ACL_SNAPSHOT_MAX_ENVELOPE_BYTES 12582912
-    set_local_default ACL_SNAPSHOT_MAX_ROWS 10000
-    set_local_default ACL_SNAPSHOT_MAX_ACCESS_ENTRIES 64
-    set_local_default ACL_SNAPSHOT_MAX_FIELD_BYTES 1024
-    set_local_default ACL_SNAPSHOT_MAX_HEADER_BYTES 4096
-
     # Never print the generated development credential into container logs.
     credential=$(od -An -N32 -tx1 /dev/urandom | tr -d ' \n')
     [ "${#credential}" -eq 64 ]

@@ -20,8 +20,12 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/acl/aclstore"
 	"github.com/NorskHelsenett/ror-api/internal/controllers/v2/tokencontroller"
 	"github.com/NorskHelsenett/ror-api/pkg/services/tokenservice"
+	"github.com/NorskHelsenett/ror/pkg/acl"
 	"github.com/NorskHelsenett/ror/pkg/helpers/oidchelper"
 	"github.com/NorskHelsenett/ror/pkg/helpers/tokenstoragehelper"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclprincipal"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 	snapshot "github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclsnapshot"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/gin-gonic/gin"
@@ -39,7 +43,8 @@ func TestSnapshotHTTPWithMongoAndJWKS(t *testing.T) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	client, err := mongo.Connect(options.Client().ApplyURI(uri))
+	client, err := mongo.Connect(options.Client().ApplyURI(uri).
+		SetBSONOptions(&options.BSONOptions{ObjectIDAsHexString: true}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,12 +63,12 @@ func TestSnapshotHTTPWithMongoAndJWKS(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = db.Collection("acl").InsertMany(ctx, []any{
-		bson.M{"version": 3, "group": "service@ror.io", "scope": "ror", "subject": "acl",
-			"access": bson.A{"ror:read"}, "issuedBy": "not-in-the-wire-payload"},
-		bson.M{"version": 3, "group": "service@ror.io", "scope": "ror", "subject": "acl",
+		bson.M{"version": 3, "group": aclprincipal.Service(testReader), "scope": "ror", "subject": "acl",
+			"access": bson.A{"ror:acl:snapshot:read"}, "issuedBy": "not-in-the-wire-payload"},
+		bson.M{"version": 3, "group": aclprincipal.Service(testReader), "scope": "ror", "subject": "acl",
 			"access": bson.A{"ror:write", "ror:read"}},
-		bson.M{"version": 3, "group": "service@ror.io", "scope": "ror", "subject": "acl",
-			"access": bson.A{"ror:read"}},
+		bson.M{"version": 3, "group": aclprincipal.Service(testReader), "scope": "ror", "subject": "acl",
+			"access": bson.A{"ror:acl:snapshot:read"}},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -79,15 +84,27 @@ func TestSnapshotHTTPWithMongoAndJWKS(t *testing.T) {
 	t.Cleanup(func() {
 		tokenservice.SetManager(oidchelper.NewManagerWithValidator("", &tokenstoragehelper.KeyStorageProvider{}, nil))
 	})
-	cfg := testConfig()
+	cfg, err := LoadConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
 	publisher := aclstore.NewMongoStore(func() *mongo.Database { return db })
+	resolver := acl.NewResolver(publisher)
+	checkAccess := func(ctx context.Context, scope aclscope.Scope, subject aclscope.Subject, access aclmodels.AccessTypeV3) (bool, error) {
+		identity := ctx.Value(identitymodels.ContexIdentity).(identitymodels.Identity)
+		groups, err := identity.GetGroups()
+		if err != nil {
+			return false, err
+		}
+		return resolver.HasAccess(ctx, groups, scope, subject, access)
+	}
 	router := gin.New()
 	router.Use(Compression())
 	router.GET("/v2/token/jwks", tokencontroller.GetJwks())
 	router.GET("/v2/acl/snapshot", func(c *gin.Context) {
-		c.Set("identity", reader(t, cfg.ReaderServiceID, identitymodels.IdentityProviderApiKey))
+		c.Set("identity", reader(t, testReader, identitymodels.IdentityProviderApiKey))
 		c.Set("timeout", 10*time.Second)
-	}, Handler(cfg, publisher, storage.SignPayload))
+	}, Handler(cfg, publisher, storage.SignPayload, checkAccess))
 	fetch := func(path, etag string) *httptest.ResponseRecorder {
 		t.Helper()
 		req := httptest.NewRequest(http.MethodGet, path, nil)
@@ -148,10 +165,10 @@ func TestSnapshotHTTPWithMongoAndJWKS(t *testing.T) {
 	}
 	payload, _ := base64.RawURLEncoding.DecodeString(parts[1])
 	p, err := snapshot.Decode(payload, cfg.Limits)
-	if err != nil || len(p.Rows) != 3 || p.Rows[0].Group != "service@ror.io" || p.Revision != 1 {
+	if err != nil || len(p.Rows) != 3 || p.Rows[0].Group != string(aclprincipal.Service(testReader)) || p.Revision != 1 {
 		t.Fatalf("unexpected authoritative policy: %#v %v", p, err)
 	}
-	for i, want := range []string{"ror:read", "ror:read", "ror:read,ror:write"} {
+	for i, want := range []string{"ror:acl:snapshot:read", "ror:acl:snapshot:read", "ror:read,ror:write"} {
 		var access []string
 		for _, value := range p.Rows[i].Grant.Access {
 			access = append(access, string(value))
@@ -168,7 +185,7 @@ func TestSnapshotHTTPWithMongoAndJWKS(t *testing.T) {
 	if unchanged.Code != 304 || unchanged.Body.Len() != 0 {
 		t.Fatalf("unchanged snapshot: %d %s", unchanged.Code, unchanged.Body)
 	}
-	if _, err := db.Collection("acl").DeleteMany(ctx, bson.M{}); err != nil {
+	if _, err := db.Collection("acl").DeleteMany(ctx, bson.M{"access": bson.A{"ror:write", "ror:read"}}); err != nil {
 		t.Fatal(err)
 	}
 	changed := fetch("/v2/acl/snapshot", etag)
@@ -178,7 +195,14 @@ func TestSnapshotHTTPWithMongoAndJWKS(t *testing.T) {
 	parts = strings.Split(changed.Body.String(), ".")
 	payload, _ = base64.RawURLEncoding.DecodeString(parts[1])
 	p, err = snapshot.Decode(payload, cfg.Limits)
-	if err != nil || p.Revision != 2 || p.Rows == nil || len(p.Rows) != 0 {
-		t.Fatalf("empty authoritative policy: %#v %v", p, err)
+	if err != nil || p.Revision != 2 || len(p.Rows) != 2 {
+		t.Fatalf("changed authoritative policy: %#v %v", p, err)
+	}
+	if _, err := db.Collection("acl").DeleteMany(ctx, bson.M{}); err != nil {
+		t.Fatal(err)
+	}
+	denied := fetch("/v2/acl/snapshot", etag)
+	if denied.Code != 403 {
+		t.Fatalf("revoked snapshot grant returned %d", denied.Code)
 	}
 }

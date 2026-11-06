@@ -17,7 +17,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/NorskHelsenett/ror/pkg/acl"
 	"github.com/NorskHelsenett/ror/pkg/helpers/tokenstoragehelper"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclgrants"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
 	snapshot "github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclsnapshot"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/gin-gonic/gin"
@@ -25,10 +29,99 @@ import (
 )
 
 func testConfig() Config {
-	return Config{ReaderServiceID: "ror-auth-site-a", Limits: snapshot.Limits{
+	return Config{Limits: snapshot.Limits{
 		MaxPayloadBytes: 8192, MaxEnvelopeBytes: 16384, MaxRows: 10,
 		MaxAccessEntries: 10, MaxFieldBytes: 128, MaxHeaderBytes: 256,
 	}}
+}
+
+const testReader = "ror-auth-site-a"
+
+func allowSnapshot(ctx context.Context, scope aclscope.Scope, subject aclscope.Subject, access aclmodels.AccessTypeV3) (bool, error) {
+	identity, ok := ctx.Value(identitymodels.ContexIdentity).(identitymodels.Identity)
+	return ok && identity.Validate() == nil && scope == aclscope.ScopeRor &&
+		subject == aclscope.SubjectAcl && access == aclmodels.CapRorAclSnapshot.WithVerb(aclmodels.VerbRead), nil
+}
+
+type snapshotGrants struct {
+	grants aclgrants.Grants
+	err    error
+}
+
+func (s snapshotGrants) GetGrants(context.Context, []string) (aclgrants.Grants, error) {
+	return s.grants, s.err
+}
+
+func TestSnapshotCapabilityAuthorization(t *testing.T) {
+	cfg := testConfig()
+	payload, err := snapshot.Encode(snapshot.Payload{
+		Schema: snapshot.Schema, Revision: 1, GeneratedAt: time.Unix(1, 0).UTC(), Rows: []snapshot.Row{},
+	}, cfg.Limits)
+	if err != nil {
+		t.Fatal(err)
+	}
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
+	keys := &tokenstoragehelper.KeyStorageProvider{Keys: map[int]tokenstoragehelper.Key{
+		1: {KeyID: "authorized-snapshot", PrivateKey: privateKey, AlgorithmKey: "RS512"},
+	}}
+	user, err := identitymodels.NewUserIdentity(identitymodels.AuthInfo{AuthProvider: identitymodels.IdentityProviderOidc},
+		"reader@example.test", "Reader", []string{"readers"}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cluster, err := identitymodels.NewClusterIdentity(identitymodels.AuthInfo{AuthProvider: identitymodels.IdentityProviderApiKey}, "cluster", "cluster-uid")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, identity := range []identitymodels.Identity{
+		user, cluster, reader(t, testReader, identitymodels.IdentityProviderApiKey),
+		reader(t, "another-service", identitymodels.IdentityProviderOidc),
+	} {
+		for _, tt := range []struct {
+			name   string
+			grant  aclgrants.Grant
+			err    error
+			status int
+		}{
+			{"snapshot read", aclgrants.Grant{Scope: "ror", Subject: "acl", Access: []aclmodels.AccessTypeV3{"ror:acl:snapshot:read"}}, nil, 200},
+			{"no access", aclgrants.Grant{Scope: "ror", Subject: "acl", Access: []aclmodels.AccessTypeV3{}}, nil, 403},
+			{"ordinary ACL read", aclgrants.Grant{Scope: "ror", Subject: "acl", Access: []aclmodels.AccessTypeV3{"ror:read"}}, nil, 403},
+			{"wrong subject", aclgrants.Grant{Scope: "ror", Subject: "Config", Access: []aclmodels.AccessTypeV3{"ror:acl:snapshot:read"}}, nil, 403},
+			{"wrong scope", aclgrants.Grant{Scope: "Project", Subject: "acl", Access: []aclmodels.AccessTypeV3{"ror:acl:snapshot:read"}}, nil, 403},
+			{"resolver error", aclgrants.Grant{}, errors.New("store unavailable"), 500},
+		} {
+			t.Run(identity.GetId()+"/"+tt.name, func(t *testing.T) {
+				resolver := acl.NewResolverWithGrantSource(snapshotGrants{aclgrants.Grants{tt.grant}, tt.err})
+				check := func(ctx context.Context, scope aclscope.Scope, subject aclscope.Subject, access aclmodels.AccessTypeV3) (bool, error) {
+					got := ctx.Value(identitymodels.ContexIdentity).(identitymodels.Identity)
+					groups, err := got.GetGroups()
+					if err != nil {
+						return false, err
+					}
+					return resolver.HasAccess(ctx, groups, scope, subject, access)
+				}
+				publisher := &fakePublisher{payload: payload}
+				router := gin.New()
+				router.Use(func(c *gin.Context) { c.Set("identity", identity) })
+				router.GET("/v2/acl/snapshot", Handler(cfg, publisher, keys.SignPayload, check))
+				recorder := httptest.NewRecorder()
+				router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/v2/acl/snapshot", nil))
+				if recorder.Code != tt.status {
+					t.Fatalf("status %d, want %d", recorder.Code, tt.status)
+				}
+				wantCalls := 0
+				if tt.name == "snapshot read" {
+					wantCalls = 1
+				}
+				if publisher.calls != wantCalls {
+					t.Fatalf("published %d times, want %d", publisher.calls, wantCalls)
+				}
+			})
+		}
+	}
 }
 
 type fakePublisher struct {
@@ -71,7 +164,7 @@ func requestEncoding(cfg Config, identity any, publisher Publisher, sign SignPay
 		}
 		c.Set("timeout", time.Second)
 	})
-	router.GET("/v2/acl/snapshot", Handler(cfg, publisher, sign))
+	router.GET("/v2/acl/snapshot", Handler(cfg, publisher, sign, allowSnapshot))
 	response := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/v2/acl/snapshot", nil)
 	req.Header.Set("Accept-Encoding", encoding)
@@ -98,7 +191,7 @@ func TestHandlerSignedSnapshotAndConditionalFetch(t *testing.T) {
 		1: {KeyID: "api-key-1", PrivateKey: privateKey, AlgorithmKey: "RS512"},
 	}}
 	publisher := &fakePublisher{payload: payload}
-	identity := reader(t, cfg.ReaderServiceID, identitymodels.IdentityProviderApiKey)
+	identity := reader(t, testReader, identitymodels.IdentityProviderApiKey)
 	response := request(cfg, identity, publisher, keys.SignPayload, "")
 	if response.Code != http.StatusOK || response.Header().Get("Content-Type") != "application/jose" {
 		t.Fatalf("unexpected response %d: %s", response.Code, response.Body)
@@ -203,10 +296,10 @@ func TestHTTPClientDecompressesSignedSnapshot(t *testing.T) {
 	keys := &tokenstoragehelper.KeyStorageProvider{Keys: map[int]tokenstoragehelper.Key{
 		1: {KeyID: "http-client-key", PrivateKey: privateKey, AlgorithmKey: "RS512"},
 	}}
-	identity := reader(t, cfg.ReaderServiceID, identitymodels.IdentityProviderApiKey)
+	identity := reader(t, testReader, identitymodels.IdentityProviderApiKey)
 	router := gin.New()
 	router.Use(Compression(), func(c *gin.Context) { c.Set("identity", identity) })
-	router.GET("/v2/acl/snapshot", Handler(cfg, &fakePublisher{payload: payload}, keys.SignPayload))
+	router.GET("/v2/acl/snapshot", Handler(cfg, &fakePublisher{payload: payload}, keys.SignPayload, allowSnapshot))
 	server := httptest.NewServer(router)
 	defer server.Close()
 	client := server.Client()
@@ -257,28 +350,28 @@ func TestHandlerAuthorization(t *testing.T) {
 		status   int
 	}{
 		{"anonymous", nil, 401}, {"invalid identity type", "bad", 401},
-		{"user API key", user, 403},
-		{"different service", reader(t, "other", identitymodels.IdentityProviderApiKey), 403},
-		{"OIDC service", reader(t, cfg.ReaderServiceID, identitymodels.IdentityProviderOidc), 403},
-		{"incomplete identity", identitymodels.Identity{}, 403},
+		{"user API key", user, 500},
+		{"different service", reader(t, "other", identitymodels.IdentityProviderApiKey), 500},
+		{"OIDC service", reader(t, testReader, identitymodels.IdentityProviderOidc), 500},
+		{"incomplete identity", identitymodels.Identity{}, 401},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			publisher := &fakePublisher{}
+			publisher := &fakePublisher{err: errors.New("authorized")}
 			got := request(cfg, tt.identity, publisher, nil, "")
-			if got.Code != tt.status || publisher.calls != 0 {
+			wantCalls := 0
+			if tt.status == 500 {
+				wantCalls = 1
+			}
+			if got.Code != tt.status || publisher.calls != wantCalls {
 				t.Fatalf("got %d, published %d times", got.Code, publisher.calls)
 			}
 		})
-	}
-	got := request(Config{}, nil, nil, nil, "")
-	if got.Code != 503 {
-		t.Fatalf("disabled endpoint returned %d", got.Code)
 	}
 }
 
 func TestHandlerFailures(t *testing.T) {
 	cfg := testConfig()
-	identity := reader(t, cfg.ReaderServiceID, identitymodels.IdentityProviderApiKey)
+	identity := reader(t, testReader, identitymodels.IdentityProviderApiKey)
 	signErr := func([]byte, string) (string, error) { return "", errors.New("signing unavailable") }
 	for _, tt := range []struct {
 		name      string

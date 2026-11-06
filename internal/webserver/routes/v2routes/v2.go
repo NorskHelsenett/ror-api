@@ -1,6 +1,7 @@
 package v2routes
 
 import (
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/acl/aclsnapshot"
@@ -80,7 +81,7 @@ func SetupRoutes(router *gin.Engine) error {
 	aclroute := v2.Group("/acl")
 	{
 		aclroute.GET("/snapshot", aclsnapshot.Handler(snapshotConfig,
-			aclstore.NewMongoStore(mongodb.GetMongoDb), tokenstoragehelper.SignPayload))
+			aclstore.NewMongoStore(mongodb.GetMongoDb), tokenstoragehelper.SignPayload, aclservice.HasAccess))
 		aclroute.GET("/lookup", aclcontroller.LookupAcl())
 		aclroute.GET("/lookup/:scope/:subject", aclcontroller.LookupAclByScopeSubject())
 		aclroute.HEAD("/lookup/:scope/:subject/:accesstype", aclcontroller.CheckAccess())

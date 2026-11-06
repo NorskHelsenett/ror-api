@@ -10,34 +10,29 @@ import (
 )
 
 type Config struct {
-	ReaderServiceID string
-	Limits          snapshot.Limits
+	Limits snapshot.Limits
 }
 
-// LoadConfig leaves the endpoint disabled when no reader is configured.
-// Once enabled, every bound must be explicitly configured.
+// LoadConfig supplies defaults and validates optional deployment overrides.
 func LoadConfig() (Config, error) {
-	rorconfig.SetDefault("ACL_SNAPSHOT_READER_SERVICE_ID", "")
-	cfg := Config{ReaderServiceID: rorconfig.GetString("ACL_SNAPSHOT_READER_SERVICE_ID")}
-	if cfg.ReaderServiceID == "" {
-		return cfg, nil
-	}
+	cfg := Config{}
 	fields := []struct {
-		key    string
-		target *int
+		key          string
+		target       *int
+		defaultValue int
 	}{
-		{"ACL_SNAPSHOT_MAX_PAYLOAD_BYTES", &cfg.Limits.MaxPayloadBytes},
-		{"ACL_SNAPSHOT_MAX_ENVELOPE_BYTES", &cfg.Limits.MaxEnvelopeBytes},
-		{"ACL_SNAPSHOT_MAX_ROWS", &cfg.Limits.MaxRows},
-		{"ACL_SNAPSHOT_MAX_ACCESS_ENTRIES", &cfg.Limits.MaxAccessEntries},
-		{"ACL_SNAPSHOT_MAX_FIELD_BYTES", &cfg.Limits.MaxFieldBytes},
-		{"ACL_SNAPSHOT_MAX_HEADER_BYTES", &cfg.Limits.MaxHeaderBytes},
+		{"ACL_SNAPSHOT_MAX_PAYLOAD_BYTES", &cfg.Limits.MaxPayloadBytes, 8 * 1024 * 1024},
+		{"ACL_SNAPSHOT_MAX_ENVELOPE_BYTES", &cfg.Limits.MaxEnvelopeBytes, 12 * 1024 * 1024},
+		{"ACL_SNAPSHOT_MAX_ROWS", &cfg.Limits.MaxRows, 10000},
+		{"ACL_SNAPSHOT_MAX_ACCESS_ENTRIES", &cfg.Limits.MaxAccessEntries, 64},
+		{"ACL_SNAPSHOT_MAX_FIELD_BYTES", &cfg.Limits.MaxFieldBytes, 1024},
+		{"ACL_SNAPSHOT_MAX_HEADER_BYTES", &cfg.Limits.MaxHeaderBytes, 4096},
 	}
 	for _, field := range fields {
-		rorconfig.SetDefault(field.key, "")
+		rorconfig.SetDefault(field.key, field.defaultValue)
 		value, err := strconv.Atoi(rorconfig.GetString(field.key))
 		if err != nil || value <= 0 {
-			return Config{}, fmt.Errorf("%s must be explicitly configured as a positive integer", field.key)
+			return Config{}, fmt.Errorf("%s must be a positive integer", field.key)
 		}
 		*field.target = value
 	}

@@ -6,14 +6,23 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror-api/pkg/middelware/authmiddleware"
+	"github.com/NorskHelsenett/ror/pkg/acl"
 	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclgrants"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/gin-gonic/gin"
 )
 
 type snapshotTestAuth struct {
 	identity identitymodels.Identity
+}
+
+type emptySnapshotGrants struct{}
+
+func (emptySnapshotGrants) GetGrants(context.Context, []string) (aclgrants.Grants, error) {
+	return aclgrants.Grants{}, nil
 }
 
 func (snapshotTestAuth) IsOfType(c *gin.Context) bool {
@@ -25,13 +34,23 @@ func (p snapshotTestAuth) Authenticate(c *gin.Context, _ context.Context) {
 }
 
 func TestSnapshotRoute(t *testing.T) {
+	aclservice.SetResolver(acl.NewResolverWithGrantSource(emptySnapshotGrants{}))
+	t.Cleanup(func() { aclservice.SetResolver(nil) })
 	oldProviders := authmiddleware.AuthProviders
 	oldTimeout := rorconfig.GetString(rorconfig.HTTP_TIMEOUT)
-	oldReader := rorconfig.GetString("ACL_SNAPSHOT_READER_SERVICE_ID")
+	bounds := []string{"ACL_SNAPSHOT_MAX_PAYLOAD_BYTES", "ACL_SNAPSHOT_MAX_ENVELOPE_BYTES",
+		"ACL_SNAPSHOT_MAX_ROWS", "ACL_SNAPSHOT_MAX_ACCESS_ENTRIES", "ACL_SNAPSHOT_MAX_FIELD_BYTES", "ACL_SNAPSHOT_MAX_HEADER_BYTES"}
+	old := map[string]string{}
+	for _, key := range bounds {
+		old[key] = rorconfig.GetString(key)
+		rorconfig.Set(key, "")
+	}
 	t.Cleanup(func() {
 		authmiddleware.AuthProviders = oldProviders
 		rorconfig.Set(rorconfig.HTTP_TIMEOUT, oldTimeout)
-		rorconfig.Set("ACL_SNAPSHOT_READER_SERVICE_ID", oldReader)
+		for key, value := range old {
+			rorconfig.Set(key, value)
+		}
 	})
 	identity, err := identitymodels.NewServiceIdentity(
 		identitymodels.AuthInfo{AuthProvider: identitymodels.IdentityProviderApiKey}, "reader")
@@ -40,7 +59,6 @@ func TestSnapshotRoute(t *testing.T) {
 	}
 	authmiddleware.AuthProviders = []authmiddleware.GinAuthProvider{snapshotTestAuth{identity}}
 	rorconfig.Set(rorconfig.HTTP_TIMEOUT, "1s")
-	rorconfig.Set("ACL_SNAPSHOT_READER_SERVICE_ID", "")
 	router := gin.New()
 	if err := SetupRoutes(router); err != nil {
 		t.Fatal(err)
@@ -63,7 +81,7 @@ func TestSnapshotRoute(t *testing.T) {
 		status int
 	}{
 		{http.MethodGet, false, 401},
-		{http.MethodGet, true, 503},
+		{http.MethodGet, true, 403},
 		{http.MethodPost, true, 404},
 	} {
 		req := httptest.NewRequest(tt.method, "/v2/acl/snapshot", nil)
@@ -76,7 +94,6 @@ func TestSnapshotRoute(t *testing.T) {
 			t.Fatalf("%s authenticated=%v: got %d: %s", tt.method, tt.auth, response.Code, response.Body)
 		}
 	}
-	rorconfig.Set("ACL_SNAPSHOT_READER_SERVICE_ID", "reader")
 	oldRows := rorconfig.GetString("ACL_SNAPSHOT_MAX_ROWS")
 	rorconfig.Set("ACL_SNAPSHOT_MAX_ROWS", "invalid")
 	t.Cleanup(func() { rorconfig.Set("ACL_SNAPSHOT_MAX_ROWS", oldRows) })

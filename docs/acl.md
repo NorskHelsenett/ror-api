@@ -70,40 +70,49 @@ empty array, preserving an inert grant rather than dropping its row.
 
 #### Configuration and authentication
 
-No production bounds are assumed. Configure all of:
+All limits have defaults. Environment overrides are optional:
 
-| Setting | Meaning |
-|---|---|
-| `ACL_SNAPSHOT_READER_SERVICE_ID` | Dedicated API-key service identifier, not the secret key or its database ID |
-| `ACL_SNAPSHOT_MAX_PAYLOAD_BYTES` | Maximum decoded JSON payload bytes; hard storage ceiling 15 MiB |
-| `ACL_SNAPSHOT_MAX_ENVELOPE_BYTES` | Maximum complete compact JWS bytes |
-| `ACL_SNAPSHOT_MAX_ROWS` | Maximum policy rows |
-| `ACL_SNAPSHOT_MAX_ACCESS_ENTRIES` | Maximum access entries per row |
-| `ACL_SNAPSHOT_MAX_FIELD_BYTES` | Maximum UTF-8 bytes per group, scope, subject, access entry, and signing key ID |
-| `ACL_SNAPSHOT_MAX_HEADER_BYTES` | Maximum decoded protected header bytes and incoming conditional-header bytes |
+| Setting | Default | Meaning |
+|---|---|---|
+| `ACL_SNAPSHOT_MAX_PAYLOAD_BYTES` | 8388608 (8 MiB) | Maximum decoded JSON payload bytes; hard storage ceiling 15 MiB |
+| `ACL_SNAPSHOT_MAX_ENVELOPE_BYTES` | 12582912 (12 MiB) | Maximum complete compact JWS bytes |
+| `ACL_SNAPSHOT_MAX_ROWS` | 10000 | Maximum policy rows |
+| `ACL_SNAPSHOT_MAX_ACCESS_ENTRIES` | 64 | Maximum access entries per row |
+| `ACL_SNAPSHOT_MAX_FIELD_BYTES` | 1024 | Maximum UTF-8 bytes per group, scope, subject, access entry, and signing key ID |
+| `ACL_SNAPSHOT_MAX_HEADER_BYTES` | 4096 | Maximum decoded protected header bytes and incoming conditional-header bytes |
 
-With no reader configured, the snapshot handler returns HTTP 503 after normal
-API authentication. Configuring a reader with missing/invalid bounds fails
-route setup instead of enabling a partially configured endpoint. Requests are
+The endpoint does not depend on environment configuration to be enabled.
+Unset limits use defaults; individual overrides do not require other overrides.
+Invalid overrides fail route setup explicitly. Requests are
 bounded by the existing `/v2` request timeout.
 
-Authenticate with the existing `X-API-KEY` mechanism. Only a **service** identity
-authenticated by API key whose identifier exactly matches the configured
-reader can fetch snapshots. Ordinary users (including administrators), OIDC
-tokens, cluster identities, and other service identities are not accepted.
-Provision dedicated service keys with no unrelated ACL-administration grants;
-the snapshot allowlist itself grants no write permission. Separate site
-credentials may represent the same reader service, so credential rotation does
-not require changing the allowlisted service identifier.
+Authenticate with the existing API-key or OIDC mechanism. Any valid authenticated
+identity can fetch snapshots when its ACL grants satisfy
+`{scope: "ror", subject: "acl", access: ["ror:acl:snapshot:read"]}`.
+Authorization uses the normal ACL resolver, including its group, wildcard and
+trusted-token-grant behavior. Ordinary `ror:read` does not confer snapshot access.
+There is no reader identity environment allowlist. The new capability is
+registered for the read verb only and does not grant ACL administration rights.
+Provision the capability through normal ACL management for production callers.
 
-For local development, the default Compose dependency stack writes explicit
-development bounds and a generated `DEV_ACL_SNAPSHOT_API_KEY` into ignored
+For local development, the default Compose dependency stack writes
+a generated `DEV_ACL_SNAPSHOT_API_KEY` into ignored
 `.env` without overwriting local overrides. After Compose bootstrap completes,
-the host API seeds a read-only service credential for the configured reader
-using the Vault-backed API key salt, only when `DEVELOPMENT=true`. No ACL grants
-are added. Repeated startup preserves the record's creation time and updates
-its hash if the local credential changes. Conflicting credential identities
-fail startup. The local publication-role migration supports both fresh and
+the host API seeds a read-only `acl-snapshot` service credential
+using the Vault-backed API key salt, only when `DEVELOPMENT=true`, and seeds its
+narrow snapshot-read ACL grant. No unrelated permissions are added. The service
+identifier is fixed for this development fixture, not used by authorization.
+Repeated startup preserves the record's creation time and updates
+its hash if the local credential changes, but only for records marked
+`seedOwner: development-acl-snapshot`. The ownership marker, service type and
+record ID are also required by the rotation update filter; ownership changes
+fail explicitly. Unrelated service credentials are never adopted or overwritten.
+New seeds use a stable seeder-owned record ID for concurrent initialization.
+Existing unmarked credentials, including those created by an older snapshot
+seeder, fail startup rather than being automatically claimed. Explicitly
+provision a replacement after
+reviewing the old credential; the seeder does not migrate or delete it.
+Conflicting credential identities fail startup. The local publication-role migration supports both fresh and
 existing data directories without changing MongoDB topology.
 See [local startup and curl instructions](../README.md#start-requirements).
 
@@ -177,7 +186,7 @@ structured logs without credentials or policy rows.
 
 Shared contract/signing tests cover deterministic bytes, strict decoding,
 ownership, boundaries, malformed input, tampering, and rotation concurrency.
-API tests cover authorization, disabled/invalid configuration, conditional
+API tests cover authorization, defaults/invalid overrides, conditional
 requests, empty policy, publication corruption, restart stability, and concurrent
 publication. Integration tests connect the HTTP snapshot response to real
 MongoDB publication and verify it with keys fetched from the existing JWKS

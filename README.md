@@ -40,7 +40,8 @@ docker compose up -d
 The API still runs on the host. Compose keeps the existing standalone
 MongoDB setup, grants the API access
 to snapshot publication state, and writes a generated development snapshot key
-and explicit local snapshot limits into the ignored `.env`. Wait for bootstrap
+into the ignored `.env`. Snapshot limits have defaults; no limit environment
+variables are required. Wait for bootstrap
 before starting the API:
 
 ```bash
@@ -57,8 +58,11 @@ curl --fail-with-body -D - \
   http://localhost:10000/v2/acl/snapshot
 ```
 
-The credential represents the read-only `acl-snapshot` service and receives no
-ACL management grants. It is seeded when the host API starts with
+The credential represents the read-only `acl-snapshot` service and receives only
+the `ror:acl:snapshot:read` grant on scope `ror`, subject `acl`, not ACL management
+rights. Any authenticated identity with that capability may read snapshots;
+access is not controlled by an environment-based reader allowlist.
+The development credential and grant are seeded when the host API starts with
 `DEVELOPMENT=true`, using the actual Vault-backed API key salt. Existing local
 configuration and the generated key survive Compose restarts. To rotate the
 development credential, clear `DEV_ACL_SNAPSHOT_API_KEY` in `.env`, restart

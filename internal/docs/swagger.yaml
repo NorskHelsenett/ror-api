@@ -11812,8 +11812,8 @@ paths:
       - acl
   /v2/acl/snapshot:
     get:
-      description: Requires the configured dedicated service API-key identity. Disabled
-        until reader and explicit limits are configured.
+      description: Requires the ror:acl:snapshot:read ACL capability on scope ror,
+        subject acl. Limits have defaults and optional overrides.
       parameters:
       - description: Previously verified strong snapshot ETag; weak tags and wildcard
           are rejected
@@ -11845,12 +11845,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/rorerror.ErrorData'
-        "503":
-          description: Service Unavailable
-          schema:
-            $ref: '#/definitions/rorerror.ErrorData'
       security:
-      - ApiKey: []
+      - AccessToken: []
+        ApiKey: []
       summary: Fetch signed ACL snapshot
       tags:
       - acl

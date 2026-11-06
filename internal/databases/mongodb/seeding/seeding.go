@@ -43,6 +43,9 @@ func CheckAndSeed(ctx context.Context) {
 		if err := seedSnapshotAPIKey(ctx, mongodb.GetMongoDb().Collection("apikeys")); err != nil {
 			panic(err)
 		}
+		if err := seedSnapshotGrant(ctx, mongodb.GetMongoDb().Collection("acl")); err != nil {
+			panic(err)
+		}
 		seedProjects(ctx)
 	}
 

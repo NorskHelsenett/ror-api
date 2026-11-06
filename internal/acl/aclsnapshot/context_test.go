@@ -29,12 +29,12 @@ func TestHandlerRequestContext(t *testing.T) {
 			publisher := &fakePublisher{err: errors.New("stop after publishing")}
 			router := gin.New()
 			router.Use(func(c *gin.Context) {
-				c.Set("identity", reader(t, cfg.ReaderServiceID, identitymodels.IdentityProviderApiKey))
+				c.Set("identity", reader(t, testReader, identitymodels.IdentityProviderApiKey))
 				if tt.timeout != nil {
 					c.Set("timeout", tt.timeout)
 				}
 			})
-			router.GET("/v2/acl/snapshot", Handler(cfg, publisher, nil))
+			router.GET("/v2/acl/snapshot", Handler(cfg, publisher, nil, allowSnapshot))
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 			if tt.cancel {
