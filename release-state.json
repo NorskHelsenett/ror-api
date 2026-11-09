@@ -681,7 +681,7 @@
           "number": 5,
           "candidateVersion": "v1.16.8-rc.5",
           "harnessSHA": "96ae6be67ad245af39bf90b1f612ecbcbe393a19",
-          "status": "publishing",
+          "status": "published",
           "binding": {
             "image": {
               "archiveSha256": "sha256:1a36b8c68e831d53d6e0bfb8fc256dada2bb12325218dff9ecd054166573f508",
