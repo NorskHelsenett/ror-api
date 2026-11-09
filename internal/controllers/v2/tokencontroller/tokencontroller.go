@@ -1,14 +1,13 @@
 package tokencontroller
 
 import (
+	"errors"
 	"net/http"
 
-	aclservice "github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/gincontext"
 	"github.com/NorskHelsenett/ror-api/pkg/helpers/rorginerror"
 	"github.com/NorskHelsenett/ror-api/pkg/services/tokenservice"
-	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
-	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
+	rorerror "github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
@@ -20,7 +19,7 @@ type ExchangeTokenRequest struct {
 }
 
 var (
-	validate *validator.Validate
+	validate = validator.New()
 )
 
 // @Summary	Exchange token for a new resigned token
@@ -36,13 +35,16 @@ var (
 // @Failure		500					{object}	rorerror.ErrorData
 // @Router			/v2/token/exchange	[post]
 // @Param			token				body	ExchangeTokenRequest	true	"token to exchange"
-// @Security		ApiKey || AccessToken
+// @Security		AccessToken
 func ExchangeToken() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		var input ExchangeTokenRequest
 		ctx, cancel := gincontext.GetRorContextFromGinContext(c)
 		defer cancel()
+		if ctx == nil {
+			return
+		}
 
 		if err := c.BindJSON(&input); err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Required fields are missing", err)
@@ -50,38 +52,6 @@ func ExchangeToken() gin.HandlerFunc {
 			return
 		}
 
-		requiredAccess := aclmodels.CapKubernetes.WithVerb(aclmodels.VerbLogon)
-		if input.Admin {
-			adminConfigured, accessErr := aclservice.HasConfiguredAccess(
-				ctx,
-				aclscope.ScopeCluster,
-				aclscope.Subject(input.ClusterID),
-				aclmodels.AccessKubernetesAdmin,
-			)
-			if accessErr != nil {
-				rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "access check failed", accessErr)
-				rerr.GinLogErrorAbort(c)
-				return
-			}
-			if adminConfigured {
-				requiredAccess = aclmodels.AccessKubernetesAdmin
-			}
-		}
-
-		hasAccess, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeCluster, aclscope.Subject(input.ClusterID), requiredAccess)
-		if accessErr != nil {
-			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "access check failed", accessErr)
-			rerr.GinLogErrorAbort(c)
-			return
-		}
-
-		if !hasAccess {
-			rerr := rorginerror.NewRorGinError(http.StatusForbidden, "No access to login to cluster")
-			rerr.GinLogErrorAbort(c)
-			return
-		}
-
-		validate = validator.New()
 		if err := validate.Struct(&input); err != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusBadRequest, "Could not validate token exchange object", err)
 			rerr.GinLogErrorAbort(c)
@@ -91,6 +61,11 @@ func ExchangeToken() gin.HandlerFunc {
 		newToken, err := tokenservice.ExchangeToken(ctx, input.ClusterID, input.Token, input.Admin)
 
 		if err != nil {
+			var apiError rorerror.RorError
+			if errors.As(err, &apiError) {
+				rorginerror.NewRorGinError(apiError.GetStatusCode(), apiError.GetMessage(), apiError.GetErrors()...).GinLogErrorAbort(c)
+				return
+			}
 			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "Unable to exchange token", err)
 			rerr.GinLogErrorAbort(c)
 			return

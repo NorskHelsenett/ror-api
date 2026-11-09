@@ -12456,7 +12456,6 @@ paths:
             $ref: '#/definitions/rorerror.ErrorData'
       security:
       - AccessToken: []
-        ApiKey: []
       summary: Exchange token for a new resigned token
       tags:
       - token

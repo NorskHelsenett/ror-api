@@ -19,6 +19,24 @@ only after successful build, chart checks, and amd64 integration tests. Publicat
 defaults to off; see [the RC runbook](docs/release-candidates.md). The old tag-triggered
 publisher is removed. Final approval-gated promotion is not enabled yet.
 
+## Cluster token exchange
+
+`POST /v2/token/exchange` keeps its existing request and response format.
+It requires an authenticated OIDC user; API keys cannot delegate user elevation.
+The bearer token and JSON `token` are independently validated and must have the
+same issuer (`iss`) and original OIDC subject (`sub`). Refreshed tokens may differ
+in bytes, expiration, or email while still identifying the same user.
+
+Both the authenticated caller and the freshly supplied identity must have the
+required cluster permission. Fresh groups and trusted `ror_grants` are used for
+the second check; stored permissions cannot elevate a newly unauthorized login.
+Admin exchanges require `kubernetes:admin` on migrated clusters, retaining
+`kubernetes:logon` fallback on clusters without an explicit admin grant.
+
+Invalid tokens receive HTTP 401; issuer/subject mismatches, non-user callers,
+and insufficient permissions receive HTTP 403. Successful exchanges retain the
+existing signed-token claims and lifetime.
+
 # Prerequisites
 
 - Golang 1.26

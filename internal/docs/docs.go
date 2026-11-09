@@ -8765,8 +8765,7 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "AccessToken": [],
-                        "ApiKey": []
+                        "AccessToken": []
                     }
                 ],
                 "description": "Exchange a token for a new resigned token to access a cluster",
