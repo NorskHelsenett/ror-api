@@ -3,7 +3,7 @@ module github.com/NorskHelsenett/ror-api
 go 1.27.3
 
 require (
-	github.com/NorskHelsenett/ror v1.26.2
+	github.com/NorskHelsenett/ror v1.26.3
 	github.com/blang/semver/v4 v4.0.0
 	github.com/dotse/go-health v1.0.3
 	github.com/evanphx/json-patch/v5 v5.9.11
@@ -90,6 +90,7 @@ require (
 	github.com/klauspost/cpuid/v2 v2.4.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/leodido/go-urn v1.5.0 // indirect
+	github.com/lestrrat-go/dsig v1.4.0 // indirect
 	github.com/lestrrat-go/option/v3 v3.0.0-alpha1 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260330125221-c963978e514e // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect

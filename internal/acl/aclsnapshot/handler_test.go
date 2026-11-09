@@ -25,7 +25,6 @@ import (
 	snapshot "github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclsnapshot"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 func testConfig() Config {
@@ -193,7 +192,7 @@ func TestHandlerSignedSnapshotAndConditionalFetch(t *testing.T) {
 	publisher := &fakePublisher{payload: payload}
 	identity := reader(t, testReader, identitymodels.IdentityProviderApiKey)
 	response := request(cfg, identity, publisher, keys.SignPayload, "")
-	if response.Code != http.StatusOK || response.Header().Get("Content-Type") != "application/jose" {
+	if response.Code != http.StatusOK || response.Header().Get("Content-Type") != snapshot.ContentType {
 		t.Fatalf("unexpected response %d: %s", response.Code, response.Body)
 	}
 	if response.Header().Get("Content-Encoding") != "gzip" ||
@@ -225,13 +224,15 @@ func TestHandlerSignedSnapshotAndConditionalFetch(t *testing.T) {
 	if response.Body.Len() >= plain.Body.Len() {
 		t.Fatal("gzip did not reduce snapshot transfer size")
 	}
-	parts := strings.Split(string(decoded), ".")
-	signature, _ := base64.RawURLEncoding.DecodeString(parts[2])
-	if err := jwt.SigningMethodRS512.Verify(strings.Join(parts[:2], "."), signature, &privateKey.PublicKey); err != nil {
+	publicKeys, err := keys.GetJwks()
+	if err != nil {
 		t.Fatal(err)
 	}
-	received, _ := base64.RawURLEncoding.DecodeString(parts[1])
-	if string(received) != string(payload) {
+	verified, err := snapshot.Verify(decoded, publicKeys, cfg.Limits)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(verified.Bytes, payload) {
 		t.Fatal("wire payload changed")
 	}
 	tag := response.Header().Get("ETag")

@@ -50,11 +50,25 @@ func ExchangeToken() gin.HandlerFunc {
 			return
 		}
 
-		// Access check
-		// Scope: cluster
-		// Subject: clusterId
-		// Access: kubernetes.logon
-		hasAccess, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeCluster, aclscope.Subject(input.ClusterID), aclmodels.CapKubernetes.WithVerb(aclmodels.VerbLogon))
+		requiredAccess := aclmodels.CapKubernetes.WithVerb(aclmodels.VerbLogon)
+		if input.Admin {
+			adminConfigured, accessErr := aclservice.HasConfiguredAccess(
+				ctx,
+				aclscope.ScopeCluster,
+				aclscope.Subject(input.ClusterID),
+				aclmodels.AccessKubernetesAdmin,
+			)
+			if accessErr != nil {
+				rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "access check failed", accessErr)
+				rerr.GinLogErrorAbort(c)
+				return
+			}
+			if adminConfigured {
+				requiredAccess = aclmodels.AccessKubernetesAdmin
+			}
+		}
+
+		hasAccess, accessErr := aclservice.HasAccess(ctx, aclscope.ScopeCluster, aclscope.Subject(input.ClusterID), requiredAccess)
 		if accessErr != nil {
 			rerr := rorginerror.NewRorGinError(http.StatusInternalServerError, "access check failed", accessErr)
 			rerr.GinLogErrorAbort(c)
