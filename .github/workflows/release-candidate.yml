@@ -169,7 +169,7 @@ jobs:
         env:
           INDEX_DIGEST: ${{ steps.binding.outputs.index_digest }}
         run: bash .github/scripts/publish-rc.sh bundle
-      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6
+      - uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532
         with:
           cosign-release: v2.2.4
       - name: Sign tested image digest
