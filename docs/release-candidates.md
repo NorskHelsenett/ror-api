@@ -33,7 +33,7 @@ is external metadata. A passing `v1.26.0-rc.2` contains binary version `v1.26.0`
 reserve (internal ledger only)
   -> test: reusable candidate-handoff
        prepare -> build both architectures + package both charts
-               -> ror-test: 51 scenarios on amd64
+               -> ror-test: 57 scenarios on amd64
                -> verify-handoff
   -> publish-rc (only when publish=true and all required jobs succeeded)
        verify bytes -> bind digests -> push immutable RC -> sign -> prerelease
