@@ -715,7 +715,7 @@
       }
     },
     "v1.16.9": {
-      "next": 2,
+      "next": 3,
       "attempts": {
         "41423720595": {
           "targetVersion": "v1.16.9",
@@ -725,6 +725,16 @@
           "number": 1,
           "candidateVersion": "v1.16.9-rc.1",
           "harnessSHA": "e818ad7c655eafcd488f5ee2ca0f32580d824d0c",
+          "status": "reserved"
+        },
+        "42631977771": {
+          "targetVersion": "v1.16.9",
+          "sourceSHA": "b75b719cb7b73dfd2db6cf3cd210f174a286dc1f",
+          "workflowSHA": "b75b719cb7b73dfd2db6cf3cd210f174a286dc1f",
+          "runID": "42631977771",
+          "number": 2,
+          "candidateVersion": "v1.16.9-rc.2",
+          "harnessSHA": "ff13bb0e1f631d4be4e645404ed0f954139f4b7d",
           "status": "reserved"
         }
       }
