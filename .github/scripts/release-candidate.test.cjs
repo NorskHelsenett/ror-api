@@ -1,7 +1,17 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const { reserve, assertEligible, verifyBuild, allocate } = require('./release-candidate.cjs');
 const request = { targetVersion: 'v1.26.0', sourceSHA: 'a'.repeat(40), workflowSHA: 'b'.repeat(40), runID: '100' };
+
+test('release summaries show the current action without premature publication claims', () => {
+  const workflow = fs.readFileSync(path.join(__dirname, '../workflows/release-candidate.yml'), 'utf8');
+  assert.match(workflow, /addHeading\('Release candidate reserved'\)/);
+  assert.match(workflow, /Next: build and test this candidate/);
+  assert.match(workflow, /addHeading\('Release candidate published'\)/);
+  assert.doesNotMatch(workflow, /No RC artifacts have been published|Reserved private candidate/);
+});
 
 test('sequential per-version reservations are immutable and rerun-idempotent', () => {
   const first = reserve({ schema: 1, versions: {} }, request);

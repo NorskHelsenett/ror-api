@@ -132,12 +132,10 @@ if (require.main === module) {
   assert.equal(summary.runID, process.env.GITHUB_RUN_ID);
   assert.equal(summary.runAttempt, process.env.GITHUB_RUN_ATTEMPT);
   fs.writeFileSync('handoff-result.json', JSON.stringify(summary, null, 2) + '\n', { mode: 0o600 });
-  const identity = summary.reservedVersion
-    ? `- Reserved RC: ${summary.reservedVersion}\n- Build attempt: ${summary.candidateVersion}\n`
-    : `- Rehearsal RC: ${summary.candidateVersion}\n`;
+  const candidateVersion = summary.reservedVersion || summary.candidateVersion;
   if (process.env.GITHUB_STEP_SUMMARY) {
     fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,
-      `## Candidate handoff verified\n\n- Target/binary version: ${summary.targetVersion}\n${identity}- Source: ${summary.sourceSHA}\n- Harness: ${summary.harnessSHA}\n- amd64 manifest: ${summary.candidate.manifestDigest}\n- Scenarios passed: ${summary.passed}\n\n**Test only: nothing was published.**\n`);
+      `## Release candidate passed tests\n\n**${candidateVersion}** passed **${summary.passed} integration scenarios**.\n`);
   }
-  console.log(`Verified ${summary.passed} scenarios for ${summary.reservedVersion || summary.candidateVersion}; nothing published.`);
+  console.log(`${candidateVersion} passed ${summary.passed} integration scenarios.`);
 }

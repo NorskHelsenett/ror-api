@@ -78,6 +78,11 @@ test('mismatched, incomplete and failed evidence never passes', () => {
 
 test('caller remains explicit, read-only, pinned, and publication-free', () => {
   const workflow = fs.readFileSync(path.join(__dirname, '../workflows/candidate-handoff.yml'), 'utf8');
+  const script = fs.readFileSync(path.join(__dirname, 'candidate-handoff.cjs'), 'utf8');
+  assert.match(workflow, /^name: Build and test release candidate$/m);
+  assert.match(workflow, /addHeading\('Build request validated'\)/);
+  assert.match(script, /## Release candidate passed tests/);
+  assert.doesNotMatch(`${workflow}\n${script}`, /private RC rehearsal|Rehearsal RC|nothing was published|Harness:|manifest:/i);
   assert.match(workflow, /^  workflow_dispatch:/m);
   assert.match(workflow, /^  workflow_call:/m);
   assert(!/^\s+(push|pull_request|schedule):/m.test(workflow));

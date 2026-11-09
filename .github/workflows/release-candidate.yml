@@ -56,8 +56,8 @@ jobs:
             fs.writeFileSync('rc-reservation.json', JSON.stringify(candidate, null, 2) + '\n');
             core.setOutput('source_sha', candidate.sourceSHA);
             core.setOutput('candidate_version', candidate.candidateVersion);
-            await core.summary.addHeading('Reserved private candidate')
-              .addRaw(`${candidate.candidateVersion}\n\nSource: ${candidate.sourceSHA}\n\nBinary version: ${candidate.targetVersion}\n\nNo RC artifacts have been published.\n`).write();
+            await core.summary.addHeading('Release candidate reserved')
+              .addRaw(`**${candidate.candidateVersion}**\n\nNext: build and test this candidate.\n`).write();
       - uses: actions/upload-artifact@v7
         id: artifact
         with:
@@ -199,4 +199,5 @@ jobs:
               result: JSON.parse(fs.readFileSync('verified/handoff-result.json')),
               releaseImage: JSON.parse(fs.readFileSync('bundle/release-image.json')),
               charts: JSON.parse(fs.readFileSync('bundle/charts/checksums.json')), phase: 'published' });
-            await core.summary.addHeading('RC published after passing tests').addRaw(`${process.env.RC_VERSION}\n\nStable latest and final release are unchanged.\n`).write();
+            await core.summary.addHeading('Release candidate published')
+              .addRaw(`**${process.env.RC_VERSION}**\n`).write();

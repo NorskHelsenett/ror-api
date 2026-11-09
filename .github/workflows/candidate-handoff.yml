@@ -1,4 +1,4 @@
-name: Candidate handoff rehearsal
+name: Build and test release candidate
 
 on:
   workflow_call:
@@ -63,7 +63,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Test rehearsal helpers
+      - name: Test candidate validation helpers
         run: node --test .github/scripts/candidate-handoff.test.cjs
       - name: Resolve source and validate candidate request
         id: request
@@ -92,8 +92,8 @@ jobs:
             core.setOutput('source_sha', candidate.sourceSHA);
             core.setOutput('target_version', candidate.targetVersion);
             core.setOutput('candidate_version', candidate.candidateVersion);
-            await core.summary.addHeading('Private RC rehearsal')
-              .addRaw(`Target: ${candidate.targetVersion}\n\nCandidate: ${candidate.candidateVersion}\n\nSource: ${candidate.sourceSHA}\n\nNo image push, Git tag, chart, or release will be created.\n`).write();
+            await core.summary.addHeading('Build request validated')
+              .addRaw('The build and integration tests are starting.\n').write();
 
   build:
     needs: prepare
@@ -309,11 +309,11 @@ jobs:
             -report "$GITHUB_WORKSPACE/$REPORT_DIRECTORY/candidate.json" \
             -out "$RUNNER_TEMP/rechecked-report.json"
           node tooling/.github/scripts/candidate-handoff.cjs expected evidence harness "$BUILD_ARTIFACT_ID"
-      - name: Retain successful unpublished rehearsal result
+      - name: Save verified test results
         id: verified
         uses: actions/upload-artifact@v7
         with:
-          name: verified-rc-rehearsal-${{ github.run_id }}-${{ github.run_attempt }}
+          name: verified-rc-test-${{ github.run_id }}-${{ github.run_attempt }}
           path: handoff-result.json
           if-no-files-found: error
           retention-days: 30
