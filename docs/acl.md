@@ -95,25 +95,12 @@ There is no reader identity environment allowlist. The new capability is
 registered for the read verb only and does not grant ACL administration rights.
 Provision the capability through normal ACL management for production callers.
 
-For local development, the default Compose dependency stack writes
-a generated `DEV_ACL_SNAPSHOT_API_KEY` into ignored
-`.env` without overwriting local overrides. After Compose bootstrap completes,
-the host API seeds a read-only `acl-snapshot` service credential
-using the Vault-backed API key salt, only when `DEVELOPMENT=true`, and seeds its
-narrow snapshot-read ACL grant. No unrelated permissions are added. The service
-identifier is fixed for this development fixture, not used by authorization.
-Repeated startup preserves the record's creation time and updates
-its hash if the local credential changes, but only for records marked
-`seedOwner: development-acl-snapshot`. The ownership marker, service type and
-record ID are also required by the rotation update filter; ownership changes
-fail explicitly. Unrelated service credentials are never adopted or overwritten.
-New seeds use a stable seeder-owned record ID for concurrent initialization.
-Existing unmarked credentials, including those created by an older snapshot
-seeder, fail startup rather than being automatically claimed. Explicitly
-provision a replacement after
-reviewing the old credential; the seeder does not migrate or delete it.
-Conflicting credential identities fail startup. The local publication-role migration supports both fresh and
-existing data directories without changing MongoDB topology.
+For local development, the API started with `DEVELOPMENT=true` creates a
+read-only `acl-snapshot` service key with a fixed development value, prints it
+with the other development API keys, and seeds its narrow snapshot-read ACL
+grant. No unrelated permissions are added. The local publication-role migration
+supports both fresh and existing data directories without changing MongoDB
+topology.
 See [local startup and curl instructions](../README.md#start-requirements).
 
 #### Revisions, persistence, and conditional requests

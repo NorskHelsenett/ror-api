@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
-	mongodbseeding "github.com/NorskHelsenett/ror-api/internal/databases/mongodb/seeding"
+	"github.com/NorskHelsenett/ror-api/internal/databases/mongodb/seeding"
 	"github.com/NorskHelsenett/ror-api/internal/rabbitmq/apirabbitmqdefinitions"
 	"github.com/NorskHelsenett/ror-api/internal/rabbitmq/apirabbitmqhandler"
 	"github.com/NorskHelsenett/ror-api/internal/webserver/sse"
@@ -54,7 +54,7 @@ func InitConnections(ctx context.Context) {
 	mongodb.MustInitWithContext(ctx, mongocredshelper, rorconfig.GetString(rorconfig.MONGODB_HOST), rorconfig.GetString(rorconfig.MONGODB_PORT), rorconfig.GetString(rorconfig.MONGO_DATABASE))
 
 	rorconfig.SetWithProvider(rorconfig.ROR_API_KEY_SALT, VaultClient.GetSecretProvider("secret/data/v1.0/ror/config/common", "apikeySalt"))
-	mongodbseeding.CheckAndSeed(ctx)
+	seeding.CheckAndSeed(ctx)
 
 	// RabbitMQ
 	rmqcredhelper := rabbitmqcredhelper.NewVaultRMQCredentials(VaultClient, rorconfig.GetString(rorconfig.ROLE))

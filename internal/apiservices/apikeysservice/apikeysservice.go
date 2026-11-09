@@ -525,7 +525,7 @@ func CreateOrRenew(ctx context.Context, req *apicontractsv2self.CreateOrRenewApi
 	return resp, nil
 }
 
-func CreateOrRenewDevelopmentToken(ctx context.Context, identifier string, name string, token string) (*apicontractsv2self.CreateOrRenewApikeyResponse, error) {
+func CreateOrRenewDevelopmentToken(ctx context.Context, identifier string, name string, token string, keyType apicontracts.ApiKeyType) (*apicontractsv2self.CreateOrRenewApikeyResponse, error) {
 	if !rorconfig.GetBool(rorconfig.DEVELOPMENT) {
 		return nil, fmt.Errorf("development tokens can only be created in development mode")
 	}
@@ -547,7 +547,8 @@ func CreateOrRenewDevelopmentToken(ctx context.Context, identifier string, name 
 		newkey := apicontracts.ApiKey{
 			Identifier:  identifier,
 			DisplayName: name,
-			Type:        apicontracts.ApiKeyTypeUser,
+			Type:        keyType,
+			ReadOnly:    keyType == apicontracts.ApiKeyTypeService,
 			Hash:        hash,
 			Expires:     expires,
 			Created:     time.Now(),

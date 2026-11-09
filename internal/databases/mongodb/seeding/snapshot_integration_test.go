@@ -1,4 +1,4 @@
-package mongodbseeding
+package seeding
 
 import (
 	"context"
@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/NorskHelsenett/ror/pkg/acl"
-	"github.com/NorskHelsenett/ror/pkg/apicontracts"
-	"github.com/NorskHelsenett/ror/pkg/config/rorconfig"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclprincipal"
 	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
@@ -22,7 +20,7 @@ func TestSnapshotSeedsMongo(t *testing.T) {
 	if uri == "" {
 		t.Skip("set MONGODB_TEST_URI for real snapshot seeding tests")
 	}
-	snapshotSeedConfig(t, true, "test-credential", "test-salt")
+	snapshotSeedConfig(t, true)
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	client, err := mongo.Connect(options.Client().ApplyURI(uri).SetBSONOptions(&options.BSONOptions{ObjectIDAsHexString: true}))
@@ -41,22 +39,13 @@ func TestSnapshotSeedsMongo(t *testing.T) {
 		}
 	})
 	for range 2 {
-		if err := seedSnapshotAPIKey(ctx, db.Collection("apikeys")); err != nil {
-			t.Fatal(err)
-		}
 		if err := seedSnapshotGrant(ctx, db.Collection("acl")); err != nil {
 			t.Fatal(err)
 		}
 	}
-	var key apicontracts.ApiKey
-	if err := db.Collection("apikeys").FindOne(ctx, bson.M{"identifier": snapshotServiceID}).Decode(&key); err != nil {
-		t.Fatal(err)
-	}
-	for _, name := range []string{"apikeys", "acl"} {
-		count, err := db.Collection(name).CountDocuments(ctx, bson.M{})
-		if err != nil || count != 1 {
-			t.Fatalf("%s seed is not idempotent: count %d error %v", name, count, err)
-		}
+	count, err := db.Collection("acl").CountDocuments(ctx, bson.M{})
+	if err != nil || count != 1 {
+		t.Fatalf("grant seed is not idempotent: count %d error %v", count, err)
 	}
 	var grants aclmodels.AclV3List
 	cursor, err := db.Collection("acl").Find(ctx, bson.M{})
@@ -68,7 +57,7 @@ func TestSnapshotSeedsMongo(t *testing.T) {
 	}
 	source := seededGrantReader{grants}
 	resolver := acl.NewResolver(source)
-	groups := []string{string(aclprincipal.Service(snapshotServiceID))}
+	groups := []string{string(aclprincipal.Service(SnapshotServiceID))}
 	allowed, err := resolver.HasAccess(ctx, groups, aclscope.ScopeRor, aclscope.SubjectAcl,
 		aclmodels.CapRorAclSnapshot.WithVerb(aclmodels.VerbRead))
 	if err != nil || !allowed {
@@ -78,17 +67,6 @@ func TestSnapshotSeedsMongo(t *testing.T) {
 		aclmodels.CapRor.WithVerb(aclmodels.VerbCreate))
 	if err != nil || admin {
 		t.Fatalf("snapshot seeding conferred ACL administration rights: %v", err)
-	}
-	rorconfig.Set("DEV_ACL_SNAPSHOT_API_KEY", "rotated-test-credential")
-	if err := seedSnapshotAPIKey(ctx, db.Collection("apikeys")); err != nil {
-		t.Fatal(err)
-	}
-	var rotated apicontracts.ApiKey
-	if err := db.Collection("apikeys").FindOne(ctx, bson.M{"identifier": snapshotServiceID}).Decode(&rotated); err != nil {
-		t.Fatal(err)
-	}
-	if rotated.Hash == key.Hash || rotated.Id != key.Id || !rotated.Created.Equal(key.Created) {
-		t.Fatal("owned credential rotation did not preserve record identity")
 	}
 }
 
