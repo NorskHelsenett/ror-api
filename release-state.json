@@ -803,6 +803,13 @@
             "artifactID": "13704016987"
           }
         }
+      },
+      "final": {
+        "candidateVersion": "v1.16.10-rc.1",
+        "indexDigest": "sha256:7075fbeb5d9022f7308502fa73a9f88fce05e7557673db15d29e4e190c8c9576",
+        "promotedBy": "havardelnan",
+        "runID": "42684977769",
+        "status": "promoting"
       }
     }
   }
