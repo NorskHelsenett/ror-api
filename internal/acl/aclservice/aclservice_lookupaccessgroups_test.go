@@ -32,8 +32,14 @@ func (f fakeAclStore) GetByGroups(_ context.Context, groups []string) (aclmodels
 	return out, nil
 }
 
-func (f fakeAclStore) GetByScopeSubject(_ context.Context, _ aclscope.Scope, _ aclscope.Subject) (aclmodels.AclV3List, error) {
-	return nil, nil
+func (f fakeAclStore) GetByScopeSubject(_ context.Context, scope aclscope.Scope, subject aclscope.Subject) (aclmodels.AclV3List, error) {
+	out := aclmodels.AclV3List{}
+	for _, entry := range f.entries {
+		if entry.Scope.ToKind() == scope.ToKind() && entry.Subject == subject {
+			out = append(out, entry)
+		}
+	}
+	return out, nil
 }
 func (f fakeAclStore) GetById(_ context.Context, _ string) (*aclmodels.AclV3ListItem, error) {
 	return nil, nil
@@ -179,4 +185,36 @@ func TestGetAccessGroupsByScopeSubject_Dedup(t *testing.T) {
 			{Scope: aclscope.ScopeCluster, Subject: clusterUID, Level: 0},
 		}},
 	}, got)
+}
+
+func TestHasConfiguredAccess(t *testing.T) {
+	const (
+		clusterUID  = "11111111-1111-1111-1111-111111111111"
+		otherUID    = "22222222-2222-2222-2222-222222222222"
+		adminAccess = aclmodels.AccessKubernetesAdmin
+	)
+	entries := aclmodels.AclV3List{
+		aclEntry("cluster-admins", aclscope.ScopeCluster, clusterUID, adminAccess),
+		aclEntry("other-admins", aclscope.ScopeCluster, otherUID, adminAccess),
+		aclEntry("logon-only", aclscope.ScopeCluster, "33333333-3333-3333-3333-333333333333", aclmodels.AccessKubernetesLogon),
+	}
+	setAclStore(t, fakeAclStore{entries: entries})
+	stubClusterResolver(t, map[string]string{"prod-cluster": clusterUID})
+
+	for _, tt := range []struct {
+		name    string
+		subject aclscope.Subject
+		want    bool
+	}{
+		{name: "configured on cluster id", subject: "prod-cluster", want: true},
+		{name: "configured on cluster uid", subject: clusterUID, want: true},
+		{name: "admin configured only on another cluster", subject: "33333333-3333-3333-3333-333333333333", want: false},
+		{name: "unknown cluster", subject: "44444444-4444-4444-4444-444444444444", want: false},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := HasConfiguredAccess(context.Background(), aclscope.ScopeCluster, tt.subject, adminAccess)
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, got)
+		})
+	}
 }

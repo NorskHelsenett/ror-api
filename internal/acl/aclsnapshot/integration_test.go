@@ -7,7 +7,6 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
-	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
@@ -29,7 +28,6 @@ import (
 	snapshot "github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclsnapshot"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/lestrrat-go/jwx/v4/jwk"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -146,27 +144,20 @@ func TestSnapshotHTTPWithMongoAndJWKS(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	key, ok := keys.LookupKeyID("api-authority")
-	if !ok {
-		t.Fatal("snapshot signing key missing from JWKS")
-	}
-	publicKey, err := jwk.Export[*rsa.PublicKey](key)
-	if err != nil {
+	if err := oidchelper.ValidatePublicKeySet(keys); err != nil {
 		t.Fatal(err)
 	}
 	first := fetch("/v2/acl/snapshot", "")
-	if first.Code != 200 {
+	if first.Code != 200 || first.Header().Get("Content-Type") != snapshot.ContentType {
 		t.Fatalf("snapshot: %d %s", first.Code, first.Body)
 	}
-	parts := strings.Split(first.Body.String(), ".")
-	signature, _ := base64.RawURLEncoding.DecodeString(parts[2])
-	if err := jwt.SigningMethodRS512.Verify(strings.Join(parts[:2], "."), signature, publicKey); err != nil {
-		t.Fatal(err)
+	verified, err := snapshot.Verify(first.Body.Bytes(), keys, cfg.Limits)
+	if err != nil || verified.KeyID != "api-authority" {
+		t.Fatalf("verify snapshot: %v", err)
 	}
-	payload, _ := base64.RawURLEncoding.DecodeString(parts[1])
-	p, err := snapshot.Decode(payload, cfg.Limits)
-	if err != nil || len(p.Rows) != 3 || p.Rows[0].Group != string(aclprincipal.Service(testReader)) || p.Revision != 1 {
-		t.Fatalf("unexpected authoritative policy: %#v %v", p, err)
+	p := verified.Payload
+	if len(p.Rows) != 3 || p.Rows[0].Group != string(aclprincipal.Service(testReader)) || p.Revision != 1 {
+		t.Fatalf("unexpected authoritative policy: %#v", p)
 	}
 	for i, want := range []string{"ror:acl:snapshot:read", "ror:acl:snapshot:read", "ror:read,ror:write"} {
 		var access []string
@@ -177,7 +168,7 @@ func TestSnapshotHTTPWithMongoAndJWKS(t *testing.T) {
 			t.Fatalf("repeated grant %d changed: %#v", i, p.Rows[i])
 		}
 	}
-	if strings.Contains(string(payload), "issuedBy") {
+	if strings.Contains(string(verified.Bytes), "issuedBy") {
 		t.Fatal("database metadata leaked into policy")
 	}
 	etag := first.Header().Get("ETag")
@@ -192,11 +183,9 @@ func TestSnapshotHTTPWithMongoAndJWKS(t *testing.T) {
 	if changed.Code != 200 || changed.Header().Get("ETag") == etag {
 		t.Fatalf("changed snapshot: %d %s", changed.Code, changed.Body)
 	}
-	parts = strings.Split(changed.Body.String(), ".")
-	payload, _ = base64.RawURLEncoding.DecodeString(parts[1])
-	p, err = snapshot.Decode(payload, cfg.Limits)
-	if err != nil || p.Revision != 2 || len(p.Rows) != 2 {
-		t.Fatalf("changed authoritative policy: %#v %v", p, err)
+	verified, err = snapshot.Verify(changed.Body.Bytes(), keys, cfg.Limits)
+	if err != nil || verified.Payload.Revision != 2 || len(verified.Payload.Rows) != 2 {
+		t.Fatalf("changed authoritative policy: %#v %v", verified, err)
 	}
 	if _, err := db.Collection("acl").DeleteMany(ctx, bson.M{}); err != nil {
 		t.Fatal(err)

@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -124,7 +123,7 @@ func Handler(cfg Config, publisher Publisher, sign SignPayload, hasAccess Access
 			}
 		}
 		rlog.Infoc(ctx, "ACL snapshot read", rlog.String("identity", identity.GetId()), rlog.Int("status", http.StatusOK))
-		c.Data(http.StatusOK, "application/jose", []byte(envelope))
+		c.Data(http.StatusOK, snapshot.ContentType, []byte(envelope))
 	}
 }
 
@@ -185,31 +184,11 @@ func parseConditional(value string, maxBytes int) ([]string, error) {
 }
 
 func validateEnvelope(envelope string, payload []byte, limits snapshot.Limits) error {
-	if len(envelope) > limits.MaxEnvelopeBytes {
-		return fmt.Errorf("signed snapshot exceeds envelope byte bound")
+	if _, err := snapshot.ParseHeader([]byte(envelope), limits); err != nil {
+		return err
 	}
-	parts := strings.Split(envelope, ".")
-	if len(parts) != 3 || parts[1] != base64.RawURLEncoding.EncodeToString(payload) || parts[2] == "" {
+	if strings.Split(envelope, ".")[1] != base64.RawURLEncoding.EncodeToString(payload) {
 		return fmt.Errorf("signer did not preserve payload bytes")
-	}
-	if len(parts[0]) > base64.RawURLEncoding.EncodedLen(limits.MaxHeaderBytes) {
-		return fmt.Errorf("protected header exceeds byte bound")
-	}
-	header, err := base64.RawURLEncoding.DecodeString(parts[0])
-	if err != nil || len(header) > limits.MaxHeaderBytes {
-		return fmt.Errorf("invalid protected header encoding")
-	}
-	var protected struct {
-		Algorithm string `json:"alg"`
-		KeyID     string `json:"kid"`
-		Type      string `json:"typ"`
-	}
-	if err := json.Unmarshal(header, &protected); err != nil {
-		return fmt.Errorf("decode signing header: %w", err)
-	}
-	if protected.Algorithm != "RS512" || protected.Type != snapshot.MediaType ||
-		protected.KeyID == "" || len(protected.KeyID) > limits.MaxFieldBytes {
-		return fmt.Errorf("signer header does not match snapshot contract")
 	}
 	return nil
 }

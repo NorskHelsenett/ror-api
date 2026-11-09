@@ -313,6 +313,25 @@ func HasAccess(ctx context.Context, scope aclscope.Scope, subject aclscope.Subje
 	return refs == nil || len(refs) > 0, nil
 }
 
+// HasConfiguredAccess reports whether the given access type is configured
+// directly on the resource, regardless of which groups receive it.
+func HasConfiguredAccess(ctx context.Context, scope aclscope.Scope, subject aclscope.Subject, access aclmodels.AccessTypeV3) (bool, error) {
+	subject = resolveClusterSubject(scope, subject)
+	if aclStore == nil {
+		return false, errors.New("ACL store is not initialized")
+	}
+	entries, err := aclStore.GetByScopeSubject(ctx, scope, subject)
+	if err != nil {
+		return false, fmt.Errorf("failed to load ACL entries for %s/%s: %w", scope, subject, err)
+	}
+	for _, entry := range entries {
+		if slices.Contains(entry.Access, access) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 // resolveAccess returns all access types the caller has for the given scope and subject.
 func resolveAccess(ctx context.Context, scope aclscope.Scope, subject aclscope.Subject) ([]aclmodels.AccessTypeV3, error) {
 	ctx, span := rortracer.StartSpan(ctx, "aclservice.ResolveAccess")
