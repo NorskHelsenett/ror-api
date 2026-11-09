@@ -38,36 +38,27 @@ docker compose up -d
 ```
 
 The API still runs on the host. Compose keeps the existing standalone
-MongoDB setup, grants the API access
-to snapshot publication state, and writes a generated development snapshot key
-into the ignored `.env`. Snapshot limits have defaults; no limit environment
-variables are required. Wait for bootstrap
-before starting the API:
+MongoDB setup and grants the API access to snapshot publication state.
+Snapshot limits have defaults; no limit environment variables are required.
+Wait for bootstrap before starting the API:
 
 ```bash
 docker compose up -d --wait --wait-timeout 180
 go run cmd/api/main.go
 ```
 
-In another terminal, use the generated key:
+With `DEVELOPMENT=true` the API prints the development API keys at startup,
+including the read-only `acl-snapshot` service key:
 
 ```bash
-SNAPSHOT_API_KEY=$(sed -n 's/^DEV_ACL_SNAPSHOT_API_KEY="\([^"]*\)"$/\1/p' .env)
 curl --fail-with-body -D - \
-  -H "X-API-KEY: ${SNAPSHOT_API_KEY}" \
+  -H "X-API-KEY: bc007661-d651-4a12-ba94-05e948242115" \
   http://localhost:10000/v2/acl/snapshot
 ```
 
-The credential represents the read-only `acl-snapshot` service and receives only
-the `ror:acl:snapshot:read` grant on scope `ror`, subject `acl`, not ACL management
-rights. Any authenticated identity with that capability may read snapshots;
-access is not controlled by an environment-based reader allowlist.
-The development credential and grant are seeded when the host API starts with
-`DEVELOPMENT=true`, using the actual Vault-backed API key salt. Existing local
-configuration and the generated key survive Compose restarts. To rotate the
-development credential, clear `DEV_ACL_SNAPSHOT_API_KEY` in `.env`, restart
-Vault, wait for bootstrap, and restart the API. Never use this development
-bootstrap or credential in production.
+The service receives only the `ror:acl:snapshot:read` grant on scope `ror`,
+subject `acl`, not ACL management rights. The key is a fixed local development
+fixture; never use it in production.
 
 Snapshot publication supports standalone MongoDB without transactions, topology
 changes, or special connection settings. Do not remove the MongoDB data

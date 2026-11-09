@@ -98,7 +98,6 @@ services:
       - ${DOCKER_VOLUME_PATH:-../ror/hacks/data}/vault/secrets:/tmp/secrets
       - ${DOCKER_VOLUME_PATH:-../ror/hacks/data}/vault/data:/vault/data:rw
       - ${ROR_ASSETS_PATH:-./hacks/assets}/vault/entrypoint.sh:/vault/entrypoint.sh:rw
-      - ${ROR_ASSETS_PATH:-./hacks/assets}/vault/local-snapshot-env.sh:/vault/local-snapshot-env.sh:ro
       - ${ROR_ASSETS_PATH:-./hacks/assets}/vault/policies:/policies
       - ${ROR_ASSETS_PATH:-./hacks/assets}/vault/ldapconfig.json:/vault/config/ldapconfig.json
       - .env:/vault/config/envfile:rw
