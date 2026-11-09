@@ -587,7 +587,7 @@
       }
     },
     "v1.16.8": {
-      "next": 5,
+      "next": 6,
       "attempts": {
         "41422021649": {
           "targetVersion": "v1.16.8",
@@ -672,6 +672,16 @@
             "reportDigest": "sha256:d11e669df9e76a6375ad1fd65a127c538b9dfc0117f546f2e714c718f401c8bd",
             "artifactID": "13660822217"
           }
+        },
+        "42590628039": {
+          "targetVersion": "v1.16.8",
+          "sourceSHA": "7aff02eef77a2771327a571ad3a236801c1a445e",
+          "workflowSHA": "7aff02eef77a2771327a571ad3a236801c1a445e",
+          "runID": "42590628039",
+          "number": 5,
+          "candidateVersion": "v1.16.8-rc.5",
+          "harnessSHA": "96ae6be67ad245af39bf90b1f612ecbcbe393a19",
+          "status": "reserved"
         }
       }
     },
