@@ -7,13 +7,35 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/NorskHelsenett/ror-api/pkg/services/tokenservice"
+	"github.com/NorskHelsenett/ror/pkg/helpers/oidchelper"
+	"github.com/NorskHelsenett/ror/pkg/helpers/oidchelper/oidctest"
 	identitymodels "github.com/NorskHelsenett/ror/pkg/models/identity"
 	"github.com/gin-gonic/gin"
 )
 
-// Identity binding must fail before ACL lookups or token signing. Deliberately
-// leave those dependencies uninitialized so this test isolates the boundary.
+// Identity binding must fail before ACL lookups or token signing.
 func TestExchangeRejectsUnboundCredentials(t *testing.T) {
+	manager, issuer, cleanup := oidctest.NewTestManager(t, "https://api.example.test")
+	defer cleanup()
+	tokenservice.SetManager(manager)
+	t.Cleanup(func() { tokenservice.SetManager(oidchelper.NewManagerWithValidator("", jwksStorage{}, nil)) })
+	otherIssuer, err := oidctest.NewTestIssuer()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer otherIssuer.Close()
+	if err := manager.Validator.AddIssuer(otherIssuer.Config(oidctest.DefaultTestClientID)); err != nil {
+		t.Fatal(err)
+	}
+	adminClaims := oidctest.DefaultUserClaims("admin@example.test", "admins")
+	adminClaims.Subject = "stable-subject"
+	adminToken := oidctest.MustSignToken(t, issuer, adminClaims)
+	readerToken := oidctest.MustSignToken(t, issuer, oidctest.DefaultUserClaims("reader@example.test", "readers"))
+	changedSubject := adminClaims
+	changedSubject.Subject = "different-subject"
+	sameEmailToken := oidctest.MustSignToken(t, issuer, changedSubject)
+	otherIssuerToken := oidctest.MustSignToken(t, otherIssuer, adminClaims)
 	for _, tc := range []struct {
 		name      string
 		bearer    string
@@ -21,10 +43,12 @@ func TestExchangeRejectsUnboundCredentials(t *testing.T) {
 		admin     bool
 		status    int
 	}{
-		{"admin identity switch", "stored-admin-token", "fresh-reader-token", true, http.StatusForbidden},
-		{"normal identity switch", "stored-admin-token", "fresh-reader-token", false, http.StatusForbidden},
-		{"different credential for same authenticated user", "old-credential", "new-credential-same-email", true, http.StatusForbidden},
-		{"missing bearer", "", "fresh-reader-token", true, http.StatusUnauthorized},
+		{"admin identity switch", adminToken, readerToken, true, http.StatusForbidden},
+		{"normal identity switch", adminToken, readerToken, false, http.StatusForbidden},
+		{"same email different subject", adminToken, sameEmailToken, true, http.StatusForbidden},
+		{"same subject different issuer", adminToken, otherIssuerToken, true, http.StatusForbidden},
+		{"invalid body token", adminToken, "invalid", true, http.StatusUnauthorized},
+		{"missing bearer", "", readerToken, true, http.StatusUnauthorized},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			identity, err := identitymodels.NewUserIdentity(identitymodels.AuthInfo{
