@@ -779,7 +779,7 @@
           "number": 1,
           "candidateVersion": "v1.16.10-rc.1",
           "harnessSHA": "31f6e26284819f63086e99e919f34d4419b5883f",
-          "status": "publishing",
+          "status": "published",
           "binding": {
             "image": {
               "archiveSha256": "sha256:d6cac65e0a9f88f8f561b64f0538be38ba95c13be5b46786a01d7f0890f965cf",
