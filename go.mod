@@ -3,7 +3,7 @@ module github.com/NorskHelsenett/ror-api
 go 1.27.3
 
 require (
-	github.com/NorskHelsenett/ror v1.26.3
+	github.com/NorskHelsenett/ror v1.26.5
 	github.com/blang/semver/v4 v4.0.0
 	github.com/dotse/go-health v1.0.3
 	github.com/evanphx/json-patch/v5 v5.9.11
@@ -187,6 +187,7 @@ require (
 	k8s.io/kube-openapi v0.0.0-20260821135717-be32def86098 // indirect
 	k8s.io/utils v0.0.0-20260707023825-cf1189d6abe3 // indirect
 	sigs.k8s.io/controller-runtime v0.25.2 // indirect
+	sigs.k8s.io/gateway-api v1.7.0 // indirect
 	sigs.k8s.io/json v0.0.0-20260909141634-11ed52e25bc5 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v6 v6.4.2 // indirect

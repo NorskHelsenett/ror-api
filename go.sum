@@ -16,8 +16,8 @@ github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
 github.com/Masterminds/semver/v3 v3.5.0 h1:kQceYJfbupGfZOKZQg0kou0DgAKhzDg2NZPAwZ/2OOE=
 github.com/Masterminds/semver/v3 v3.5.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
-github.com/NorskHelsenett/ror v1.26.3 h1:2io5uGEAe22g1yy7K6Xhxk6WzoDuT+OijndyTrTsodE=
-github.com/NorskHelsenett/ror v1.26.3/go.mod h1:gVqGel8mUloUkYanEU/oCXQGOgtgbyx3aJNkVrevb/Y=
+github.com/NorskHelsenett/ror v1.26.5 h1:Re5L1YBjAw3XsXhiSJScU59cJ6UQ76pBL5MZoDwcol0=
+github.com/NorskHelsenett/ror v1.26.5/go.mod h1:dg4ujccbpW+oAT3yHIQ0+OrIKBDr/wn+d8X4MPjqSaM=
 github.com/alexbrainman/sspi v0.0.0-20250919150558-7d374ff0d59e h1:4dAU9FXIyQktpoUAgOJK3OTFc/xug0PCXYCqU0FgDKI=
 github.com/alexbrainman/sspi v0.0.0-20250919150558-7d374ff0d59e/go.mod h1:cEWa1LVoE5KvSD9ONXsZrj0z6KqySlCCNKHlLzbqAt4=
 github.com/alicebob/miniredis/v2 v2.40.0 h1:6IgTQbvm2JiMYZ8yur/acNJzVjtSOWCelxXbk/LUBXc=
@@ -526,6 +526,8 @@ k8s.io/utils v0.0.0-20260707023825-cf1189d6abe3 h1:jVkFFVfXdXP74B/zbO3hM3hpSFD0x
 k8s.io/utils v0.0.0-20260707023825-cf1189d6abe3/go.mod h1:M2s5JB1lIYP3jzZdorPLHXIPJzt9vv2muW5a6L9DtNM=
 sigs.k8s.io/controller-runtime v0.25.2 h1:bEkK3PVOIVK9X8QWLGVhJgmFc++47vfT6wakSzAOLsQ=
 sigs.k8s.io/controller-runtime v0.25.2/go.mod h1:4QqLdT6z/L6Olj8JJCtvztid4/fnIiYsfaTFScegctc=
+sigs.k8s.io/gateway-api v1.7.0 h1:duVnm7nO6oXfMMUWfcDoBph47CYR/ME3NGxccOVglaY=
+sigs.k8s.io/gateway-api v1.7.0/go.mod h1:ihME72ink97/HnDMFNpNf9bH/mAcdTAVw0GR35iiZvA=
 sigs.k8s.io/json v0.0.0-20260909141634-11ed52e25bc5 h1:k9jo7ED/fsfOcz3L1P20P5tjTNtsdQNwMOG2aKzHrl8=
 sigs.k8s.io/json v0.0.0-20260909141634-11ed52e25bc5/go.mod h1:mdzfpAEoE6DHQEN0uh9ZbOCuHbLK5wOm7dK4ctXE9Tg=
 sigs.k8s.io/randfill v1.0.0 h1:JfjMILfT8A6RbawdsK2JXGBR5AQVfd+9TbzrlneTyrU=

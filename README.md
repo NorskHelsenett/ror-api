@@ -82,6 +82,28 @@ Snapshot publication supports standalone MongoDB without transactions, topology
 changes, or special connection settings. Do not remove the MongoDB data
 directory or snapshot publication state when updating the local stack.
 
+The MongoDB admin bootstrap also ensures the resource indexes on fresh and
+existing data directories, without granting index-management rights to the API.
+This includes the unique `resourcesv2.uid` index required for efficient upserts.
+The local service caps its WiredTiger cache at 1 GiB to leave memory for index
+builds and other services sharing the Docker VM.
+The first readiness check can take longer while indexes are built; duplicate
+UIDs or index conflicts fail readiness explicitly and must be investigated
+without deleting resource data. Do not work around missing indexes by increasing
+the API connection pool or write timeout.
+
+To reapply the bootstrap to an already-running local MongoDB:
+
+```bash
+docker compose exec -T mongodb sh -c 'exec mongosh --quiet --username "$MONGO_INITDB_ROOT_USERNAME" --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin /local-mongo/local/ready.js'
+```
+
+Bootstrap script checks can be run with:
+
+```bash
+node --test hacks/assets/mongodb/local/resources-indexes.test.cjs
+```
+
 To stop the environment:
 
 ```bash
