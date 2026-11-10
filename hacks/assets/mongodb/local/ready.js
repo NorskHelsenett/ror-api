@@ -13,3 +13,4 @@ if (!actions.every(action => granted.includes(action))) {
         actions
     }]);
 }
+load("/local-mongo/local/resources-indexes.js");

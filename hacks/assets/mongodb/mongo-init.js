@@ -45,7 +45,4 @@ printjson(res)
 
 db.createCollection('clusters')
 
-db.resourcesv2.createIndex(
-  { "rormeta.ownerref.scope": 1, "rormeta.ownerref.subject": 1, "metadata.name": 1 },
-  { name: "rormeta.ownerref.scope_1_rormeta.ownerref.subject_1_metadata.name_1" }
-)
+load("/docker-entrypoint-initdb.d/local/resources-indexes.js");

@@ -18,6 +18,7 @@ services:
 
   mongodb:
     image: ${DOCKER_MIRROR}mongo:8-noble
+    command: ['mongod', '--wiredTigerCacheSizeGB', '1']
     volumes:
       - ${DOCKER_VOLUME_PATH:-../ror/hacks/data}/mongodb:/data/db:rw
       - ${ROR_ASSETS_PATH:-./hacks/assets}/mongodb:/docker-entrypoint-initdb.d
@@ -33,7 +34,7 @@ services:
     healthcheck:
       test: ['CMD', 'mongosh', '--quiet', '--host', 'localhost', '--username', 'someone', '--password', 'S3cret!', '--authenticationDatabase', 'admin', '/local-mongo/local/ready.js']
       interval: 10s
-      timeout: 10s
+      timeout: 120s
       retries: 12
       start_period: 30s
 
