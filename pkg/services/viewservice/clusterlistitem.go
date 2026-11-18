@@ -8,8 +8,11 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
 	"github.com/NorskHelsenett/ror-api/pkg/services/priceservice"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/v2/apiview"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/rorresourceowner"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 type clusterlistitemgenerator struct{}
@@ -283,11 +286,31 @@ func createClusterListItemHeaders(_ context.Context, _ ...ViewGeneratorsOption) 
 			Order:       33,
 			Type:        apiview.ViewFieldTypeString,
 		},
+		{
+			Name:        "gateways",
+			Description: "The gateways the cluster has",
+			Default:     true,
+			Order:       34,
+			Type:        apiview.ViewFieldTypeArray,
+		},
+		{
+			Name:        "gatewayClasses",
+			Description: "The gateway classes the cluster has",
+			Default:     true,
+			Order:       35,
+			Type:        apiview.ViewFieldTypeArray,
+		},
+		{
+			Name:        "httpRoutes",
+			Description: "The HTTP routes the cluster has",
+			Default:     true,
+			Order:       36,
+			Type:        apiview.ViewFieldTypeArray,
+		},
 	}
 }
 
 func createClusterListItemData(ctx context.Context, options ...ViewGeneratorsOption) []apiview.ViewRow {
-
 	var resourcesService *rorresources.ResourceSet
 	cfg := &viewGeneratorOptions{}
 	for _, opt := range options {
@@ -322,7 +345,11 @@ func createClusterListItemData(ctx context.Context, options ...ViewGeneratorsOpt
 	}
 	ret := make([]apiview.ViewRow, 0, len(resourcesService.Resources))
 	for _, resource := range resourcesService.Resources {
+		if resource == nil || resource.KubernetesClusterResource == nil {
+			continue
+		}
 		cluster := resource.KubernetesClusterResource
+		gatewayResources := getClusterGatewayResources(ctx, string(resource.Metadata.UID))
 		priceMonth := priceservice.CalculatePrice(cluster)
 
 		row := apiview.ViewRow{
@@ -427,8 +454,54 @@ func createClusterListItemData(ctx context.Context, options ...ViewGeneratorsOpt
 			"egressIP": {
 				FieldValue: cluster.Status.AgentStatus.Endpoint.EgressIp,
 			},
+			"gateways": {
+				FieldValue: gatewayResources.gateways,
+			},
+			"gatewayClasses": {
+				FieldValue: gatewayResources.gatewayClasses,
+			},
+			"httpRoutes": {
+				FieldValue: gatewayResources.httpRoutes,
+			},
 		}
 		ret = append(ret, row)
 	}
 	return ret
+}
+
+type clusterGatewayResources struct {
+	gateways       []*rorresources.Resource
+	gatewayClasses []*rorresources.Resource
+	httpRoutes     []*rorresources.Resource
+}
+
+func getClusterGatewayResources(ctx context.Context, clusterUID string) clusterGatewayResources {
+	ownerRef := rorresourceowner.RorResourceOwnerReference{
+		Scope:   aclscope.ScopeCluster,
+		Subject: aclscope.Subject(clusterUID),
+	}
+	queryResources := func(versionKind schema.GroupVersionKind) []*rorresources.Resource {
+		result := make([]*rorresources.Resource, 0)
+		resources, err := resourcesv2service.GetResourceByQuery(ctx, &rorresources.ResourceQuery{
+			VersionKind: versionKind,
+			OwnerRefs:   []rorresourceowner.RorResourceOwnerReference{ownerRef},
+			Limit:       -1,
+		})
+		if err != nil || resources == nil {
+			return result
+		}
+
+		for _, resource := range resources.Resources {
+			if resource != nil {
+				result = append(result, resource)
+			}
+		}
+		return result
+	}
+
+	return clusterGatewayResources{
+		gateways:       queryResources(rortypes.ResourceGatewayGVK),
+		gatewayClasses: queryResources(rortypes.ResourceGatewayClassGVK),
+		httpRoutes:     queryResources(rortypes.ResourceHTTPRouteGVK),
+	}
 }
