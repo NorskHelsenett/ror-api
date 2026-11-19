@@ -855,6 +855,21 @@
         "runID": "42819542095",
         "status": "promoted"
       }
+    },
+    "v1.16.13": {
+      "next": 2,
+      "attempts": {
+        "44496311211": {
+          "targetVersion": "v1.16.13",
+          "sourceSHA": "fb850554b4a06233a9573656c71088383c0a7b3f",
+          "workflowSHA": "fb850554b4a06233a9573656c71088383c0a7b3f",
+          "runID": "44496311211",
+          "number": 1,
+          "candidateVersion": "v1.16.13-rc.1",
+          "harnessSHA": "31f6e26284819f63086e99e919f34d4419b5883f",
+          "status": "reserved"
+        }
+      }
     }
   }
 }
