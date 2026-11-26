@@ -7,6 +7,8 @@ import (
 	"github.com/NorskHelsenett/ror-api/internal/apiservices/resourcesv2service"
 	"github.com/NorskHelsenett/ror-api/pkg/services/priceservice"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/v2/apiview"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/aclscope"
+	"github.com/NorskHelsenett/ror/pkg/models/aclmodels/rorresourceowner"
 	"github.com/NorskHelsenett/ror/pkg/rorresources"
 	"github.com/NorskHelsenett/ror/pkg/rorresources/rortypes"
 )
@@ -268,6 +270,13 @@ func createClusterListHeaders(_ context.Context, _ ...ViewGeneratorsOption) []ap
 			Order:       25,
 			Type:        apiview.ViewFieldTypeString,
 		},
+		{
+			Name:        "gatewayIPs",
+			Description: "The gateway IPs of the cluster",
+			Default:     true,
+			Order:       26,
+			Type:        apiview.ViewFieldTypeArray,
+		},
 	}
 }
 
@@ -285,6 +294,7 @@ func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []api
 	for _, resource := range resourcesService.Resources {
 		cluster := resource.KubernetesClusterResource
 		priceMonth := priceservice.CalculatePrice(cluster)
+		gatewayIPs := getClusterGatewayIPs(ctx, string(resource.Metadata.UID))
 
 		row := apiview.ViewRow{
 			"clusterUid": {
@@ -382,8 +392,38 @@ func createClusterListData(ctx context.Context, _ ...ViewGeneratorsOption) []api
 			"egressIP": {
 				FieldValue: cluster.Status.AgentStatus.Endpoint.EgressIp,
 			},
+			"gatewayIPs": {
+				FieldValue: gatewayIPs,
+			},
 		}
 		ret = append(ret, row)
 	}
 	return ret
+}
+
+func getClusterGatewayIPs(ctx context.Context, clusterUID string) []string {
+	ownerRef := rorresourceowner.RorResourceOwnerReference{
+		Scope:   aclscope.ScopeCluster,
+		Subject: aclscope.Subject(clusterUID),
+	}
+
+	result := make([]string, 0)
+	resources, err := resourcesv2service.GetResourceByQuery(ctx, &rorresources.ResourceQuery{
+		VersionKind: rortypes.ResourceGatewayGVK,
+		OwnerRefs:   []rorresourceowner.RorResourceOwnerReference{ownerRef},
+		Limit:       -1,
+	})
+	if err != nil || resources == nil {
+		return result
+	}
+
+	for _, resource := range resources.Resources {
+		if resource != nil {
+			for _, address := range resource.GatewayResource.Status.Addresses {
+				result = append(result, address.Value)
+			}
+		}
+	}
+	return result
+
 }
