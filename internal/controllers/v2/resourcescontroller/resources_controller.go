@@ -1,4 +1,4 @@
-// resourcecontroller implements all controllers for resources
+// Package resourcescontroller implements all controllers for resources in the v2 API.
 package resourcescontroller
 
 import (
@@ -33,7 +33,7 @@ func init() {
 	customvalidators.Setup(validate)
 }
 
-// Check if a cluster resource of given uid exists.
+// ExistsResources check if a cluster resource of given uid exists.
 //
 //	@Summary	Check cluster resource by uid
 //	@Schemes
@@ -121,7 +121,7 @@ func ExistsResources() gin.HandlerFunc {
 	}
 }
 
-// Get a list of hashes of saved resources for given cluster.
+// GetResourceHashList gets a list of hashes of saved resources for given cluster.
 // Parameter clusterid must match authorized clusterid
 //
 //	@Summary	Get resource hash list
