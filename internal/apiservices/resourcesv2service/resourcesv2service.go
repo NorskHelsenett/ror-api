@@ -1,3 +1,4 @@
+// Package resourcesv2service implements the v2 resource service, which is responsible for managing resources in the ROR system.
 package resourcesv2service
 
 import (
