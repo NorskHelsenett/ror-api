@@ -5,11 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/NorskHelsenett/ror-api/internal/acl/aclservice"
-	"github.com/NorskHelsenett/ror-api/internal/helpers/mongosafe"
 	"github.com/NorskHelsenett/ror/pkg/apicontracts/apiresourcecontracts"
 	"github.com/NorskHelsenett/ror/pkg/context/rorcontext"
 	"github.com/NorskHelsenett/ror/pkg/helpers/rorerror/v2"
@@ -30,7 +28,6 @@ const (
 
 type ResourceDBProvider interface {
 	Set(ctx context.Context, resource *rorresources.Resource) error
-	Patch(ctx context.Context, uid string, partial *rorresources.Resource) error
 	Get(ctx context.Context, rorResourceQuery *rorresources.ResourceQuery) (*rorresources.ResourceSet, error)
 	Del(ctx context.Context, resource *rorresources.Resource) error
 	GetHashlistByQuery(ctx context.Context, rorResourceQuery *rorresources.ResourceQuery) (apiresourcecontracts.HashList, error)
@@ -69,125 +66,6 @@ func (r *ResourceMongoDB) Set(ctx context.Context, resource *rorresources.Resour
 		return err
 	}
 	return nil
-}
-
-// Patch applies a partial update to an existing resource using MongoDB $set
-// with flattened dot-notation keys. Only non-nil fields present in the partial
-// resource are updated; all other fields in the stored document are preserved.
-func (r *ResourceMongoDB) Patch(ctx context.Context, uid string, partial *rorresources.Resource) error {
-	data, err := bson.Marshal(partial)
-	if err != nil {
-		rlog.Errorc(ctx, "Failed to marshal partial resource", err)
-		return err
-	}
-	var doc bson.M
-	if err := bson.Unmarshal(data, &doc); err != nil {
-		rlog.Errorc(ctx, "Failed to unmarshal partial resource", err)
-		return err
-	}
-
-	filter := bson.M{"uid": mongosafe.Eq(uid)}
-	flatDoc := bson.M{}
-	flattenBsonM("", doc, flatDoc)
-	if len(flatDoc) == 0 {
-		return nil
-	}
-	update := bson.M{"$set": flatDoc}
-	result, err := r.db.GetMongoDb().Collection(RESOURCECOLLECTION).UpdateOne(ctx, filter, update)
-	if err != nil {
-		rlog.Errorc(ctx, "Failed to patch resource", err)
-		return err
-	}
-	if result.MatchedCount == 0 {
-		return fmt.Errorf("resource with uid %s not found", uid)
-	}
-	return nil
-}
-
-// flattenBsonM recursively flattens a bson.M into dot-notation keys for use
-// with MongoDB $set. It skips nil values and zero-value primitives (empty
-// strings, 0, false) so that a partial update only touches fields that are
-// explicitly populated. It also stops recursing into maps whose keys contain
-// dots (e.g. Kubernetes labels/annotations).
-// It handles both bson.M and bson.D (ordered documents produced by bson.Marshal).
-func flattenBsonM(prefix string, doc bson.M, result bson.M) {
-	for key, value := range doc {
-		if value == nil {
-			continue
-		}
-		fullKey := key
-		if prefix != "" {
-			fullKey = prefix + "." + key
-		}
-		switch v := value.(type) {
-		case bson.M:
-			if len(v) == 0 {
-				continue
-			}
-			if hasDotKeys(v) {
-				result[fullKey] = value
-			} else {
-				flattenBsonM(fullKey, v, result)
-			}
-		case bson.D:
-			if len(v) == 0 {
-				continue
-			}
-			m := dToM(v)
-			if hasDotKeys(m) {
-				result[fullKey] = value
-			} else {
-				flattenBsonM(fullKey, m, result)
-			}
-		default:
-			if isZeroValue(value) {
-				continue
-			}
-			result[fullKey] = value
-		}
-	}
-}
-
-// isZeroValue returns true for primitive zero values that should be skipped
-// during partial updates: empty strings, zero numbers, and false booleans.
-func isZeroValue(v any) bool {
-	switch val := v.(type) {
-	case string:
-		return val == ""
-	case int32:
-		return val == 0
-	case int64:
-		return val == 0
-	case float64:
-		return val == 0
-	case bool:
-		return !val
-	case bson.DateTime:
-		// Go zero time marshals to -62135596800000
-		return val == 0 || val == -62135596800000
-	}
-	return false
-}
-
-// dToM converts a bson.D (ordered document) to a bson.M (unordered map).
-func dToM(d bson.D) bson.M {
-	m := make(bson.M, len(d))
-	for _, e := range d {
-		m[e.Key] = e.Value
-	}
-	return m
-}
-
-// hasDotKeys returns true if any key in the map contains a dot, indicating
-// it holds map data with dotted keys (e.g. Kubernetes labels) rather than
-// nested struct fields.
-func hasDotKeys(doc bson.M) bool {
-	for key := range doc {
-		if strings.Contains(key, ".") {
-			return true
-		}
-	}
-	return false
 }
 
 func (r *ResourceMongoDB) Get(ctx context.Context, rorResourceQuery *rorresources.ResourceQuery) (*rorresources.ResourceSet, error) {
