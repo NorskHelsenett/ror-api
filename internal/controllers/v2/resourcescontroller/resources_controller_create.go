@@ -71,6 +71,8 @@ func NewResource() gin.HandlerFunc {
 		}
 		span.AddEvent("request validated")
 
+		// Rebuilds the common resource from the input struct as it is lost in transit.
+		// As the common field is not exported, it needs to rebuilt from the struct.
 		rs, err := rorresources.NewResourceSetFromStruct(input)
 		switch {
 		case err == nil:

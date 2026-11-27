@@ -63,7 +63,8 @@ func UpdateResource() gin.HandlerFunc {
 		}
 		span.AddEvent("request validated")
 
-		// Restore typed resource and common methods lost in transit (json).
+		// Rebuilds the common resource from the input struct as it is lost in transit.
+		// As the common field is not exported, it needs to rebuilt from the struct.
 		resource, err := rorresources.NewResourceFromStruct(input)
 		switch {
 		case err == nil:
